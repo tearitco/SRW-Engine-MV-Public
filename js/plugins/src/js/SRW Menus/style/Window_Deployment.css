@@ -1,0 +1,131 @@
+.scrolled_list {
+	position: absolute;
+    left: 9.1%;
+    width: 81.8%;
+   
+    background-color: var(--section-bg-color);
+   
+    border: 0.1vw solid #FFFFFF;
+    border-radius: 1vw;
+}
+
+.deployed_list {	
+    top: 76%;
+	height: 22%;    
+}
+
+.available_list {	
+    top: 16%;
+	height: 53.5%;
+	width: 61%;
+}
+
+.list_label {
+	color: var(--text-color-highlight);
+	position: absolute;
+    right: 9%;
+	font-size:2.5px;
+}
+
+.deployed_list_label {
+	top: 70%;    
+}
+
+.available_list_label {	
+    top: 10.5%;  
+	right: 30%;
+}
+
+.list_row {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: start;
+	padding-left: 0.25%;
+	padding-top: 0.25%;
+}
+
+.list_row .entry {
+	margin: 0.25%;
+	background-color: rgba(255, 255, 255, 0.5);
+	--heightpixels: 55;
+	--widthpixels: 55;
+	flex-shrink: 0;
+	border-radius: 1vw;
+	border: 0.2vw solid rgba(255, 255, 255, 0);
+	position: relative;
+}
+
+.list_row .entry .locked_icon{
+	position: absolute;
+	top: 0;
+	right: 0;
+	filter: var(--white-filter);
+	width: 30%;
+}
+
+.list_row .entry .deployed_icon {
+	position: absolute;
+	top: -5%;
+	right: -5%;
+	filter: var(--white-filter);
+	width: 30%;
+}
+
+.list_row .entry .order_icon {
+	position: absolute;
+	right: 3%;
+	bottom: -9%;
+	color: var(--text-color-highlight);
+	font-size: 1.5px;
+}
+
+.list_row .entry .fav_icon {
+	position: absolute;
+	bottom: 0%;
+	left: 0%;
+	filter: invert(94%) sepia(85%) saturate(655%) hue-rotate(357deg) brightness(103%) contrast(89%);
+	width: 30%;
+}
+
+.list_row .entry.active {
+	border: 0.2vw solid rgba(255, 255, 255, 1);
+}
+
+.list_row .entry.swap {
+	border: 0.2vw solid rgba(60, 255, 60, 1);
+}
+
+.list_row .entry .actor_img {
+	width: 100%;
+}
+
+.list_row .entry .ship_icon {
+	filter: var(--white-filter);
+    width: 24%;
+    position: absolute;
+    bottom: 2%;
+    right: 2%;
+    transform: rotate(45deg);
+}
+
+#deployment .pilot_info {
+	position: absolute;
+    border: 0.1vw solid #FFFFFF;
+    height: 53.5%;
+    width: 20%;
+    top: 16%;
+    left: 70.8%;
+    background-color: var(--section-bg-color);
+    border-radius: 1vw;
+}
+
+#deploy_pilot_icon {
+	background-color: rgba(85, 164, 255, 0.5);
+	border: 0.1vw solid #99e3ff;
+	--widthpixels: 140;
+	--heightpixels: 140;
+    margin-left: auto;
+    margin-right: auto;
+	margin-top: 15%;
+}

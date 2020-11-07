@@ -1,0 +1,212 @@
+#battle_scene_ui_layer_text_display {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 150px;
+	background-color: var(--menu-bg-color-solid);
+	display: flex;
+	align-items: center;
+	color: #FFFFFF;
+}
+
+#battle_scene_ui_layer #icon_container {
+	width: 110px;
+	height: 110px;
+	background-color: rgba(255, 255, 255, 0.5);	
+	margin: 2%;
+}
+
+#battle_scene_ui_layer .text_container {
+	font-size: 2px;
+	height: 70%;
+	max-width: 80%;
+}
+
+#battle_scene_ui_layer {
+	position: fixed;
+	width: 0px;
+	height: 0px;	
+	top: 0;
+	left: 0;
+	z-index: 52;
+	margin: auto;
+	font-family: GameFont;
+	overflow: hidden;
+	background: none;
+	pointer-events: none;
+	display: none;
+}
+
+#battle_scene_ui_layer .bg_fade_container{
+	-webkit-mask-image: none;
+}
+
+#battle_scene_ui_layer .bg_container{
+	background: none;
+}
+
+#battle_scene_ui_layer .stats_container {
+	position: absolute;
+	top: 0;
+	right: 0;
+	background-color:rgba(179, 201, 224, 0.8);	
+	border-bottom-left-radius: 999px;
+	width: 300px;
+    height: 110px;
+    padding: 1%;
+	padding-left: 2%;
+	padding-bottom: 0;
+}
+
+#battle_scene_ui_layer .stats_container .hp_row {
+	display: flex;
+	position: relative;
+	align-items: center;
+	margin-top: 0%;
+}
+
+#battle_scene_ui_layer .stats_container .hp_row .values .value {
+	--widthpixels: 70;
+}
+
+#battle_scene_ui_layer .stats_container .en_row {
+	display: flex;
+	position: relative;
+	align-items: center;
+	margin-top: 5%;
+}
+
+#battle_scene_ui_layer .stats_container .en_row .values .value {
+	--widthpixels: 45;
+}
+
+#battle_scene_ui_layer .stats_container .en_row .bar{
+	width: 40%;
+    margin-left: auto;
+}
+
+#battle_scene_ui_layer .stats_container  .values {
+	position: absolute;
+    right: 23%;
+    display: flex;
+    top: 70%;
+    font-size: 2px;
+    color: #FFFFFF;
+	width: fit-content;
+	text-align: right;
+}
+
+#battle_scene_ui_layer .stats_container .bar {
+	background-color: black;
+	width: 100%;
+	height: 20px;	
+	border-radius: 999px;
+    overflow: hidden;
+}
+
+#battle_scene_ui_layer .stats_container .bar .fill{
+	height: 100%;
+	background-color: #53e053;
+}
+
+#battle_scene_ui_layer .stats_container .label {
+	font-size: 2px;
+	color: #FFFFFF;
+	margin-left: 5%;
+	margin-right: 3%;
+}
+
+#battle_scene_ui_layer .stats_container .en_row .bar .fill{
+	background-color: #e08a53;
+}
+
+#battle_scene_ui_layer_enemy_stats.stats_container{
+	padding-left: 1%;
+	padding-right: 2%;
+	right: auto;
+	left: 0;
+	border-bottom-left-radius: 0px;
+	border-bottom-right-radius: 999px;
+	background-color:rgba(224, 181, 179, 0.8);	
+}
+
+#battle_scene_ui_layer_enemy_stats.stats_container .label{
+	margin-right: 5%;
+	margin-left: 3%;
+}
+
+#battle_scene_ui_layer_enemy_stats.stats_container .en_row .bar {
+	margin-left: 0;
+	margin-right: auto;
+}
+
+#battle_scene_ui_layer_enemy_stats.stats_container .values{
+	left: 23%;
+}
+
+
+#battle_scene_ui_layer_damage_display {
+	--widthpixels: 200;
+	--heightpixels: 50;
+	font-size: 5px;	
+	position: absolute;
+	color: #FF0000;
+	text-shadow: 0.1vw 0.1vw 0 #222222;
+	text-align: center;
+	display: none;
+}
+
+#battle_scene_ui_layer_damage_display.forActor {
+	top: 20%;
+    left: 62%;
+}
+
+#battle_scene_ui_layer_damage_display.forEnemy {
+	top: 20%;
+    right: 62%;
+}
+
+#battle_scene_ui_layer_damage_display.shake {
+	animation: shake_damage 0.5s;
+	
+	animation-iteration-count: 1; 
+}
+
+
+@keyframes shake_damage {
+  0% { transform: translate(1px, 0px); }
+  10% { transform: translate(-1px, -0px); }
+  20% { transform: translate(-1px, 0px); }
+  30% { transform: translate(1px, 0px); }
+  40% { transform: translate(1px, -0px); }
+  50% { transform: translate(-1px, 0px); }
+  60% { transform: translate(-1px, 0px); }
+  70% { transform: translate(1px, 0px); }
+  80% { transform: translate(-1px, -0px); }
+  90% { transform: translate(1px, 0px); }
+  100% { transform: translate(1px, -0px);}
+}
+
+#battle_scene_ui_layer .notification {
+	position: absolute;
+	top: 19%;
+	height: 10%;
+	width: 30%;
+	color: #FFFFFF;
+	font-style: italic;
+	font-size: 2.5px;
+	padding-left: 1%;
+	padding-right: 1%;
+	text-shadow: 0.1vw 0.1vw 0 #222222;
+}
+
+#battle_scene_ui_layer_ally_notification {
+	right: 0;
+	text-align: right;
+}
+
+#battle_scene_ui_layer_enemy_notification {
+	left: 0;
+	text-align: left;
+}

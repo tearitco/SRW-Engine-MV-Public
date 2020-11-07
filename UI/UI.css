@@ -1,0 +1,1035 @@
+:root {
+	--text-color-highlight: #f9e343;	
+	--text-color-highlight2: #43dbf9;	
+	--text-color-rank: #a94ae5;	
+	--underline-color: rgba(200,200,200,0.5);
+	--selected-color: rgba(255, 255, 255, 0.5);
+	--white-filter: invert(88%) sepia(96%) saturate(0%) hue-rotate(10deg) brightness(105%) contrast(102%);
+	--section-bg-color:  rgba(0,67,99,0.5);
+}
+#custom_UI_layer {
+	position: fixed;
+	width: 0px;
+	height: 0px;	
+	top: 0;
+	left: 0;
+	z-index: 50;
+	margin: auto;
+	font-family: GameFont;
+	font-size: 2px; /*percent of GameCanvas width*/
+	overflow: hidden;
+}
+
+.svg_text {
+	width: 100%;
+}
+
+.face_pic_container {
+	width: 100%;
+}
+
+#custom_UI_positioning {
+	position: relative;
+	width: 100%;
+}
+
+.UI_window {
+	width: 100%;
+	height: 100%;
+}
+
+.UI_window.visible {
+	display: block;
+}
+
+.menu_section {
+	background-color: rgba(255, 255, 255, 0.5);
+	padding: 1vw;
+	border-radius: 1vw;
+	position: absolute;
+}
+
+.bg_fade_container {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	color: red;
+    -webkit-mask-image: -webkit-linear-gradient(left, rgba(208,228,247,0) 0%,rgba(10,119,213,1) 50%,rgba(135,188,234,0) 100%);
+}
+
+.bg_container {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	background:url(
+		data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAEklEQVQImWNgwALS0DCmAAoAAGfcAzFaxkR4AAAAAElFTkSuQmCC
+	) repeat;
+}
+
+.menu_header {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 35%;
+	height: 12%;
+	font-size: 3.5px;
+	color: #FFFFFF;
+	
+	font-style: italic;
+
+	background-color: rgba(0, 94, 191, 0.2);
+	border-bottom-right-radius: 50vw;
+	display: inline-flex;
+	align-items: center;
+	border-right: 0.1vw solid #FFFFFF;
+	border-bottom: 0.1vw solid #FFFFFF;
+}
+
+.menu_header div{
+	margin-left: 20%;
+}
+
+.menu_bg {
+	background: rgb(113,178,232);
+	background: -moz-linear-gradient(left,  rgba(50,161,215,1) 0%, rgba(0,67,99,1) 24%, rgba(0,67,99,1) 50%, rgba(0,67,99,1) 79%, rgba(50,161,215,1) 100%);
+	background: -webkit-linear-gradient(left,  rgba(50,161,215,1) 0%,rgba(0,67,99,1) 24%,rgba(0,67,99,1) 50%,rgba(0,67,99,1) 79%,rgba(50,161,215,1) 100%);
+	background: linear-gradient(to right,  rgba(50,161,215,1) 0%,rgba(0,67,99,1) 24%,rgba(0,67,99,1) 50%,rgba(0,67,99,1) 79%,rgba(50,161,215,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#71b2e8', endColorstr='#71b2e8',GradientType=1 );
+
+}
+
+/*===Intermission===*/
+
+#intermission_menu {
+}
+
+
+
+#intermission_menu_section_1 {
+	width: 15%;
+	top: 20%;
+	left: 5%;
+}
+
+#intermission_menu_section_mech {
+	width: 15%;
+	top: 20%;
+	left: 23%;
+	display: none;
+}
+
+#intermission_menu_section_pilot {
+	width: 15%;
+	top: 27%;
+	left: 23%;
+	display: none;
+}
+
+#intermission_menu .menu_entry {
+	text-align: center;
+	color: #FFFFFF;
+	border: 0.2vw solid rgba(0,0,0,0);
+}
+
+#intermission_menu .menu_entry.selected {
+	background-color: #FFFFFF;
+	color: #00a5ff;
+}
+
+#intermission_menu_tooltip {
+	color: #FFFFFF;
+	font-size: 1.5px;
+	position: absolute;
+	right: 0;
+	top: 4.2%;
+	width: 50%;	
+	height: 5%;
+}
+
+.tooltip_text {
+	display: inline-flex;
+	justify-content: center;	
+	width: 100%;
+}
+
+.tooltip_line {
+	height: 1.1%;
+	min-height: 1px;
+	width: 100%;
+	background: -moz-linear-gradient(left,  rgba(0,0,0,0) 0%, rgba(232,136,138,0.62) 19%, rgba(232,136,138,0.65) 20%);
+	background: -webkit-linear-gradient(left,  rgba(0,0,0,0) 0%,rgba(232,136,138,0.62) 19%,rgba(232,136,138,0.65) 20%);
+	background: linear-gradient(to right,  rgba(0,0,0,0) 0%,rgba(232,136,138,0.62) 19%,rgba(232,136,138,0.65) 20%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#a6e8888a',GradientType=1 );
+
+}
+
+#intermission_menu_deploy_count {
+	position: absolute;
+	left: 0;
+	bottom: 20%;
+	display: inline-flex;
+	justify-content: center;
+	border-right: 0.1vw solid #FFFFFF;
+	border-top: 0.1vw solid #FFFFFF;
+	font-size: 2px;
+	height: 5%;
+    align-items: center;
+    width: 30%;
+	border-top-right-radius: 100px;
+	color: var(--text-color-highlight);
+}
+
+.deploy_amount {
+	color: #FFFFFF;
+	display: inline-block;
+}
+
+#intermission_menu_divider {
+	position: absolute;
+	right: 0;
+	border-top: 0.1vw solid #FFFFFF;
+	width: 70%;
+	bottom: 20%;
+}
+
+#intermission_menu_sr_and_funds {
+	position: absolute;
+	right: 2.6%;
+	border: 0.1vw solid #FFFFFF;
+	width: 20%;
+	bottom: 2.6%;
+	padding: 1%;
+	border-radius: 1vw;
+	height: 10%;
+}
+
+.sr_display {
+	color: var(--text-color-highlight);
+	display: flex;
+}
+
+.sr_value {
+	margin-left: auto;
+	color: #FFFFFF;
+}
+
+.funds_display {
+	color: var(--text-color-highlight);
+	display: flex;
+}
+
+.funds_value {
+	margin-left: auto;
+	color: #43dbf9;
+}
+
+#intermission_menu_stage_and_turn {
+	color: #43dbf9;
+	position: absolute;
+	left: 2.6%;
+	border: 0.1vw solid #FFFFFF;
+	width: 60%;
+	bottom: 2.6%;
+	padding: 1%;
+	border-radius: 1vw;
+	height: 10%;
+}
+
+.stage_and_turn_numeric {
+	display: flex;
+}
+
+#intermission_menu_ace_display {
+	position: absolute;
+	right: 2.6%;
+	border: 0.1vw solid #FFFFFF;
+	width: 60%;
+	top: 20%;
+	border-bottom-left-radius: 1vw;
+	height: 20%;
+	width: 20%;
+	overflow: hidden;
+	background-color: rgba(255, 255, 255, 0.4);
+}
+
+#intermission_menu_ace_display_inner{
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+#intermission_menu_ace_display .face_pic_container {
+	margin-left: auto;
+	width: 58%;
+}
+
+#intermission_menu_ace_display .ace_label {
+	position: absolute;
+	left: 4%;
+	top: 0;
+	color: #FFFFFF;
+	font-style: italic;
+}
+
+#intermission_menu_ace_display .ace_value {
+	position: absolute;
+	left: 4%;
+	top: 20%;
+	color: #FFFFFF;
+	margin-left: 30%;
+}
+
+#intermission_menu_ace_display .ace_name {
+	position: absolute;
+	display: flex;
+	top: 80%;
+	color: #FFFFFF;
+	left: 0;
+	width: 100%;
+	background-color: rgba(0,0,0,0.3);
+	height: 20%;
+	justify-content: center;
+    align-items: center;
+}
+
+/*===Mech List===*/
+
+#mech_list_control {
+	border-left: 0.1vw solid #FFFFFF;
+	border-right: 0.1vw solid #FFFFFF;
+	border-bottom: 0.1vw solid #FFFFFF;
+	border-radius: 1vw;
+	border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
+	width: calc(100% - 2vw);
+	height: calc(100% - 2vw);
+	padding: 1vw;
+	background-color: rgba(0,67,99,0.5);
+	position: relative;
+}
+
+#mech_list_control_page {
+	border-left: 0.1vw solid #FFFFFF;
+	border-right: 0.1vw solid #FFFFFF;
+	border-top: 0.1vw solid #FFFFFF;
+	border-radius: 1vw;
+	border-bottom-right-radius: 0px;
+	border-bottom-left-radius: 0px;
+	height: 5%;
+	width: 10%;
+	position: absolute;
+	right: -0.3%;
+	top: -5%;
+	background-color: rgba(0,67,99,0.5);
+	color: #FFFFFF;
+	font-size: 1.6px;
+	text-align: center;
+}
+
+#mech_list_control_top_border {
+	border-top: 0.1vw solid #FFFFFF;
+	width: 90%;
+	position: absolute;
+	left: 0%;
+	top: 0%;
+}
+
+#mech_list {
+	
+}
+
+.list_container {
+	position: relative;
+	top: 15%;
+	width: 70%;
+	margin-left: auto;
+	margin-right: auto;
+	height: 60%;
+}
+
+.unit_list_table {
+	width: 100%;
+	color: #FFFFFF;
+
+	text-align: left;
+	border-collapse: collapse;
+}
+
+.list_table_row {
+	display: flex;
+	align-items: center;
+	width: 100%;
+}
+
+.sort_col span{
+	background-color: rgba(255, 200, 255, 0.3);
+}
+
+.list_table_row .list_table_block:nth-child(1){
+	width: 10%;
+	font-size: 1.8px;	
+}
+
+.list_table_row .list_table_block:nth-child(2){
+	width: 30%;
+	font-size: 1.8px;		
+}
+
+.list_table_row .list_table_block:nth-child(3){
+	width: 15%;
+	font-size: 1.8px;
+}
+
+.list_table_row .list_table_block:nth-child(4){
+	width: 10%;
+	font-size: 1.8px;
+}
+
+.list_table_row .list_table_block:nth-child(5){
+	width: 10%;
+	font-size: 1.8px;
+}
+
+.list_table_row .list_table_block:nth-child(6){
+	width: 10%;
+	font-size: 1.8px;
+}
+
+.list_table_row .list_table_block:nth-child(7){
+	width: 10%;
+	font-size: 1.8px;
+}
+
+.unit_list_table.pilot_stats .list_table_row .list_table_block:nth-child(4){
+	width: 10%;
+}
+
+.unit_list_table.pilot_stats .list_table_row .list_table_block:nth-child(5){
+	width: 20%;
+}
+
+.unit_list_table.pilot_stats .list_table_row .list_table_block:nth-child(6){
+	width: 10%;
+}
+
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block:nth-child(4){
+	width: 7%;
+}
+
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block:nth-child(5){
+	width: 12%;
+}
+
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block:nth-child(6){
+	width: 12%;
+}
+
+.unit_list_table.mech_ability .list_table_row .list_table_block:nth-child(4){
+	width: 10%;
+	text-align: center;
+}
+
+.unit_list_table.mech_ability .list_table_row .list_table_block:nth-child(5){
+	width: 12%;
+	text-align: center;
+}
+
+.unit_list_table.mech_ability .list_table_row .list_table_block:nth-child(6){
+	width: 10%;
+	text-align: center;
+}
+
+.unit_list_table.mech_ability .list_table_row .list_table_block:nth-child(7){
+	width: 10%;
+	text-align: center;
+}
+
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block.header:nth-child(7){
+	width: 3.5%;
+	font-size: 1.4px;
+	text-align: center;
+	color: var(--text-color-highlight2);
+}
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block.header:nth-child(8){
+	width: 3.5%;
+	font-size: 1.4px;
+	text-align: center;
+	color: var(--text-color-highlight2);
+}
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block.header:nth-child(9){
+	width: 3.5%;
+	font-size: 1.4px;
+	text-align: center;
+	color: var(--text-color-highlight2);
+}
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block.header:nth-child(10){
+	width: 3.5%;
+	font-size: 1.4px;
+	text-align: center;
+	color: var(--text-color-highlight2);
+}
+
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block:nth-child(7){
+	width: 3.5%;
+	font-size: 1.8px;
+	text-align: center;
+}
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block:nth-child(8){
+	width: 3.5%;
+	font-size: 1.8px;
+	text-align: center;
+}
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block:nth-child(9){
+	width: 3.5%;
+	font-size: 1.8px;
+	text-align: center;
+}
+.unit_list_table.mech_stats_2 .list_table_row .list_table_block:nth-child(10){
+	width: 3.5%;
+	font-size: 1.8px;
+	text-align: center;
+}
+
+.unit_list_table.mech_upgrades .list_table_row .list_table_block:nth-child(4){
+	width: 20%;
+	text-align: center;
+}
+
+.unit_list_table.mech_upgrades .list_table_row .list_table_block:nth-child(5){
+	width: 20%;
+	text-align: center;
+}
+
+
+.list_table_row.selected {
+	background-color: var(--selected-color);
+	color: #FFFFFF;
+}
+
+.list_table_block.header {
+	color: var(--text-color-highlight);
+	margin-top: 1%;
+	margin-bottom: 1%;
+}
+
+#mech_list_control_details {
+	position: absolute;
+	width: 48%;
+	height: 97%;
+	left: 51%;
+	top: 1%;
+	background-color: rgba(174, 219, 241, 0.5);
+	border: 0.1vw solid rgba(174, 219, 241, 0.9);
+}
+
+.list_pilot_icon {
+	width: 50%;
+	margin-top: 10%;
+}
+
+.list_mech_icon {
+	margin-top: 10%;
+	width: 50%;
+    margin-left: 10%;
+}
+
+.list_detail {
+	position: absolute;
+    top: 77%;
+    left: 0;
+    width: 70%;
+    height: 10%;
+    background-color: var(--section-bg-color);
+    margin-left: 15%;
+    border: 0.1vw solid #FFFFFF;
+    border-radius: 1vw;
+    display: flex;
+    align-items: center;
+}
+
+#detail_list_icon {
+	width: 5%;
+	margin-left: 1%;
+}
+
+.mech_hp_en_container {
+	position: relative;
+	width: 20%;
+	height: 100%;
+	margin-left: 1%;
+	margin-top: -1%;
+}
+
+.mech_hp_en_container .hp_label{
+	color: var(--text-color-highlight);
+	position: absolute;
+	font-style: italic;
+	font-size: 1.8px;
+	top: 30%;
+}
+
+.mech_hp_en_container .en_label{
+	color: var(--text-color-highlight);
+	position: absolute;
+	font-style: italic;
+	font-size: 1.8px;
+	top: 60%;
+}
+
+.mech_hp_en_container .hp_display {
+	font-size: 1.8px;
+	width: 100%;
+	display: flex;
+	color: white;
+	font-style: italic;
+	text-align: right;
+	position: absolute;
+    left: 8%;
+	top: 10%;
+}
+
+.mech_hp_en_container .hp_display .current_hp{
+	width: 40%;
+}
+
+.mech_hp_en_container .hp_display .divider{
+	text-align: left;
+	width: 10%;
+}
+
+.mech_hp_en_container .hp_display .max_hp{
+	width: 40%;
+}
+
+.mech_hp_en_container .en_display {
+	font-size: 1.8px;
+	width: 50%;
+	display: flex;
+	color: white;
+	font-style: italic;
+	text-align: right;
+	position: absolute;
+    left: 52%;
+    top: 60%;	
+}
+
+.mech_hp_en_container .en_display .current_en{
+	width: 40%;
+}
+
+.mech_hp_en_container .en_display .divider{
+	text-align: left;
+	width: 10%;
+}
+
+.mech_hp_en_container .en_display .max_en{
+	width: 40%;
+}
+
+.mech_hp_en_container .hp_bar {
+	width: 80%;
+	height: 10%;
+	top: 50%;
+    position: absolute;
+    left: 17%;
+	border: 0.1vw solid #FFFFFF;
+	background-color: black;
+}
+
+.mech_hp_en_container .hp_bar_fill {
+	height: 100%;
+	background-color: #58b3ff;
+}
+
+.mech_hp_en_container .en_bar {
+	width: 35%;
+	height: 10%;
+	top: 76%;
+    position: absolute;
+    left: 17%;
+	border: 0.1vw solid #FFFFFF;
+	background-color: black;
+}
+
+.mech_hp_en_container .en_bar_fill {
+	height: 100%;
+	background-color: #ff8458;
+}
+
+.mech_stats_container {
+	position: absolute;
+	height: 100%;
+	
+	font-size: 2px;
+	justify-content: center;
+    align-items: center;
+	width: 75%;
+	padding-left: 6%;
+}
+
+.stat_section {
+	position: absolute;
+	border-bottom: 0.1vw solid var(--underline-color);
+	display: inline-flex;
+	top: 22%;
+}
+
+.mech_stats_container .stat_section_move {
+	width: 11%;
+    left: 40%;
+}
+
+.mech_stats_container .stat_section_armor {
+	width: 19%;
+    left: 53%;
+}
+
+.mech_stats_container .stat_section_mobility {
+	width: 22.5%;
+    left: 74%;
+}
+
+.mech_stats_container .stat_section_accuracy {
+	width: 23%;
+    left: 98.5%;
+}
+
+.mech_stats_container .stat_label {
+	color: var(--text-color-highlight);
+	margin-right: 10%;
+}
+
+.mech_stats_container .stat_value {
+	color: #FFFFFF;
+}
+
+#detail_list_icon_pilot {
+	width: 5%;
+	margin-left: 1%;
+}
+
+.actor_name {
+	color: #FFFFFF;
+	margin-left: 1%;
+}
+
+.stat_section_level {
+	left: 65%;
+    width: 12%;
+}
+
+.stat_section_sp {
+	left: 82%;
+    width: 15%;
+}
+
+.stat_section_pp {
+	left: 99%;
+    width: 15%;
+}
+
+.stat_value {
+	margin-left: auto;
+}
+
+.page_indicator {
+    width: 38%;
+    height: 5%;
+    top: -4.2%;
+    right: 10%;
+    position: absolute;
+    display: flex;
+}
+
+.page_indicator .page_block {
+	margin-left: 1%;
+	margin-right: 1%;
+	height: 100%;
+	/*width: 20%;*/
+	font-size: 1.2px;
+	text-align: center;
+	border: 0.1vw solid rgba(174, 219, 241, 0.9);
+	background-color: #538ca7;
+	border-bottom: 0px;
+	font-weight: bold;
+	padding-left: 2%;
+    padding-right: 2%;
+	white-space: nowrap;
+}
+
+.page_indicator .page_block.selected {
+	color: white;
+}
+
+.weapon_rank {
+	display: inline-block;
+	color: var(--text-color-rank);
+}
+
+.detail_bar_upgrades .mod_level_label {
+	position: absolute;
+	top: 5%;
+	left: 1%;
+	color: var(--text-color-highlight);	
+	font-size: 1.8px;
+}
+
+.detail_bar_upgrades .upgrade_block {
+	border-bottom: 0.1vw solid var(--underline-color);
+	position: absolute;	
+	width: 18px;
+	height: 2.5px;
+	display: flex;
+	align-items: flex-end;
+}
+
+.detail_bar_upgrades .upgrade_block .label {
+	color: var(--text-color-highlight);
+	display: inline-block;
+	width: 30%;
+}
+
+.detail_bar_upgrades .upgrade_block .value {
+	color: #FFFFFF;
+	display: inline-block;
+	width: 20%;
+	text-align: right;
+}
+
+.detail_bar_upgrades .upgrade_block .bar {
+	color: #FFFFFF;
+	display: inline-block;
+	width: 50%;
+}
+
+.detail_bar_upgrades .upgrade_block.HP {
+	top: 1%;
+	left: 16%;
+	font-size: 1.6px;
+}
+
+.detail_bar_upgrades .upgrade_block.armor {
+	top: 1%;
+	left: 43%;
+	font-size: 1.6px;
+}
+
+.detail_bar_upgrades .upgrade_block.accuracy {
+	top: 1%;
+	left: 70%;
+	font-size: 1.6px;
+}
+
+.detail_bar_upgrades .upgrade_block.EN {
+	top: 50%;
+	left: 16%;
+	font-size: 1.6px;
+}
+
+.detail_bar_upgrades .upgrade_block.mobility {
+	top: 50%;
+	left: 43%;
+	font-size: 1.6px;
+}
+
+.detail_bar_upgrades .upgrade_block.weapon {
+	top: 50%;
+	left: 70%;
+	font-size: 1.6px;
+}
+
+.upgrade_bar {
+	border: 0.1vw solid var(--underline-color);
+	display: flex;
+}
+
+.detail_bar_upgrades .upgrade_block .upgrade_bar {
+    width: 35%;
+    height: 50%;
+    margin-left: 6%;
+    top: 15%;
+    padding: 1%;
+    position: absolute;
+}
+
+.upgrade_bar_part {
+	height: 100%;
+	width: 6%;
+	margin-left: 2%;
+	margin-right: 2%;
+	background-color: rgba(85, 85, 85, 0.5);
+	display: inline-block;
+}
+
+.upgrade_bar_part.active {
+	background-color: #e5406e;
+}
+
+.upgrade_bar_part.pending {
+	background-color: #40e59c;
+}
+
+.upgrade_controls {
+	position: absolute;	
+	height: 36%;
+	top: 54%;	
+	border: 0.1vw solid #FFFFFF;
+	border-radius: 1vw;
+	left: 37%;
+    width: 58%;
+	background-color: var(--section-bg-color);
+}
+
+.weapon_upgrade_container {
+	margin: 1%;
+	width: 98%;
+	height: 15%;
+	border: 0.1vw solid var(--underline-color);
+}
+
+.stat_upgrade_container {
+	margin: 1%;
+	width: 98%;
+	height: 73%;
+	border: 0.1vw solid var(--underline-color);
+}
+
+.upgrade_entry {
+	display: flex;
+	align-items: center;
+	position: relative;
+}
+
+.upgrade_entry.selected {
+	background-color: var(--selected-color);
+}
+
+.upgrade_entry_label {
+	font-size: 2px;
+	color: var(--text-color-highlight);
+	margin-left: 3%;
+}
+
+.upgrade_entry_current {
+	font-size: 2px;
+	color: #FFFFFF;
+	margin-left: auto;
+
+}
+
+.upgrade_entry_chevron {
+	width: 3.2%;
+    margin-top: 0.5%;
+	margin-left: 5%;
+}
+
+.upgrade_entry_chevron img{
+	width: 100%;
+	filter: var(--white-filter);
+}
+
+.upgrade_entry_new {
+	font-size: 2px;
+	color: #FFFFFF;
+	width: 12%;
+	margin-right: 30%;
+	text-align: right;
+}
+
+.upgrade_entry_bar .upgrade_bar {
+	position: absolute;
+    width: 20%;
+    height: 50%;
+    right: 5%;
+    top: 21%;
+	padding: 0.2%;
+}
+
+.fund_display {
+	position: absolute;
+	height: 36%;
+	top: 54%;
+	border: 0.1vw solid #FFFFFF;
+	border-radius: 1vw;
+	width: 30%;
+    left: 5%;
+	background-color: var(--section-bg-color);
+}
+
+.fund_entries {
+	height: 90%;
+}
+
+.fund_entry {
+	display: flex;
+	align-items: flex-end;
+	width: 90%;
+	margin-left: 5%;
+	border-bottom: 0.1vw solid var(--underline-color);
+	height: 33%;
+}
+
+.fund_entry:first {
+	
+}
+
+.fund_entry_label {
+	color: var(--text-color-highlight);
+}
+
+.fund_entry_value {
+	color: #FFFFFF;
+	margin-left: auto;
+}
+
+.fund_entry_value.underflow {
+	color: #FF0000;
+}
+
+.upgrade_level_display {
+	position: absolute;
+    display: flex;
+    left: 73%;
+    top: 47.5%;
+    width: 20%;
+    height: 2%;
+    background-color: var(--section-bg-color);
+    border-radius: 999px;
+    padding: 1%;
+    align-items: center;
+	border: 0.1vw solid #FFFFFF;
+}
+
+.upgrade_level_label {
+	color: var(--text-color-highlight);
+}
+
+.upgrade_level_value {
+	color: #FFFFFF;
+	margin-left: auto;
+}
+
+.upgrade_mech_name {
+	position: absolute;
+    left: 5%;
+    top: 17%;
+    width: 40%;
+    height: 0.5%;
+    display: flex;
+    z-index: 1;
+    align-items: flex-end;
+    padding-left: 2%;
+    background: -moz-linear-gradient(left,  rgba(148,211,252,1) 45%, rgba(134,198,241,1) 66%, rgba(112,176,224,0) 100%);
+	background: -webkit-linear-gradient(left,  rgba(148,211,252,1) 45%,rgba(134,198,241,1) 66%,rgba(112,176,224,0) 100%);
+	background: linear-gradient(to right,  rgba(148,211,252,1) 45%,rgba(134,198,241,1) 66%,rgba(112,176,224,0) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#94d3fc', endColorstr='#0070b0e0',GradientType=1 );
+}
+
+#upgrade_name_icon {
+	width: 10%;
+}
+
+.upgrade_mech_name_value {
+	color: #FFFFFF;
+	margin-left: 5%;
+}

@@ -1,0 +1,194 @@
+#unit_summary {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0,0,0,0);
+	color: #FFFFFF;
+}
+
+#unit_summary .bg_fade_container {
+    -webkit-mask-image: none;   
+    justify-content: center;  
+    font-size: 2.4px;   
+	--widthpixels: 500;
+	--heightpixels: 157;
+    padding: 0;
+    margin: 0;
+	background-color: rgba(38, 110, 172, 0.9);
+	position: absolute;
+	top: 0;
+	right: 0;
+	border-bottom-left-radius: 1vw;
+}
+
+#unit_summary .bg_fade_container.enemy {
+	background-color: rgba(172, 38, 38, 0.9);
+}
+
+#unit_summary .unit_summary_content {
+    width: 100%;
+    height: 91%;
+	white-space: nowrap;
+	color: #FFFFFF;
+	position: relative;
+}
+
+#unit_summary .unit_summary_content .ship_icon {
+	filter: var(--white-filter);
+    width: 5%;
+    position: absolute;
+    top: 0;
+    right: 1%;
+    transform: rotate(45deg);
+}
+
+#unit_summary .unit_summary_row {
+	width: 100%;
+	display: flex;
+}
+
+#unit_summary .unit_summary_row.unit_summary {
+	height: 40%;
+	margin-bottom: 1%;
+	display: flex;
+}
+
+#unit_summary .unit_summary_row.details {
+	height: 59%;
+	display: flex;
+}
+
+#unit_summary .unit_summary_block {
+	border: 0.1vw solid #94c2ee;
+	width: 72%;
+	margin-left: auto;
+	background-color: rgba(10, 26, 75, 0.8);
+	position: relative;
+}
+
+#unit_summary .unit_summary_block .name{
+	position: absolute;
+	top: 0%;
+    left: 2%;
+}
+
+#unit_summary .unit_summary_block .unit_summary_text{
+	position: absolute;
+	top: 31%;
+    left: 29%;
+    font-style: italic;
+	font-size: 3px;
+}
+
+#unit_summary .unit_summary_block .unit_summary_delta{
+	position: absolute;
+	display: flex;
+	align-items: center;
+	top: 73%;
+    left: 68%;
+}
+
+
+#unit_summary #unit_summary_icon {
+	--widthpixels: 136;
+	--heightpixels: 136;
+	background-color: rgba(255, 255, 255, 0.5);
+	height: 80%;
+	margin: 2%;
+}
+
+#unit_summary .pilot_name{
+	font-size: 2.2px;
+	--widthscaling: 30;
+	position: absolute;
+	top: 6%;
+    left: 32%;
+	color: #FFFFFF;
+	white-space: nowrap;
+}
+#unit_summary .pilot_stats{
+	font-size: 2.2px;
+	display: flex;
+	align-items: center;
+	color: #FFFFFF;
+	position: absolute;
+	top: 25%;
+    right: 28%;	
+}
+
+#unit_summary .pilot_stats .label{ 
+	color: var(--text-color-highlight);
+	margin-right: auto;
+}
+
+#unit_summary .pilot_stats .level{
+	display: flex;
+	align-items: center;
+	--widthscaling: 8;
+	margin-left: 10%;
+}
+
+#unit_summary .pilot_stats .will{
+	display: flex;
+	align-items: center;
+	--widthscaling: 12;
+	margin-left: 10%;
+}
+
+#unit_summary .mech_hp_en_container {
+	position: relative;
+    width: 93%;
+    height: 100%;
+    margin-left: 8%;
+    margin-top: -20%;
+}
+
+#unit_summary .mech_hp_en_container .hp_bar{
+	width: 20%;
+    height: 5%;
+    top: 38%;
+    left: 29%;
+}
+
+#unit_summary .mech_hp_en_container .en_bar{
+	width: 13%;
+    height: 5%;
+    top: 38%;  
+    left: 59%;
+}
+
+#unit_summary .mech_hp_en_container .hp_label{
+	top: 23%;
+    left: 31%;
+    z-index: 2;
+}
+
+#unit_summary .mech_hp_en_container .en_label{
+	top: 23%;
+    left: 61%;
+    z-index: 2;
+}
+
+#unit_summary .mech_hp_en_container .en_display{
+	top: 23%;
+}
+
+#unit_summary .mech_hp_en_container .en_display .divider{
+	display: none;
+}
+
+#unit_summary .mech_hp_en_container .en_display .max_en{
+	display: none;
+}
+
+#unit_summary .mech_hp_en_container .hp_display{
+	top: 23%;
+}
+
+#unit_summary .mech_hp_en_container .hp_display .divider{
+	display: none;
+}
+
+#unit_summary .mech_hp_en_container .hp_display .max_hp{
+	display: none;
+}

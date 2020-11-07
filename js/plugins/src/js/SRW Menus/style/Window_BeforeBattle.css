@@ -1,0 +1,506 @@
+#before_battle_enemy_header {
+	position: absolute;
+	border: 0.1vw solid #FFFFFF;
+	height: 10%;
+	width: 48%;
+	border-top-right-radius: 999px;
+	border-bottom-right-radius: 999px;
+	top: 2%;
+	left: 0%;
+	background-color: rgba(172, 38, 38, 0.7);
+	color: #FFFFFF;
+	font-size: 3px;
+	border-left: 0px;
+	display: flex;
+	align-items: center;
+}
+
+#before_battle_enemy_header.support_selection_header {
+	background-color: rgba(38, 110, 172, 0.7);
+}
+
+#before_battle .enemy_label {
+	margin-left: auto;
+	margin-right: 10%;
+}
+
+#before_battle_ally_header {
+	position: absolute;
+	border: 0.1vw solid #FFFFFF;
+	height: 10%;
+	width: 48%;
+	border-top-left-radius: 999px;
+	border-bottom-left-radius: 999px;
+	top: 2%;
+	right: 0%;
+	background-color: rgba(38, 110, 172, 0.7);
+	color: #FFFFFF;
+	font-size: 3px;
+	border-right: 0px;
+	display: flex;
+	align-items: center;
+}
+
+#before_battle .ally_label {
+	margin-right: auto;
+	margin-left: 10%;
+}
+
+#before_battle_ally_main {
+	position: absolute;
+	border: 0.1vw solid #FFFFFF;
+	height: 30%;
+	width: 48%;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	top: 17%;
+	right: 0%;
+	background-color: rgba(38, 110, 172, 0.7);
+	color: #FFFFFF;
+	border-right: 0px;
+	display: flex;
+	align-items: center;
+}
+
+#before_battle_ally_support {
+	position: absolute;
+	border: 0.1vw solid #FFFFFF;
+	height: 30%;
+	width: 48%;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	top: 51%;
+	right: 0%;
+	background-color: rgba(38, 110, 172, 0.7);
+	color: #FFFFFF;
+	border-right: 0px;
+	display: flex;
+	align-items: center;
+}
+
+#before_battle_enemy_main {
+	position: absolute;
+	border: 0.1vw solid #FFFFFF;
+	height: 30%;
+	width: 48%;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	top: 17%;
+	left: 0%;
+	background-color: rgba(172, 38, 38, 0.7);
+	color: #FFFFFF;
+	border-left: 0px;
+	display: flex;
+	align-items: center;
+}
+
+#before_battle_enemy_support {
+	position: absolute;
+	border: 0.1vw solid #FFFFFF;
+	height: 30%;
+	width: 48%;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	top: 51%;
+	left: 0%;
+	background-color: rgba(172, 38, 38, 0.7);
+	color: #FFFFFF;
+	border-left: 0px;
+	display: left;
+	align-items: center;
+}
+
+.participant_block {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+.participant_block .action_row {
+	width: 100%;
+	background-color: rgba(255,255,255,0.1);
+	color: #FFFFFF;
+	display: flex;
+	padding-left: 2%;
+	font-size: 2.5px;
+	margin-bottom: auto;
+	height: 21%;
+}
+
+.participant_block .main_row {
+	height: 79%;
+	width: 100%;
+	display: flex;
+}
+
+
+
+.participant_block .main_row .percent_indicator {
+	margin-right: auto;
+	height: 100%;
+	width: 9%;
+	background-color: rgba(255,255,255,0.1);
+	color: #FFFFFF;
+	font-size: 2px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.participant_block .main_row .main_content {
+	height: 100%;
+	width: 91%;
+	font-size: 2px;
+	position: relative;
+	overflow: hidden;
+}
+
+.participant_block .main_row .main_content .pilot_icon {
+	--heightpixels: 120;
+	--widthpixels: 120;
+	background-color: rgba(85, 164, 255, 0.5);
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.participant_block .main_row .main_content .enemy_icon {
+	--heightpixels: 120;
+	--widthpixels: 120;
+	background-color: rgba(85, 164, 255, 0.5);
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.participant_block .main_row .main_content .pilot_name{
+	font-size: 2.2px;
+	--widthscaling: 13;
+	position: absolute;
+	top: 0%;
+    left: 27%;
+}
+
+.participant_block .main_row .main_content .pilot_stats {
+	font-size: 2.2px;
+	display: flex;
+	align-items: center;
+	color: #FFFFFF;
+	position: absolute;
+	top: 0%;
+    right: 1%;
+}
+
+.participant_block .main_row .main_content .pilot_stats .label{ 
+	color: var(--text-color-highlight);
+	margin-right: auto;
+}
+
+.participant_block .main_row .main_content .pilot_stats .level{
+	display: flex;
+	align-items: center;
+	--widthscaling: 8;
+	margin-left: 10%;
+}
+
+.participant_block .main_row .main_content .pilot_stats .will{
+	display: flex;
+	align-items: center;
+	--widthscaling: 12;
+	margin-left: 10%;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container {
+	width: 100%;
+    height: 100%;
+	margin-top: 0.5%;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .hp_bar{
+	width: 20%;
+    height: 5%;
+    top: 38%;
+    left: 29%;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .en_bar{
+	width: 13%;
+    height: 5%;
+    top: 38%;  
+    left: 59%;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .hp_label{
+	top: 23%;
+    left: 31%;
+    z-index: 2;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .en_label{
+	top: 23%;
+    left: 61%;
+    z-index: 2;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .en_display{
+	top: 23%;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .en_display .divider{
+	display: none;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .en_display .max_en{
+	display: none;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .hp_display{
+	top: 23%;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .hp_display .divider{
+	display: none;
+}
+
+.participant_block .main_row .main_content .mech_hp_en_container .hp_display .max_hp{
+	display: none;
+}
+
+.participant_block .main_row .main_content .attack_name {
+	font-size: 2.2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+
+    right: 0%;
+    color: #FFFFFF;
+    width: 74%;
+    top: 56%;
+    background-color: rgba(255,255,255,0.2);
+}
+
+.participant_block .main_row .main_content .attack_name .attack_list_type {
+	margin-right: 2%;
+}
+
+.participant_block .active_spirits {
+	width: 100%;
+	height: 10%;
+	font-size: 1.5px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: absolute;
+    top: 91%;
+    left: 0%;
+}
+
+.participant_block .active_spirits .spirit_entry {
+	--widthpixels: 28;
+	--heightpixels: 20;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	border-top: 0.1vw solid #FFFFFF;
+	border-right: 0.1vw solid #FFFFFF;
+	border-bottom: 0.1vw solid #FFFFFF;
+	color: rgba(222,222,222,0.6);
+}
+
+.participant_block .active_spirits .spirit_entry.active {
+	color: rgba(255,255,255,1);
+}
+
+.participant_block .active_spirits .spirit_entry:nth-child(1) {
+	border-left: 0.1vw solid #FFFFFF;
+}
+
+.participant_block.enemy .main_row .main_content .enemy_icon{
+	right: 0;
+	left: auto;
+}
+
+.participant_block.enemy .main_row .main_content .pilot_stats  {
+	right: 27%;
+	left: auto;
+}
+
+.participant_block.enemy .main_row .main_content .pilot_name{
+	right: auto;
+	left: 1%;
+}
+
+.participant_block.enemy .main_row .main_content .attack_name{
+	right: auto;
+	left: 0;
+}
+
+.participant_block.enemy .action_row{
+	width: 98%;
+	padding-right: 2%;
+	justify-content: flex-end;
+	padding-left: 0;
+}   
+
+.participant_block.enemy .mech_hp_en_container {
+	margin-left: -2%;
+}
+
+#before_battle .action_btn {
+	width: 14%;
+	height: 6%;
+	border: 0.1vw solid #FFFFFF;
+	font-style: italic;
+	color: #FFFFFF;
+	font-size: 2px;
+	position: absolute;
+	border-radius: 999px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--section-bg-color);
+}
+
+#before_battle .action_btn.selected {
+	background-color: var(--selected-color);
+}
+
+#before_battle_btn_start {
+	left: 77%;
+    top: 83%;
+	color: var(--text-color-highlight);
+}
+
+#before_battle_btn_demo {
+	left: 61%;
+    top: 83%;
+}
+
+#before_battle_btn_asssist {
+	left: 45%;
+    top: 83%;
+}
+
+#before_battle_btn_action {
+	left: 29%;
+    top: 83%;
+}
+
+#before_battle_support_selection {
+	width: 48%;
+	height: 64%;
+	border: 0.1vw solid #FFFFFF;	
+	border-left: 0;
+	color: #FFFFFF;
+	font-size: 2px;
+	position: absolute;
+	border-bottom-right-radius: 5px;
+	border-top-right-radius: 5px;
+	top: 17%;
+	left: 0;
+	background-color: var(--section-bg-color);
+}
+
+#before_battle_support_selection .support_candiate_block {
+	width: 100%;
+	height: 21%;
+	position: relative;
+}
+
+#before_battle_support_selection #selected_candidate {
+	background-color: var(--selected-color); 
+}
+
+#before_battle_support_selection .support_candiate_block:nth-child(even) {
+	background-color: rgba(255,255,255,0.1);
+}
+
+#before_battle_support_selection .support_candiate_block.none {
+	height: 16%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: #EEEEEE;
+} 
+
+.support_candiate_block .action_row{ 
+	display: none;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .attack_name{ 
+	display: none;
+}
+
+.support_candiate_block .active_spirits {
+	display: none;
+}
+
+.support_candiate_block .main_row{ 
+	height: 100%;
+}
+
+
+.support_candiate_block .main_row .percent_indicator {
+	display: none;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .mech_hp_en_container .en_bar {
+	top: 68%;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .mech_hp_en_container .hp_bar {
+	top: 68%;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .mech_hp_en_container .hp_label{
+	top: 41%;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .mech_hp_en_container .en_label{
+	top: 41%;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .mech_hp_en_container .hp_display{
+	top: 41%;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .mech_hp_en_container .en_display{
+	top: 41%;
+}
+
+.support_candiate_block .participant_block .main_row .main_content .pilot_icon {
+	--heightpixels: 80;
+	--widthpixels: 80;
+}
+
+.support_candiate_block_divider {
+	height: 0.5%;
+	min-height: 1px;
+	width: 100%;
+	
+}
+
+#before_battle_action_selection {
+	position: absolute;
+	width: 10%;
+	height: 16%;
+	top: 66%;
+    left: 31%;
+	border-radius: 5px;
+	border: 0.1vw solid #FFFFFF;
+	background-color: var(--section-bg-color-solid);
+	font-size: 2px;
+	color: #FFFFFF;
+	display: none;
+}
+
+#before_battle_action_selection .action_block {	
+	display: flex;
+	align-items: center;
+	padding-left: 10%;
+}
+
+#before_battle_action_selection .action_block.selected {
+	background-color: var(--selected-color);
+}

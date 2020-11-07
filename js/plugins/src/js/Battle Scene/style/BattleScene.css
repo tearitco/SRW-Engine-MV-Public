@@ -1,0 +1,103 @@
+#battle_scene_layer {
+	position: fixed;
+	width: 0px;
+	height: 0px;	
+	top: 0;
+	left: 0;
+	z-index: 51;
+	margin: auto;
+	font-family: GameFont;
+	overflow: hidden;
+	display: none;
+}
+
+#render_canvas {
+	width: 100%;
+	height: 100%;
+	touch-action: none;
+}
+
+#_testcanvas {
+	width: 100%;
+	height: 100%;
+	touch-action: none;
+}
+
+#fade_container {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	touch-action: none;
+	z-index: 59;	
+	opacity: 0;
+	left: 0;
+    top: 0;
+}
+
+#fade_container.fade_to_black {
+	background-color: #000000;
+	animation-name: fade_to;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+#fade_container.fade_to_white {
+	background-color: #FFFFFF;
+	animation-name: fade_to;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+#fade_container.fade_to_white_slow {
+	background-color: #FFFFFF;
+	animation-name: fade_to;
+	animation-duration: 0.6s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes fade_to {
+	 0% { opacity: 0;}
+  100% { opacity: 1;}
+}
+
+#fade_container.fade_from_black {
+	background-color: #000000;
+	animation-name: fade_from;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+#fade_container.fade_from_white {
+	background-color: #FFFFFF;
+	animation-name: fade_from;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+#fade_container.fade_from_white_slow {
+	background-color: #FFFFFF;
+	animation-name: fade_from;
+	animation-duration: 0.6s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes fade_from {
+	 0% { opacity: 1;}
+  100% { opacity: 0;}
+}
+
+#fps_counter {
+	position: fixed;
+	background-color: black;
+	border: 2px solid red;
+	text-align: center;
+	font-size: 16px;
+	color: white;
+	top: 15px;
+	right: 10px;
+	width: 60px;
+	height: 20px;
+	z-index: 60;
+	display: none;
+}

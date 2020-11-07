@@ -1,0 +1,852 @@
+function BattleCalc(){
+	this._weaponTerrainValues = {
+		"S": 1.1,
+		"A": 1.0,
+		"B": 0.8,
+		"C": 0.6,
+		"D": 0.5,
+	};
+	this._mechTerrainValues = {
+		"S": 1.1,
+		"A": 1.0,
+		"B": 0.9,
+		"C": 0.8,
+		"D": 0.6,
+	};
+	this._mechSizeValues = {
+		"S": 1.1,
+		"M": 1.0,
+		"1L": 0.9,
+		"2L": 0.8
+	};
+	this._sizeEvadeMod = {
+		"S": 0.8,
+		"M": 1.0,
+		"1L": 1.2,
+		"2L": 1.4
+	};
+}
+
+BattleCalc.prototype.isTargetInRange = function(originPos, targetPos, range, minRange){
+	var deltaX = Math.abs(targetPos.x - originPos.x);
+	var deltaY = Math.abs(targetPos.y - originPos.y);
+	return deltaX + deltaY <= range && deltaX + deltaY >= minRange;
+}
+
+BattleCalc.prototype.performPPCalculation = function(attacker, defender){
+	var attackerLevel = attacker.SRWStats.pilot.level;
+	var defenderLevel = defender.SRWStats.pilot.level;
+	var defenderTotalYield = defender.SRWStats.pilot.PPYield + defender.SRWStats.mech.PPYield ;
+	var totalExp = defenderTotalYield * (defenderLevel/attackerLevel);
+	if(totalExp < 1){
+		totalExp = 1;
+	}
+	if(totalExp > 100){
+		totalExp = 100;
+	}
+	return Math.floor(totalExp);
+}
+
+BattleCalc.prototype.performExpCalculation = function(attacker, defender){
+	var attackerLevel = attacker.SRWStats.pilot.level;
+	var defenderLevel = defender.SRWStats.pilot.level;
+	var defenderTotalYield = defender.SRWStats.pilot.expYield + defender.SRWStats.mech.expYield ;
+	var totalExp = defenderTotalYield * (defenderLevel/attackerLevel);
+	if(totalExp < 10){
+		totalExp = 10;
+	}
+	if(totalExp > 800){
+		totalExp = 800;
+	}
+	if($statCalc.getActiveSpirits(attacker).gain){
+		totalExp*=2;
+		$statCalc.clearSpirit(attacker, "gain");
+	}
+	return Math.floor(totalExp);
+}
+
+BattleCalc.prototype.performCritCalculation = function(attackerInfo, defenderInfo){
+	var result = 0;
+	var attackerAction = attackerInfo.action;
+	if(attackerAction.type == "attack"){
+		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
+		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
+		var weaponInfo = attackerAction.attack;			
+		var attackerTerrainMod = $statCalc.getTerrainMod(attackerInfo.actor);
+		
+		var baseCrit = (attackerPilotStats.skill/2) * attackerTerrainMod + (weaponInfo.critMod/2);
+		
+		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
+		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
+		var defenderTerrainMod = $statCalc.getTerrainMod(defenderInfo.actor);
+		
+		var baseCritEvade = (defenderPilotStats.skill/2) * defenderTerrainMod;
+		
+		var finalCrit = (baseCrit - baseCritEvade) + 6.25;
+		
+		finalCrit = $statCalc.applyStatModsToValue(attackerInfo.actor, finalCrit, ["crit"]);
+
+		finalCrit = finalCrit/100;
+		if(finalCrit < 0){
+			finalCrit = 0;
+		}
+		result = finalCrit;
+	}
+	return result;
+}
+
+BattleCalc.prototype.getActorFinalCrit = function(){
+	return this.performCritCalculation(
+		{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
+	);
+}
+
+BattleCalc.prototype.getEnemyFinalCrit = function(){
+	return this.performCritCalculation(			
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction},
+		{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction}
+	);
+}
+
+BattleCalc.prototype.doesActorCrit = function(){
+	return Math.random() < this.getActorFinalCrit();
+}
+
+BattleCalc.prototype.doesEnemyCrit = function(){
+	return Math.random() < this.getEnemyFinalCrit();
+}	
+
+BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo){
+	var result = 0;
+	var attackerAction = attackerInfo.action;
+	if(attackerAction.type == "attack"){
+		if($statCalc.getActiveSpirits(defenderInfo.actor).alert){
+			return 0;
+		}
+		if($statCalc.getActiveSpirits(attackerInfo.actor).strike){
+			return 1;
+		}						
+		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
+		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
+		var accuracy = attackerMechStats.accuracy;
+		accuracy = $statCalc.applyStatModsToValue(attackerInfo.actor, accuracy, ["accuracy"]);
+		var weaponInfo = attackerAction.attack;			
+		var attackerTerrainMod = $statCalc.getTerrainMod(attackerInfo.actor);
+		
+		var baseHit = (attackerPilotStats.hit/2 + accuracy) * attackerTerrainMod + weaponInfo.hitMod;
+		
+		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
+		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
+		var mobility = defenderMechStats.mobility;
+		mobility = $statCalc.applyStatModsToValue(defenderInfo.actor, mobility, ["mobility"]);
+		
+		var defenderTerrainMod = $statCalc.getTerrainMod(defenderInfo.actor);
+		
+		var baseEvade = (defenderPilotStats.evade/2 + mobility) * defenderTerrainMod;			
+		
+		var terrainEvadeFactor = $statCalc.getCurrentTerrainMods(defenderInfo.actor).evasion || 0;
+		
+		var finalHit = (baseHit - baseEvade) * this._sizeEvadeMod[defenderMechStats.size] * (1 - terrainEvadeFactor/100);
+		
+		finalHit = $statCalc.applyStatModsToValue(attackerInfo.actor, finalHit, ["hit"]);
+		var evadeMod = 0;
+		evadeMod = $statCalc.applyStatModsToValue(defenderInfo.actor, evadeMod, ["evade"]);
+		finalHit-=evadeMod;
+		
+		if(defenderInfo.action.type == "evade"){
+			finalHit-=50;
+		}
+		if($statCalc.getActiveSpirits(attackerInfo.actor).focus) {
+			finalHit+=30;
+		}
+		if($statCalc.getActiveSpirits(defenderInfo.actor).focus) {
+			finalHit-=30;
+		}
+		
+		if(!$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ignore_evasion_decay"])){
+			finalHit+=$statCalc.getEvadeCount(defenderInfo.actor) * 5;//evasion decay
+		}			
+		
+		if($statCalc.getActiveSpirits(attackerInfo.actor).disrupt) {
+			finalHit/=2;
+		}
+		if($statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["causality_manip"])){
+			if(finalHit >= 70){
+				finalHit = 100;
+			}
+		}
+		if($statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["causality_manip"])){
+			if(finalHit <= 30){
+				finalHit = 0;
+			}
+		}
+		
+		finalHit = finalHit/100;
+		if(finalHit < 0){
+			finalHit = 0;
+		}
+		if(finalHit > 1){
+			finalHit = 1;
+		}
+		result = finalHit;
+	}
+	return result;
+}
+
+BattleCalc.prototype.getActorFinalHit = function(){
+	return this.performHitCalculation(
+		{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
+	);
+}
+
+BattleCalc.prototype.getEnemyFinalHit = function(){
+	return this.performHitCalculation(			
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction},
+		{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction}
+	);
+}
+
+BattleCalc.prototype.getSupportFinalHit = function(){
+	var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
+	return this.performHitCalculation(
+		{actor: supporter.actor, action: {type: "attack", attack: supporter.weapon}},
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
+	);
+}
+
+BattleCalc.prototype.doesActorhit = function(){
+	return Math.random() < this.getActorFinalHit();
+}
+
+BattleCalc.prototype.doesEnemyhit = function(){
+	return Math.random() < this.getEnemyFinalHit();
+}	
+
+BattleCalc.prototype.doesSupportHit = function(){
+	return Math.random() < this.getSupportFinalHit();
+}	
+
+BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderInfo, noCrit, noBarrier, isSupportDefender){
+	var result = {
+		damage: 0,
+		isCritical: false,
+		barrierCost: 0,
+		hasThresholdBarrier: false,
+		thresholdBarrierBroken: false,
+		hasReductionBarrier: false,
+		hasPercentBarrier: false
+	};
+	var attackerAction = attackerInfo.action;
+	if(attackerAction.type == "attack"){			
+		//initial attack
+		var weaponInfo = attackerAction.attack;
+		var weaponPower = $statCalc.getWeaponPower(attackerInfo.actor, weaponInfo)*1;
+		var weaponTerrainRating = this._weaponTerrainValues[$statCalc.getWeaponTerrainMod(attackerInfo.actor, weaponInfo)];
+		var attackerPilotOffense;
+		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
+		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
+		if(weaponInfo.type == "M"){ //melee
+			attackerPilotOffense = attackerPilotStats.melee;
+			weaponPower = $statCalc.applyStatModsToValue(attackerInfo.actor, weaponPower, ["weapon_melee"]);
+		} else { //ranged
+			attackerPilotOffense = attackerPilotStats.ranged;
+			weaponPower = $statCalc.applyStatModsToValue(attackerInfo.actor, weaponPower, ["weapon_ranged"]);
+		}
+		var attackerWill = $statCalc.getCurrentWill(attackerInfo.actor);
+		var initialAttack = weaponPower * weaponTerrainRating + (attackerPilotOffense + attackerWill) / 200;
+		//initial defense
+		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
+		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
+		var armor =  defenderMechStats.armor;
+		armor = $statCalc.applyStatModsToValue(defenderInfo.actor, armor, ["armor"]);			
+		
+		var defenderTerrainRating = this._mechTerrainValues[defenderMechStats.terrain[$statCalc.getCurrentTerrain(defenderInfo.actor)]];
+		var initialDefend = armor * defenderTerrainRating * (defenderPilotStats.defense + $statCalc.getCurrentWill(defenderInfo.actor)) / 200;
+		//final damage
+		var terrainDefenseFactor = $statCalc.getCurrentTerrainMods(defenderInfo.actor).defense || 0; 
+		var sizeFactor = 1 + this._mechSizeValues[attackerMechStats.size] - this._mechSizeValues[defenderMechStats.size];
+		var attackerHasIgnoreSize = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["ignore_size"]);
+		if(attackerHasIgnoreSize && sizeFactor < 1){
+			sizeFactor = 1;
+		}
+		
+		var finalDamage = (initialAttack - initialDefend) * (1 - terrainDefenseFactor/100) * sizeFactor;
+		var isCritical = false;
+		if(Math.random() < this.performCritCalculation(attackerInfo, defenderInfo)){
+			isCritical = true;
+		}				
+		
+		finalDamage = $statCalc.applyStatModsToValue(attackerInfo.actor, finalDamage, ["final_damage"]);			
+		
+		finalDamage = $statCalc.applyStatModsToValue(defenderInfo.actor, finalDamage, ["final_defend"]);
+		
+		if(attackerInfo.isCounterAttack){
+			finalDamage = $statCalc.applyStatModsToValue(attackerInfo.actor, finalDamage, ["revenge"]);	
+		}
+		
+		if($statCalc.getActiveTempEffects(attackerInfo.actor).victory_turn){
+			finalDamage*=1.3;
+		}
+		
+		if($statCalc.getActiveTempEffects(defenderInfo.actor).victory_turn){
+			finalDamage*=0.7;
+		}
+		
+		var activeAttackerSpirits = $statCalc.getActiveSpirits(attackerInfo.actor);
+		if(activeAttackerSpirits.soul){				
+			finalDamage*=2.2;
+			noCrit = true;
+		} else if(activeAttackerSpirits.valor){				
+			finalDamage*=2;
+			noCrit = true;
+		}
+		
+		if(activeAttackerSpirits.analyse){
+			finalDamage*=0.9;
+		}
+		
+		if(isCritical && !noCrit){
+			result.isCritical = isCritical;
+			finalDamage*=1.25;
+		}
+		
+		if(defenderInfo.action.type == "defend"){
+			finalDamage*=0.6;
+		}
+		
+		var activeDefenderSpirits = $statCalc.getActiveSpirits(defenderInfo.actor);
+		if(activeDefenderSpirits.wall){
+			finalDamage*=0.25;
+		}
+		
+		if(activeDefenderSpirits.analyse){
+			finalDamage*=1.1;
+		}
+		
+		if(isSupportDefender){
+			var supportDefendMod = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["support_defend_armor"]) || 0;		
+			finalDamage = finalDamage - (finalDamage / 100 * supportDefendMod);
+		}	
+		
+		if(activeDefenderSpirits.persist){
+			finalDamage = 10;
+		}
+		
+		if(finalDamage < 10){
+			finalDamage = 10;
+		}
+		
+		if(activeAttackerSpirits.mercy){
+			if(attackerPilotStats.skill > defenderPilotStats.skill){
+				finalDamage = Math.min(finalDamage, defenderMechStats.currentHP - 10);
+			}				
+		}
+		
+		if(!noBarrier && !$statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["pierce_barrier"])){			
+			var totalBarrierCost = 0;
+			
+			var percentBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["percent_barrier"]);
+			if(percentBarrierAmount) {
+				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["percent_barrier_cost"]);
+				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
+					result.hasPercentBarrier = true;
+					finalDamage = Math.floor(finalDamage * percentBarrierAmount);
+				}
+			}				
+			
+			var rangeReductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ranged_reduction_barrier"]);
+			if(rangeReductionBarrierAmount && weaponInfo.type != "M") {
+				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ranged_reduction_barrier_cost"]);
+				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
+					result.hasReductionBarrier = true;
+					finalDamage-=rangeReductionBarrierAmount;
+					if(finalDamage < 0){
+						finalDamage = 0;
+					}
+				}
+			}
+			
+			var reductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier"]);
+			if(reductionBarrierAmount) {
+				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier_cost"]);
+				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
+					result.hasReductionBarrier = true;
+					finalDamage-=reductionBarrierAmount;
+					if(finalDamage < 0){
+						finalDamage = 0;
+					}
+				}
+			}
+			
+			var thresholdBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["threshold_barrier"]);
+			if(thresholdBarrierAmount) {				
+				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["threshold_barrier_cost"]);
+				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
+					result.hasThresholdBarrier = true;
+					if(finalDamage < thresholdBarrierAmount) {
+						finalDamage = 0;
+					}	else {
+						result.thresholdBarrierBroken = true;
+					}
+				} 			
+			}
+			result.barrierCost = totalBarrierCost;		
+		}
+		
+		if(Number.isNaN(finalDamage)){
+			console.log("Calculated damage output is NaN!");
+			finalDamage = 0;
+		}
+		
+		
+		result.damage = Math.floor(finalDamage);
+	}
+	return result;
+}
+BattleCalc.prototype.getActorDamageOutput = function(){
+	return this.performDamageCalculation(
+		{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
+	);
+}
+BattleCalc.prototype.getEnemyDamageOutput = function(){
+	return this.performDamageCalculation(			
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction},
+		{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction}
+	);
+}
+
+BattleCalc.prototype.getSupportDamageOutput = function(){
+	var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
+	return this.performDamageCalculation(
+		{actor: supporter.actor, action: {type: "attack", attack: supporter.weapon}},
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}			
+	);
+}
+
+BattleCalc.prototype.getSupportDamageTaken = function(){
+	var supporter = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];
+	return this.performDamageCalculation(
+		{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction},
+		{actor: supporter.actor, action: {type: "defend", attack: supporter.weapon}}
+	);
+}
+
+BattleCalc.prototype.prepareBattleCache = function(actionObject, type){
+	var actor = actionObject.actor;
+	/*if(actor.isActor()){
+		actor._cacheReference = "a_"+actor.actorId();
+	} else {
+		actor._cacheReference = "e_"+actor.enemyId();
+	}*/
+	actor._cacheReference = actor.event.eventId();
+	$gameTemp.battleEffectCache[actor._cacheReference] = {
+		ref: actor,
+		damageTaken: 0,
+		isActor: actor.isActor(),
+		type: type || "",
+		action: actionObject.action,
+		ownRef: actor._cacheReference,
+		ENUsed: 0,
+		ammoUsed: 0,
+		hasActed: false
+	};
+}
+
+BattleCalc.prototype.generateBattleResult = function(){
+	var _this = this;
+	$gameTemp.battleEffectCache = {};
+	$gameTemp.sortedBattleActorCaches = [];
+	var attacker;
+	var defender;
+	var supportAttacker; 
+	if($gameTemp.supportAttackCandidates){
+		supportAttacker = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
+	}
+	var supportDefender; 
+	if($gameTemp.supportDefendCandidates){
+		supportDefender = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];
+	}
+	
+	if($gameTemp.isEnemyAttack){
+		attacker = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
+		defender = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
+	} else {
+		attacker = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
+		defender = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
+	}
+	
+	defender.isCounterAttack = true;
+	this.prepareBattleCache(attacker, "initiator");
+	this.prepareBattleCache(defender, "defender");
+	if(supportAttacker){
+		this.prepareBattleCache(supportAttacker, "support attack");
+	}
+	
+	if(supportDefender){
+		this.prepareBattleCache(supportDefender, "support defend");
+	}		
+	
+	function BattleAction(attacker, defender, supportDefender){
+		this._attacker = attacker;
+		this._defender = defender;
+		this._supportDefender = supportDefender;
+	}
+	
+	BattleAction.prototype.execute = function(orderIdx){
+		var mainAttackerCache = $gameTemp.battleEffectCache[attacker.actor._cacheReference];
+		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		if(aCache.type == "support attack" && mainAttackerCache.isDestroyed){
+			return; //the support attacker does not get to attack if the main attacker is down
+		}
+		if(aCache.type == "defender"){
+			aCache.counterActivated = $gameTemp.defenderCounterActivated;
+		}
+		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
+		var sCache;
+		if(this._supportDefender) {
+			sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._cacheReference];
+		}
+		if(!aCache.isDestroyed && !dCache.isDestroyed) {
+			aCache.actionOrder = orderIdx;
+			aCache.hasActed = true;
+			aCache.attacked = dCache;
+			$gameTemp.sortedBattleActorCaches.push(aCache);
+			dCache.isAttacked = true;
+			var isHit = Math.random() < _this.performHitCalculation(
+				this._attacker,
+				this._defender		
+			);
+							
+			var activeDefender = this._defender;
+			var activeDefenderCache = dCache;						
+			
+			var damageResult = {
+				damage: 0,
+				isCritical: false,
+				barrierCost: 0,
+				hasThresholdBarrier: false,
+				thresholdBarrierBroken: false,
+				hasReductionBarrier: false,
+				hasPercentBarrier: false
+			};
+			var isSupportDefender = false;
+			if(isHit){
+				if(Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["double_image_rate"])){
+					dCache.isDoubleImage = true;
+					isHit = 0;
+				}
+				if(isHit && sCache && !sCache.hasActed){
+					isHit = 1;
+					activeDefender = this._supportDefender;
+					activeDefenderCache = sCache;
+					isSupportDefender = true;
+					aCache.attacked = sCache;
+					sCache.hasActed = true;						
+					if(Math.random() < $statCalc.applyStatModsToValue(this._supportDefender.actor, 0, ["double_image_rate"])){
+						sCache.isDoubleImage = true;
+						isHit = 0;
+					}
+				}
+				if(isHit){
+					damageResult = _this.performDamageCalculation(
+						this._attacker,
+						activeDefender,
+						false,
+						false,
+						isSupportDefender	
+					);	
+				} 					
+			} 
+			
+			if(isHit){
+				if(this._attacker.action.attack && this._attacker.action.attack.type == "M"){
+					aCache.madeContact = true;
+					activeDefenderCache.madeContact = true;
+					//activeDefenderCache.attacked = aCache;
+				}
+			}
+			
+			aCache.hits = isHit;
+			activeDefenderCache.isHit = isHit;
+			
+			aCache.inflictedCritical = damageResult.isCritical;
+			activeDefenderCache.tookCritical = damageResult.isCritical;
+			activeDefenderCache.barrierCost = damageResult.barrierCost;
+			activeDefenderCache.hasBarrier = damageResult.hasThresholdBarrier || damageResult.hasReductionBarrier || damageResult.hasPercentBarrier;
+			activeDefenderCache.hasThresholdBarrier = damageResult.hasThresholdBarrier;
+			activeDefenderCache.barrierBroken = damageResult.thresholdBarrierBroken;
+			
+			aCache.damageInflicted = damageResult.damage;
+			activeDefenderCache.damageTaken+=damageResult.damage;
+			
+			if(activeDefenderCache.damageTaken >= activeDefender.actor.hp){
+				activeDefenderCache.isDestroyed = true;
+			}	
+			
+			var weaponref = this._attacker.action.attack;
+			var ENCost = weaponref.ENCost;
+			if(ENCost != -1){
+				aCache.ENUsed = ENCost;
+			}
+			if(weaponref.totalAmmo != -1){
+				aCache.ammoUsed = 1;
+			}
+			
+			
+			var activeAttackerSpirits = $statCalc.getActiveSpirits(this._attacker.actor);
+			if(activeAttackerSpirits.soul){
+				$statCalc.clearSpirit(this._attacker.actor, "soul");
+			} else {
+				$statCalc.clearSpirit(this._attacker.actor, "valor");
+			}			
+			$statCalc.clearSpirit(this._attacker.actor, "mercy");
+			$statCalc.clearSpirit(this._attacker.actor, "snipe");				
+			
+			
+		}						
+	}
+	
+	var actions = [];
+	var defenderCounterActivates = Math.random() < $statCalc.applyStatModsToValue(defender.actor, 0, ["counter_rate"]);
+	if(defenderCounterActivates){
+		$gameTemp.defenderCounterActivated = true;
+		actions.push(new BattleAction(defender, attacker));
+		if(supportAttacker){			
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender));								
+		}	
+		actions.push(new BattleAction(attacker, defender, supportDefender));			
+	} else {
+		$gameTemp.defenderCounterActivated = false;
+		if(supportAttacker){			
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender));								
+		}	
+		actions.push(new BattleAction(attacker, defender, supportDefender));	
+		actions.push(new BattleAction(defender, attacker));			
+	}
+	
+	for(var i = 0; i < actions.length; i++){
+		actions[i].execute(i);
+	}
+	
+	var gainRecipient = $gameTemp.currentBattleActor;	
+	var aCache = $gameTemp.battleEffectCache[gainRecipient._cacheReference];
+	
+	var gainDonor = $gameTemp.currentBattleEnemy;
+	var dCache = $gameTemp.battleEffectCache[gainDonor._cacheReference];	
+
+	aCache.gainDonor = dCache;
+	
+	if(aCache && dCache){			
+		var expGain = _this.performExpCalculation(gainRecipient, gainDonor);
+		expGain = $statCalc.applyStatModsToValue(gainRecipient, expGain, ["exp"]);
+		var ppGain = _this.performPPCalculation(gainRecipient, gainDonor);
+		var fundGain = $statCalc.getAwardedFunds(gainDonor);
+		if($statCalc.getActiveSpirits(gainRecipient).fortune){
+			fundGain*=2;
+			$statCalc.clearSpirit(gainRecipient, "fortune");
+		}
+		if(!dCache.isDestroyed){
+			expGain = Math.floor(expGain / 10);
+			ppGain = 0;
+			fundGain = 0;
+		} else {
+			fundGain = $statCalc.applyStatModsToValue(gainRecipient, fundGain, ["fund_gain_destroy"]);
+		}
+		
+		aCache.expGain = expGain;
+		aCache.ppGain = ppGain;
+		aCache.fundGain = fundGain;
+	}
+}
+
+
+
+BattleCalc.prototype.generateMapBattleResult = function(){
+	var _this = this;
+	$gameTemp.battleEffectCache = {};
+	$gameTemp.sortedBattleActorCaches = [];
+	var attacker;
+	if($gameTemp.isEnemyAttack){
+		attacker = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};		
+	} else {
+		attacker = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
+	}
+	_this.prepareBattleCache(attacker, "initiator");
+	var aCache = $gameTemp.battleEffectCache[attacker.actor._cacheReference];	
+	
+	var weaponref = aCache.action.attack;
+	var ENCost = weaponref.ENCost;
+	if(ENCost != -1){
+		aCache.ENUsed = ENCost;
+	}
+	if(weaponref.totalAmmo != -1){
+		aCache.ammoUsed = 1;
+	}
+	
+
+	aCache.expGain = 0;
+	aCache.ppGain = 0;
+	aCache.fundGain = 0;	
+	aCache.gainDonors = [];
+	
+	var targets = $gameTemp.currentMapTargets;
+	targets.forEach(function(target){
+		var defender = {actor: target, action: {type: "none"}};
+		_this.prepareBattleCache(defender);
+		var dCache = $gameTemp.battleEffectCache[defender.actor._cacheReference];
+		dCache.isAttacked = true;
+		dCache.attackedBy = aCache;
+		var isHit = Math.random() < _this.performHitCalculation(
+			attacker,
+			defender		
+		);
+		if(isHit){
+			if(Math.random() < $statCalc.applyStatModsToValue(defender.actor, 0, ["double_image_rate"])){
+				dCache.isDoubleImage = true;
+				isHit = 0;
+			}
+		}
+		var damageResult = {
+			damage: 0,
+			isCritical: false,
+			barrierCost: 0,
+			hasThresholdBarrier: false,
+			thresholdBarrierBroken: false,
+			hasReductionBarrier: false,
+			hasPercentBarrier: false
+		};
+		if(isHit){
+			damageResult = _this.performDamageCalculation(
+				attacker,
+				defender,
+				false,
+				false,
+				false	
+			);	
+		} 
+		dCache.isHit = isHit;
+		dCache.type = "defender";
+		dCache.tookCritical = damageResult.isCritical;
+		dCache.barrierCost = damageResult.barrierCost;
+		dCache.hasBarrier = damageResult.hasThresholdBarrier || damageResult.hasReductionBarrier || damageResult.hasPercentBarrier;
+		dCache.hasThresholdBarrier = damageResult.hasThresholdBarrier;
+		dCache.barrierBroken = damageResult.thresholdBarrierBroken;
+		
+		dCache.damageTaken+=damageResult.damage;
+		
+		if(dCache.damageTaken >= dCache.ref.hp){
+			dCache.isDestroyed = true;
+		}	
+		gainRecipient = attacker.actor;
+		gainDonor = defender.actor;
+				
+		if(aCache && dCache){			
+			var expGain = _this.performExpCalculation(gainRecipient, gainDonor);
+			expGain = $statCalc.applyStatModsToValue(gainRecipient, expGain, ["exp"]);
+			var ppGain = _this.performPPCalculation(gainRecipient, gainDonor);
+			var fundGain = $statCalc.getAwardedFunds(gainDonor);
+			if($statCalc.getActiveSpirits(gainRecipient).fortune){
+				fundGain*=2;
+			}
+			if(!dCache.isDestroyed){
+				expGain = Math.floor(expGain / 10);
+				ppGain = 0;
+				fundGain = 0;
+			} else {
+				fundGain = $statCalc.applyStatModsToValue(gainRecipient, fundGain, ["fund_gain_destroy"]);
+			}
+			
+			aCache.expGain+= expGain;
+			aCache.ppGain+= ppGain;
+			aCache.fundGain+= fundGain;
+			aCache.gainDonors.push(dCache);
+		}		
+	});
+	
+	if($statCalc.getActiveSpirits(aCache).fortune){
+		$statCalc.clearSpirit(aCache, "fortune");
+	}	
+	
+	var activeAttackerSpirits = $statCalc.getActiveSpirits(aCache.actor);
+	if(activeAttackerSpirits.soul){
+		$statCalc.clearSpirit(aCache.actor, "soul");
+	} else {
+		$statCalc.clearSpirit(aCache.actor, "valor");
+	}
+	
+	var mapRewardsScaling = 1 / (targets.length / 2);
+	aCache.expGain = Math.floor(aCache.expGain * mapRewardsScaling);
+	aCache.ppGain = Math.floor(aCache.ppGain * mapRewardsScaling);
+	aCache.fundGain = Math.floor(aCache.fundGain * mapRewardsScaling);
+	
+}
+
+BattleCalc.prototype.getBestWeapon = function(attackerInfo, defenderInfo, optimizeCost, ignoreRange, postMoveEnabledOnly){
+	var _this = this;
+	var result = _this.getBestWeaponAndDamage(attackerInfo, defenderInfo, optimizeCost, ignoreRange, postMoveEnabledOnly);
+	return result.weapon;
+}
+
+BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInfo, optimizeCost, ignoreRange, postMoveEnabledOnly){
+	var _this = this;
+	var allWeapons = $statCalc.getActorMechWeapons(attackerInfo.actor);
+	var bestWeapon;
+	var bestDamage = 0;
+	var minENCost = -2;
+	var maxTotalAmmo = -2;
+	var defenderHP = defenderInfo.actor.hp;
+	var canShootDown = false;
+	allWeapons.forEach(function(weapon){
+	if(!weapon.isMap && $statCalc.canUseWeapon(attackerInfo.actor, weapon, postMoveEnabledOnly) && (ignoreRange || _this.isTargetInRange(attackerInfo.pos, defenderInfo.pos, $statCalc.getRealWeaponRange(attackerInfo.actor, weapon.range), weapon.minRange))){
+			var damageResult = _this.performDamageCalculation(
+				{actor: attackerInfo.actor, action: {type: "attack", attack: weapon}},
+				{actor: defenderInfo.actor, action: {type: "none"}},
+				true,
+				true
+			);
+			if(optimizeCost){
+				var currentWeaponCanShootDown = false;
+				if(damageResult.damage >= defenderHP){
+					canShootDown = true;
+					currentWeaponCanShootDown = true;
+				}
+				if(canShootDown){
+					if(currentWeaponCanShootDown){
+						var currentENCost = weapon.ENCost;
+						var currentTotalAmmo = weapon.totalAmmo;
+						if(currentTotalAmmo != -1){//ammo using weapon
+							if(maxTotalAmmo == -2 || currentTotalAmmo > maxTotalAmmo){
+								if(minENCost == -2 || minENCost > 100/currentTotalAmmo){
+									bestDamage = damageResult.damage;
+									bestWeapon = weapon;
+									currentTotalAmmo = maxTotalAmmo;
+								}
+							}
+						} else {
+							if(minENCost == -2 || minENCost > currentENCost){
+								if(maxTotalAmmo == -2 || 100/currentTotalAmmo > currentENCost){
+									bestDamage = damageResult.damage;
+									bestWeapon = weapon;
+									minENCost = currentENCost;
+								}
+							}
+						}
+					}
+				} else if(damageResult.damage > bestDamage){
+					bestDamage = damageResult.damage;
+					bestWeapon = weapon;
+				}
+			} else {
+				if(damageResult.damage > bestDamage){
+					bestDamage = damageResult.damage;
+					bestWeapon = weapon;
+				}
+			}
+			
+		}
+	});		
+	return {weapon: bestWeapon, damage: bestDamage};
+}
