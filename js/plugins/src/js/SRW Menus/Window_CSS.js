@@ -111,7 +111,7 @@ Window_CSS.prototype.loadFace = function(actorData, elem) {
 	if(typeof actorData.faceIndex != "undefined"){
 		faceIndex = actorData.faceIndex;		
 	} else {
-		faceIndex = actorData.meta.faceIndex;
+		faceIndex = actorData.meta.faceIndex - 1;
 	}
 	var width = Window_Base._faceWidth;
     var height = Window_Base._faceHeight;

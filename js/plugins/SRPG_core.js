@@ -2967,6 +2967,9 @@ var $battleSceneManager = new BattleSceneManager();
     //移動範囲の計算
     Game_CharacterBase.prototype.makeMoveTable = function(x, y, move, route, actor) {
 		function isPassableTile(x, y, actor){
+			if($gameMap.regionId(x, y) == 0){
+				return false;
+			}
 			if($gameTemp._MoveTable[x] == undefined){
 				return false;
 			}
@@ -4618,11 +4621,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     //キャラクターフレームの更新
     var _SRPG_Sprite_Character_updateCharacterFrame = Sprite_Character.prototype.updateCharacterFrame;
     Sprite_Character.prototype.updateCharacterFrame = function() {
+		var pw = this.patternWidth();
+		var ph = this.patternHeight();
+		var sx = (this.characterBlockX() + this.characterPatternX()) * pw;
+		var sy = (this.characterBlockY() + this.characterPatternY()) * ph;
 		if(this._upperBody && this._lowerBody){			
-			var pw = this.patternWidth();
-			var ph = this.patternHeight();
-			var sx = (this.characterBlockX() + this.characterPatternX()) * pw;
-			var sy = (this.characterBlockY() + this.characterPatternY()) * ph;
+			
 			this.updateHalfBodySprites();
 		
 			var d = 24;
@@ -4667,7 +4671,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 			}
 		} else {
-			_SRPG_Sprite_Character_updateCharacterFrame.call(this);
+			this.setFrame(sx, sy, pw, ph);
 		}
     };
 
@@ -5253,7 +5257,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     // エネミーの顔グラフィックを描画する
     Window_Base.prototype.drawEnemyFace = function(enemy, x, y, width, height) {
         var faceName = enemy.enemy().meta.faceName;
-        var faceIndex = enemy.enemy().meta.faceIndex;
+        var faceIndex = enemy.enemy().meta.faceIndex - 1;
         if (!faceName || !faceIndex) {
             this.drawEnemyFaceWhenNoFace(enemy, x, y, width, height);
         } else {
@@ -6116,7 +6120,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					if($statCalc.getConsumables(_this._actor).length){
 						 _this.addCommand(APPSTRINGS.MAPMENU.cmd_item, 'item');
 					}
-					if($statCalc.canFly(this._actor) && $statCalc.getCurrentTerrain(this._actor) != "space"){
+					if($statCalc.canFly(_this._actor) && $statCalc.getCurrentTerrain(_this._actor) != "space"){
 						if($statCalc.isFlying(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_land, 'land');
 						} else {
