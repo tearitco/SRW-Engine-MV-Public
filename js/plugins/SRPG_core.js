@@ -506,7 +506,10 @@ var $battleSceneManager = new BattleSceneManager();
 
 
 (function() {
-	var parameters = PluginManager.parameters('SRPG_core');
+	//TODO: Proper pre-loading/load waiting
+
+	
+    var parameters = PluginManager.parameters('SRPG_core');
     var _srpgTroopID = Number(parameters['srpgTroopID'] || 1);
     var _srpgBattleSwitchID = Number(parameters['srpgBattleSwitchID'] || 1);
 	var _endIntermissionSwitchID = 3;
@@ -6113,11 +6116,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					if($statCalc.getConsumables(_this._actor).length){
 						 _this.addCommand(APPSTRINGS.MAPMENU.cmd_item, 'item');
 					}
-					if($statCalc.isFlying(_this._actor)){
-						_this.addCommand(APPSTRINGS.MAPMENU.cmd_land, 'land');
-					} else {
-						_this.addCommand(APPSTRINGS.MAPMENU.cmd_fly, 'fly');
-					}	
+					if($statCalc.canFly(this._actor) && $statCalc.getCurrentTerrain(this._actor) != "space"){
+						if($statCalc.isFlying(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_land, 'land');
+						} else {
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_fly, 'fly');
+						}
+					}						
 					_this.addWaitCommand();					
 				}
 				
