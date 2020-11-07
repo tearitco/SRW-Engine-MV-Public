@@ -547,11 +547,17 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 		isForActor = true;
 	} else {
 		mech = $dataClasses[actor._mechClass];
-		isForActor = false;		
+		isForActor = false;	
 	}	
 	if(mech){
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items);
 		this.calculateSRWMechStats(actor.SRWStats.mech);		
+	}
+	
+	if(!isForActor){
+		if(this.canFly(actor)){
+			this.setFlying(actor, true);
+		}
 	}
 	
 	
