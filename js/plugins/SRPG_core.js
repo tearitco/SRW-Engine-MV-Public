@@ -8823,7 +8823,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			x: $gameTemp.activeEvent().posX(),
 			y: $gameTemp.activeEvent().posY()
 		};
-		var fullRange = $statCalc.getFullWeaponRange(battler);
+		var fullRange = $statCalc.getFullWeaponRange(battler, $gameTemp.isPostMove);
         return $statCalc.getAllInRange(type, pos, fullRange.range, fullRange.minRange);
     };
 
