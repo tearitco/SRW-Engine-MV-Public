@@ -757,6 +757,29 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.battleParallax1 = args[0];
 		}
 		
+		if (command === 'addMapHighlight') {
+			if(!$gameSystem.highlightedTiles){
+				$gameSystem.highlightedTiles = [];
+			}
+			$gameSystem.highlightedTiles.push({x: args[0], y: args[1], color: args[2] || "white"});
+			$gameSystem.highlightsRefreshed = true;
+		}
+		
+		if (command === 'removeMapHighlight') {
+			if($gameSystem.highlightedTiles){
+				var x = args[0];
+				var y = args[1];
+				var tmp = [];
+				for(var i = 0; i < $gameSystem.highlightedTiles.length; i++){
+					if($gameSystem.highlightedTiles[i].x != x || $gameSystem.highlightedTiles[i].y != y){
+						tmp.push($gameSystem.highlightedTiles);
+					}
+				}
+				$gameSystem.highlightedTiles = tmp;
+			}
+			$gameSystem.highlightsRefreshed = true;
+		}
+		
     };		
 //====================================================================
 // ●Game_Temp
@@ -5069,13 +5092,78 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     };
 
 //====================================================================
+// Sprite_AreaHighlights
+//====================================================================	
+	
+	function Sprite_AreaHighlights() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_AreaHighlights.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_AreaHighlights.prototype.constructor = Sprite_AreaHighlights;
+
+	Sprite_AreaHighlights.prototype.initialize = function() {
+		Sprite_Base.prototype.initialize.call(this);
+		/*for(var i = 0; i < $gameMap.width(); i++){
+			this.bitmap.fillRect(i * $gameMap.tileWidth(), 0, 1 , this.bitmap.height, "white");
+		}
+		for(var i = 0; i < $gameMap.height(); i++){
+			this.bitmap.fillRect(0, i * $gameMap.tileHeight(), this.bitmap.width , 1, "white");
+		}*/
+		this.construct();
+		this.anchor.x = 0;
+		this.anchor.y = 0;
+		this._posX = 0;
+		this._posY = 0;
+		//this.opacity = 128;
+		//this.blendMode = Graphics.BLEND_ADD;
+		this._frameCount = 0;
+	};
+	
+	Sprite_AreaHighlights.prototype.construct = function() {
+		this._frameCount = 0;
+		this.bitmap = new Bitmap($gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());	
+		if($gameSystem.highlightedTiles){
+			for(var i = 0; i < $gameSystem.highlightedTiles.length; i++){
+				var highlight = $gameSystem.highlightedTiles[i];
+				this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), highlight.color);
+			}
+		}			
+	}
+
+	Sprite_AreaHighlights.prototype.update = function() {
+		if($gameSystem.highlightsRefreshed){
+			$gameSystem.highlightsRefreshed = false;
+			this.construct();
+		}	
+		this.updatePosition();		
+		this._frameCount+=2;
+		this._frameCount %= 200;
+		if(this._frameCount < 100){
+			this.opacity = this._frameCount + 80;
+		} else {
+			this.opacity = 200 + 80 - this._frameCount;
+		}
+	};
+	
+	Sprite_AreaHighlights.prototype.updatePosition = function() {
+        var tileWidth = $gameMap.tileWidth();
+        var tileHeight = $gameMap.tileHeight();
+        this.x = ($gameMap.adjustX(this._posX) + 0.5) * tileWidth -$gameMap.tileWidth()/2;
+        this.y = ($gameMap.adjustY(this._posY) + 0.5) * tileHeight -$gameMap.tileHeight()/2;
+		this.z = 0;
+    };	
+	
+//====================================================================
 // ●Spriteset_Map
 //====================================================================
     var _SRPG_Spriteset_Map_createTilemap = Spriteset_Map.prototype.createTilemap;
     Spriteset_Map.prototype.createTilemap = function() {
 		_SRPG_Spriteset_Map_createTilemap.call(this);
 		this._gridSprite = new Sprite_SrpgGrid();
-		this._baseSprite.addChild(this._gridSprite);        
+		this._baseSprite.addChild(this._gridSprite);   
+		this._highlightSprite = new Sprite_AreaHighlights();
+		this._baseSprite.addChild(this._highlightSprite);  		
         this._srpgMoveTile = [];
         for (var i = 0; i < $gameSystem.spriteMoveTileMax(); i++) {
 			this._srpgMoveTile[i] = new Sprite_SrpgMoveTile();

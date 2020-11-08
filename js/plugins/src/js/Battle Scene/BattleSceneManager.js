@@ -348,8 +348,13 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	bg.billboardMode = 7;
 	
 	var material = new BABYLON.StandardMaterial(name, this._scene);
-		
-	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, BABYLON.Texture.TRILINEAR_SAMPLINGMODE);
+	var sampleMode;
+	if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
+		sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
+	} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
+		sampleMode = BABYLON.Texture.NEAREST_SAMPLINGMODE
+	}
+	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, sampleMode);
 	material.diffuseTexture.hasAlpha = true;
 	material.useAlphaFromDiffuseTexture  = true;
 	if(flipX){
@@ -1187,6 +1192,22 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction.attacked;
 			var target = action.isActor ? "actor" : "enemy";			
 			_this._UILayerManager.showDamage(target, originalAction.damageInflicted);
+			
+			var HPProvider;
+			if(action.isActor){
+				if(action.type == "support defend"){
+					HPProvider = _this._participantInfo.actor_supporter;
+				} else {
+					HPProvider = _this._participantInfo.actor;
+				}				
+			} else {
+				if(action.type == "support defend"){
+					HPProvider = _this._participantInfo.enemy_supporter;
+				} else {
+					HPProvider = _this._participantInfo.enemy;
+				}
+			}
+			HPProvider.animatedHP-=originalAction.damageInflicted;
 		},
 		drain_hp_bar: function(target, params){			
 			var originalAction = _this._currentAnimatedAction;
@@ -1324,10 +1345,12 @@ BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef)
 			overwriteAnimList(attackDef.onHitOverwrite);
 		}
 		if(cacheRef.attacked && cacheRef.attacked.isDestroyed){
-			//this._animationList = this._animationList.concat(attackDef.onDestroy);
-			_this.mergeAnimList(attackDef.onDestroy);
-			if(attackDef.onDestroyOverwrite){
-				overwriteAnimList(attackDef.onDestroyOverwrite);
+			if(cacheRef.type != "support attack" || cacheRef.damageInflicted > $statCalc.getCalculatedMechStats(cacheRef.attacked.ref).currentHP){			
+				//this._animationList = this._animationList.concat(attackDef.onDestroy);
+				_this.mergeAnimList(attackDef.onDestroy);
+				if(attackDef.onDestroyOverwrite){
+					overwriteAnimList(attackDef.onDestroyOverwrite);
+				}
 			}
 		} 	
 	} else {
