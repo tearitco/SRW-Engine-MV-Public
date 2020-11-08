@@ -1,20 +1,17 @@
 function SRWSongManager(){
 	this._actorSongMapping = {
-		10: "Rushia",
-		11: "Pekora",
-		12: "Fubuki",
-		13: "Matsuri",
-		14: "Aqua"
+		1: "Battle1",
+		3: "Battle1"
 	}
 	this._enemySongMapping = {
-		16: "SRW_Boss1"
+		
 	}
 	
 	this._actorSongPriority = {
 		
 	}
 	this._enemySongPriority = {
-		16: 2
+	
 	}
 }
 

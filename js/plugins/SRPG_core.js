@@ -4955,10 +4955,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if (this._character.isDoingDeathAnim) {
 					if(this._animationFrame == 1){
 						var se = {};
-						se.name = 'Explosion1';
+						se.name = 'SRWExplosion';
 						se.pan = 0;
 						se.pitch = 100;
-						se.volume = 90;
+						se.volume = 80;
 						AudioManager.playSe(se);
 					}
 					

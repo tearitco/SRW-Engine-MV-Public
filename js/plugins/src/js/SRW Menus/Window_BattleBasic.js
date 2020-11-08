@@ -384,6 +384,13 @@ Window_BattleBasic.prototype.animateDamage = function(elem, special) {
 		elem.classList.add("crit");
 	}
 	setTimeout(function(){ elem.style.display = "none" }, 600);
+	
+	var se = {};
+	se.name = 'SRWHit';
+	se.pan = 0;
+	se.pitch = 100;
+	se.volume = 80;
+	AudioManager.playSe(se);
 }
 
 Window_BattleBasic.prototype.animateDestroy = function(elem, imgElem) {
@@ -391,6 +398,13 @@ Window_BattleBasic.prototype.animateDestroy = function(elem, imgElem) {
 	imgElem.className = "";	
 	imgElem.className = "destroyed_anim";	
 	setTimeout(function(){ elem.style.display = "none" }, 400);
+	
+	var se = {};
+	se.name = 'SRWExplosion';
+	se.pan = 0;
+	se.pitch = 100;
+	se.volume = 80;
+	AudioManager.playSe(se);
 }	
 
 Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
@@ -633,11 +647,25 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.enemy_evade){
 								_this._enemyEvade.style.display = "block";
-								setTimeout(function(){ _this._enemyEvade.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._enemyEvade.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWMiss';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);
 							}
 							if(nextAnimation.special.actor_evade){
 								_this._actorEvade.style.display = "block";
-								setTimeout(function(){ _this._actorEvade.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._actorEvade.style.display = "none" }, 200);
+
+								var se = {};
+								se.name = 'SRWMiss';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);	
 							}
 							if(nextAnimation.special.enemy_destroyed){
 								_this.animateDestroy(_this._enemyDestroyed, _this._enemyDestroyedImage);	
@@ -674,36 +702,92 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.enemy_double_image){
 								_this._enemyDoubleImage.style.display = "block";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWDoubleImage';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
 							}
 							if(nextAnimation.special.actor_double_image){
 								_this._actorDoubleImage.style.display = "block";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWDoubleImage';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);								
 							}
 							if(nextAnimation.special.enemy_support_double_image){
 								_this._enemySupportDoubleImage.style.display = "block";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWDoubleImage';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
 							}
 							if(nextAnimation.special.actor_support_double_image){
 								_this._actorSupportDoubleImage.style.display = "block";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWDoubleImage';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);									
 							}
 							
 							if(nextAnimation.special.actor_barrier){
 								_this._actorBarrier.style.display = "block";
-								setTimeout(function(){ _this._actorBarrier.style.display = "none" }, 600);		
+								setTimeout(function(){ _this._actorBarrier.style.display = "none" }, 600);	
+
+								var se = {};
+								se.name = 'SRWShield';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
 							}
 							if(nextAnimation.special.actor_support_barrier){
 								_this._actorSupportBarrier.style.display = "block";
-								setTimeout(function(){ _this._actorSupportBarrier.style.display = "none" }, 600);		
+								setTimeout(function(){ _this._actorSupportBarrier.style.display = "none" }, 600);	
+								
+								var se = {};
+								se.name = 'SRWShield';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);	
 							}
 							if(nextAnimation.special.enemy_barrier){
 								_this._enemyBarrier.style.display = "block";
 								setTimeout(function(){ _this._enemyBarrier.style.display = "none" }, 600);		
+								
+								var se = {};
+								se.name = 'SRWShield';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);
 							}
 							if(nextAnimation.special.enemy_support_barrier){
 								_this._enemySupportBarrier.style.display = "block";
-								setTimeout(function(){ _this._enemySupportBarrier.style.display = "none" }, 600);		
+								setTimeout(function(){ _this._enemySupportBarrier.style.display = "none" }, 600);
+
+								var se = {};
+								se.name = 'SRWShield';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);	
 							}
 						}
 					}

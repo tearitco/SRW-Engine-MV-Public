@@ -252,6 +252,14 @@ Window_SpiritActivation.prototype.update = function() {
 							_this._processingAnimation = false;
 						}, spiritAnimInfo.duration);							
 						
+						var se = spiritAnimInfo.se || "SRWPowerUp";
+						var se = {};
+						se.name = 'SRWPowerUp';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 90;
+						AudioManager.playSe(se);
+						
 						if(effectDef.parameters.target && spiritAnimInfo.recovered){
 							var stats = $statCalc.getCalculatedMechStats(effectDef.parameters.target);
 							

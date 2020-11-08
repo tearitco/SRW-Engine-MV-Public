@@ -391,7 +391,7 @@ StatCalc.prototype.applyBattleStartWill = function(){
 StatCalc.prototype.applyTurnStartWill = function(type){
 	var _this = this;
 	this.iterateAllActors(type, function(actor, event){			
-		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_turn_will"]));				
+		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_turn_will"]) + 1);				
 	});
 }
 
