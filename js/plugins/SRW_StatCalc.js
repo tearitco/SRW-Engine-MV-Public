@@ -46,7 +46,7 @@ StatCalc.prototype.isActorSRWInitialized = function(actor){
 
 StatCalc.prototype.canStandOnTile = function(actor, position){
 	if(this.isActorSRWInitialized(actor)){
-		if($gameMap.regionId(position.x, position.y) == 1){
+		if($gameMap.regionId(position.x, position.y) % 8 == 1){
 			if(this.canFly(actor)){
 				if(!this.isFlying(actor)){
 					this.setFlying(actor, true);
@@ -78,7 +78,7 @@ StatCalc.prototype.numericToTerrain = function(terrainNumber){
 
 StatCalc.prototype.setCurrentTerrainFromRegionIndex = function(actor, terrainIndex){
 	if(this.isActorSRWInitialized(actor)){
-		actor.SRWStats.mech.currentTerrain = this._terrainStringLookup[terrainIndex];
+		actor.SRWStats.mech.currentTerrain = this._terrainStringLookup[terrainIndex % 8];
 	}		
 }
 
@@ -1515,6 +1515,16 @@ StatCalc.prototype.getAllOccupiedSpaces = function(){
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){			
 		result.push({x: event.posX(), y: event.posY()});				
+	});
+	return result;
+}
+
+StatCalc.prototype.isActorInRegion = function(actorId, regionId){
+	var result = false;
+	this.iterateAllActors("actor", function(actor, event){	
+		if((actorId == -1 || actorId == actor.actorId()) && $gameMap.regionId(event.posX(), event.posY()) == regionId){
+			result = true;
+		}				
 	});
 	return result;
 }

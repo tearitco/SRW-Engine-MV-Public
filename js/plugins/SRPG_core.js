@@ -780,6 +780,19 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.highlightsRefreshed = true;
 		}
 		
+		if (command === 'addMapRegionHighlight') {
+			if(!$gameSystem.regionHighlights){
+				$gameSystem.regionHighlights = {};
+			}
+			$gameSystem.regionHighlights[args[0]] = args[1] || "white";
+			$gameSystem.highlightsRefreshed = true;
+		}
+		
+		if (command === 'removeMapRegionHighlight') {
+			delete $gameSystem.regionHighlights[args[0]];
+			$gameSystem.highlightsRefreshed = true;
+		}
+		
     };		
 //====================================================================
 // ●Game_Temp
@@ -3005,7 +3018,7 @@ var $battleSceneManager = new BattleSceneManager();
 			return $statCalc.isFreeSpace({x: x, y: y}, actor.isActor() ? "enemy" : "actor");
 		}
 		
-		var currentRegion = $gameMap.regionId(x, y); //1 air, 2 land, 3 water, 4 space
+		var currentRegion = $gameMap.regionId(x, y) % 8; //1 air, 2 land, 3 water, 4 space
 		var moveCost = 1;
 		if(route.length > 1){//no movecost for the start tile
 			var taggedCost = $gameMap.terrainTag(x, y);
@@ -3913,6 +3926,26 @@ var $battleSceneManager = new BattleSceneManager();
 //====================================================================
     //アクター・エネミーデータに合わせてグラフィックを変更する
 	
+	var Game_Map_prototype_initialize = Game_Map.prototype.initialize;
+	Game_Map.prototype.initialize = function() {
+		Game_Map_prototype_initialize.call(this);		
+	}
+	
+	Game_Map.prototype.getRegionTiles = function(id) {
+		if(!this._regionTilesLookup){
+			this._regionTilesLookup = {};
+			for(var i = 0; i < this.width(); i++){
+				for(var j = 0; j < this.width(); j++){
+					var region = this.regionId(i, j);
+					if(!this._regionTilesLookup[region]){
+						this._regionTilesLookup[region] = [];
+					}
+					this._regionTilesLookup[region].push({x: i, y: j});
+				}
+			}
+		}
+		return this._regionTilesLookup[id] || [];
+	}
 	
 	Game_Map.prototype.initSRWTileProperties = function() {
 		var _this = this;
@@ -4390,6 +4423,10 @@ Game_Interpreter.prototype.cursorMoveTo = function(x, y) {
 	$gamePlayer.locate(x, y);
     return true;
 };
+
+Game_Interpreter.prototype.isActorInRegion = function(actorId, regionId) {
+	return $statCalc.isActorInRegion(actorId, regionId);
+}
 
 Game_Interpreter.prototype.setBattleModes = function(startId, endId, mode) {
 	for(var i = startId; i <= endId; i++){
@@ -5121,6 +5158,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	};
 	
 	Sprite_AreaHighlights.prototype.construct = function() {
+		var _this = this;
 		this._frameCount = 0;
 		this.bitmap = new Bitmap($gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());	
 		if($gameSystem.highlightedTiles){
@@ -5128,7 +5166,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				var highlight = $gameSystem.highlightedTiles[i];
 				this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), highlight.color);
 			}
-		}			
+		}	
+		if($gameSystem.regionHighlights){
+			Object.keys($gameSystem.regionHighlights).forEach(function(regionId){
+				var color = $gameSystem.regionHighlights[regionId];
+				var tileCoords = $gameMap.getRegionTiles(regionId);
+				for(var i = 0; i < tileCoords.length; i++){
+					var highlight = tileCoords[i];
+					_this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), color);
+				}
+			});			
+		}	
 	}
 
 	Sprite_AreaHighlights.prototype.update = function() {
