@@ -146,6 +146,9 @@ BattleSceneManager.prototype.initScene = function(){
 	//_this._ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 6, height: 6, subdivisions: 4}, scene); //default ground
 	
 	this._bgs = [];
+	this._skyBgs = [];
+	
+	this._bgMode = "land";
 	
 	this.hookBeforeRender();
 	
@@ -401,7 +404,10 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		var animRatio =  _this._scene.getAnimationRatio();
 		_this._bgs.forEach(function(bg){
 			scrollBg(bg, animRatio);
-		})
+		});
+		_this._skyBgs.forEach(function(bg){
+			scrollBg(bg, animRatio);
+		});
 		Input.update();
 		_this.isOKHeld = Input.isPressed("ok") || Input.isLongPressed("ok");
 		/*if(Input.isPressed("cancel") && _this._sceneCanEnd && !_this._sceneIsEnding){
@@ -961,7 +967,16 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				//_this._enemySprite.sprite.isVisible = true;
 				_this.fadeFromWhite(params.speedOut || "fast");
 			});	
-		},
+		},		
+		updateBgMode: function(target){
+			var action;
+			if(target == "active_target"){
+				action = _this._currentAnimatedAction.attacked;
+			} else {
+				action = _this._currentAnimatedAction;
+			}
+			_this.setBgMode($statCalc.isFlying(action.ref) ? "sky" : "land");			
+		},	
 		next_phase: function(target, params){
 			
 			_this._animationList[startTick + 1] = [{type: "fade_swipe", target: "", params: {time: 700}}];	
@@ -994,10 +1009,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				
 				if(params.commands){
 					_this._animationList[startTick + 111] = params.commands;	
+					_this._animationList[startTick + 112] = [{type: "updateBgMode", target: "active_target"}];
 				}
 			} else {
 				if(params.commands){
 					_this._animationList[startTick + 27] = params.commands;	
+					_this._animationList[startTick + 28] = [{type: "updateBgMode", target: "active_target"}];
 				}
 			}
 		},
@@ -1155,11 +1172,20 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._bgs.forEach(function(bg){
 				bg.isVisible = false;
 			});
+			_this._skyBgs.forEach(function(bg){
+				bg.isVisible = false;
+			});
 		},
 		show_bgs: function(target, params){
-			_this._bgs.forEach(function(bg){
-				bg.isVisible = true;
-			});
+			if(_this._bgMode == "sky"){
+				_this._skyBgs.forEach(function(bg){
+					bg.isVisible = true;
+				});	
+			} else {
+				_this._bgs.forEach(function(bg){
+					bg.isVisible = true;
+				});
+			}		
 		},
 		reset_position: function(target, params){
 			var targetObj = getTargetObject(target);
@@ -1563,6 +1589,28 @@ BattleSceneManager.prototype.fadeFromWhite = function(fadeSpeed) {
 	});	
 }
 
+BattleSceneManager.prototype.setBgMode = function(mode) {
+	var _this = this;
+	_this._bgMode = mode;
+	if(!_this._bgsHidden){		
+		_this._skyBgs.forEach(function(bg){
+			if(_this._bgMode == "sky"){
+				bg.isVisible = true;
+			} else {
+				bg.isVisible = false;
+			}
+			
+		});		
+		_this._bgs.forEach(function(bg){
+			if(_this._bgMode == "land"){
+				bg.isVisible = true;
+			} else {
+				bg.isVisible = false;
+			} 
+		});			
+	}	
+}
+
 BattleSceneManager.prototype.resetScene = function() {
 	var _this = this;
 	_this._animationList = [];
@@ -1595,6 +1643,21 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._bgs.push(this.createBg("bg2_2", $gameSystem.battleParallax1, new BABYLON.Vector3(-25, 0, 14)));
 	_this._bgs.push(this.createBg("bg2_3", $gameSystem.battleParallax1, new BABYLON.Vector3(75, 0, 14)));
 	_this._bgs.push(this.createBg("bg2_4", $gameSystem.battleParallax1, new BABYLON.Vector3(-75, 0, 14)));
+	
+	_this._skyBgs.forEach(function(bg){
+		bg.dispose();
+	});
+	
+	_this._skyBgs = [];
+
+	_this._skyBgs.push(this.createBg("sky_bg1_1", $gameSystem.skyBattleBg, new BABYLON.Vector3(25, 0, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg1_2", $gameSystem.skyBattleBg, new BABYLON.Vector3(-25, 0, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg1_3", $gameSystem.skyBattleBg, new BABYLON.Vector3(75, 0, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg1_4", $gameSystem.skyBattleBg, new BABYLON.Vector3(-75, 0, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg2_1", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(25, 0, 14)));
+	_this._skyBgs.push(this.createBg("sky_bg2_2", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-25, 0, 14)));
+	_this._skyBgs.push(this.createBg("sky_bg2_3", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(75, 0, 14)));
+	_this._skyBgs.push(this.createBg("sky_bg2_4", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-75, 0, 14)));
 }
 
 BattleSceneManager.prototype.fadeAndShowScene = function(){
@@ -1690,9 +1753,8 @@ BattleSceneManager.prototype.showScene = function() {
 BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 	var _this = this;
 	if(action){	
-		_this._bgs.forEach(function(bg){
-			bg.isVisible = true;
-		})
+		_this._bgsHidden = false;
+		_this.setBgMode($statCalc.isFlying(action.ref) ? "sky" : "land");
 		_this._actorSprite.sprite.material.diffuseTexture.uScale = 1;
 		_this._actorSprite.sprite.material.diffuseTexture.vScale = 1;
 		_this._enemySprite.sprite.material.diffuseTexture.uScale = -1;

@@ -757,6 +757,14 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.battleParallax1 = args[0];
 		}
 		
+		if (command === 'setSRWSkyBattleBg') {
+			$gameSystem.skyBattleBg = args[0];
+		}
+		
+		if (command === 'setSRWSkyBattleParallax1') {
+			$gameSystem.skyBattleParallax1 = args[0];
+		}
+		
 		if (command === 'addMapHighlight') {
 			if(!$gameSystem.highlightedTiles){
 				$gameSystem.highlightedTiles = [];
