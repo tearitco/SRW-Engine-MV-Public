@@ -1533,6 +1533,17 @@ StatCalc.prototype.isActorInRegion = function(actorId, regionId){
 	return result;
 }
 
+StatCalc.prototype.isEnemyInRegion = function(enemyId, regionId){
+	var result = false;
+	this.iterateAllActors("enemy", function(actor, event){	
+		if((enemyId == -1 || enemyId == actor.enemyId()) && $gameMap.regionId(event.posX(), event.posY()) == regionId){
+			result = true;
+		}				
+	});
+	return result;
+}
+
+
 StatCalc.prototype.isFreeSpace = function(position, type){
 	var isFree = true;
 	this.iterateAllActors(type, function(actor, event){			

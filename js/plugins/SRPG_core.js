@@ -4491,6 +4491,10 @@ Game_Interpreter.prototype.isActorInRegion = function(actorId, regionId) {
 	return $statCalc.isActorInRegion(actorId, regionId);
 }
 
+Game_Interpreter.prototype.isEnemyInRegion = function(enemyId, regionId) {
+	return $statCalc.isEnemyInRegion(enemyId, regionId);
+}
+
 Game_Interpreter.prototype.setBattleModes = function(startId, endId, mode) {
 	for(var i = startId; i <= endId; i++){
 		this.setBattleMode(i, mode);
