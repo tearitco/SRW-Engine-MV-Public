@@ -4156,22 +4156,58 @@ Game_Interpreter.prototype.cancelEnemyDestruction  = function(id){
 	}
 }
 
-Game_Interpreter.prototype.addEnemies = function(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId) {
+Game_Interpreter.prototype.addEnemiesFromObj = function(params) {
 	for(var i = startId; i <= endId; i++){
-		this.addEnemy(toAnimQueue, i, enemyId, mechClass, level, mode, targetId, items, squadId);
+		this.addEnemy(
+			params.toAnimQueue, 
+			i, 
+			params.enemyId, 
+			params.mechClass, 
+			params.level, 
+			params.mode, 
+			params.targetId, 
+			params.items, 
+			params.squadId, 
+			params.targetRegion
+		);
 	}
 }
 
+Game_Interpreter.prototype.addEnemies = function(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion) {
+	for(var i = startId; i <= endId; i++){
+		this.addEnemy(toAnimQueue, i, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion);
+	}
+}
+
+Game_Interpreter.prototype.addEnemyFromObj = function(params){
+	this.addEnemy(
+		params.toAnimQueue, 
+		params.eventId, 
+		params.enemyId, 
+		params.mechClass, 
+		params.level, 
+		params.mode, 
+		params.targetId, 
+		params.items, 
+		params.squadId, 
+		params.targetRegion
+	);
+}
+
 // 新規エネミーを追加する（増援）
-Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId) {
+Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion) {
     var enemy_unit = new Game_Enemy(enemyId, 0, 0);
     var event = $gameMap.event(eventId);
-	if(typeof squadId == "undefined"){
+	if(typeof squadId == "undefined" || squadId == ""){
 		squadId = -1;
+	}
+	if(typeof targetRegion == "undefined"|| targetRegion == ""){
+		targetRegion = -1;
 	}
     if (enemy_unit && event) { 	
 		enemy_unit._mechClass = mechClass;	
 		enemy_unit.squadId = squadId;	
+		enemy_unit.targetRegion = targetRegion;	
 		if (enemy_unit) {
 			enemy_unit.event = event;
 			if (mode) {
@@ -8848,7 +8884,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						$gameTemp.setSrpgBestSearchFlag(false);
 						$gameSystem.srpgMakeMoveTable(event);
 					}
-					var optimalPos = this.srpgSearchOptimalPos(targetInfo.target, enemy, type, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon.range), targetInfo.weapon.minRange);
+					var optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon.range), targetInfo.weapon.minRange);
 					if(optimalPos[0] != event.posX() || optimalPos[1] != event.posY()){
 						$gameTemp.isPostMove = true;
 						var route = $gameTemp.MoveTable(optimalPos[0], optimalPos[1])[1];
@@ -8860,17 +8896,44 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					}				
 				}				
 			} else {
+				$gameSystem.srpgMakeMoveTable(event);
 				var targetInfo;
+				var optimalPos;
 				if(enemy._currentTarget && !enemy._currentTarget.isErased()){
 					targetInfo = {target: enemy._currentTarget};
-				} else {
+					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, -1, 0);
+				} else if(enemy.targetRegion != -1){
+					var candidatePositions = $gameMap.getRegionTiles(enemy.targetRegion);
+					var currentBestDist = -1;
+					var xRef = event.posX();
+					var yRef = event.posY();
+					for(var i = 0; i < candidatePositions.length; i++){
+						
+						var dist = Math.hypot(xRef-candidatePositions[i].x, yRef-candidatePositions[i].y);
+						if((currentBestDist == -1 || dist < currentBestDist) && ($statCalc.isFreeSpace(candidatePositions[i]) || (xRef == candidatePositions[i].x && yRef == candidatePositions[i].y))){
+							optimalPos = candidatePositions[i];
+						}
+					}
+					if(!optimalPos){
+						currentBestDist = -1;
+						for(var i = 0; i < candidatePositions.length; i++){						
+							var dist = Math.hypot(xRef-candidatePositions[i].x, yRef-candidatePositions[i].y);
+							if((currentBestDist == -1 || dist < currentBestDist)){
+								optimalPos = candidatePositions[i];
+							}
+						}
+					}
+					optimalPos = this.srpgSearchOptimalPos(optimalPos, enemy, type, -1, 0);
+				} 
+				
+				if(!optimalPos){
 					targetInfo = this.srpgDecideTarget($statCalc.getAllActorEvents("actor"), event, targetType); //ターゲットの設定
 					enemy._currentTarget = targetInfo.target;
+					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, -1, 0);
 				}
 				
-				$gameSystem.srpgMakeMoveTable(event);
+				
 				$gameTemp.isPostMove = true;
-				var optimalPos = this.srpgSearchOptimalPos(targetInfo.target, enemy, type, -1, 0);
 				var route = $gameTemp.MoveTable(optimalPos[0], optimalPos[1])[1];
 				$gameSystem.setSrpgWaitMoving(true);
 				event.srpgMoveToPoint({x: optimalPos[0], y: optimalPos[1]});
@@ -9126,7 +9189,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     };
 
     // 最適移動位置の探索
-    Scene_Map.prototype.srpgSearchOptimalPos = function(targetEvent, battler, type, range, minRange) {
+    Scene_Map.prototype.srpgSearchOptimalPos = function(targetCoords, battler, type, range, minRange) {
 		function isValidSpace(pos){
 			return $statCalc.isFreeSpace(pos) || (pos.x == $gameTemp.activeEvent().posX() && pos.y == $gameTemp.activeEvent().posY());
 		}
@@ -9175,8 +9238,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var distanceSortedPositions = [];
 		
 		for(var i = 0; i < list.length; i++){
-			var deltaX = Math.abs(targetEvent.posX() - list[i][0]);
-			var deltaY = Math.abs(targetEvent.posY() - list[i][1]);
+			var deltaX = Math.abs(targetCoords.x - list[i][0]);
+			var deltaY = Math.abs(targetCoords.y - list[i][1]);
 			var distance = deltaX + deltaY;
 			if((range == -1 || (deltaX + deltaY <= range) && deltaX + deltaY >= minRange) && isValidSpace({x: list[i][0], y: list[i][1]})){
 				distanceSortedPositions.push({
@@ -9202,7 +9265,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}
 		
 		for(var i = 0; i < candidatePos.length; i++){
-			if(candidatePos[i][0] == targetEvent.posX() && candidatePos[i][1] == targetEvent.posY()){
+			if(candidatePos[i][0] == targetCoords.x && candidatePos[i][1] == targetCoords.y){
 				return candidatePos[i];
 			}
 		}
@@ -9212,7 +9275,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			resultPos = candidatePos[ctr++];
 		}
 		if(!isValidSpace({x: resultPos[0], y: resultPos[1]})){
-			return [targetEvent.posX(), targetEvent.posY()];
+			return [targetCoords.x, targetCoords.y];
 		} else {
 			return resultPos;
 		}        
