@@ -286,6 +286,13 @@ Window_SpiritActivation.prototype.update = function() {
 							_this._spiritAnimImage.style.display = "none" 
 							_this._processingAnimation = false;
 						}, 650);	
+						
+						var se = {};
+						se.name = 'SRWHit';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 90;
+						AudioManager.playSe(se);
 					} else if(effectDef.type == "double_image"){
 						this._processingAnimation = true;			
 						_this.setMessage("DOUBLE IMAGE");
@@ -295,6 +302,13 @@ Window_SpiritActivation.prototype.update = function() {
 							_this._spiritAnimImage.style.display = "none" 
 							_this._processingAnimation = false;
 						}, 650);	
+						
+						var se = {};
+						se.name = 'SRWDoubleImage';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 90;
+						AudioManager.playSe(se);
 					} else if(effectDef.type == "miss"){
 						this._processingAnimation = true;			
 						_this.setMessage("MISS");
@@ -303,6 +317,13 @@ Window_SpiritActivation.prototype.update = function() {
 							_this._spiritAnimImage.style.display = "none" 
 							_this._processingAnimation = false;
 						}, 650);	
+						
+						var se = {};
+						se.name = 'SRWMiss';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 90;
+						AudioManager.playSe(se);
 					}			
 					Graphics._updateCanvas();		
 				} else {

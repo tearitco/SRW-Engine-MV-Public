@@ -105,7 +105,11 @@ StatCalc.prototype.setCurrentTerrainModsFromTilePropertyString = function(actor,
 
 StatCalc.prototype.getCurrentTerrain = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.currentTerrain;
+		if(this.isFlying(actor)){
+			return this._terrainStringLookup[1];
+		} else {
+			return actor.SRWStats.mech.currentTerrain;
+		}		
 	}		
 }
 
@@ -1783,7 +1787,7 @@ StatCalc.prototype.modifyWill = function(actor, increment){
 
 StatCalc.prototype.getTerrainMod = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		var currentTerrain = actor.SRWStats.mech.currentTerrain;
+		var currentTerrain = this.getCurrentTerrain(actor);
 		var pilotTerrainLevel = actor.SRWStats.pilot.stats.calculated.terrain[currentTerrain];
 		var mechTerrainLevel = actor.SRWStats.mech.stats.calculated.terrain[currentTerrain]; 
 		var mechTerrainNumeric = this._terrainToNumeric[mechTerrainLevel];
@@ -1803,7 +1807,7 @@ StatCalc.prototype.getTerrainMod = function(actor){
 
 StatCalc.prototype.getWeaponTerrainMod = function(actor, weaponInfo){
 	if(this.isActorSRWInitialized(actor)){
-		var currentTerrain = actor.SRWStats.mech.currentTerrain;
+		var currentTerrain = this.getCurrentTerrain(actor);
 		var weaponTerrainRanking = weaponInfo.terrain[currentTerrain];
 		
 		var weaponTerrainNumeric = this._terrainToNumeric[weaponTerrainRanking];
