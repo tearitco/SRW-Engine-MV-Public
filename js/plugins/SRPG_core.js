@@ -3859,7 +3859,7 @@ var $battleSceneManager = new BattleSceneManager();
 		if(battlerArray && battlerArray[1]){
 			$statCalc.setCurrentTerrainFromRegionIndex(battlerArray[1], $gameMap.regionId(this._x, this._y));
 			$gameMap.initSRWTileProperties();
-			$statCalc.setCurrentTerrainModsFromTilePropertyString(battlerArray[1], $gameMap.getTileProperties($gameMap.tileId(this._x, this._y, 3)));
+			$statCalc.setCurrentTerrainModsFromTilePropertyString(battlerArray[1], $gameMap.getTileProperties({x: this._x, y: this._y}));
 		}		
         if ($gameSystem.isSRPGMode() == true && this._srpgForceRoute.length > 0) {
             if (!this.isMoving()) {
@@ -3954,6 +3954,7 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 		if(!this._SRWTileProperties[this._tilesetId]){
 			var regex = new RegExp("srwTileAttributes([0-9]+)");
+			var rangeRegex = new RegExp("srwTileAttributes([0-9]+)\-([0-9]+)");
 			this._SRWTileProperties[this._tilesetId] = {};
 			var tileSetMeta = $dataTilesets[this._tilesetId].meta;
 			Object.keys(tileSetMeta).forEach(function(key){				
@@ -3961,21 +3962,39 @@ var $battleSceneManager = new BattleSceneManager();
 				if(matches.length){
 					_this._SRWTileProperties[_this._tilesetId][matches[1]] = tileSetMeta[key];
 				}
+				var matches = key.match(rangeRegex);
+				if(matches.length){
+					var startId = matches[1];
+					var endId = matches[2];
+					for(var i = startId; i < endId; i++){
+						_this._SRWTileProperties[_this._tilesetId][i] = tileSetMeta[key];
+					}
+				}
 			});
 		}
     };
 	
-	Game_Map.prototype.getTileProperties = function(tileId) {
+	Game_Map.prototype.getTileProperties = function(tileCoords) {
 		if(this._SRWTileProperties && this._SRWTileProperties[this._tilesetId]){
-			return this._SRWTileProperties[this._tilesetId][tileId];
+			var bTileId = $gameMap.tileId(tileCoords.x, tileCoords.y, 3);
+			var autoTileId = $gameMap.tileId(tileCoords.x, tileCoords.y, 1);
+			var groundTileId = $gameMap.tileId(tileCoords.x, tileCoords.y, 0);
+			
+			if(this._SRWTileProperties[this._tilesetId][bTileId]){
+				return this._SRWTileProperties[this._tilesetId][bTileId];
+			} else if(this._SRWTileProperties[this._tilesetId][autoTileId]){
+			 	return this._SRWTileProperties[this._tilesetId][autoTileId];
+			} else if(this._SRWTileProperties[this._tilesetId][groundTileId]){
+				return this._SRWTileProperties[this._tilesetId][groundTileId];
+			}
 		} else {
 			return null;
 		}		
 	}
 	
-	Game_Map.prototype.getTilePropertiesAsObject = function(tileId) {
+	Game_Map.prototype.getTilePropertiesAsObject = function(tileCoords) {
 		var result;
-		var string = this.getTileProperties(tileId);
+		var string = this.getTileProperties(tileCoords);
 		if(string){
 			var parts = string.split(",");		
 			result = {
@@ -7641,7 +7660,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 			}		
 		
-			var terrainDetails = $gameMap.getTilePropertiesAsObject($gameMap.tileId(currentPosition.x, currentPosition.y, 3))		
+			var terrainDetails = $gameMap.getTilePropertiesAsObject({x: currentPosition.x, y: currentPosition.y});		
 			if(terrainDetails){
 				$gameTemp.terrainDetails = terrainDetails;
 				if(!this._terrainDetailsWindow.visible || previousPosition.x != currentPosition.x || previousPosition.y != currentPosition.y){
