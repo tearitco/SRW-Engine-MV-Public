@@ -924,8 +924,15 @@ MechList.prototype.getCurrentInfoPage = function(){
 }
 
 MechList.prototype.getCurrentSelection = function(){	
-	var unit = this.getAvailableUnits()[this._currentSelection + this._currentPage * this._maxPageSize];
-	return {mech: unit.SRWStats.mech, actor: unit};
+	var availableUnits = this.getAvailableUnits();
+	var idx = this._currentSelection + this._currentPage * this._maxPageSize;
+	if(idx >= availableUnits.length){
+		this._currentSelection = 0;
+		this._currentPage = 0;
+		idx = 0;
+		this.requestRedraw();
+	}
+	return availableUnits[idx];
 }
 
 MechList.prototype.getCurrentPageAmount = function(){

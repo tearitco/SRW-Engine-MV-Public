@@ -32,6 +32,12 @@ Window_EquipItem.prototype.initialize = function() {
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
 }
 
+Window_CSS.prototype.resetSelection = function(){
+	this._currentSelection = 0;
+	this._currentPage = 0;
+	this._currentTransferSelection = 0;
+}
+
 Window_EquipItem.prototype.getCurrentSelection = function(){
 	return $gameTemp.currentMenuUnit.mech;	
 }
@@ -211,6 +217,7 @@ Window_EquipItem.prototype.update = function() {
 						$inventoryManager.addItemHolder(itemIdx, mech.id, this._currentSelection);
 						this._currentUIState = "slot_selection";	
 					} else {
+						this._currentTransferSelection = 0;
 						this._currentUIState = "item_transfer";	
 					}
 				}								

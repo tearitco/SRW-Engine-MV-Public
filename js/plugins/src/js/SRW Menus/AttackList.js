@@ -48,6 +48,7 @@ AttackList.prototype.getCurrentSelection = function(){
 		this._currentSelection = 0;
 		this._currentPage = 0;
 		idx = 0;
+		this.requestRedraw();
 	}
 	return availableUnits[idx];
 }
