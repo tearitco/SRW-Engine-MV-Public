@@ -3,7 +3,7 @@ import * as Materials from 'babylonjs-materials';
 import * as Loaders from 'babylonjs-loaders';
 
 import BattleSceneUILayer from "./BattleSceneUILayer.js";
-import BattleAnimationBuilder from "./BattleAnimationBuilder.js";
+//import BattleAnimationBuilder from "./BattleAnimationBuilder.js";
 
 
 export default function BattleSceneManager(){
@@ -1169,6 +1169,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},
 		hide_bgs: function(target, params){
+			_this._bgsHidden = true;
 			_this._bgs.forEach(function(bg){
 				bg.isVisible = false;
 			});
@@ -1177,6 +1178,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			});
 		},
 		show_bgs: function(target, params){
+			_this._bgsHidden = false;
 			if(_this._bgMode == "sky"){
 				_this._skyBgs.forEach(function(bg){
 					bg.isVisible = true;
