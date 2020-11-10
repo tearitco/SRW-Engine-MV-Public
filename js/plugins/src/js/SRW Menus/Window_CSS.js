@@ -121,19 +121,17 @@ Window_CSS.prototype.loadFace = function(actorData, elem) {
 	
 	var targetBitmap = new Bitmap(width, height);
 	
-	var bitmap = ImageManager.loadFace(faceName);
-    var pw = Window_Base._faceWidth;
-    var ph = Window_Base._faceHeight;
-    var sw = Math.min(width, pw);
-    var sh = Math.min(height, ph);
-    var dx = Math.floor(0 + Math.max(width - pw, 0) / 2);
-    var dy = Math.floor(0 + Math.max(height - ph, 0) / 2);
-    var sx = faceIndex % 4 * pw + (pw - sw) / 2;
-    var sy = Math.floor(faceIndex / 4) * ph + (ph - sh) / 2;   
-	
-	
-	
+	var bitmap = ImageManager.loadFace(faceName);	
 	bitmap.addLoadListener(function(){
+		var pw = Window_Base._faceWidth;
+		var ph = Window_Base._faceHeight;
+		var sw = Math.min(width, pw);
+		var sh = Math.min(height, ph);
+		var dx = Math.floor(0 + Math.max(width - pw, 0) / 2);
+		var dy = Math.floor(0 + Math.max(height - ph, 0) / 2);
+		var sx = faceIndex % 4 * pw + (pw - sw) / 2;
+		var sy = Math.floor(faceIndex / 4) * ph + (ph - sh) / 2;   
+		
 		targetBitmap.blt(bitmap, sx, sy, sw, sh, dx, dy);
 		var facePicContainer = document.createElement("div");
 		facePicContainer.classList.add("face_pic_container");
@@ -152,19 +150,19 @@ Window_CSS.prototype.loadMechMiniSprite = function(mechClass, elem) {
 	
 	elem.innerHTML = "";	
 
-    var bitmap = ImageManager.loadCharacter(characterName);
-    var big = ImageManager.isBigCharacter(characterName);
-    var pw = bitmap.width / (big ? 3 : 12);
-    var ph = bitmap.height / (big ? 4 : 8);
-	
-	var targetBitmap = new Bitmap(pw, ph);
-	
-    var n = big ? 0: characterIndex;
-    var sx = (n % 4 * 3 + 1) * pw;
-    var sy = (Math.floor(n / 4) * 4) * ph;
-    
+    var bitmap = ImageManager.loadCharacter(characterName);   
 	
 	bitmap.addLoadListener(function(){
+		var big = ImageManager.isBigCharacter(characterName);
+		var pw = bitmap.width / (big ? 3 : 12);
+		var ph = bitmap.height / (big ? 4 : 8);
+		
+		var targetBitmap = new Bitmap(pw, ph);
+		
+		var n = big ? 0: characterIndex;
+		var sx = (n % 4 * 3 + 1) * pw;
+		var sy = (Math.floor(n / 4) * 4) * ph;
+		
 		targetBitmap.blt(bitmap, sx, sy, pw, ph, 0, 0); 
 		var mechPicContainer = document.createElement("div");
 		mechPicContainer.classList.add("mech_pic_container");
