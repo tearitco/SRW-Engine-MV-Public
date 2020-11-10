@@ -228,42 +228,72 @@ Window_BattleBasic.prototype.createComponents = function() {
 	
 	this._bgFadeContainer.innerHTML = "";
 	
-	this._bgFadeContainer.appendChild(this._actor);	
-	this._bgFadeContainer.appendChild(this._actorSupporter);	
-	this._bgFadeContainer.appendChild(this._enemy);	
-	this._bgFadeContainer.appendChild(this._enemySupporter);	
+	this._activeZoneContainer = document.createElement("div");
+	this._activeZoneContainer.id = this.createId("active_zone_container");
 	
-	this._bgFadeContainer.appendChild(this._enemyDamage);	
-	this._bgFadeContainer.appendChild(this._actorDamage);	
-	this._bgFadeContainer.appendChild(this._enemySupportDamage);	
-	this._bgFadeContainer.appendChild(this._actorSupportDamage);
-	this._bgFadeContainer.appendChild(this._actorEvade);	
-	this._bgFadeContainer.appendChild(this._enemyEvade);	
+	this._activeZone = document.createElement("div");
+	this._activeZone.id = this.createId("active_zone");
 	
-	this._bgFadeContainer.appendChild(this._enemyDestroyed);	
-	this._bgFadeContainer.appendChild(this._actorDestroyed);
+	this._activeZone.appendChild(this._actor);	
+	this._activeZone.appendChild(this._actorSupporter);	
+	this._activeZone.appendChild(this._enemy);	
+	this._activeZone.appendChild(this._enemySupporter);	
+	
+	this._activeZone.appendChild(this._enemyDamage);	
+	this._activeZone.appendChild(this._actorDamage);	
+	this._activeZone.appendChild(this._enemySupportDamage);	
+	this._activeZone.appendChild(this._actorSupportDamage);
+	this._activeZone.appendChild(this._actorEvade);	
+	this._activeZone.appendChild(this._enemyEvade);	
+	
+	this._activeZone.appendChild(this._enemyDestroyed);	
+	this._activeZone.appendChild(this._actorDestroyed);
 
-	this._bgFadeContainer.appendChild(this._enemySupportDestroyed);	
-	this._bgFadeContainer.appendChild(this._actorSupportDestroyed);		
+	this._activeZone.appendChild(this._enemySupportDestroyed);	
+	this._activeZone.appendChild(this._actorSupportDestroyed);		
 	
-	this._bgFadeContainer.appendChild(this._enemyHP);	
-	this._bgFadeContainer.appendChild(this._actorHP);	
-	this._bgFadeContainer.appendChild(this._enemySupporterHP);
-	this._bgFadeContainer.appendChild(this._actorSupporterHP);	
+	this._activeZone.appendChild(this._enemyHP);	
+	this._activeZone.appendChild(this._actorHP);	
+	this._activeZone.appendChild(this._enemySupporterHP);
+	this._activeZone.appendChild(this._actorSupporterHP);	
 	
-	this._bgFadeContainer.appendChild(this._actorCounter);	
-	this._bgFadeContainer.appendChild(this._enemyCounter);	
+	this._activeZone.appendChild(this._actorCounter);	
+	this._activeZone.appendChild(this._enemyCounter);	
 	
-	this._bgFadeContainer.appendChild(this._actorDoubleImage);	
-	this._bgFadeContainer.appendChild(this._enemyDoubleImage);
+	this._activeZone.appendChild(this._actorDoubleImage);	
+	this._activeZone.appendChild(this._enemyDoubleImage);
 	
-	this._bgFadeContainer.appendChild(this._actorSupportDoubleImage);	
-	this._bgFadeContainer.appendChild(this._enemySupportDoubleImage);
+	this._activeZone.appendChild(this._actorSupportDoubleImage);	
+	this._activeZone.appendChild(this._enemySupportDoubleImage);
 	
-	this._bgFadeContainer.appendChild(this._actorBarrier);
-	this._bgFadeContainer.appendChild(this._enemyBarrier);
-	this._bgFadeContainer.appendChild(this._actorSupportBarrier);
-	this._bgFadeContainer.appendChild(this._enemySupportBarrier);
+	this._activeZone.appendChild(this._actorBarrier);
+	this._activeZone.appendChild(this._enemyBarrier);
+	this._activeZone.appendChild(this._actorSupportBarrier);
+	this._activeZone.appendChild(this._enemySupportBarrier);
+	
+	this._activeZoneContainer.appendChild(this._activeZone);	
+	
+	this._activeZoneContainerGradient = document.createElement("div");
+	this._activeZoneContainerGradient.id = this.createId("active_zone_container_gradient");
+	this._activeZoneContainer.appendChild(this._activeZoneContainerGradient);
+	
+	this._activeZoneContainerLeft = document.createElement("div");
+	this._activeZoneContainerLeft.id = this.createId("active_zone_container_left");
+	this._activeZoneContainer.appendChild(this._activeZoneContainerLeft);
+	
+	this._activeZoneContainerRight = document.createElement("div");
+	this._activeZoneContainerRight.id = this.createId("active_zone_container_right");
+	this._activeZoneContainer.appendChild(this._activeZoneContainerRight);
+	
+	this._activeZoneContainerShadowLeft = document.createElement("div");
+	this._activeZoneContainerShadowLeft.id = this.createId("active_zone_container_shadow_left");
+	this._activeZoneContainer.appendChild(this._activeZoneContainerShadowLeft);
+	
+	this._activeZoneContainerShadowRight = document.createElement("div");
+	this._activeZoneContainerShadowRight.id = this.createId("active_zone_container_shadow_right");
+	this._activeZoneContainer.appendChild(this._activeZoneContainerShadowRight);
+	
+	this._bgFadeContainer.appendChild(this._activeZoneContainer);	
 }	
 
 Window_BattleBasic.prototype.loadRequiredImages = function(){
@@ -330,6 +360,16 @@ Window_BattleBasic.prototype.show = function() {
 	var _this = this;
 	this._processingAction = false;
 	this._finishing = false;
+	var windowNode = this.getWindowNode();
+	windowNode.classList.add("beforeView");
+	windowNode.classList.remove("beginView");
+	windowNode.classList.remove("fadeIn");	
+	windowNode.classList.add("fadeIn");
+	setTimeout(function(){
+		windowNode.classList.remove("beforeView");
+		windowNode.classList.add("beginView");
+	}, 300);
+	_this.initTimer = 48;
 	_this.createComponents();
 	_this.readBattleCache();	
 	_this.loadRequiredImages().then(function(){
@@ -588,6 +628,10 @@ Window_BattleBasic.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
+		if(_this.initTimer > 0){
+			_this.initTimer--;
+			return;
+		}
 		if(this._finishing){
 			if(this._finishTimer <= 0){
 				this._finishing = false;
