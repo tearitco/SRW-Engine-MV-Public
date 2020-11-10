@@ -3882,46 +3882,62 @@ var $battleSceneManager = new BattleSceneManager();
             }
         } else if(this._pendingMoveToPoint){
 			if (!this.isMoving()) {
-				this.setMoveSpeed(6);
-				if(!isActor){
-					$gamePlayer.setMoveSpeed(6);
-				}
-				var nextPosition = this._pathToCurrentTarget.shift();
-				if(nextPosition && (this._x != nextPosition.x || this._y != nextPosition.y)) {
-					var deltaX = nextPosition.x - this._x;				
-					var deltaY = nextPosition.y - this._y;
-					if(deltaX != 0){
-						if(Math.sign(deltaX) == 1){
-							this.moveStraight(6); //right
-							if(!isActor){
-								$gamePlayer.moveStraight(6);
-							}
-						} else {
-							this.moveStraight(4); //left
-							if(!isActor){
-								$gamePlayer.moveStraight(4);
-							}
-						}
+				Input.update();
+				if(Input.isPressed("pagedown") || Input.isLongPressed("pagedown")){
+					
+					var targetPosition = this._pathToCurrentTarget[this._pathToCurrentTarget.length-1];
+					this._pathToCurrentTarget = [];
+					this.locate(targetPosition.x, targetPosition.y);
+					if(!isActor){
+						$gamePlayer.locate(targetPosition.x, targetPosition.y);
 					}
-					if(deltaY != 0){
-						if(Math.sign(deltaY) == 1){
-							this.moveStraight(2); //down
-							if(!isActor){
-								$gamePlayer.moveStraight(2);
-							}
-						} else {
-							this.moveStraight(8); //up
-							if(!isActor){
-								$gamePlayer.moveStraight(8);
-							}
-						}
-					}					
-				} else {
 					$gamePlayer.setMoveSpeed(4);
 					this._targetPosition = null;
 					this._pathToCurrentTarget = null;
 					this._pendingMoveToPoint = false;
 					$gameSystem.setSrpgWaitMoving(false);
+				} else {				
+					this.setMoveSpeed(6);
+					if(!isActor){
+						$gamePlayer.setMoveSpeed(6);
+					}
+					var nextPosition = this._pathToCurrentTarget.shift();
+					if(nextPosition && (this._x != nextPosition.x || this._y != nextPosition.y)) {
+						var deltaX = nextPosition.x - this._x;				
+						var deltaY = nextPosition.y - this._y;
+						if(deltaX != 0){
+							if(Math.sign(deltaX) == 1){
+								this.moveStraight(6); //right
+								if(!isActor){
+									$gamePlayer.moveStraight(6);
+								}
+							} else {
+								this.moveStraight(4); //left
+								if(!isActor){
+									$gamePlayer.moveStraight(4);
+								}
+							}
+						}
+						if(deltaY != 0){
+							if(Math.sign(deltaY) == 1){
+								this.moveStraight(2); //down
+								if(!isActor){
+									$gamePlayer.moveStraight(2);
+								}
+							} else {
+								this.moveStraight(8); //up
+								if(!isActor){
+									$gamePlayer.moveStraight(8);
+								}
+							}
+						}					
+					} else {
+						$gamePlayer.setMoveSpeed(4);
+						this._targetPosition = null;
+						this._pathToCurrentTarget = null;
+						this._pendingMoveToPoint = false;
+						$gameSystem.setSrpgWaitMoving(false);
+					}	
 				}
 			}
 		} else {
