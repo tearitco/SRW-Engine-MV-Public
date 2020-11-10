@@ -42,7 +42,14 @@ AttackList.prototype.getMaxPage = function(){
 }
 
 AttackList.prototype.getCurrentSelection = function(){
-	return this.getAvailableUnits()[this._currentSelection + this._currentPage * this._maxPageSize];
+	var availableUnits = this.getAvailableUnits();
+	var idx = this._currentSelection + this._currentPage * this._maxPageSize;
+	if(idx >= availableUnits.length){
+		this._currentSelection = 0;
+		this._currentPage = 0;
+		idx = 0;
+	}
+	return availableUnits[idx];
 }
 
 AttackList.prototype.getCurrentPageAmount = function(){

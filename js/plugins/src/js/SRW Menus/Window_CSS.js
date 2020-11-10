@@ -36,6 +36,7 @@ Window_CSS.prototype.hide = function() {
 };
 
 Window_CSS.prototype.show = function() {
+	this.resetSelection();
 	this._handlingInput = false;
     this.visible = true;
 	this._redrawRequested = true;
@@ -249,7 +250,6 @@ Window_CSS.prototype.getAvailableUnits = function(){
 	this._availableUnits.forEach(function(unit){
 		$statCalc.initSRWStats(unit);
 	});
-	
 	return this._availableUnits;
 }
 
@@ -331,6 +331,7 @@ Window_CSS.prototype.getPreviousAvailablePilotGlobal = function(currentUnitId){
 
 Window_CSS.prototype.resetSelection = function(){
 	this._currentSelection = 0;
+	this._currentPage = 0;
 }
 
 Window_CSS.prototype.updateScaledImage = function(img) {

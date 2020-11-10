@@ -77,6 +77,12 @@ Window_AttackList.prototype.createComponents = function() {
 	
 }	
 
+var Window_CSS_prototype_show = Window_CSS.prototype.show;
+Window_AttackList.prototype.show = function() {
+	this._attackList.resetSelection();
+	Window_CSS_prototype_show.call(this);	
+};
+
 Window_AttackList.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
