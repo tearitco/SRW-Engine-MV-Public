@@ -41,6 +41,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_fly: "Fly",
 	cmd_attack: "Attack",
 	cmd_end_turn: "End Turn",
+	cmd_list: "Unit List",
 	cmd_options: "Options",
 	cmd_save: "Save",
 	cmd_game_end: "Exit",

@@ -110,7 +110,11 @@ Window_MechList.prototype.update = function() {
 		}
 		if(Input.isTriggered('cancel')){		
 			SoundManager.playCancel();		
-			$gameTemp.popMenu = true;	
+			$gameTemp.popMenu = true;
+
+			if(this._callbacks["closed"]){
+				this._callbacks["closed"]();
+			}	
 		}		
 		
 		this.refresh();

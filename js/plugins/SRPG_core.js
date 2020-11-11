@@ -6583,6 +6583,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     Window_MenuCommand.prototype.makeCommandList = function() {       
         this.addTurnEndCommand();        
        // _SRPG_Window_MenuCommand_makeCommandList.call(this);
+	   this.addCommand(APPSTRINGS.MAPMENU.cmd_list, 'unitList', true);
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_options, 'options');
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_save, 'save');
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_game_end, 'gameEnd');
@@ -6721,7 +6722,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._commandWindow.setHandler('gameEnd',   this.commandGameEnd.bind(this));
 		this._commandWindow.setHandler('options',   this.commandOptions.bind(this));
 		this._commandWindow.setHandler('cancel',    this.closePauseMenu.bind(this));
-		this._commandWindow.setHandler('turnEnd',this.commandTurnEnd.bind(this));            
+		this._commandWindow.setHandler('turnEnd',this.commandTurnEnd.bind(this));    
+		this._commandWindow.setHandler('unitList',this.commandUnitList.bind(this));         
 		this._commandWindow.y = 100;
 		this._commandWindow.x = 800;
 		this.addWindow(this._commandWindow);	
@@ -6772,6 +6774,20 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._goldWindow.hide();
     }
 	
+	Scene_Map.prototype.commandUnitList = function() {
+		var _this = this;
+		$gameTemp.mechListWindowCancelCallback = function(){
+			$gameTemp.mechListWindowCancelCallback = null;
+			_this._commandWindow.activate();
+			$gameTemp.deactivatePauseMenu = false;
+			Input.clear();//ensure the B press from closing the list does not propagate to the pause menu
+		}
+		this._commandWindow.deactivate();
+		$gameTemp.deactivatePauseMenu = true;
+		//$gameSystem.setSubBattlePhase('normal');
+        $gameTemp.pushMenu = "mech_list";
+    }
+	
 	Scene_Map.prototype.createIntermissionWindow = function() {
 		var _this = this;
 		_this._intermissionWindow = new Window_Intermission(0, 0, Graphics.boxWidth, Graphics.boxHeight);
@@ -6792,6 +6808,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._mechListWindow = new Window_MechList(0, 0, Graphics.boxWidth, Graphics.boxHeight);
 		this._mechListWindow.close();
 		this.addWindow(this._mechListWindow);
+		this._mechListWindow.registerCallback("closed", function(){
+			/*if($gameTemp.isEnemyAttack){
+				_this._mapSrpgBattleWindow.activate();
+			} else {			
+				_this._mapSrpgActorCommandWindow.activate();
+			}  */
+			if($gameTemp.mechListWindowCancelCallback){
+				$gameTemp.mechListWindowCancelCallback();
+			}
+		});
 		this._mechListWindow.hide();
 		this.idToMenu["mech_list"] = this._mechListWindow;
     };
@@ -7713,7 +7739,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}
 		
 		if ($gameSystem.isSubBattlePhase() === 'pause_menu') {
-			this.showPauseMenu();
+			if(!$gameTemp.deactivatePauseMenu){
+				this.showPauseMenu();
+			}			
 		}	
 		
 		if ($gameSystem.isSubBattlePhase() === 'map_spirit_animation') {
