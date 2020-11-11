@@ -13,9 +13,9 @@
 
 * SetLevel <actor_id> <level>
 
-* addKills <actor_id> \<amount\>
+* addKills <actor_id> <amount\>
 
-* addPP <actor_id> <amount>
+* addPP <actor_id> <amount\>
 		
 * setStageSong <song_id>
 
