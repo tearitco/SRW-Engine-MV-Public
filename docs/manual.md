@@ -3,6 +3,7 @@
 ## Plugin commands
 
 * SRPGBattle <start|end> 
+
 	This command starts or ends the SRPG mode of the engine.
 	Generally only called by the init or intermission map to start a new stage.
 	
@@ -17,6 +18,7 @@
 * addPP <actor_id> <amount>
 		
 * setStageSong <song_id>
+
 	Sets the default song for the current stage.
 	When switching between actor and enemy phases this song will start playing.
 
