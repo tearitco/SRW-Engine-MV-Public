@@ -163,16 +163,16 @@ They can also be used as conditionals in IF statements.
 
 	Spawn an enemy on the map, the event that will be used must already exist.<br/>
 	The following can be set:
-		*toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
-		*eventId: the id number of the event
-		*enemyId: the id number of the enemy pilot 
-		*mechClass: the id number of the mech/class for the enemy
-		*level
-		*mode: "stand" for stationary enemies, otherwise ""
-		*targetId: the actor id of the actor this enemy should prioritize
-		*items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
-		*squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
-		*targetRegion: the id of the region that the enemy should move towards
+		* toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
+		* eventId: the id number of the event
+		* enemyId: the id number of the enemy pilot 
+		* mechClass: the id number of the mech/class for the enemy
+		* level
+		* mode: "stand" for stationary enemies, otherwise ""
+		* targetId: the actor id of the actor this enemy should prioritize
+		* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
+		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
+		* targetRegion: the id of the region that the enemy should move towards
 	A setting can be left blank by entering "" as their value.		
 	
 * this.addEnemies(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion)
