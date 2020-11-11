@@ -13,7 +13,7 @@
 
 * SetLevel <actor_id> <level>
 
-* addKills <actor_id> <amount>
+* addKills <actor_id> \<amount\>
 
 * addPP <actor_id> <amount>
 		
@@ -163,23 +163,23 @@ They can also be used as conditionals in IF statements.
 
 	Spawn an enemy on the map, the event that will be used must already exist.<br/>
 	The following can be set:<br/>
-		*toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
+		* toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
 		<br/>	
-		*eventId: the id number of the event
+		* eventId: the id number of the event
 		<br/>
-		*enemyId: the id number of the enemy pilot 
+		* enemyId: the id number of the enemy pilot 
 		<br/>
-		*mechClass: the id number of the mech/class for the enemy
+		* mechClass: the id number of the mech/class for the enemy
 		<br/>
-		*level
+		* level
 		<br/>
-		*mode: "stand" for stationary enemies, otherwise ""
+		* mode: "stand" for stationary enemies, otherwise ""
 		<br/>
-		*targetId: the actor id of the actor this enemy should prioritize
+		* targetId: the actor id of the actor this enemy should prioritize
 		<br/>
-		*items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
+		* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
 		<br/>
-		*squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
+		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
 		<br/>
 		* targetRegion: the id of the region that the enemy should move towards<br/>
 	A setting can be left blank by entering "" as its value.		
