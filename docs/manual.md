@@ -209,11 +209,11 @@ They can also be used as conditionals in IF statements.
 
 * this.eraseEvent(event_id)
 
-	Remove the specified event with an animation.
+	Remove the specified event without an animation.
 	
 * this.eraseEvents(startId, endId)
 
-	Remove the event between startId and endId.
+	Remove the events between startId and endId.
 	
 * this.playerMoveTo(x, y)
 
@@ -225,7 +225,7 @@ They can also be used as conditionals in IF statements.
 
 * this.isActorInRegion(actor_id, region_id)
 
-	Can be used as conditional to detect if the actor with the specified actor id is currently on a tile from the region with the specified id.<br/>
+	Can be used as a conditional to detect if the actor with the specified actor id is currently on a tile from the region with the specified id.<br/>
 	If actor_id is -1 this function will detect if any actor is in the region.
 	
 * this.isEnemyInRegion(enemy_id, region_id)
