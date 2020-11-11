@@ -122,41 +122,47 @@
 These added commands can be used in Script commands while making event scripts.<br/>
 They can also be used as conditionals in IF statements.
 
-* this.setMasteryText(<text>);
+* this.setMasteryText(<text>)
 
 	The text for "Win condition", "Defeat condition" and "Mastery condition" will be automatically printed and should not be included.
 	
-* this.setVictoryText(<text>);  
+* this.setVictoryText(<text>) 
 
 	The text for "Win condition", "Defeat condition" and "Mastery condition" will be automatically printed and should not be included.
 
-* this.setDefeatText(<text>);  
+* this.setDefeatText(<text>)  
 
 	The text for "Win condition", "Defeat condition" and "Mastery condition" will be automatically printed and should not be included.
 	
-* this.showStageConditions();
+* this.showStageConditions()
+
 	Shows a text box using the values set with the previous commands.
 	
 * this.isActorDestructionQueued(<actor_id>)
+
 	To be used as a conditional in the before_destruction event.<br/>
 	Will be TRUE if the actor with the specified id was defeated and is about to be destroyed.
 	
 * this.isEnemyDestructionQueued(<enemy_id>)
+
 	To be used as a conditional in the before_destruction event.<br/>
 	Will be TRUE if the enemy with the specified id was defeated and is about to be destroyed.
 
 * this.cancelActorDestruction(<actor_id>) 
+
 	Cancel the destruction animation and erasure of an actor that is about to be destroyed.<br/>
 	To be used in the before_destruction event.
 	
 * this.cancelEnemyDestruction(<enemy_id>) 
+
 	Cancel the destruction animation and erasure of an enemy that is about to be destroyed.<br/>
 	To be used in the before_destruction event.<br/>
 	This can be used for bosses that run away when destroyed etc.
 
-* this.addEnemy(<toAnimQueue>, <eventId>, <enemyId>, <mechClass>, <level>, <mode>, <targetId>, <items>, <squadId>, <targetRegion>)
+* this.addEnemy(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion)
+
 	Spawn an enemy on the map, the event that will be used must already exist.<br/>
-	The following can be set:<br/>
+	The following can be set:
 		*toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
 		*eventId: the id number of the event
 		*enemyId: the id number of the enemy pilot 
@@ -169,55 +175,69 @@ They can also be used as conditionals in IF statements.
 		*targetRegion: the id of the region that the enemy should move towards
 	A setting can be left blank by entering "" as their value.		
 	
-* this.addEnemies(<toAnimQueue>, <startId>, <endId>, <enemyId>, <mechClass>, <level>, <mode>, <targetId>, <items>, <squadId>, <targetRegion>)	
+* this.addEnemies(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion)
+	
 	The parameters for this command are the same as for addEnemy, with the exception of:
 		*startId: the starting event id 
 		*endId: the final event id 
 	This command will turn all the event ids between startId and endId into enemies with the same properties.
 
 * this.processEnemyAppearQueue()
+
 	Spawns all enemies that are currently in the queue with their spawn animation.<br/>
 	Event processing will automatically wait for all enemies to be spawned before continuing execution.
 	
 * this.destroyEvent(<event_id>)
+
 	Destroy the specified event and play its death animation.
 	
 * this.destroyEvents(<startId>, <endId>)
+
 	Destroy the event between startId and endId and play their death animations.<br/>
 	The death animations will all play at the same time!
 
 * this.eraseEvent(<event_id>)
+
 	Remove the specified event with an animation.
 	
 * this.eraseEvents(<startId>, <endId>)
+
 	Remove the event between startId and endId.
 	
 * this.playerMoveTo(<x>, <y>)
+
 	Move the cursor to the specified coordinates, the cursor will move from its start position to its end position with visible motion.
 	
 * this.cursorMoveTo(<x>, <y>)
+
 	Instantly move the cursor to the specified coordinates.
 
 * this.isActorInRegion(<actor_id>, <region_id>)
+
 	Can be used as conditional to detect if the actor with the specified actor id is currently on a tile from the region with the specified id.<br/>
 	If actor_id is -1 this function will detect if any actor is in the region.
 	
 * this.isEnemyInRegion(<enemy_id>, <region_id>)
+
 	Can be used as conditional to detect if the enemy with the specified enemy id is currently on a tile from the region with the specified id.<br/>
 	If enemy_id is -1 this function will detect if any enemy is in the region.
 	
 * this.setBattleMode(<event_id>, <mode>)
+
 	Set the battle mode for the enemy with the specified event id: "stand" or "".<br/>
 	If the enemy is part of a squad their squad mates will also be updated!
 	
 * this.setBattleModes(<start_id>, <end_id>, <mode>)
+
 	Set the battle mode for the enemies tied to the events with and id between start id and id.
 
 
 * this.setSquadMode(<squad_id>, <mode>)
+
 	Set the battle mode for all enimes that are part of the specified squad.<br/>
 
 * this.turnEnd()
+
 	End the turn of the unit currently taking its turn.
 
 
