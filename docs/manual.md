@@ -86,12 +86,6 @@ The metadata properties for enemies are mostly the same as for allies, so please
 
 # Mechs
 
-
-## Definition
-
-Mech are Classes in vanilla RPG Maker Terms. Of the default RPG Maker properties only the Name is used.<br>
-The rest of the Mech properties are set using metadata tags in the note field. It is recommended to create a new Mech by copying an existing, fully defined, one and changing the properties as needed. The following is an annotated example:<br>
-
 ## General Notes
 
 Unlike in vanilla RPG Maker, the Class/Mech of the unit is what determines what their sprite will be on the map.
@@ -99,8 +93,12 @@ Unlike in vanilla RPG Maker, the Class/Mech of the unit is what determines what 
 When working with Mechs a couple of important things must be kept in mind:
 
 * Enemy and Ally Mechs must be kept separate at all times. If a Mech appears as both an Ally and Enemy unit in the game a separate entry must be made for when it used as an Ally and when it is used as an Enemy. 
-* Never assign multiple Allied Pilots to the same Mech entry as this will cause changes made to the Mech of one pilot to also apply to the mech of the other pilot. If multiple copies of the same Mech need to be used by allied pilots, each copy must have its own entry. This restriction does not apply to Enemy mechs as no persistent data is stored for those.
+* Never assign multiple Allied Pilots to the same Mech entry. If multiple copies of the same Mech need to be used by allied pilots, each copy must have its own entry. This restriction does not apply to Enemy mechs.
 
+## Definition
+
+Mech are Classes in vanilla RPG Maker Terms. Of the default RPG Maker properties only the Name is used.<br>
+The rest of the Mech properties are set using metadata tags in the note field. It is recommended to create a new Mech by copying an existing, fully defined, one and changing the properties as needed. The following is an annotated example:<br>
 
 ### Base stats
 
