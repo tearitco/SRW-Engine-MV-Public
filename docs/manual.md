@@ -189,20 +189,20 @@ The rest of the Attack properties are set using metadata tags in the note field.
 
 MAP attacks are defined in a config plugin: js/plugins/config/active/SRW_MapAttackManager.js<br>
 A definition may look as follows: <br>
-```
+```javascript
 this.addDefinition(
-	0, 
-	[[1,0],[1,1],[1,-1],[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], 
+	0, //the id of the definition
+	[[1,0],[1,1],[1,-1],[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], //the tiles for the range of the attack as seen when the attack is targeted to the right of the user
 	{
 		name: "Explosion",
-		frameSize: 136, 
-		sheetHeight: 1,
-		sheetWidth: 7,
-		frames: 7,
-		offset: {x: 96, y: 0},
-		duration: 50,
-		se: "SRWExplosion"
-	}<br>
+		frameSize: 136, //the size of each frame of the sprite sheet for the attack's animation
+		sheetHeight: 1, //the number of rows in the sprite sheet
+		sheetWidth: 7, //the number of columns in the sprite sheet
+		frames: 7, //the number of frames in the animation
+		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user
+		duration: 50,//the duration of the attack animation
+		se: "SRWExplosion"//the sound effect to play with the animation
+	}
 );
 ```
 
