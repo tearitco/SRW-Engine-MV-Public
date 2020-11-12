@@ -213,12 +213,17 @@ Window_DetailPages.prototype.update = function() {
 		
 		if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
 			this.requestRedraw();
-			$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
-			this._attackList.resetSelection();
+			if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
+				$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				this._attackList.resetSelection();
+			}
+			
 		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
 			this.requestRedraw();
-			$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
-			this._attackList.resetSelection();
+			if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
+				$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				this._attackList.resetSelection();
+			}
 		}
 		
 		if(Input.isTriggered('L3')){
@@ -232,6 +237,10 @@ Window_DetailPages.prototype.update = function() {
 		if(Input.isTriggered('cancel')){	
 			SoundManager.playCancel();
 			$gameTemp.popMenu = true;	
+			
+			if(this._callbacks["closed"]){
+				this._callbacks["closed"]();
+			}	
 		}		
 		
 		this.refresh();
@@ -312,7 +321,11 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	this._pilotStats1.innerHTML = detailContent;
 	
 	var actorIcon = this._pilotStats1.querySelector("#bar_pilot_stats_icon");
-	this.loadActorFace(actor.actorId(), actorIcon);
+	if(actor.isActor()){
+		this.loadActorFace(actor.actorId(), actorIcon);
+	} else {
+		this.loadEnemyFace(actor.enemyId(), actorIcon);
+	}	
 }
 
 Window_DetailPages.prototype.drawPilotStats2 = function() {

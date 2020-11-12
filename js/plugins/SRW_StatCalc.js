@@ -555,15 +555,23 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 	}	
 	if(mech){
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items);
+		if(!isForActor && $gameTemp.enemyUpgradeLevel){
+			var levels = actor.SRWStats.mech.stats.upgradeLevels;
+			levels.maxHP = $gameTemp.enemyUpgradeLevel;
+			levels.maxEN = $gameTemp.enemyUpgradeLevel;
+			levels.armor = $gameTemp.enemyUpgradeLevel;
+			levels.mobility = $gameTemp.enemyUpgradeLevel;			
+			levels.accuracy = $gameTemp.enemyUpgradeLevel;
+			levels.weapons = $gameTemp.enemyUpgradeLevel;			
+		}		
 		this.calculateSRWMechStats(actor.SRWStats.mech);		
 	}
 	
 	if(!isForActor){
 		if(this.canFly(actor)){
 			this.setFlying(actor, true);
-		}
-	}
-	
+		}		
+	}	
 	
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
 }
@@ -1511,6 +1519,46 @@ StatCalc.prototype.getAllInRange = function(type, pos, range, minRange){
 		if(isInRange && !event._erased){
 			result.push(event);
 		}			
+	});
+	return result;
+}
+
+StatCalc.prototype.isActorBelowHP = function(id, hp){
+	return this.isBelowHP("actor", id, hp);
+}
+
+StatCalc.prototype.isEnemyBelowHP = function(id, hp){
+	return this.isBelowHP("enemy", id, hp);
+}
+
+StatCalc.prototype.isBelowHP = function(type, id, hp){
+	var _this = this;
+	var result = false;
+	this.iterateAllActors(type, function(actor, event){	
+		if(!event.isErased()){
+			var currentId;
+			if(type == "actor"){
+				currentId = actor.actorId();
+			} else {
+				currentId = actor.enemyId();
+			}
+			if(currentId == id && _this.getCalculatedMechStats(actor).currentHP < hp){
+				result = true;
+			}
+		}				
+	});
+	return result;
+}
+
+StatCalc.prototype.isEventBelowHP = function(id, hp){
+	var _this = this;
+	var result = false;
+	this.iterateAllActors(null, function(actor, event){	
+		if(!event.isErased()){	
+			if(actor.event.eventId() == id && _this.getCalculatedMechStats(actor).currentHP < hp){
+				result = true;
+			}	
+		}	
 	});
 	return result;
 }

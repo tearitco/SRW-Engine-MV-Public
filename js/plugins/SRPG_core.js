@@ -801,6 +801,10 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.highlightsRefreshed = true;
 		}
 		
+		if (command === 'setEnemyUpgradeLevel') {
+			$gameTemp.enemyUpgradeLevel = args[0];
+		}
+		
     };		
 //====================================================================
 // ●Game_Temp
@@ -3403,6 +3407,20 @@ var $battleSceneManager = new BattleSceneManager();
                                 $gameSystem.setSrpgStatusWindowNeedRefresh(battlerArray);
                                 $gameSystem.setSubBattlePhase('status_window');
                                 return;*/
+								$gameTemp.detailPagesWindowCancelCallback = function(){
+									$gameTemp.detailPagesWindowCancelCallback = null;
+									$gameSystem.setSubBattlePhase('normal');
+								}
+								
+								var battlerArray = $gameSystem.EventToUnit(event.eventId());
+								$gameTemp.currentMenuUnit = {
+									actor: battlerArray[1],
+									mech: battlerArray[1].SRWStats.mech
+								};
+								$gameSystem.setSubBattlePhase('enemy_unit_summary');
+								$gameTemp.pushMenu = "detail_pages";
+								return;
+								
                             } else if (event.isType() === 'playerEvent') {
                                 if (event.pageIndex() >= 0) event.start();
                                 return;
@@ -3585,7 +3603,8 @@ var $battleSceneManager = new BattleSceneManager();
 				$gameSystem.isSubBattlePhase() === 'map_attack_animation' ||
 				$gameSystem.isSubBattlePhase() === 'process_map_attack_queue' ||
 				$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
-				$gameSystem.isSubBattlePhase() === 'confirm_boarding' 		
+				$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
+				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' 	
 				
 				){
                 return false;
@@ -4173,6 +4192,30 @@ Game_Interpreter.prototype.isEnemyDestructionQueued  = function(id){
 		});
 	}
 	return result;
+}
+
+Game_Interpreter.prototype.isEventDestructionQueued  = function(id){
+	var result = false;
+	if($gameTemp.deathQueue && $gameTemp.deathQueue.length){
+		$gameTemp.deathQueue.forEach(function(queuedDeath){
+			if(!queuedDeath.actor.isActor() && queuedDeath.actor.event.eventId() == id){
+				result = true;
+			}
+		});
+	}
+	return result;
+}
+
+Game_Interpreter.prototype.isActorBelowHP  = function(id, hp){
+	return $statCalc.isActorBelowHP(id, hp);
+}
+
+Game_Interpreter.prototype.isEnemyBelowHP  = function(id, hp){
+	return $statCalc.isEnemyBelowHP(id, hp);
+}
+
+Game_Interpreter.prototype.isEventBelowHP  = function(id, hp){
+	return $statCalc.isEventBelowHP(id, hp);
 }
 
 Game_Interpreter.prototype.cancelActorDestruction  = function(id){
@@ -6930,6 +6973,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	Scene_Map.prototype.createDetailPagesWindow = function() {
 		var _this = this;
 		this._detailPagesWindow = new Window_DetailPages(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		this._detailPagesWindow.registerCallback("closed", function(){
+			if($gameTemp.detailPagesWindowCancelCallback){
+				$gameTemp.detailPagesWindowCancelCallback();
+			}
+		});
 		this._detailPagesWindow.close();
 		this.addWindow(this._detailPagesWindow);
 		this._detailPagesWindow.hide();
@@ -7285,7 +7333,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.isSubBattlePhase() === 'map_attack_animation' ||
 				$gameSystem.isSubBattlePhase() === 'process_map_attack_queue' ||
 				$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
-				$gameSystem.isSubBattlePhase() === 'confirm_boarding'
+				$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
+				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary'
 				) {
                 this.menuCalling = false;
                 return;
@@ -8138,7 +8187,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 				if($statCalc.getCalculatedMechStats(battleEffect.ref).currentHP <= 100000){
 					$statCalc.setRevealed(battleEffect.ref);
-				}				
+				}	
+				if(battleEffect.attacked && battleEffect.attacked.ref && $statCalc.getCalculatedMechStats(battleEffect.attacked.ref).currentHP <= 100000){
+					$statCalc.setRevealed(battleEffect.attacked.ref);
+				}
 			});
 			$gameTemp.battleOccurred = false;
 			$gameTemp.currentBattleResult = null;

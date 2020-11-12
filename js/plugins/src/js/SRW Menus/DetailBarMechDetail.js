@@ -18,7 +18,9 @@ DetailBarMechDetail.prototype.createComponents = function(){
 
 DetailBarMechDetail.prototype.redraw = function(){
 	var detailContent = "";
-	var mechData = this.getCurrentSelection().mech;
+	var currentSelection = this.getCurrentSelection();
+	var actor = currentSelection.actor;
+	var mechData = currentSelection.mech;
 	var calculatedStats = mechData.stats.calculated;
 	detailContent+="<div class='left_items'>";
 	detailContent+="<div class='icon_hp_EN'>";
@@ -28,16 +30,16 @@ DetailBarMechDetail.prototype.redraw = function(){
 	detailContent+="<div class='en_label scaled_text'>EN</div>";
 
 	detailContent+="<div class='hp_display'>";
-	detailContent+="<div class='current_hp scaled_text'>"+calculatedStats.currentHP+"</div>";
+	detailContent+="<div class='current_hp scaled_text'>"+$statCalc.getCurrentHPDisplay(actor)+"</div>";
 	detailContent+="<div class='divider scaled_text'>/</div>";
-	detailContent+="<div class='max_hp scaled_text'>"+calculatedStats.maxHP+"</div>";
+	detailContent+="<div class='max_hp scaled_text'>"+$statCalc.getCurrentMaxHPDisplay(actor)+"</div>";
 	
 	detailContent+="</div>";
 	
 	detailContent+="<div class='en_display'>";
-	detailContent+="<div class='current_en scaled_text'>"+calculatedStats.currentEN+"</div>";
+	detailContent+="<div class='current_en scaled_text'>"+$statCalc.getCurrentENDisplay(actor)+"</div>";
 	detailContent+="<div class='divider scaled_text'>/</div>";
-	detailContent+="<div class='max_en scaled_text'>"+calculatedStats.maxEN+"</div>";
+	detailContent+="<div class='max_en scaled_text'>"+$statCalc.getCurrentMaxENDisplay(actor)+"</div>";
 	
 	detailContent+="</div>";
 	
