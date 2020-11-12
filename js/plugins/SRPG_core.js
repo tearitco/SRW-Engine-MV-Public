@@ -1391,6 +1391,9 @@ var $battleSceneManager = new BattleSceneManager();
         $gameVariables.setValue(_turnVarID, 1); //ターン数を初期化する
         $gameSystem.resetSearchedItemList(); //探索済み座標を初期化する
 		$gameSystem._specialTheme = -1;
+		$gameSystem.highlightedTiles = [];
+		$gameSystem.regionHighlights = {};
+		$gameTemp.enemyUpgradeLevel = 0;
         this.srpgStartActorTurn();//アクターターンを開始する
     };
 

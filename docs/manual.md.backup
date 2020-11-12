@@ -4,13 +4,91 @@
 
 This engine introduces a couple of specific event types that will run when the engine is in a specific state.<br/>
 Ex.: Start of a stage, after a unit made an action, etc.<br/>
-
 They can be found at the top left of the demo stages.
 
 ![](img/main_events.png)
 
+These events have a metadata tag indicating their type.<br/>
+Ex.: \<type:battleStart\><br/>
 
+It is recommended to create all new stages by creating a copy of a demo stage so that all the basics for these events are in place.
 
+### battleStart
+
+The battleStart event runs when the stage first starts. This event is used to set up the stage as well as to show any story events that should occur before the stage starts.<br/>
+It will normally have the following responsibilities:
+
+* Set the normal and sky battle background and parallax for the battle scene by using the setSRWBattleBg, setSRWBattleParallax1, setSRWSkyBattleBg and setSRWSkyBattleParallax1 plugin commands
+
+* Set the stage theme song using the setStageSong plugin command
+
+* Set the enemy upgrade level using the setEnemyUpgradeLevel plugin command
+
+* Set the stage victory, loss and mastery conditions
+
+* Spawn initial enemies using the this.addEnemy script command
+
+* Play the stage BGM using the Play BGM command
+
+* Fade in the screen from black using the FadeIn Screen command
+
+* Showing the stage name using either a text command or by displaying an image
+
+* Showing the stage conditions by using the this.showStageConditions script command
+
+### actorTurn
+
+The actorTurn event runs at the start of each actor turn. It can be used to have certain events occur at the start of a specific turn by using the Turns Passed(Stage) control variable.<br/>
+This command is also responsible for showing the next turn text using a formatted Text command.
+
+### enemyTurn
+
+The enemyTurn event runs at the start of each enemy turn. It can be used to have certain events occur at the start of a specific turn by using the Turns Passed(Stage) control variable.<br/>
+This command is also responsible for showing the next turn text using a formatted Text command.
+
+### turnEnd
+
+The turnEnd event runs at the end of a full turn (actor phase + enemy phase).
+
+### beforeBattle
+
+The beforeBattle event runs before each battle. The Actor Event ID, Enemy Event ID, Actor ID and Enemy ID control variables can be used to check which units are going to involved in the upcoming battle. This event can be used for before battle interactions between characters.
+
+### beforeDestruction
+
+The beforeDesctruction event will run after battle occurred but before any rewards are given and before any destroyed units play their destruction animations. The pending destruction of a unit can be canceled in this event. This event can be used to have bosses run away instead of being destroyed or to trigger defeat conditions if an ally unit will be destroyed.
+
+### afterAction
+
+The afterAction event runs every time a unit completes its turn. This is the event where checks for stage completion/loss requirements will usually will be done. It will then also contain scripting for the after stage story section, setting up deploys for the next stage and sending the player to the Intermission map. 
+
+## Control Variables
+
+The first two pages of Control Variables are reserved for specific functions in the engine:
+
+* 0001 - Remaining Actors: The number of remaining actors on the stage. This variable is updated by the engine when allies are added or removed.
+* 0002 - Remaining Enemies: The number of remaining enemies on the stage. This variable is updated by the engine when enemies are added or removed.
+* 0003 - Turns Passed(Stage): The number of turns(one actor phase + one enemy phase) that has passed on the current stage.
+* 0004 - Actor Event ID: The event ID of the current active actor
+* 0005 - Enemy Event ID: The event ID of the current active enemy
+* 0006 - Next Map: The id of the next map that will be loaded after the next intermission
+* 0007 - Next Map X: The starting x coordinate for the cursor on the next map
+* 0008 - Next Map Y: The starting y coordinate for the cursor on the next map
+* 0009 - Next Deploy Info: Information for the deployment on the next map. Should be treated as read only!
+* 0010 - SR Count: The total SR points earned by the player. This needs to be updated manually by the stage script when the player completes a mastery condition
+* 0011 - Last stage ID: The ID of the previous stage.
+* 0012 - Turn Count(Global): The total number of turns the player has taken across all stages
+* 0013 - Actor ID: The actor ID of the current active actor
+* 0014 - Enemy ID: The enemy ID of the current active enemy
+* 0015 - Actors Destroyed: The number of allies that were destroyed on the current stage
+* 0016 - Enemies Destroyed: The number of  
+* 0017 - Mastery Condition Text
+* 0018 - Victory Condition Text
+* 0019 - Defeat Condition Text
+* 0020 - Ship Count: The current number of active ships on the stage
+
+Variables 0021-0040 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br/>
+<b>The engine will automatically clear these when a new stage starts!</b>
 
 ## Plugin commands
 
@@ -128,6 +206,9 @@ They can be found at the top left of the demo stages.
 	Color can be a string name, ex.: "white"	
 	
 * removeMapRegionHighlight
+
+* setEnemyUpgradeLevel level
+	Sets the upgrade level for all enemies that will appear on the current stage.
 
 ## Script commands
 
