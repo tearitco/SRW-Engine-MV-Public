@@ -27,7 +27,8 @@ MapAttackManager.prototype.initDefinitions = function(){
 			sheetWidth: 7,
 			frames: 7,
 			offset: {x: 96, y: 0},
-			duration: 50
+			duration: 50,
+			se: "SRWExplosion"
 		}
 	);	
 }

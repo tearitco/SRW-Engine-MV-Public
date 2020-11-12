@@ -7907,6 +7907,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if(!$gameTemp.tempSprites){
 					$gameTemp.tempSprites = [];
 				}
+				if(mapAttackDef.animInfo.se){
+					var se = {};
+					se.name = mapAttackDef.animInfo.se;
+					se.pan = 0;
+					se.pitch = 100;
+					se.volume = 90;
+					AudioManager.playSe(se);
+				}
 				$gameTemp.tempSprites.push(new Sprite_MapAttack(mapAttackDef.animInfo, spritePosition));
 			} else {
 				if($gameTemp.mapAttackAnimationDuration <= 0){
