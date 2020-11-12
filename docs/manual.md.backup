@@ -1,5 +1,10 @@
 # SRW Engine MV User Manual V1.0
 
+# Set-up
+
+Extract the archive containing the sample project.<br>
+In the project directory
+
 # Pilots
 
 ## General Notes
@@ -199,7 +204,7 @@ this.addDefinition(
 		sheetHeight: 1, //the number of rows in the sprite sheet
 		sheetWidth: 7, //the number of columns in the sprite sheet
 		frames: 7, //the number of frames in the animation
-		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user
+		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user(a tile is 48x48)
 		duration: 50,//the duration of the attack animation
 		se: "SRWExplosion"//the sound effect to play with the animation
 	}
