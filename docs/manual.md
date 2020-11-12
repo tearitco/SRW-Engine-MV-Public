@@ -185,7 +185,7 @@ The rest of the Attack properties are set using metadata tags in the note field.
 
 \<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.
 
-## MAP Weapons
+## MAP Attacks
 
 MAP attacks are defined in a config plugin: js/plugins/config/active/SRW_MapAttackManager.js<br>
 A definition may look as follows: <br>
@@ -199,12 +199,14 @@ this.addDefinition(
 		sheetHeight: 1, //the number of rows in the sprite sheet
 		sheetWidth: 7, //the number of columns in the sprite sheet
 		frames: 7, //the number of frames in the animation
-		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user
+		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user(a tile is 48x48)
 		duration: 50,//the duration of the attack animation
 		se: "SRWExplosion"//the sound effect to play with the animation
 	}
 );
 ```
+
+The definition defines the MAP attack as it should look when the user is targeting it to the right. The engine will automatically translate this when the targeting direction changes.
 
 # Event scripting
 
