@@ -5,6 +5,60 @@
 Extract the archive containing the sample project.<br>
 In the project directory navigate to js/plugins/config and copy all files from the "default" directory to the "active" directory.
 
+# Terrain
+
+This engine reuses some properties of terrain available in vanilla RPG Maker to assign additional terrain functionality.
+
+## Terrain Cost
+
+The terrain cost of a tile determines how many tiles of movement will be subtracted when a unit moves over it. By default each tile traveled uses up one unit of tile movement but if a tile has a higher cost assigned, additional movement will be spent to cross the tile.<br>
+
+The terrain cost is set using the Terrain Tag functionality of RPG maker. To access this functionality in the editor go to Tools>Database>Tilesets. Select a tile set and click on the Terrain Tag option. 
+
+![](img/terrain_tags.png)
+
+Each tile can be assigned a Terrain Tag between zero and seven. A value of seven means seven additional tiles of movement will be subtracted for moving over the tile and a value of zero means no additional cost will be incurred for moving over the tile.
+
+## Regions
+
+Regions are given additional importance when using SRW Engine MV.<br>
+Regions are used to assign one of the five terrain types to every tile of a map. When using the region editor each region id in a column will make a tile the same terrain, only the first five columns are used.
+
+* Column 1: Not passable (id 0, 8, 16, etc.)
+* Column 2: Air (id 1, 9, 17, etc.)
+* Column 3: Land (id 2, 10, 18, etc.)
+* Column 4: Sea (id 3, 11, 19, etc.)
+* Column 5: Space (id 4, 12, 20, etc.)
+
+Additionally the engine provides a plugin command(addMapRegionHighlight) to highlight all tiles of a region on the map and provides a script command(isActorInRegion, isEnemyInRegion) to check if an enemy or ally is currently in a specific region. See the section on Event Scripting for more into on these commands.
+
+Example map:
+
+![](img/map_sample.png)
+
+Note the use of region id 10 to create a separate area of the map that is still Land terrain but that can be highlighted separately from the other Land terrain.
+
+## Terrain bonuses
+
+Any tile in a tileset can be given modifiers for evasion, defense, HP regen and EN regen for units that stand on tiles of that type.<br>
+
+Assigning these bonuses to a tile is done using metadata tags in the Note field of the tileset in the database.
+
+![](img/tileset_notes.png)
+
+Only tiles in tilesets A1-A5 and B are supported.<br>
+
+There are two formats for the metadata. In this example the attributes assigned are: an increase of 5% to defense, and increase of 10% to evasion, 15% HP restored at the start of each turn and 20% EN restored at the start of each turn.
+
+* \<srwTileAttributes2:5, 10, 15, 20\>: assigns attributes to tile id 2
+* \<srwTileAttributes3008-3056:5, 10, 15, 20\>: assigns attributes to tile id 3008 up to but not including tile id 3056
+
+The latter of the two formats is useful for assigning properties to autotiles.
+
+
+For a detailed explanation on how to figure out the tile id of a tile [please refer to this tutorial.](https://forums.rpgmakerweb.com/index.php?threads/how-to-determine-your-tileid.91129/)
+
+
 # Pilots
 
 ## General Notes
@@ -21,14 +75,14 @@ The rest of the pilot properties are set using metadata tags in the note field. 
 #### Base stats
 \<pilotSpecies:human\> Currently unused<br>
 
-\<pilotBaseSP:45\> <br>
-\<pilotBaseMelee:120\><br>
-\<pilotBaseRanged:165\><br>
-\<pilotBaseSkill:110\><br>
-\<pilotBaseDefense:150\><br>
-\<pilotBaseEvade: 90\><br>
-\<pilotBaseHit:220\><br>
-\<pilotTerrain:AABA\><br>
+\<pilotBaseSP:45\> SP is used to cast Spirit Commands.<br>
+\<pilotBaseMelee:120\> Determines damage for Melee attacks.<br>
+\<pilotBaseRanged:165\> Determines damage for Ranged attacks.<br>
+\<pilotBaseSkill:110\> Determines how often the until will perform a critical hit and how often a unit will take a critical hit.<br>
+\<pilotBaseDefense:150\> Determines how much damage a unit takes.<br>
+\<pilotBaseEvade: 90\> Determines how likely enemy attacks are to hit.<br>
+\<pilotBaseHit:220\> Determines the unit's hit rate when attacking targets.<br>
+\<pilotTerrain:AABA\> Air, Sea, Land, Space. Determines the pilot's performance on these terrains.<br>
 \<pilotExpYield:50\>The exp yield listed here is the exp gained if the enemy defeated and the actor were at the same level. When the level is different the exp gain gets scaled accordingly.<br>
 \<pilotPPYield:10\><br>
 
@@ -103,13 +157,13 @@ The rest of the Mech properties are set using metadata tags in the note field. I
 ### Base stats
 
 \<mechHP:6500\><br>
-\<mechEN:330\><br>
-\<mechArmor:1650\><br>
-\<mechMobility: 80\><br>
-\<mechAccuracy:140\><br>
-\<mechTerrain:BABA\> Air Land Sea Space<br>
-\<mechMove:4\><br>
-\<mechSize:M> S/M/1L/2L<br>
+\<mechEN:330\> EN is consumed to perform some attacks.<br>
+\<mechArmor:1650\> Determines how much damage the mech takes from enemy attacks.<br>
+\<mechMobility: 80\> Determines how likely the mech is to be hit by enemy attacks.<br>
+\<mechAccuracy:140\> Determines how likely the mech is to hit enemies.<br>
+\<mechTerrain:BABA\> Air,Land,Sea,Space. Determines the mech's performance on these terrains.<br>
+\<mechMove:4\> Determines how many tiles the mech can move by default.<br>
+\<mechSize:M> S/M/1L/2L Determines the size of the mech, which influences evasion and damage taken.<br>
 \<mechCanFly:0\> 0 for unable to fly, 1 for able to fly.<br>
 \<mechExpYield:150\>The exp yield listed here is the exp gained if the enemy defeated and the actor were at the same level. When the level is different the exp gain gets scaled accordingly.<br>
 \<mechPPYield: 15\><br>
@@ -145,6 +199,7 @@ If a mech should gain weapons during the game, a new Mech entry should be made a
 \<mechAttack1:2\><br>
 
 ### Abilities
+
 
 A Mech can have up to 6 abilities, identified by a Mech Ability ID.
 
