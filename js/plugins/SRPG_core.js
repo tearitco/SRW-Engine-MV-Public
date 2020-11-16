@@ -1488,7 +1488,8 @@ var $battleSceneManager = new BattleSceneManager();
                     var oldValue = $gameVariables.value(_existShipVarId);
                     $gameVariables.setValue(_existShipVarId, oldValue + 1);
                     $gameSystem.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
-					$statCalc.initSRWStats(actor_unit);					
+					$statCalc.initSRWStats(actor_unit);
+					actor_unit.setSrpgTurnEnd(false);	
                 } else {
 					event.erase();
 				}
@@ -1511,7 +1512,7 @@ var $battleSceneManager = new BattleSceneManager();
                     $gameVariables.setValue(_existActorVarID, oldValue + 1);
                     $gameSystem.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 					$statCalc.initSRWStats(actor_unit);
-					
+					actor_unit.setSrpgTurnEnd(false);	
                 } else {
 					event.erase();
 				}
