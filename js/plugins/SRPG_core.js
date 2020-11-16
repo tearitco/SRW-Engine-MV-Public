@@ -7302,6 +7302,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						/*this._levelUpWindow.refresh();
 						this._levelUpWindow.show();
 						this._levelUpWindow.activate();		*/
+						var se = {};
+						se.name = 'SRWLevelUp';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 80;
+						AudioManager.playSe(se);
 						$gameTemp.pushMenu = "level_up";
 					} else {
 						 this.srpgPrepareNextAction();

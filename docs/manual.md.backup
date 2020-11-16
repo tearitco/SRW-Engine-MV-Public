@@ -163,7 +163,7 @@ The rest of the Mech properties are set using metadata tags in the note field. I
 \<mechAccuracy:140\> Determines how likely the mech is to hit enemies.<br>
 \<mechTerrain:BABA\> Air,Land,Sea,Space. Determines the mech's performance on these terrains.<br>
 \<mechMove:4\> Determines how many tiles the mech can move by default.<br>
-\<mechSize:M> S/M/1L/2L<br>
+\<mechSize:M> S/M/1L/2L Determines the size of the mech, which influences evasion and damage taken.<br>
 \<mechCanFly:0\> 0 for unable to fly, 1 for able to fly.<br>
 \<mechExpYield:150\>The exp yield listed here is the exp gained if the enemy defeated and the actor were at the same level. When the level is different the exp gain gets scaled accordingly.<br>
 \<mechPPYield: 15\><br>
@@ -366,6 +366,7 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 	Generally only called by the init or intermission map to start a new stage.
 	
 * Intermission start|end
+	This command starts or end the intermission. Only called on the intermission map.
 
 * UnlockUnit class_id
 

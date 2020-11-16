@@ -366,21 +366,22 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 	Generally only called by the init or intermission map to start a new stage.
 	
 * Intermission start|end
+	This command starts or end the intermission. Only called on the intermission map.
 
 * UnlockUnit class_id
 
-* SetLevel actor_id level
+* SetLevel actor\_id level
 
-* addKills actor_id amount
+* addKills actor\_id amount
 
-* addPP actor_id amount
+* addPP actor\_id amount
 		
 * setStageSong song_id
 
 	Sets the default song for the current stage.<br>
 	When switching between actor and enemy phases this song will start playing.
 
-* setSpecialTheme song_id
+* setSpecialTheme song\_id
 	
 	If set this song will override actor or enemy songs.
 	
@@ -398,13 +399,13 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 	Removes one of the specified item from the inventory.	
 
-* addItemToHolder item_id mech_id slot
+* addItemToHolder item\_id mech\_id slot
 
 	Assigns an item to be held to a mech in a specific slot.<br>
 	Will unequip any item previously held for that mech and slot.<br>
 	Will fail if no free items of the type are available in the inventory!
 
-* removeItemFromHolder mech_id slot 	
+* removeItemFromHolder mech\_id slot 	
 	
 * focusActor actor_id
 
