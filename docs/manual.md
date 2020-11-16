@@ -407,12 +407,12 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 * removeItemFromHolder mech\_id slot 	
 	
-* focusActor actor_id
+* focusActor actor\_id
 
 	If an actor with the specified id exists on the map the cursor will be set to its position.<br>	
 	If the matching actor does not exist or the actor was erased, nothing happens. 
 	
-* focusEvent event_id
+* focusEvent event\_id
 
 	If an event with the specified id exists on the map the cursor will be set to its position.<br>
 	If the matching actor does not exist or the actor was erased, nothing happens.<br>
@@ -426,11 +426,11 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 	Set the total number of particpants for the next deployment, ships not included.
 	
-* assignSlot slot actor_id
+* assignSlot slot actor\_id
 	
 	Assign an actor to a slot for the next deployment.
 
-* assignShipSlot slot actor_id
+* assignShipSlot slot actor\_id
 	
 	Assign an actor to a ship slot for the next deployment.	<br>
 	This actor should logically be a ship captain, but this is not strictly enforced.
@@ -500,42 +500,42 @@ They can also be used as conditionals in IF statements.
 
 	Shows a text box using the values set with the previous commands.
 	
-* this.isActorDestructionQueued(actor_id)
+* this.isActorDestructionQueued(actor\_id)
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the actor with the specified id was defeated and is about to be destroyed.
 	
-* this.isEnemyDestructionQueued(enemy_id)
+* this.isEnemyDestructionQueued(enemy\_id)
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the enemy with the specified id was defeated and is about to be destroyed.
 	
-* this.isEventDestructionQueued(event_id)
+* this.isEventDestructionQueued(event\_id)
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the event with the specified id was defeated and is about to be destroyed.	
 	
-* this.isActorBelowHP(actor_id)
+* this.isActorBelowHP(actor\_id)
 
 	To be used as a conditional in the before_destruction or after_action event.<br>
 	Will be TRUE if the HP of the actor with the specified id is below the specified value.
 	
-* this.isEnemyBelowHP(enemy_id)
+* this.isEnemyBelowHP(enemy\_id)
 
 	To be used as a conditional in the before_destruction or after_action event.<br>
 	Will be TRUE if the HP of the enemy with the specified id is below the specified value.
 
-* this.isEventBelowHP(event_id)
+* this.isEventBelowHP(event\_id)
 
 	To be used as a conditional in the before_destruction or after_action event.<br>
 	Will be TRUE if the HP of the event with the specified id is below the specified value.	
 
-* this.cancelActorDestruction(actor_id) 
+* this.cancelActorDestruction(actor\_id) 
 
 	Cancel the destruction animation and erasure of an actor that is about to be destroyed.<br>
 	To be used in the before_destruction event.
 	
-* this.cancelEnemyDestruction(enemy_id) 
+* this.cancelEnemyDestruction(enemy\_id) 
 
 	Cancel the destruction animation and erasure of an enemy that is about to be destroyed.<br>
 	To be used in the before_destruction event.<br>
@@ -580,7 +580,7 @@ They can also be used as conditionals in IF statements.
 	Spawns all enemies that are currently in the queue with their spawn animation.<br>
 	Event processing will automatically wait for all enemies to be spawned before continuing execution.
 	
-* this.destroyEvent(event_id)
+* this.destroyEvent(event\_id)
 
 	Destroy the specified event and play its death animation.
 	
@@ -605,22 +605,25 @@ They can also be used as conditionals in IF statements.
 
 	Instantly move the cursor to the specified coordinates.
 
-* this.isActorInRegion(actor_id, region_id)
+* this.isActorInRegion(actor\_id, region\_id)
 
 	Can be used as a conditional to detect if the actor with the specified actor id is currently on a tile from the region with the specified id.<br>
 	If actor_id is -1 this function will detect if any actor is in the region.
 	
-* this.isEnemyInRegion(enemy_id, region_id)
+* this.isEnemyInRegion(enemy\_id, region\_id)
 
 	Can be used as conditional to detect if the enemy with the specified enemy id is currently on a tile from the region with the specified id.<br>
 	If enemy_id is -1 this function will detect if any enemy is in the region.
+
+* this.getActorKillCount(actor\_id)
+	Returns the current amount of kills the actor with the specified id has.	
 	
-* this.setBattleMode(event_id, mode)
+* this.setBattleMode(event\_id, mode)
 
 	Set the battle mode for the enemy with the specified event id: "stand" or "".<br>
 	If the enemy is part of a squad their squad mates will also be updated!
 	
-* this.setBattleModes(start_id, end_id, mode)
+* this.setBattleModes(start\_id, end\_id, mode)
 
 	Set the battle mode for the enemies tied to the events with and id between start id and id.
 

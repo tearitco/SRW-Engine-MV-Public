@@ -370,18 +370,18 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 * UnlockUnit class_id
 
-* SetLevel actor_id level
+* SetLevel actor\_id level
 
-* addKills actor_id amount
+* addKills actor\_id amount
 
-* addPP actor_id amount
+* addPP actor\_id amount
 		
 * setStageSong song_id
 
 	Sets the default song for the current stage.<br>
 	When switching between actor and enemy phases this song will start playing.
 
-* setSpecialTheme song_id
+* setSpecialTheme song\_id
 	
 	If set this song will override actor or enemy songs.
 	
@@ -399,13 +399,13 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 	Removes one of the specified item from the inventory.	
 
-* addItemToHolder item_id mech_id slot
+* addItemToHolder item\_id mech\_id slot
 
 	Assigns an item to be held to a mech in a specific slot.<br>
 	Will unequip any item previously held for that mech and slot.<br>
 	Will fail if no free items of the type are available in the inventory!
 
-* removeItemFromHolder mech_id slot 	
+* removeItemFromHolder mech\_id slot 	
 	
 * focusActor actor_id
 
@@ -605,22 +605,26 @@ They can also be used as conditionals in IF statements.
 
 	Instantly move the cursor to the specified coordinates.
 
-* this.isActorInRegion(actor_id, region_id)
+* this.isActorInRegion(actor\_id, region\_id)
 
 	Can be used as a conditional to detect if the actor with the specified actor id is currently on a tile from the region with the specified id.<br>
 	If actor_id is -1 this function will detect if any actor is in the region.
 	
-* this.isEnemyInRegion(enemy_id, region_id)
+* this.isEnemyInRegion(enemy\_id, region\_id)
 
 	Can be used as conditional to detect if the enemy with the specified enemy id is currently on a tile from the region with the specified id.<br>
 	If enemy_id is -1 this function will detect if any enemy is in the region.
+
+* this.getActorKillCount(actor\_id, region\_id)
+
 	
-* this.setBattleMode(event_id, mode)
+	
+* this.setBattleMode(event\_id, mode)
 
 	Set the battle mode for the enemy with the specified event id: "stand" or "".<br>
 	If the enemy is part of a squad their squad mates will also be updated!
 	
-* this.setBattleModes(start_id, end_id, mode)
+* this.setBattleModes(start\_id, end\_id, mode)
 
 	Set the battle mode for the enemies tied to the events with and id between start id and id.
 

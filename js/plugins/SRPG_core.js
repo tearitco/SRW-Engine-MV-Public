@@ -1350,6 +1350,7 @@ var $battleSceneManager = new BattleSceneManager();
 		return this._availableUnits;
 	}
 	
+	//use $gameActors.actor instead!
 	Game_System.prototype.getActorById = function(id){
 		var result;
 		var ctr = 0; 
@@ -1385,7 +1386,7 @@ var $battleSceneManager = new BattleSceneManager();
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
         this.runBattleStartEvent(); // ゲーム開始時の自動イベントを実行する
 		//clear stage temp variables
-		for(var i = 21; i <= 40; i++){
+		for(var i = 21; i <= 60; i++){
 			$gameVariables.setValue(i, 0);
 		}
         $gameVariables.setValue(_turnVarID, 1); //ターン数を初期化する
@@ -4556,6 +4557,10 @@ Game_Interpreter.prototype.isActorInRegion = function(actorId, regionId) {
 
 Game_Interpreter.prototype.isEnemyInRegion = function(enemyId, regionId) {
 	return $statCalc.isEnemyInRegion(enemyId, regionId);
+}
+
+Game_Interpreter.prototype.getActorKillCount = function(actorId) {
+	return $statCalc.getKills($gameActors.actor(actorId));
 }
 
 Game_Interpreter.prototype.setBattleModes = function(startId, endId, mode) {
