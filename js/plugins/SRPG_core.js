@@ -4164,9 +4164,9 @@ Game_Interpreter.prototype.showStageConditions = function(){
 		$gameMessage.setFaceImage("", "");
 		$gameMessage.setBackground(0);
         $gameMessage.setPositionType(1);
-		$gameMessage.add("Victory Condition: "+$gameVariables.value(_victoryConditionText));
-		$gameMessage.add("Defeat  Condition: "+$gameVariables.value(_defeatConditionText));
-		$gameMessage.add("Mastery Condition: "+$gameVariables.value(_masteryConditionText));
+		$gameMessage.add(APPSTRINGS.GENERAL.label_victory_condition + ": "+$gameVariables.value(_victoryConditionText));
+		$gameMessage.add(APPSTRINGS.GENERAL.label_defeat_condition + ": "+$gameVariables.value(_defeatConditionText));
+		$gameMessage.add(APPSTRINGS.GENERAL.label_mastery_condition + ": "+$gameVariables.value(_masteryConditionText));
 		
 		this._index++;
         this.setWaitMode('message');
@@ -6631,6 +6631,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         this.addTurnEndCommand();        
        // _SRPG_Window_MenuCommand_makeCommandList.call(this);
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_list, 'unitList', true);
+	   this.addCommand(APPSTRINGS.MAPMENU.cmd_conditions, 'conditions', true);
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_options, 'options');
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_save, 'save');
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_game_end, 'gameEnd');
@@ -6755,6 +6756,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.createDetailPagesWindow();
 		this.createBeforeBattleWindow();
 		this.createPauseWindow();
+		this.createConditionsWindow();
 		this.createItemWindow();
 		this.createDeploymentWindow();
 		this.createDeploySelectionWindow();
@@ -6770,7 +6772,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._commandWindow.setHandler('options',   this.commandOptions.bind(this));
 		this._commandWindow.setHandler('cancel',    this.closePauseMenu.bind(this));
 		this._commandWindow.setHandler('turnEnd',this.commandTurnEnd.bind(this));    
-		this._commandWindow.setHandler('unitList',this.commandUnitList.bind(this));         
+		this._commandWindow.setHandler('unitList',this.commandUnitList.bind(this));     
+		this._commandWindow.setHandler('conditions',this.commandConditions.bind(this)); 
+		
 		this._commandWindow.y = 100;
 		this._commandWindow.x = 800;
 		this.addWindow(this._commandWindow);	
@@ -6783,6 +6787,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._goldWindow.hide();
 		this._goldWindow.deactivate();
 	}
+	
+	Scene_Map.prototype.createConditionsWindow = function() {
+		this._conditionsWindow = new Window_ConditionsInfo(0, 0);
+		this._conditionsWindow.y = 100;
+		this._conditionsWindow.x = 20;
+		this._conditionsWindow.hide();
+		this._conditionsWindow.deactivate();
+		this.addWindow(this._conditionsWindow);
+	};
 	
 	Scene_Map.prototype.commandOptions = function() {
 		SceneManager.push(Scene_Options);
@@ -6802,6 +6815,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._commandWindow.deactivate();
 		this._goldWindow.hide();
 		this._goldWindow.deactivate();
+		this._conditionsWindow.hide();
 		$gameSystem.setSubBattlePhase('normal');
 	}
 	
@@ -6834,6 +6848,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		//$gameSystem.setSubBattlePhase('normal');
         $gameTemp.pushMenu = "mech_list";
     }
+	
+	Scene_Map.prototype.commandConditions = function() {
+		this._conditionsWindow.refresh();
+		if(this._conditionsWindow.visible){
+			this._conditionsWindow.hide();
+		} else {
+			this._conditionsWindow.show();
+		}		
+	}	
 	
 	Scene_Map.prototype.createIntermissionWindow = function() {
 		var _this = this;
@@ -9764,6 +9787,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		Scene_MenuBase.prototype.start.call(this);
 		
 	};
+	
+	
 
 	Scene_Menu.prototype.createGoldWindow = function() {
 		this._goldWindow = new Window_StageInfo(0, 0);
@@ -10341,6 +10366,102 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	};
 
 	Window_StageInfo.prototype.open = function() {
+		this.refresh();
+		Window_Base.prototype.open.call(this);
+	};
+	
+	
+	function Window_ConditionsInfo() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Window_ConditionsInfo.prototype = Object.create(Window_Base.prototype);
+	Window_ConditionsInfo.prototype.constructor = Window_ConditionsInfo;
+
+	Window_ConditionsInfo.prototype.initialize = function(x, y) {
+		var width = this.windowWidth();
+		var height = this.windowHeight();
+		Window_Base.prototype.initialize.call(this, x, y, width, height);
+		this.refresh();
+	};
+
+	Window_ConditionsInfo.prototype.windowWidth = function() {
+		return 760;
+	};
+
+	Window_ConditionsInfo.prototype.windowHeight = function() {
+		return this.fittingHeight(6);
+	};
+
+	Window_ConditionsInfo.prototype.refresh = function() {
+		var lineheight = 35;
+		var columnOffset = 95;
+		var x = 5;
+		var y = 0;
+		var width = this.contents.width - this.textPadding() * 2;
+		this.contents.clear();
+		this.changeTextColor("#FFFFFF");
+		//this.drawCurrencyValue(this.value(), this.currencyUnit(), x, 0, width);
+		/*$gameMessage.add(APPSTRINGS.GENERAL.label_victory_condition + ": "+$gameVariables.value(_victoryConditionText));
+		$gameMessage.add(APPSTRINGS.GENERAL.label_defeat_condition + ": "+$gameVariables.value(_defeatConditionText));
+		$gameMessage.add(APPSTRINGS.GENERAL.label_mastery_condition + ": "+$gameVariables.value(_masteryConditionText));*/
+		/*--text-color-highlight: #f9e343;	
+	 	--text-color-highlight2: #43dbf9;	*/
+		
+		
+		this.changeTextColor("#43dbf9");
+		this.drawText(APPSTRINGS.GENERAL.label_victory_condition, x, 0, width);
+		
+		this.drawText(APPSTRINGS.GENERAL.label_defeat_condition, x, lineheight * 2, width);
+		
+		this.drawText(APPSTRINGS.GENERAL.label_mastery_condition, x, lineheight * 4, width);
+		
+		this.changeTextColor("#FFFFFF");
+		
+		var valueOffset = 20;
+		this.drawText($gameVariables.value(_victoryConditionText), x + valueOffset, lineheight, width - valueOffset);
+		
+		this.drawText($gameVariables.value(_defeatConditionText), x + valueOffset, lineheight * 3, width - valueOffset);
+		
+		this.drawText($gameVariables.value(_masteryConditionText), x + valueOffset, lineheight * 5, width - valueOffset);
+		/*
+		this.drawText(APPSTRINGS.MAPMENU.label_funds, x, 0, width);
+		this.drawText(this.value(), x + columnOffset , 0, width);
+		
+		this.drawText(APPSTRINGS.MAPMENU.label_turn, x,  lineheight, width);
+		
+		this.changeTextColor("#43dbf9");
+		this.drawText($gameVariables.value(_turnVarID), x + columnOffset, lineheight, width);
+		this.changeTextColor("#FFFFFF");
+		this.drawText(APPSTRINGS.MAPMENU.label_enemy, x,  lineheight * 2, width);
+		this.changeTextColor("#AA2222");
+		this.drawText($gameVariables.value(_enemiesDestroyed), x + columnOffset,  lineheight * 2, width);
+		this.changeTextColor("#FFFFFF");
+		this.drawText("/", x + columnOffset + 30,  lineheight * 2, width);
+		this.changeTextColor("#43dbf9");
+		this.drawText($gameVariables.value(_enemiesDestroyed) + $gameVariables.value(_existEnemyVarID), x + columnOffset + 45,  lineheight * 2, width);
+		this.changeTextColor("#FFFFFF");
+		
+		this.drawText(APPSTRINGS.MAPMENU.label_ally, x,  lineheight * 3, width);
+		this.changeTextColor("#AA2222");
+		this.drawText($gameVariables.value(_actorsDestroyed), x + columnOffset,  lineheight * 3, width);
+		this.changeTextColor("#FFFFFF");
+		this.drawText("/", x + columnOffset + 30,  lineheight * 3, width);
+		this.changeTextColor("#43dbf9");
+		this.drawText($gameVariables.value(_actorsDestroyed) + $gameVariables.value(_existActorVarID), x + columnOffset + 45,  lineheight * 3, width);
+		this.changeTextColor("#FFFFFF");*/
+		
+	};
+
+	Window_ConditionsInfo.prototype.value = function() {
+		return $gameParty.gold();
+	};
+
+	Window_ConditionsInfo.prototype.currencyUnit = function() {
+		return TextManager.currencyUnit;
+	};
+
+	Window_ConditionsInfo.prototype.open = function() {
 		this.refresh();
 		Window_Base.prototype.open.call(this);
 	};

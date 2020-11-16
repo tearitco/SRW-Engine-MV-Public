@@ -27,7 +27,9 @@ APPSTRINGS.GENERAL = {
 	label_ace_bonus: "Ace Bonus", 
 	label_abilities: "Abilities",
 	label_parts: "Parts",
-	
+	label_victory_condition: "Victory Condition",
+	label_defeat_condition: "Defeat  Condition",
+	label_mastery_condition: "Mastery Condition"
 }
 
 APPSTRINGS.MAPMENU = {
@@ -42,6 +44,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_attack: "Attack",
 	cmd_end_turn: "End Turn",
 	cmd_list: "Unit List",
+	cmd_conditions: "Conditions",
 	cmd_options: "Options",
 	cmd_save: "Save",
 	cmd_game_end: "Exit",
