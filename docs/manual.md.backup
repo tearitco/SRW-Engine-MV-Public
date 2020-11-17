@@ -280,7 +280,7 @@ Spirit commands are buff, debuff and healing commands that units can use when ta
 
 Spirit commands are managed in a Config Plugin: src/js/plugins/config/active/SRW_SpiritManager.js
 
-[A list of default Spirit commands is available here.](default spirits.md)
+[A list of default Spirit commands is available here.](default_spirits.md)
 
 The following section describes the format for defining a Spirit command, if you are a not a programmer you can skip this section.
 The format of a Spirit command definition is as follows:
