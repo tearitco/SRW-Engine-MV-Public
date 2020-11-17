@@ -248,6 +248,12 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponTerrain:AABA\><br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
 
+Weapons can have up to two special effects.
+
+\<weaponEffect0:0\><br>
+\<weaponEffect1:1\><br>
+
+
 \<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.
 
 ## MAP Attacks
@@ -278,11 +284,10 @@ The definition defines the MAP attack as it should look when the user is targeti
 
 Spirit commands are buff, debuff and healing commands that units can use when taking their turn, but only before moving. Spirit commands can apply to the own unit, another ally, an enemy, all allies or all enemies. Spirit commands consume SP to be used, but the cost is not part of the base definition and is instead defined when they are assigned to a Pilot. This allows Spirit commands to have different costs depending on the user.
 
-Spirit commands are managed in a Config Plugin: src/js/plugins/config/active/SRW_SpiritManager.js
+Spirit commands are managed in a Config Plugin: js/plugins/config/active/SRW_SpiritManager.js
 
 [A list of default Spirit commands is available here.](default_spirits.md)
 
-The following section describes the format for defining a Spirit command, if you are a not a programmer you can skip this section.
 The format of a Spirit command definition is as follows:
 
 ```javascript
@@ -322,6 +327,138 @@ this.addDefinition(
 	)
 ```
 
+# Abilities and effects
+
+There are several types of special abilities and effects in SRW Engine MV: Pilot abilities, Mech abilities, Item effects and weapon effects.
+
+These abilities and effects are managed in a Config Plugin: js/plugins/config/active/SRW_AbilityManager.js
+
+## Pilot Abilities
+
+Pilot abilities can be assigned to pilots. These abilities can have levels and can level up as the pilot levels up. For more information on assigning abilities please check the section on Pilots.<br>  
+  
+Pilots have a special ability called an Ace Ability that is unlocked once the pilot has shot down a certain amount of enemies. Ace Abilities are defined as regular abilities with an additional check in their isActive function to verify that the pilot has reached Ace status. 
+
+[A list of default Pilot Abilities is available here.](default_pilot_abilities.md)
+
+
+The format of a Pilot Ability definition is as follows: 
+
+```javascript
+	this.addDefinition(
+		4, //the id of the ability
+		"Prevail", // the display name of the ability
+		"Hit, Evade, Armor and Critical go up as HP decreases.", // the display description of the ability 
+		true, // true if the ability has a level, otherwise false
+		false, //true if the ability is unique, otherwise false. Unique abilities are marked with a \* when they are display and they cannot be purchased
+		function(actor, level){//the function implementing the effect of the ability. Actor is the unit that will be affected by the ability and level is the current level of the ability.
+			var mechStats = $statCalc.getCalculatedMechStats(actor);		
+			var targetSlice = Math.floor(mechStats.currentHP / mechStats.maxHP * 10);
+			var hitEvadeMod = (level - targetSlice) * 0.05;
+			if(hitEvadeMod < 0){
+				hitEvadeMod = 0;
+			}
+			var armorMod = (level - targetSlice) * 0.1;
+			if(armorMod < 0){
+				armorMod = 0;
+			}
+			var critMod = (level - targetSlice) * 0.08;
+			if(armorMod < 0){
+				armorMod = 0;
+			}
+			return [
+				{type: "hit", modType: "addFlat", value: hitEvadeMod * 100},
+				{type: "evade", modType: "addFlat", value: hitEvadeMod * 100},
+				{type: "armor", modType: "addPercent", value: armorMod},
+				{type: "crit", modType: "addFlat", value: critMod * 100},
+			];
+		},// the function that determines if the ability is current active.
+		function(actor, level){
+			var mechStats = $statCalc.getCalculatedMechStats(actor);	
+			var targetSlice = Math.floor(mechStats.currentHP / mechStats.maxHP * 10);
+			return (targetSlice + 1) <= level;
+		},
+		[20,30,40,50,60,70,80,90,100],// the cost for upgrading each level of the ability.
+		9// the max level of the ability.
+	)
+```
+
+## Mech Abilities
+
+Mech Abilities are assigned to mechs and are normally part of the mech definition and cannot be changed. For more information on how Mech abilities are assigned please see the section on Mechs.
+
+Mechs have a special ability called a Full Upgrade Bonus which is unlocked when a mech is fully upgraded. Full Upgraded Bonuses are defined in the same way as regular mech abilities but they have an additional check in their isActive function to verify that a unit is fully upgraded.
+
+[A list of default Mech Abilities is available here.](default_mech_abilities.md)
+
+The format of a Mech Ability definition is as follows:
+
+```javascript
+	this.addDefinition(
+		0, // the id of the ability
+		"Double Image", // the display name of the ability
+		"30% chance to evade any attack above 130 Will.", // the display description of the ability
+		false, // unused
+		false, // unused
+		function(actor, level){ //the function implementing the effect of the ability.
+			return [{type: "double_image_rate", modType: "addFlat", value: 0.3}];
+		},
+		function(actor, level){ // the function that determines if the ability is current active.
+			return $statCalc.getCurrentWill(actor) >= 130;
+		}
+	);
+
+```
+
+## Item Effects
+
+Mechs can hold items that give them certain abilities. Some items are consumables that only apply their effect once consumed. Consumables return after a stage has been completed.
+
+[A list of default Items is available here.](default_items.md)
+
+The format of an Item Effect definition is as follows:
+
+```javascript
+
+	this.addDefinition(
+		0, //the id of the item
+		"Booster", // the display name of the item
+		"Movement +1.", // the display description of the item
+		false, // unused
+		false, // true if the item is a consumable, otherwise false
+		function(actor, level){ // the function implementing the effect of the item
+			return [{type: "movement", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){ // the function that determines if the item is usable, normally always returns true
+			return true;
+		}
+	);
+
+```
+
+## Weapon Effects
+
+Weapons can have special effects that apply or that they inflict when used. 
+
+The format of an Item Effect definition is as follows:
+
+```javascript
+
+	this.addDefinition(
+		0, // the id of the effect
+		"Barrier Piercing", // the display name of the effect
+		"Ignores barriers on the target.", // the display description of the effect
+		false, // unused
+		false, // unused
+		function(actor, level){ // the function implementing the effect of the item
+			return [{type: "pierce_barrier", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){// the function that determines if the item is usable, normally always returns true
+			return true;
+		}
+	);
+
+```
 
 
 # Event scripting

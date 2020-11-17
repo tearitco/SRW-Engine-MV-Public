@@ -1253,6 +1253,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$statCalc.clearSpiritOnAll("enemy", "analyse");
 		$statCalc.clearTempEffectOnAll("actor", "victory_turn");
 		$statCalc.resetAllBattleTemp();
+		$statCalc.resetAllStatus("enemy");
 		$statCalc.applyTurnStartWill("actor");
 		$statCalc.applyENRegen("actor");
 		$statCalc.applyAmmoRegen("actor");
@@ -1310,6 +1311,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$statCalc.applyAmmoRegen("enemy");
 		$statCalc.applyHPRegen("enemy");
 		$statCalc.resetAllBattleTemp();
+		$statCalc.resetAllStatus("actor");
 		$gameTemp.enemyWaitTimer = 0;
         this.setBattlePhase('enemy_phase');
         this.setSubBattlePhase('enemy_command');
@@ -7668,6 +7670,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     //行動終了時の処理
     //戦闘終了の判定はイベントで行う。
     Scene_Map.prototype.srpgAfterAction = function() {
+		
+		
 		function applyCostsToActor(actor, weapon, battleResult){
 			var ENCost = battleResult.ENUsed;
 			ENCost = $statCalc.applyStatModsToValue(actor, ENCost, ["EN_cost"]);
@@ -7678,6 +7682,31 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			if(weapon){
 				weapon.currentAmmo-=battleResult.ammoUsed;
 			}			
+		}
+		function applyStatusConditions(attacker, defender){
+			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_accuracy_down"])){
+				$statCalc.setAccuracyDown(defender);
+			}
+			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_mobility_down"])){
+				$statCalc.setMobilityDown(defender);
+			}
+			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_armor_down"])){
+				$statCalc.setArmorDown(defender);
+			}
+			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_move_down"])){
+				$statCalc.setMovementDown(defender);
+			}
+			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_attack_down"])){
+				$statCalc.setAttackDown(defender);
+			}
+			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_range_down"])){
+				$statCalc.setRangeDown(defender);
+			}
+			var SPReduction = $statCalc.applyStatModsToValue(attacker, 0, ["inflict_SP_down"]);
+			$statCalc.applySPCost(defender, SPReduction);
+			
+			var willReduction = $statCalc.applyStatModsToValue(attacker, 0, ["inflict_will_down"]);
+			$statCalc.modifyWill(defender, willReduction * -1);
 		}
 		$gameTemp.clearMoveTable();
 		if($gameTemp.mapAttackOccurred){
@@ -7709,6 +7738,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 				if(battleEffect.isHit){						
 					$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["damage_will"]));
+					if(battleEffect.attackedBy){
+						applyStatusConditions(battleEffect.attackedBy.ref, battleEffect.ref);
+					}					
 				}
 				if(battleEffect.type == "initiator"){
 					$statCalc.clearNonMapAttackCounter(battleEffect.ref);
@@ -7787,6 +7819,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 				if(battleEffect.attacked && battleEffect.attacked.isHit){						
 					$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["hit_will"]));
+					applyStatusConditions(battleEffect.ref, battleEffect.attacked.ref);
 				}			
 				if(battleEffect.type == "initiator"){
 					$statCalc.incrementNonMapAttackCounter(battleEffect.ref);
@@ -7859,6 +7892,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		} else {
 			this.srpgPrepareNextAction();
 		}
+		$statCalc.resetCurrentAttack($gameTemp.currentBattleActor);	
+		$statCalc.resetCurrentAttack($gameTemp.currentBattleEnemy);	
 	}	
 	Scene_Map.prototype.srpgPrepareNextAction = function(){
 		$gameTemp.rewardsInfo = null;	
@@ -8383,7 +8418,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}
 			
 			$gameTemp.mapTargetDirection = this.getBestMapAttackTargets(event, weapon, type).direction;			
-			
+			$statCalc.setCurrentAttack(battler, weapon);
 			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 			$gameSystem.setSubBattlePhase('actor_map_target');
 		} else {
@@ -8637,7 +8672,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				tileCoordinates[i][1]+=deltaY;
 				$gameTemp.pushMoveList(tileCoordinates[i]);					
 			}
-			
+			$statCalc.setCurrentAttack(enemy, bestMapAttack.attack);
 			_this.enemyMapAttackStart();
 			return true;
 		} else {
@@ -9202,8 +9237,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		$battleCalc.generateBattleResult();
 		
-		$statCalc.resetCurrentAttack($gameTemp.currentBattleActor);	
-		$statCalc.resetCurrentAttack($gameTemp.currentBattleEnemy);			
+				
 				
      
 		Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){

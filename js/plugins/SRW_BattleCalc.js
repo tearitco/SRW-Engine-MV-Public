@@ -130,6 +130,9 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
 		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
 		var accuracy = attackerMechStats.accuracy;
+		if($statCalc.isAccuracyDown(attackerInfo.actor)){
+			accuracy-=30;
+		}
 		accuracy = $statCalc.applyStatModsToValue(attackerInfo.actor, accuracy, ["accuracy"]);
 		var weaponInfo = attackerAction.attack;			
 		var attackerTerrainMod = $statCalc.getTerrainMod(attackerInfo.actor);
@@ -139,6 +142,9 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
 		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
 		var mobility = defenderMechStats.mobility;
+		if($statCalc.isMobilityDown(defenderInfo.actor)){
+			mobility-=30;
+		}
 		mobility = $statCalc.applyStatModsToValue(defenderInfo.actor, mobility, ["mobility"]);
 		
 		var defenderTerrainMod = $statCalc.getTerrainMod(defenderInfo.actor);
@@ -254,12 +260,18 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			attackerPilotOffense = attackerPilotStats.ranged;
 			weaponPower = $statCalc.applyStatModsToValue(attackerInfo.actor, weaponPower, ["weapon_ranged"]);
 		}
+		if($statCalc.isAttackDown(attackerInfo.actor)){
+			weaponPower-=500;
+		}		
 		var attackerWill = $statCalc.getCurrentWill(attackerInfo.actor);
 		var initialAttack = weaponPower * weaponTerrainRating + (attackerPilotOffense + attackerWill) / 200;
 		//initial defense
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
 		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
 		var armor =  defenderMechStats.armor;
+		if($statCalc.isArmorDown(defenderInfo.actor)){
+			armor-=500;
+		}
 		armor = $statCalc.applyStatModsToValue(defenderInfo.actor, armor, ["armor"]);			
 		
 		var defenderTerrainRating = this._mechTerrainValues[defenderMechStats.terrain[$statCalc.getCurrentTerrain(defenderInfo.actor)]];

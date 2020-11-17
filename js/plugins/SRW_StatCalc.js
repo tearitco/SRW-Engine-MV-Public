@@ -301,7 +301,112 @@ StatCalc.prototype.resetStageTemp = function(actor){
 			nonMapAttackCounter: 1,
 			isBoarded: false
 		};
+		this.resetStatus(actor);
 	}
+}
+
+StatCalc.prototype.resetStatus = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.status = {
+			accuracyDown: false,
+			mobilityDown: false,
+			armorDown: false,
+			movementDown: false,
+			attackDown: false,
+			rangeDown: false
+		}
+	}
+}
+
+StatCalc.prototype.resetAllStatus = function(type){		
+	var _this = this;
+	_this.iterateAllActors(type, function(actor){			
+		_this.resetStatus(actor);						
+	});
+}
+
+StatCalc.prototype.isAccuracyDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.status.accuracyDown;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setAccuracyDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.status.accuracyDown = true;
+	} 
+}
+
+StatCalc.prototype.isMobilityDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.status.mobilityDown;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setMobilityDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.status.mobilityDown = true;
+	} 
+}
+
+StatCalc.prototype.isArmorDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.status.armorDown;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setArmorDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.status.armorDown = true;
+	} 
+}
+
+StatCalc.prototype.isMovementDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.status.movementDown;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setMovementDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.status.movementDown = true;
+	} 
+}
+
+StatCalc.prototype.isRangeDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.status.rangeDown;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setRangeDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.status.rangeDown = true;
+	} 
+}
+
+StatCalc.prototype.isAttackDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.status.attackDown;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setAttackDown = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.status.attackDown = true;
+	} 
 }
 
 StatCalc.prototype.isBoarded = function(actor){
@@ -1288,9 +1393,15 @@ StatCalc.prototype.getCurrentMoveRange = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		var totalMove = actor.SRWStats.mech.stats.calculated.move;
 		if(this.getActiveSpirits(actor).accel){
-			totalMove+=3;
+			totalMove+=3; 
 		}
 		totalMove = this.applyStatModsToValue(actor, totalMove, ["movement"]);
+		if(this.isMovementDown(actor)){
+			totalMove-=3;
+		}
+		if(totalMove < 1){
+			totalMove = 1;
+		}
 		return totalMove;
 	} else {
 		return 1;
@@ -2226,6 +2337,12 @@ StatCalc.prototype.getRealWeaponRange = function(actor, originalRange){
 			result+=2;
 		}
 		result = this.applyStatModsToValue(actor, result, ["range"]);
+		if(this.isRangeDown(actor)){
+			result-=3;
+		}
+		if(result < 1){
+			result = 1;
+		}
 		return result;
 	} else {
 		return 0;
