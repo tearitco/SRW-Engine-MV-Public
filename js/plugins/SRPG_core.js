@@ -7,465 +7,21 @@
 // バグ修正協力 : アンチョビ様　
 //                エビ様　http://www.zf.em-net.ne.jp/~ebi-games/
 //                Tsumio様
+// Copyright 2017 - 2019 Lemon slice all rights reserved.
 //-----------------------------------------------------------------------------
-// copyright 2017 - 2019 Lemon slice all rights reserved.
+// SRW Engine MV
+// Version   : 1.0
+// Copyright 2020 The Shadow Knight all rights reserved.
+//-----------------------------------------------------------------------------
 // Released under the MIT license.
 // http://opensource.org/licenses/mit-license.php
 //=============================================================================
 
-/*:
- * @plugindesc (v1.22) SRPG battle system (tactical battle system) on map.
- * @author Gakuto Mikagami
- *
- * @param srpgTroopID
- * @desc SRPGconverter use this troop ID.
- * @default 1
- *
- * @param srpgBattleSwitchID
- * @desc switch ID of 'in tactical battle' or 'not'. If using tactical battle system, this swith turn on。
- * @default 1
- *
- * @param existActorVarID
- * @desc variable ID of 'exist actor'. Exist is not death state and hide。
- * @default 1
- *
- * @param existEnemyVarID
- * @desc variable ID of 'exist enemy'. Exist is not death state and hide。
- * @default 2
- *
- * @param turnVarID
- * @desc variable ID of 'srpg turn'. first turn is 'turn 1'。
- * @default 3
- *
- * @param activeEventID
- * @desc variable ID of 'acting event ID'.
- * @default 4
- *
- * @param targetEventID
- * @desc variable ID of 'target event ID'. not only attack but also heal or assist.
- * @default 5
- *
- * @param defaultMove
- * @desc use this parameter if you don't set move in class or enemy note.
- * @default 4
- *
- * @param srpgBattleExpRate
- * @desc if player can't defeat enemy, player get exp in this rate. set 0 to 1.0.
- * @default 0.4
- *
- * @param srpgBattleExpRateForActors
- * @desc if player act for friends,player get exp in this rate(to next level). set 0 to 1.0. 
- * @default 0.1
- *
- * @param srpgBattleQuickLaunch
- * @desc true is quick the battle start effect.(true / false)
- * @default true
- *
- * @param srpgActorCommandEquip
- * @desc true is add command 'equip' in actor command.(true / false)
- * @default true
- *
- * @param srpgBattleEndAllHeal
- * @desc all heal actors when tactical battle end.(true / false)
- * @default true
- *
- * @param srpgStandUnitSkip
- * @desc If the unit whose mode is "stand" waits, skips the cursor movement.(true / false)
- * @default true
- *
- * @param srpgPredictionWindowMode
- * @desc Change the display of the battle prediction window. (1: full / 2: only attack name / 3: not displayed)
- * @default 1
- *
- * @param srpgAutoBattleStateId
- * @desc a state ID to be given when auto battle is selected. State is "automatic battle" & canceled 1 action(invalidated by 0).
- * @default 14
- *
- * @param srpgBestSearchRouteSize
- * @desc If there is no target can be attacked, the closest route is searched. This is a searchable distance(invalidated by 0).
- * @default 20
- *
- * @param srpgDamageDirectionChange
- * @desc When attacked, correct the direction towards the attacker.(true / false)
- * @default true
- *
- * @param enemyDefaultClass
- * @desc if you don't set class in enemy note, use this name.
- * @default Enemy
- *
- * @param textSrpgEquip
- * @desc name of weapon. use in SRPG state window.
- * @default Weapon
- *
- * @param textSrpgMove
- * @desc name of move range. use in SRPG state window.
- * @default Move
- *
- * @param textSrpgRange
- * @desc name of attack range. use in SRPG state window.
- * @default Range
- *
- * @param textSrpgWait
- * @desc name of stand. use in SRPG state window.
- * @default Stand
- *
- * @param textSrpgTurnEnd
- * @desc name of turn end. use in menu window.
- * @default Turn End
- *
- * @param textSrpgAutoBattle
- * @desc name of auto battle. use in menu window.
- * @default Auto Battle
- *
- *
- * @requiredAssets img/characters/srpg_set
- * @requiredAssets audio/se/Item3
- * @requiredAssets audio/se/Up4
- * 
- * @noteParam characterName
- * @noteRequire 1
- * @noteDir img/characters/
- * @noteType file
- * @noteData enemies
- * 
- * @noteParam faceName
- * @noteRequire 1
- * @noteDir img/faces/
- * @noteType file
- * @noteData enemies
- *
- * @help
- *
- * Note:
- * Map movement(event command "Location move") during SRPG battle is not possible.
- * Go to the map for battle and use the plug-in command SRPGBattle Start.
- * Also, use the plugin command SRPGBattle End before moving to another map.
- * 
- * plugin command:
- *   SRPGBattle Start   # start tactical battle.
- *   SRPGBattle End     # end tactical battle.
- *
- * event note:
- *   <type:actor>       # set this event to actor(use this note with <id:X>).
- *   <type:enemy>       # set this event to enemy(use this note with <id:X>).
- *   <id:X>             # set this event to ID X actor / enemy.
- *   <SearchItem:true>  # if the event is an actor, if there is a unit event, it will move to it preferentially (only once).
- *
- *   <mode:normal>      # set this unit's acting pattern 'normal'(if you don't set mode, set 'normal' automatically).
- *   <mode:stand>       # set this unit's acting pattern 'stand if enemy don't near by'.
- *   <mode:regionUp>    # set this unit's acting pattern 'go to bigger region ID if enemy don't near by'.
- *   <mode:regionDown>  # set this unit's acting pattern 'go to smaller region ID if enemy don't near by'.
- *   <mode:absRegionUp> # set this unit's acting pattern 'always go to bigger region ID'.
- *   <mode:absRegionDown># set this unit's acting pattern 'always go to smaller region ID'.
- *   <mode:aimingEvent> # set this unit's acting pattern 'aim for event with the specified ID'(use this note with <targetId:X>).
- *   <mode:aimingActor> # set this unit's acting pattern 'aim for actor with the specified ID'(use this note with <targetId:X>).
- *   <targetId:X>       # ID of target event or actor.
- *
- *   <type:unitEvent>   # set this event to event unit (event unit start when actor action or stand on it). 
- *   <type:playerEvent> # set this event to player event (player event start when player push enter key on it). 
- *   <type:object>      # set this event to object that pleyer and enemy can't move(except for event has no graphic).
- *   <type:battleStart> # start this event when only battle start.
- *   <type:actorTurn>   # start this event when actor turn start.
- *   <type:enemyTurn>   # start this event when enemy turn start.
- *   <type:turnEnd>     # start this event when turn end.
- *   <type:afterAction> # start this event when actor or enemy action.
- *
- * class's note:
- *   <srpgMove:X>       # set move range X.
- *   <srpgThroughTag:X> # unit can go through tiles with terrain tags less than X(except for terrain tag 0)
- *   <srpgAttack1-10:X>	# an attack/weapon the unit can use		
- *
- *
- *
- *
- *
- *
- *
- *
- * 
- * skill or item's note:
- *   <srpgRange:X>      # set attack range X.
- *                      # when set 0, this skill targets user(set range 'user').
- *                      # when set -1, 'weaponRange' on weapon or enemy's note set to this attack range.
- *   <srpgMinRange:X>   # set attack minimum range X.
- *   <specialRange:X>   # specialize the shape of the range (eg <specialRange: queen>).
- *                      # queen: 8 directions, luke: straight, bishop: diagonal, knight: other than 8 directions
- *
- * weapon's note:
- *   <weaponRange:X>    # set attack range X.
- *   <weaponMinRange:X> # set attack minimum range X.
- *   <srpgWeaponSkill:X># set attack skill ID X. normal attack is skill ID 1.
- *   <srpgCounter:false># set this weapon can't counter attack.
- *   <srpgMovePlus:X>   # change move range X. you can set minus value.
- *   <srpgThroughTag:X> # unit can go through tiles with terrain tags less than X(except for terrain tag 0)
- *
- * armor's note:
- *   <srpgMovePlus:X>   # change move range X. you can set minus value.
- *   <srpgThroughTag:X> # unit can go through tiles with terrain tags less than X(except for terrain tag 0)
- *
- * enemy's note:
- *   <characterName:X>  # set charactor graphic's file name to X.
- *   <characterIndex:X> # set id in charactor graphic to X.
- *                      # id is 0 1 2 3
- *                      #       4 5 6 7
- *   <faceName:X>       # set face graphic's file name to X.
- *   <faceIndex:X>      # set id in face graphic to X.
- *                      # id is 0 1 2 3
- *                      #       4 5 6 7
- *   <srpgClass:X>      # set class name in SRPG status window. this name is dummy.
- *   <srpgLevel:X>      # set level in SRPG status window. this level is dummy.
- *   <srpgMove:X>       # set this enemy's move range.
- *   <weaponRange:X>    # set this enemy's attack range(when you don't set srpgWeapon).
- *   <weaponMinRange:X> # set this enemy's attack minimum range(when you don't set srpgWeapon).
- *   <srpgWeapon:X>     # set this enemy's weapon. X is weapon id. this is NOT dummy.
- *   <srpgThroughTag:X> # unit can go through tiles with terrain tags less than X(except for terrain tag 0)
- *
- * state's note:
- *   <srpgMovePlus:X>   # change move range X.you can set minus value.
- *   <srpgThroughTag:X> # unit can go through tiles with terrain tags less than X(except for terrain tag 0)
- *
- * Event command => script:
- *   this.EventDistance(VariableID, EventID, EventID); # Store the distance between events in a variable.
- *   this.ActorDistance(VariableID, ActorID, ActorID); # Store the distance between actors in a variable.
- *   this.playerMoveTo(X, Y);            # Move the cursor (player) to the coordinates (X, Y).
- *   this.addActor(EventID, ActorID);    # Make the event with the specified ID the actor.
- *   this.addEnemy(EventID, EnemyID);    # Make the event with the specified ID the enemy.
- *   this.setBattleMode(EventID, 'mode');# Change the acting pattern of the event with the specified ID.
- *   this.setTargetId(EventID, ID);      # Change the target ID of the event with the specified ID.
- *   this.fromActorMinimumDistance(VariableID, EventID); # Stores the distance between the specified event and the nearest actor
- *                                                       # among all actors in the variable.
- *   this.isUnitDead(SwitchID, EventID); # Stores in the switch whether the event with the specified ID is dead or not.
- *   this.isEventIdXy(VariableID, X, Y); # Stores the event ID of the specified coordinates (X, Y) in the variable.
- *   this.unitRecoverAll(EventID);       # Full recovery of the unit with the specified event ID (only when it is alive).
- *   this.unitAddState(EventId, StateId);# Add the state of the ID specified to the unit with the specified event ID.
- *   this.turnEnd();                     # End player's turn(Same 'Turn End' in menu).
- *   this.isSubPhaseNormal(SwitchID);    # Whether the player selects the unit to be operated (ON is the same as when the menu can be opened). 
- *
- */
-
-/*:ja
- * @plugindesc マップ上でSRPG（タクティクス）方式の戦闘を実行します。
- * @author 神鏡学斗
- *
- * @param srpgTroopID
- * @desc SRPGコンバータが占有するトループIDです。SRPG戦闘では、このIDのトループが使用されます。
- * @default 1
- *
- * @param srpgBattleSwitchID
- * @desc SRPG戦闘中であるかを格納するスイッチのＩＤを指定します。戦闘中はONになります。
- * @default 1
- *
- * @param existActorVarID
- * @desc 存在しているアクターの人数が代入される変数のＩＤを指定します。存在している＝戦闘不能・隠れでない。
- * @default 1
- *
- * @param existEnemyVarID
- * @desc 存在しているエネミーの人数が代入される変数のＩＤを指定します。存在している＝戦闘不能・隠れでない。
- * @default 2
- *
- * @param turnVarID
- * @desc 経過ターン数が代入される変数のＩＤを指定します。最初のターンは『ターン１』です。
- * @default 3
- *
- * @param activeEventID
- * @desc 行動中のユニットのイベントＩＤが代入される変数のＩＤを指定します。
- * @default 4
- *
- * @param targetEventID
- * @desc 攻撃対象のユニットのイベントＩＤが代入される変数のＩＤを指定します。回復や補助も含みます。
- * @default 5
- *
- * @param defaultMove
- * @desc クラスやエネミーのメモで移動力が設定されていない場合、この値が適用されます。
- * @default 4
- *
- * @param srpgBattleExpRate
- * @desc 敵を倒さなかった時に、設定された経験値の何割を入手するか。0 ～ 1.0で設定。
- * @default 0.4
- *
- * @param srpgBattleExpRateForActors
- * @desc 味方に対して行動した時に、レベルアップに必要な経験値の何割を入手するか。0 ～ 1.0で設定。
- * @default 0.1
- *
- * @param srpgBattleQuickLaunch
- * @desc 戦闘開始エフェクトを高速化します。falseだと通常と同じになります。(true / false)
- * @default true
- *
- * @param srpgActorCommandEquip
- * @desc アクターコマンドに『装備』を追加します。(true / false)
- * @default true
- *
- * @param srpgBattleEndAllHeal
- * @desc 戦闘終了後に自動的に味方全員を全回復します。falseだと自動回復しません。(true / false)
- * @default true
- *
- * @param srpgStandUnitSkip
- * @desc モードが"stand"になっているユニットが待機する場合、カーソル移動をスキップします。(true / false)
- * @default true
- *
- * @param srpgPredictionWindowMode
- * @desc 戦闘予測ウィンドウの表示を変更します。(1:フル / 2:攻撃名のみ / 3:表示なし)
- * @default 1
- *
- * @param srpgAutoBattleStateId
- * @desc オート戦闘が選ばれた時に付与するステートのIDです。1行動で解除・自動戦闘のステートを使います(0で無効化)。
- * @default 14
- *
- * @param srpgBestSearchRouteSize
- * @desc 攻撃可能な対象がいない時、最も近い敵までのルートを探索します。その索敵距離です（0で無効化）。
- * @default 20
- *
- * @param srpgDamageDirectionChange
- * @desc 攻撃を受けた際に相手の方へ向きを補正します。(true / false)
- * @default true
- *
- * @param enemyDefaultClass
- * @desc エネミーに職業（srpgClass）が設定されていない場合、ここの名前が表示されます。
- * @default エネミー
- *
- * @param textSrpgEquip
- * @desc 装備（武器）を表す用語です。ＳＲＰＧのステータスウィンドウで表示されます。
- * @default 装備
- *
- * @param textSrpgMove
- * @desc 移動力を表す用語です。ＳＲＰＧのステータスウィンドウで表示されます。
- * @default 移動力
- *
- * @param textSrpgRange
- * @desc 攻撃射程を表す用語です。ＳＲＰＧのステータスウィンドウで表示されます。
- * @default 射程
- *
- * @param textSrpgWait
- * @desc 待機を表す用語です。アクターコマンドウィンドウで表示されます。
- * @default 待機
- *
- * @param textSrpgTurnEnd
- * @desc ターン終了を表す用語です。メニュー画面で表示されます。
- * @default ターン終了
- *
- * @param textSrpgAutoBattle
- * @desc オート戦闘を表す用語です。メニュー画面で表示されます。
- * @default オート戦闘
- *
- *
- * @requiredAssets img/characters/srpg_set
- * @requiredAssets audio/se/Item3
- * @requiredAssets audio/se/Up4
- * 
- * @noteParam characterName
- * @noteRequire 1
- * @noteDir img/characters/
- * @noteType file
- * @noteData enemies
- * 
- * @noteParam faceName
- * @noteRequire 1
- * @noteDir img/faces/
- * @noteType file
- * @noteData enemies
- *
- * @help
- *
- * 注意
- * 　SRPG戦闘中のマップ移動（イベントコマンド『場所移動』）はできません。
- * 　戦闘用のマップに移動してから、プラグインコマンド SRPGBattle Startを使用してください。
- *   また、プラグインコマンド SRPGBattle Endを使用してから、他のマップに移動してください。
- *
- * プラグインコマンド:
- *   SRPGBattle Start   # SRPG戦闘を開始する。
- *   SRPGBattle End     # SRPG戦闘を終了する。
- *
- * イベントのメモ欄:
- *   <type:actor>       # そのイベントはアクターになります(<id:X>を組み合わせて使います)。
- *   <type:enemy>       # そのイベントはエネミーになります(<id:X>を組み合わせて使います)。
- *   <id:X>             # そのイベントはXで指定したIDのアクター／エネミーになります(Xは半角数字）。
- *   <SearchItem:true>  # そのイベントがアクターの場合、ユニットイベントがある場合は優先してそこに移動するようになります（1度だけ）。
- *
- *   <mode:normal>      # そのユニットの行動パターンを「通常」に設定します（設定しない場合、自動で「通常」になります）。
- *   <mode:stand>       # そのユニットの行動パターンを「相手が近づくまで待機」に設定します。
- *   <mode:regionUp>    # そのユニットの行動パターンを「相手が近づくまでより大きなリージョンＩＤに向かう」に設定します。
- *   <mode:regionDown>  # そのユニットの行動パターンを「相手が近づくまでより小さなリージョンＩＤに向かう」に設定します。
- *   <mode:absRegionUp> # そのユニットの行動パターンを「常により大きなリージョンＩＤに向かう」に設定します。
- *   <mode:absRegionDown># そのユニットの行動パターンを「常により小さなリージョンＩＤに向かう」に設定します。
- *   <mode:aimingEvent> # そのユニットの行動パターンを「指定したＩＤのイベントを狙う」に設定します（<targetId:X>を組み合わせて使います）。
- *   <mode:aimingActor> # そのユニットの行動パターンを「指定したＩＤのアクターを狙う」に設定します（<targetId:X>を組み合わせて使います）。
- *   <targetId:X>       # 指定したＩＤのイベント/アクターを狙います。
- *
- *   <type:unitEvent>   # そのイベントはアクターがその上で行動・待機した時に起動するようになります。
- *   <type:playerEvent> # そのイベントはプレイヤー（カーソル）で決定キーを押したときに起動します。通過できますが待機は出来ません。
- *   <type:object>      # そのイベントはアクターもエネミーも通行できない障害物になります（画像が無い場合は通行可能）。
- *   <type:battleStart> # そのイベントは戦闘開始時に一度だけ自動で実行されます。
- *   <type:actorTurn>   # そのイベントはアクターターンの開始時に自動で実行されます。
- *   <type:enemyTurn>   # そのイベントはエネミーターンの開始時に自動で実行されます。
- *   <type:turnEnd>     # そのイベントはターン終了時に自動で実行されます。
- *   <type:afterAction> # そのイベントはアクター・エネミーの行動終了時に自動で実行されます。
- *
- * 職業のメモ欄:
- *   <srpgMove:X>       # その職業のアクターの移動力をXに設定します。
- *   <srpgThroughTag:X> # X以下の地形タグが設定されたタイルを通過できます（地形タグ 0 には無効）。
- *
- * スキル・アイテムのメモ欄:
- *   <srpgRange:X>      # そのスキルの射程をXに設定します。
- *                      # srpgRangeを 0 に設定すると自分自身を対象にするスキルになります（範囲は「使用者」にしてください）。
- *                      # srpgRangeを -1 に設定すると武器・エネミーのメモの<weaponRange>が適用されます。
- *   <srpgMinRange:X>   # そのスキルの最低射程をXに設定します。
- *   <specialRange:X>   # 射程の形状を特殊化します（例：<specialRange:queen>）。
- *                      # queen：8方向、luke：直線、bishop：斜め、knight：8方向以外
- *
- * 武器のメモ欄:
- *   <weaponRange:X>    # その武器の射程をXに設定します。
- *   <weaponMinRange:X> # その武器の最低射程をXに設定します。
- *   <srpgWeaponSkill:X># 攻撃時に、通常攻撃（スキルID 1）ではなく、Xで設定したＩＤのスキルを発動する武器になります。
- *   <srpgCounter:false># 設定すると、相手からの攻撃に対して反撃しない武器になります（反撃率とは異なる）。
- *   <srpgMovePlus:X>   # Xの分だけ移動力を変化させます。マイナスの値も設定可能です。
- *   <srpgThroughTag:X> # X以下の地形タグが設定されたタイルを通過できます（地形タグ 0 には無効）。
- *
- * 防具のメモ欄:
- *   <srpgMovePlus:X>   # Xの分だけ移動力を変化させます。マイナスの値も設定可能です。
- *   <srpgThroughTag:X> # X以下の地形タグが設定されたタイルを通過できます（地形タグ 0 には無効）。
- *
- * エネミーのメモ欄:
- *   <characterName:X>  # XにSRPG戦闘中に使用するキャラクターグラフィックのファイル名を入力します。
- *   <characterIndex:X> # XにSRPG戦闘中に使用するキャラクターグラフィックの何番を使うか入力します。
- *                      # 画像ファイルの位置で、 0 1 2 3
- *                      #                        4 5 6 7　となっています。
- *   <faceName:X>       # XにSRPG戦闘中に使用する顔グラフィックのファイル名を入力します。
- *   <faceIndex:X>      # XにSRPG戦闘中に使用する顔グラフィックの何番を使うか入力します（番号は上記と同様）。
- *   <srpgClass:X>      # XにSRPGのステータス画面で表示するクラス名を入力します（実際には影響しません）。
- *   <srpgLevel:X>      # XにSRPGのステータス画面で表示するレベルを入力します（実際には影響しません）。
- *   <srpgMove:X>       # そのエネミーの移動力をXに設定します。
- *   <weaponRange:X>    # そのエネミーの通常攻撃の射程距離をXに設定します（装備武器未設定時）。
- *   <weaponMinRange:X> # そのエネミーの通常攻撃の最低射程をXに設定します（装備武器未設定時）。
- *   <srpgWeapon:X>     # そのエネミーが装備する武器のＩＤをXに設定します（能力に影響します）。
- *   <srpgThroughTag:X> # X以下の地形タグが設定されたタイルを通過できます（地形タグ 0 には無効）。
- *
- * ステートのメモ欄:
- *   <srpgMovePlus:X>   # そのステートの間、Xの分だけ移動力を変化させます。マイナスの値も設定可能です。
- *   <srpgThroughTag:X> # X以下の地形タグが設定されたタイルを通過できます（地形タグ 0 には無効）。
- *
- * イベントコマンド => スクリプト:
- *   this.EventDistance(VariableID, EventID, EventID); # 指定したＩＤのイベント間の距離を変数に格納します。
- *   this.ActorDistance(VariableID, ActorID, ActorID); # 指定したＩＤのアクター間の距離を変数に格納します。
- *   this.playerMoveTo(X, Y);            # カーソル（プレイヤー）を座標(X,Y)に移動させます。
- *   this.addActor(EventID, ActorID);    # 指定したＩＤのイベントをアクターにします。
- *   this.addEnemy(EventID, EnemyID);    # 指定したＩＤのイベントをエネミーにします。
- *   this.setBattleMode(EventID, 'mode');# 指定したＩＤのイベントの行動パターンを変更します。
- *   this.setTargetId(EventID, ID);      # 指定したＩＤのイベントのターゲットＩＤを変更します。
- *   this.fromActorMinimumDistance(VariableID, EventID); # 指定したイベントと全てのアクターの中で
- *                                                       # 最も近いアクターとの距離を変数に格納します。
- *   this.isUnitDead(SwitchID, EventID); # 指定したＩＤのイベントが戦闘不能かどうかをスイッチに格納します。
- *   this.isEventIdXy(VariableID, X, Y); # 指定した座標(X, Y)のイベントＩＤを変数に格納します。
- *   this.unitRecoverAll(EventID);       # 指定したイベントＩＤのユニットを全回復します（生存している時のみ）。
- *   this.unitAddState(EventId, StateId);# 指定したイベントＩＤのユニットに指定したＩＤのステートを付与します。
- *   this.turnEnd();                     # プレイヤーのターンを終了します（メニューの「ターン終了」と同じ機能）
- *   this.isSubPhaseNormal(SwitchID);    # 操作するユニットを選択する状態かをスイッチに格納します（ONだとメニューが開ける状態と同じ）。
- *
- */
  
 //disable touch support
 TouchInput.update = function() {}
  
- 
+//Control variable ids 
 var _nextMapVariable = 6;
 var _nextMapXVariable = 7;
 var _nextMapYVariable = 8;
@@ -805,6 +361,23 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameTemp.enemyUpgradeLevel = args[0];
 		}
 		
+		if (command === 'addPersuadeOption') {
+			//args[0] = actorId
+			//args[1] = eventId
+			//args[2] = varId
+			if(!$gameSystem.persuadeOptions[args[0]]){
+				$gameSystem.persuadeOptions[args[0]] = {};
+			}
+			$gameSystem.persuadeOptions[args[0]][args[1]] = args[2];
+		}	
+
+		if (command === 'removePersuadeOption') {
+			//args[0] = actorId
+			//args[1] = eventId
+			if($gameSystem.persuadeOptions[args[0]]){
+				delete $gameSystem.persuadeOptions[args[0]][args[1]];
+			}
+		}	
     };		
 //====================================================================
 // ●Game_Temp
@@ -1395,6 +968,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.highlightedTiles = [];
 		$gameSystem.regionHighlights = {};
 		$gameTemp.enemyUpgradeLevel = 0;
+		$gameSystem.persuadeOptions = {};
         this.srpgStartActorTurn();//アクターターンを開始する
     };
 
@@ -1831,6 +1405,28 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameVariables.setValue(_nextMapDeployVariable, JSON.stringify(info));
     };
 	
+	Game_System.prototype.getPersuadeOption = function(actor) {
+		if(this.persuadeOptions && actor.isActor()){
+			var lookup = this.persuadeOptions[actor.actorId()];
+			if(lookup){
+				var event = actor.event;
+				var position = {x: event.posX(), y: event.posY()};
+				var adjacentEvents = $statCalc.getAdjacentEvents(null, position);
+				
+				var option;
+				var ctr = 0;
+				while(!option && ctr < adjacentEvents.length){
+					var eventId = adjacentEvents[ctr].eventId();
+					if(lookup[eventId] != null){
+						option = {eventId: eventId, controlVar: lookup[eventId]};
+					}
+					ctr++;
+				}
+				return option;
+			}			
+		} 
+		return null;		
+    };
 
 //==================================================================
 // ●Game_Action
@@ -6397,7 +5993,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						} else {
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_fly, 'fly');
 						}
-					}						
+					}		
+					if($gameSystem.getPersuadeOption(_this._actor)){
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_persuade, 'persuade');
+					}					
 					_this.addWaitCommand();					
 				}
 				
@@ -6409,6 +6008,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				function postMoveMenu(){
 					if(hasTarget || hasMapWeapon){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_attack, 'attack');
+					}
+					if($gameSystem.getPersuadeOption(_this._actor)){
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_persuade, 'persuade');
 					}
 					_this.addWaitCommand();
 				}
@@ -7066,7 +6668,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._mapSrpgActorCommandWindow.setHandler('board',  this.commandBoard.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('deploy',  this.commandDeploy.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('heal',  this.commandHeal.bind(this));
-		this._mapSrpgActorCommandWindow.setHandler('resupply',  this.commandResupply.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('resupply',  this.commandResupply.bind(this));		
+		
+		this._mapSrpgActorCommandWindow.setHandler('persuade', this.persuadeActorMenuCommand.bind(this));
         this._mapSrpgActorCommandWindow.setHandler('cancel', this.cancelActorMenuCommand.bind(this));
 		$gameTemp.actorCommandPosition = -1;
         this.addWindow(this._mapSrpgActorCommandWindow);
@@ -8590,6 +8194,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var battlerArray = actor;		
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('actor_move');
+    };
+		
+	Scene_Map.prototype.persuadeActorMenuCommand = function() {
+		$gameTemp.isPostMove = true;
+		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		var persuadeOption = $gameSystem.getPersuadeOption(actor);
+		$gameVariables.setValue(persuadeOption.controlVar, 1);
+		actor.onAllActionsEnd();
+		this.srpgAfterAction();	       
     };
 
     //アクターコマンド・キャンセル

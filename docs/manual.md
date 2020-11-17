@@ -5,6 +5,11 @@
 Extract the archive containing the sample project.<br>
 In the project directory navigate to js/plugins/config and copy all files from the "default" directory to the "active" directory.
 
+# Config Plugins
+
+SRW Engine MV uses a number of plugins that are referred to as config plugins. These plugins live in the js/plugins/config directory inside two folders: default and active. The default folder contains the default settings, while the active folder contains settings modified for your game if applicable. The file in the default folder is overwritten by the file in the active folder with the same name. When the engine is updated only the defaults will be changed and the files in the active folder will never be touched. So if you want to customize any of these files for your game always first copy them to the active folder and modify the version in the active folder. <br>
+If an aspect of the engine is managed using a config plugin it will be referred to as a config plugin and the file name will be included.
+
 # Terrain
 
 This engine reuses some properties of terrain available in vanilla RPG Maker to assign additional terrain functionality.
@@ -18,6 +23,8 @@ The terrain cost is set using the Terrain Tag functionality of RPG maker. To acc
 ![](img/terrain_tags.png)
 
 Each tile can be assigned a Terrain Tag between zero and seven. A value of seven means seven additional tiles of movement will be subtracted for moving over the tile and a value of zero means no additional cost will be incurred for moving over the tile.
+
+Terrain Cost will not be applied to units that are in a flying state.
 
 ## Regions
 
@@ -266,6 +273,10 @@ this.addDefinition(
 
 The definition defines the MAP attack as it should look when the user is targeting it to the right. The engine will automatically translate this when the targeting direction changes.
 
+# Spirit Commands
+
+Spirit commands are buff, debuff and healing commands that units can use when taking their turn, but only before moving.
+
 # Event scripting
 
 ## Stage control events
@@ -419,6 +430,7 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 	This command should be used to focus enemies, as those enemy ids will usually not be unique on the map!
 	
 * clearDeployInfo
+
 
 	Clears all previous deploy info, should be used before setting up all the deploys for a map.
 

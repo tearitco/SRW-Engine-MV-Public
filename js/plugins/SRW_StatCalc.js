@@ -1727,6 +1727,16 @@ StatCalc.prototype.isAdjacentTo = function(type, actor, targetId){
 	return result;
 }
 
+StatCalc.prototype.getAdjacentEvents = function(type, position){
+	var result = [];
+	this.iterateAllActors(type, function(actor, event){
+		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){				
+			result.push(event);							
+		}					
+	});
+	return result;
+}
+
 StatCalc.prototype.getSupportRecipientCandidates = function(type, position, all){
 	var result = [];
 	this.iterateAllActors(type, function(actor, event){

@@ -5,6 +5,11 @@
 Extract the archive containing the sample project.<br>
 In the project directory navigate to js/plugins/config and copy all files from the "default" directory to the "active" directory.
 
+# Config Plugins
+
+SRW Engine MV uses a number of plugins that are referred to as config plugins. These plugins live in the js/plugins/config directory inside two folders: default and active. The default folder contains the default settings, while the active folder contains settings modified for your game if applicable. The file in the default folder is overwritten by the file in the active folder with the same name. When the engine is updated only the defaults will be changed and the files in the active folder will never be touched. So if you want to customize any of these files for your game always first copy them to the active folder and modify the version in the active folder. <br>
+If an aspect of the engine is managed using a config plugin it will be referred to as a config plugin and the file name will be included.
+
 # Terrain
 
 This engine reuses some properties of terrain available in vanilla RPG Maker to assign additional terrain functionality.
@@ -18,6 +23,8 @@ The terrain cost is set using the Terrain Tag functionality of RPG maker. To acc
 ![](img/terrain_tags.png)
 
 Each tile can be assigned a Terrain Tag between zero and seven. A value of seven means seven additional tiles of movement will be subtracted for moving over the tile and a value of zero means no additional cost will be incurred for moving over the tile.
+
+Terrain Cost will not be applied to units that are in a flying state.
 
 ## Regions
 
@@ -266,6 +273,10 @@ this.addDefinition(
 
 The definition defines the MAP attack as it should look when the user is targeting it to the right. The engine will automatically translate this when the targeting direction changes.
 
+# Spirit Commands
+
+
+
 # Event scripting
 
 ## Stage control events
@@ -407,12 +418,12 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 * removeItemFromHolder mech\_id slot 	
 	
-* focusActor actor_id
+* focusActor actor\_id
 
 	If an actor with the specified id exists on the map the cursor will be set to its position.<br>	
 	If the matching actor does not exist or the actor was erased, nothing happens. 
 	
-* focusEvent event_id
+* focusEvent event\_id
 
 	If an event with the specified id exists on the map the cursor will be set to its position.<br>
 	If the matching actor does not exist or the actor was erased, nothing happens.<br>
@@ -420,17 +431,18 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 	
 * clearDeployInfo
 
+
 	Clears all previous deploy info, should be used before setting up all the deploys for a map.
 
 * setDeployCount amount
 
 	Set the total number of particpants for the next deployment, ships not included.
 	
-* assignSlot slot actor_id
+* assignSlot slot actor\_id
 	
 	Assign an actor to a slot for the next deployment.
 
-* assignShipSlot slot actor_id
+* assignShipSlot slot actor\_id
 	
 	Assign an actor to a ship slot for the next deployment.	<br>
 	This actor should logically be a ship captain, but this is not strictly enforced.
@@ -500,42 +512,42 @@ They can also be used as conditionals in IF statements.
 
 	Shows a text box using the values set with the previous commands.
 	
-* this.isActorDestructionQueued(actor_id)
+* this.isActorDestructionQueued(actor\_id)
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the actor with the specified id was defeated and is about to be destroyed.
 	
-* this.isEnemyDestructionQueued(enemy_id)
+* this.isEnemyDestructionQueued(enemy\_id)
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the enemy with the specified id was defeated and is about to be destroyed.
 	
-* this.isEventDestructionQueued(event_id)
+* this.isEventDestructionQueued(event\_id)
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the event with the specified id was defeated and is about to be destroyed.	
 	
-* this.isActorBelowHP(actor_id)
+* this.isActorBelowHP(actor\_id)
 
 	To be used as a conditional in the before_destruction or after_action event.<br>
 	Will be TRUE if the HP of the actor with the specified id is below the specified value.
 	
-* this.isEnemyBelowHP(enemy_id)
+* this.isEnemyBelowHP(enemy\_id)
 
 	To be used as a conditional in the before_destruction or after_action event.<br>
 	Will be TRUE if the HP of the enemy with the specified id is below the specified value.
 
-* this.isEventBelowHP(event_id)
+* this.isEventBelowHP(event\_id)
 
 	To be used as a conditional in the before_destruction or after_action event.<br>
 	Will be TRUE if the HP of the event with the specified id is below the specified value.	
 
-* this.cancelActorDestruction(actor_id) 
+* this.cancelActorDestruction(actor\_id) 
 
 	Cancel the destruction animation and erasure of an actor that is about to be destroyed.<br>
 	To be used in the before_destruction event.
 	
-* this.cancelEnemyDestruction(enemy_id) 
+* this.cancelEnemyDestruction(enemy\_id) 
 
 	Cancel the destruction animation and erasure of an enemy that is about to be destroyed.<br>
 	To be used in the before_destruction event.<br>
@@ -580,7 +592,7 @@ They can also be used as conditionals in IF statements.
 	Spawns all enemies that are currently in the queue with their spawn animation.<br>
 	Event processing will automatically wait for all enemies to be spawned before continuing execution.
 	
-* this.destroyEvent(event_id)
+* this.destroyEvent(event\_id)
 
 	Destroy the specified event and play its death animation.
 	
@@ -615,9 +627,8 @@ They can also be used as conditionals in IF statements.
 	Can be used as conditional to detect if the enemy with the specified enemy id is currently on a tile from the region with the specified id.<br>
 	If enemy_id is -1 this function will detect if any enemy is in the region.
 
-* this.getActorKillCount(actor\_id, region\_id)
-
-	
+* this.getActorKillCount(actor\_id)
+	Returns the current amount of kills the actor with the specified id has.	
 	
 * this.setBattleMode(event\_id, mode)
 

@@ -41,6 +41,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_resupply: "Resupply", 
 	cmd_land: "Land",
 	cmd_fly: "Fly",
+	cmd_persuade: "Persuade",
 	cmd_attack: "Attack",
 	cmd_end_turn: "End Turn",
 	cmd_list: "Unit List",
