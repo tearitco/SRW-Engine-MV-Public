@@ -254,6 +254,7 @@ The rest of the Attack properties are set using metadata tags in the note field.
 
 MAP attacks are defined in a config plugin: js/plugins/config/active/SRW_MapAttackManager.js<br>
 A definition may look as follows: <br>
+
 ```javascript
 this.addDefinition(
 	0, //the id of the definition
@@ -275,7 +276,53 @@ The definition defines the MAP attack as it should look when the user is targeti
 
 # Spirit Commands
 
-Spirit commands are buff, debuff and healing commands that units can use when taking their turn, but only before moving.
+Spirit commands are buff, debuff and healing commands that units can use when taking their turn, but only before moving. Spirit commands can apply to the own unit, another ally, an enemy, all allies or all enemies. Spirit commands consume SP to be used, but the cost is not part of the base definition and is instead defined when they are assigned to a Pilot. This allows Spirit commands to have different costs depending on the user.
+
+Spirit commands are managed in a Config Plugin: src/js/plugins/config/active/SRW_SpiritManager.js
+
+[A list of default Spirit commands is available here.](default spirits.md)
+
+The following section describes the format for defining a Spirit command, if you are a not a programmer you can skip this section.
+The format of a Spirit command definition is as follows:
+
+```javascript
+this.addDefinition(
+		0, //the id of the spirit
+		"Love", //the display name of the spirit
+		"Commands Accel, Strike, Alert, Valor, Spirit, Gain and Fortune will take effect.", //the display description of the spirit
+		function(target){ //the effect function of the spirit, target is the actor that will be affected by the spirit command
+			$statCalc.modifyWill(target, 10);
+			$statCalc.setSpirit(target, "accel");
+			$statCalc.setSpirit(target, "strike");
+			$statCalc.setSpirit(target, "alert");
+			$statCalc.setSpirit(target, "valor");
+			$statCalc.setSpirit(target, "spirit");
+			$statCalc.setSpirit(target, "gain");
+			$statCalc.setSpirit(target, "fortune");
+		},
+		"self", //the targeting type of the spirit: self, ally, ally_all or enemy_all
+		function(actor){ //this function is used to determine if the spirit can be used
+			var activeSpirits = $statCalc.getActiveSpirits(actor);
+			return ( 
+				$statCalc.canWillIncrease(actor) ||
+				!activeSpirits.accel ||
+				!activeSpirits.strike ||
+				!activeSpirits.alert ||
+				!activeSpirits.valor ||
+				!activeSpirits.spirit ||
+				!activeSpirits.gain ||
+				!activeSpirits.fortune
+			);
+		}, 
+		null, //this function is used to determine if the spirit can be used for any target. Only applicable for "ally" type spirits
+		{ // info for the animation when the spirit is used
+			src: "Love", //the name of the image file in img/animations/spirits
+			duration: 800 //the duration of the animation in milliseconds
+		}
+	)
+```
+
+
 
 # Event scripting
 
