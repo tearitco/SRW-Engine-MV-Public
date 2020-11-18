@@ -7669,18 +7669,24 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 
     //行動終了時の処理
     //戦闘終了の判定はイベントで行う。
-    Scene_Map.prototype.srpgAfterAction = function() {
-		
-		
+    Scene_Map.prototype.srpgAfterAction = function() {		
 		function applyCostsToActor(actor, weapon, battleResult){
-			var ENCost = battleResult.ENUsed;
-			ENCost = $statCalc.applyStatModsToValue(actor, ENCost, ["EN_cost"]);
-			if(battleResult.barrierCost){
-				ENCost+=battleResult.barrierCost;
-			}			
-			actor.setMp(actor.mp - Math.floor(ENCost));
-			if(weapon){
-				weapon.currentAmmo-=battleResult.ammoUsed;
+			if(actor && weapon && battleResult){			
+				var targetActors = [actor];
+				if(weapon.isCombination){
+					targetActors  = targetActors.concat($statCalc.getCombinationWeaponParticipants(actor, weapon).participants);
+				}
+				targetActors.forEach(function(actor){
+					var ENCost = battleResult.ENUsed;
+					ENCost = $statCalc.applyStatModsToValue(actor, ENCost, ["EN_cost"]);
+					if(battleResult.barrierCost){
+						ENCost+=battleResult.barrierCost;
+					}			
+					actor.setMp(actor.mp - Math.floor(ENCost));
+					if(weapon){
+						weapon.currentAmmo-=battleResult.ammoUsed;
+					}
+				});	
 			}			
 		}
 		function applyStatusConditions(attacker, defender){

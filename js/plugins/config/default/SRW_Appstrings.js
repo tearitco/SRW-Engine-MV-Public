@@ -219,6 +219,7 @@ APPSTRINGS.ATTACKLIST = {
 	label_no_post_move: "Can't be used after moving!",
 	label_no_target: "No target!",
 	label_no_map_counter: "Can't counter with map attack!",
+	label_no_participants: "No valid partner in range!"
 }
 
 APPSTRINGS.REWARDS = {

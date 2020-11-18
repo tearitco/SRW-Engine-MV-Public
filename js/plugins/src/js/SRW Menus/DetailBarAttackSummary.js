@@ -109,7 +109,9 @@ DetailBarAttackSummary.prototype.redraw = function(){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_target;
 			} else if(detail.isMap){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_map_counter;
-			} 
+			} else if(detail.noParticipants){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_no_participants;
+			}  			
 		}
 	
 		detailContent+="</div>";

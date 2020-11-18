@@ -158,6 +158,17 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 				isMap = true;
 				mapId = JSON.parse(weaponProperties.weaponMapId);
 			}
+			
+			var isCombination = false;
+			var combinationWeapons = [];
+			var combinationType = 0;
+			if(weaponProperties.weaponComboWeapons){
+				isCombination = true;
+				combinationWeapons = JSON.parse(weaponProperties.weaponComboWeapons);
+			}
+			if(weaponProperties.weaponComboType){
+				combinationType = weaponProperties.weaponComboType;
+			}
 			result.push({
 				id: parseInt(weaponDefinition.id),
 				name: weaponDefinition.name,
@@ -177,7 +188,10 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 				particleType: weaponDefinition.particleType || "", //missle/beam/wave/unspecified
 				animId: parseInt(weaponProperties.weaponAnimId) || -1,
 				isMap: isMap, 
-				mapId: mapId
+				mapId: mapId,
+				isCombination: isCombination,
+				combinationWeapons: combinationWeapons,
+				combinationType: combinationType
 			});
 		}
 	}
@@ -1430,10 +1444,88 @@ StatCalc.prototype.setFlying = function(actor, newVal){
 	} 		
 }	
 
+StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
+	var _this = this;
+	var result = {
+		isValid: false,
+		participants: []
+	};
+	
+	if(weapon.isCombination){
+		var requiredWeaponsLookup = {};
+		weapon.combinationWeapons.forEach(function(weapon){
+			requiredWeaponsLookup[weapon] = true;
+		});
+		var targetCount = weapon.combinationWeapons.length;
+		
+		function validateParticipant(actor){
+			var hasARequiredWeapon = false;
+			if(!actor.srpgTurnEnd()){			
+				var weapons = _this.getCurrentWeapons(actor);
+				var ctr = 0;			
+				while(!hasARequiredWeapon && ctr < weapons.length){					
+					if(requiredWeaponsLookup[weapons[ctr].id]){
+						var currentWeapon = weapons[ctr];
+						var canUse = true;
+						if(_this.getCurrentWill(actor) < currentWeapon.willRequired){
+							canUse = false;
+						}
+						if(currentWeapon.requiredEN != -1 && _this.getCurrenEN(actor) < currentWeapon.ENCost){
+							canUse = false;
+						}						
+						if(currentWeapon.currentAmmo == 0){
+							canUse = false;
+						}							
+						if(canUse){
+							hasARequiredWeapon = true;								
+						}						
+					}
+					ctr++;
+				}
+			}
+			return hasARequiredWeapon;
+		}
+		var participants = [];
+		if(weapon.combinationType == 0){//all participants must be adjacent			
+			var candidates = [actor];
+			while(participants.length < targetCount && candidates.length){
+				var current = candidates.pop();
+				var adjacent = this.getAdjacentActorsWithDiagonal(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
+				for(var i = 0; i < adjacent.length; i++){
+					if(validateParticipant(adjacent[i])){
+						participants.push(adjacent[i]);
+						candidates.push(adjacent[i]);
+					}
+				}			
+			}
+			
+		} else if(weapon.combinationType == 1){//all participants must be on the map
+			this.iterateAllActors(actor.isActor() ? "actor" : "enemy", function(actor, event){			
+				if(validateParticipant(actor)){
+					participants.push(actor);
+				}
+			});
+		}
+		if(participants.length >= targetCount){
+			result = {
+				isValid: true,
+				participants: participants
+			};
+		}
+	}
+	return result;
+}
+
 StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledOnly, rangeTarget){
 	var canUse = true;
 	var detail = {};
 	if(this.isActorSRWInitialized(actor)){
+		if(weapon.isCombination){			
+			if(!this.getCombinationWeaponParticipants(actor, weapon).isValid){
+				canUse = false;
+				detail.noParticipants = true;
+			} 						
+		}		
 		if(weapon.currentAmmo == 0){ //current ammo is -1 for attacks that don't consume any
 			canUse = false;
 			detail.ammo = true;
@@ -1843,6 +1935,34 @@ StatCalc.prototype.getAdjacentEvents = function(type, position){
 	this.iterateAllActors(type, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){				
 			result.push(event);							
+		}					
+	});
+	return result;
+}
+
+StatCalc.prototype.getAdjacentActors = function(type, position){
+	var result = [];
+	this.iterateAllActors(type, function(actor, event){
+		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){				
+			result.push(actor);							
+		}					
+	});
+	return result;
+}
+
+StatCalc.prototype.getAdjacentActorsWithDiagonal = function(type, position){
+	var result = [];
+	this.iterateAllActors(type, function(actor, event){
+		var isDirect = false;
+		if((Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
+			isDirect = true;
+		}
+		var isDiagonal = false;
+		if((Math.abs(event.posX() - position.x) == 1 && Math.abs(event.posY() - position.y)) == 1){
+			isDiagonal = true;
+		}	
+		if(!event.isErased() && (isDirect || isDiagonal)){				
+			result.push(actor);							
 		}					
 	});
 	return result;
