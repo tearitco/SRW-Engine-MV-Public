@@ -1460,41 +1460,44 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 		
 		function validateParticipant(actor){
 			var hasARequiredWeapon = false;
-			if(!actor.srpgTurnEnd()){			
-				var weapons = _this.getCurrentWeapons(actor);
-				var ctr = 0;			
-				while(!hasARequiredWeapon && ctr < weapons.length){					
-					if(requiredWeaponsLookup[weapons[ctr].id]){
-						var currentWeapon = weapons[ctr];
-						var canUse = true;
-						if(_this.getCurrentWill(actor) < currentWeapon.willRequired){
-							canUse = false;
-						}
-						if(currentWeapon.requiredEN != -1 && _this.getCurrenEN(actor) < currentWeapon.ENCost){
-							canUse = false;
-						}						
-						if(currentWeapon.currentAmmo == 0){
-							canUse = false;
-						}							
-						if(canUse){
-							hasARequiredWeapon = true;								
-						}						
+					
+			var weapons = _this.getCurrentWeapons(actor);
+			var ctr = 0;			
+			while(!hasARequiredWeapon && ctr < weapons.length){					
+				if(requiredWeaponsLookup[weapons[ctr].id]){
+					var currentWeapon = weapons[ctr];
+					var canUse = true;
+					if(_this.getCurrentWill(actor) < currentWeapon.willRequired){
+						canUse = false;
 					}
-					ctr++;
+					if(currentWeapon.requiredEN != -1 && _this.getCurrenEN(actor) < currentWeapon.ENCost){
+						canUse = false;
+					}						
+					if(currentWeapon.currentAmmo == 0){
+						canUse = false;
+					}							
+					if(canUse){
+						hasARequiredWeapon = true;								
+					}						
 				}
+				ctr++;
 			}
+			
 			return hasARequiredWeapon;
 		}
 		var participants = [];
 		if(weapon.combinationType == 0){//all participants must be adjacent			
 			var candidates = [actor];
+			var visited = {};
+			visited[actor.event.eventId()] = true;
 			while(participants.length < targetCount && candidates.length){
 				var current = candidates.pop();
 				var adjacent = this.getAdjacentActorsWithDiagonal(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
 				for(var i = 0; i < adjacent.length; i++){
-					if(validateParticipant(adjacent[i])){
+					if(!visited[adjacent[i].event.eventId()] && validateParticipant(adjacent[i])){
 						participants.push(adjacent[i]);
 						candidates.push(adjacent[i]);
+						visited[adjacent[i].event.eventId()] = true;
 					}
 				}			
 			}

@@ -256,6 +256,16 @@ Weapons can have up to two special effects.
 
 \<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.
 
+## Combinations Attacks
+
+Combinations attacks are attacks that require other units with a matching attack to either be adjacent to the current attacker or present on the field before the attack can be used. When a Combination Attack is used all participants will take the EN or ammo cost for the attack.
+
+A combination attack has the following additional metadata:
+
+\<weaponComboType:0> If 0 or omitted the attack can only be used if units with all required combo weapons are adjacent to each other and the attacker. If 1 the other units can be anywhere on the map.<br>
+
+\<weaponComboWeapons:\[7,8\]\> The other weapons that are required for the attack. Only one weapon can be provide per unit, so if two weapons are required then 2 units will need to be available to provide them.
+
 ## MAP Attacks
 
 MAP attacks are defined in a config plugin: js/plugins/config/active/SRW_MapAttackManager.js<br>
@@ -440,7 +450,9 @@ The format of an Item Effect definition is as follows:
 
 Weapons can have special effects that apply or that they inflict when used. 
 
-The format of an Item Effect definition is as follows:
+[A list of default Weapon Effects is available here.](default_weapon_effects.md)
+
+The format of a Weapon Effect definition is as follows:
 
 ```javascript
 
