@@ -241,5 +241,6 @@ APPSTRINGS.DEPLOYMENT = {
 	order: "Order",
 	available: "Available",
 	label_selected: "selected",
-	title_selection: "Deploy a unit"
+	title_selection: "Deploy a unit",
+	label_in_stage: "Press start to deploy"
 }

@@ -247,7 +247,7 @@ Window_Deployment.prototype.update = function() {
 					}
 					ctr++;
 				}
-				if(typeof slot == "undefined" || deployInfo.lockedSlots[slot] || $statCalc.isShip($gameSystem.getActorById(actorId))){
+				if(typeof slot == "undefined" || deployInfo.lockedSlots[slot] || $statCalc.isShip($gameActors.actor(actorId))){
 					SoundManager.playBuzzer();
 				} else {
 					this.requestRedraw();
@@ -267,7 +267,7 @@ Window_Deployment.prototype.update = function() {
 				var availableUnits = this.getAvailableUnits();
 				var deployInfo = $gameSystem.getDeployInfo();
 				var actorId = availableUnits[this._deployedSelection].actorId();
-				if(!$statCalc.isShip($gameSystem.getActorById(actorId))){
+				if(!$statCalc.isShip($gameActors.actor(actorId))){
 					deployInfo.favorites[actorId] = !deployInfo.favorites[actorId];		
 					this.requestRedraw();	
 					this.updateDeployInfo(deployInfo);
@@ -276,20 +276,31 @@ Window_Deployment.prototype.update = function() {
 		}
 		
 		if(Input.isTriggered('cancel')){	
-			SoundManager.playCancel();
-			if(this._UIState == "rearrange_slots" && this._swapSource != -1){
-				this._swapSource = -1;
-				this.requestRedraw();
-			} else {
-				$gameTemp.popMenu = true;
-				this._slotLookup = null;
-				this._availableUnits = null;
-			}			
+			this.onCancel();	
+		}
+		if(Input.isTriggered('menu')){	
+			this.onMenu();	
 		}		
 		
 		this.refresh();
 	}		
 };
+
+Window_Deployment.prototype.onCancel = function() {
+	SoundManager.playCancel();
+	if(this._UIState == "rearrange_slots" && this._swapSource != -1){
+		this._swapSource = -1;
+		this.requestRedraw();
+	} else {
+		$gameTemp.popMenu = true;
+		this._slotLookup = null;
+		this._availableUnits = null;
+	}
+}
+
+Window_Deployment.prototype.onMenu = function(){
+	
+}
 
 Window_Deployment.prototype.updateDeployInfo = function(deployInfo) {
 	$gameSystem.setDeployInfo(deployInfo);
@@ -337,7 +348,7 @@ Window_Deployment.prototype.redraw = function() {
 		deployedContent+="<div class='entry "+displayClass+"'>"
 		var actorId = deployInfo.assigned[i];
 		if(actorId != null){
-			var battleSpriteFolder = $statCalc.getBattleSceneImage($gameSystem.getActorById(actorId));
+			var battleSpriteFolder = $statCalc.getBattleSceneImage($gameActors.actor(actorId));
 			deployedContent+="<img class='actor_img' src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'/>";	
 
 			if(deployInfo.lockedSlots[i]){				
@@ -380,7 +391,7 @@ Window_Deployment.prototype.redraw = function() {
 				availableContent+="<img class='fav_icon' src='svg/round_star.svg'/>";
 			}
 			
-			if($statCalc.isShip($gameSystem.getActorById(actorId))){
+			if($statCalc.isShip($gameActors.actor(actorId))){
 				availableContent+="<img class='ship_icon' src='svg/anchor.svg'/>";
 			}
 		}
@@ -401,7 +412,7 @@ Window_Deployment.prototype.redraw = function() {
 	
 	var pilotData;
 	if(actorId)	{
-		pilotData = $gameSystem.getActorById(actorId);
+		pilotData = $gameActors.actor(actorId);
 	}
 	var pilotInfoContent = "";
 	pilotInfoContent+="<div id='deploy_pilot_icon'></div>";

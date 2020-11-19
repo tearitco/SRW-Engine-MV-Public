@@ -95,6 +95,33 @@ var $battleSceneManager = new BattleSceneManager();
     var _srpgDamageDirectionChange = parameters['srpgDamageDirectionChange'] || 'true';
 	var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
 	
+	Input.keyMapper = {
+		9: 'tab',       // tab
+		13: 'menu',       // enter
+		16: 'shift',    // shift
+		17: 'control',  // control
+		18: 'control',  // alt
+		27: 'escape',   // escape
+		32: 'ok',       // space
+		33: 'pageup',   // pageup
+		34: 'pagedown', // pagedown
+		37: 'left',     // left arrow
+		38: 'up',       // up arrow
+		39: 'right',    // right arrow
+		40: 'down',     // down arrow
+		45: 'escape',   // insert
+		81: 'pageup',   // Q
+		87: 'pagedown', // W
+		88: 'escape',   // X
+		90: 'ok',       // Z
+		96: 'escape',   // numpad 0
+		98: 'down',     // numpad 2
+		100: 'left',    // numpad 4
+		102: 'right',   // numpad 6
+		104: 'up',      // numpad 8
+		120: 'debug'    // F9
+	};
+	
 	Input.gamepadMapper = {
 		0: 'ok',        // A
 		1: 'cancel',    // B
@@ -111,6 +138,10 @@ var $battleSceneManager = new BattleSceneManager();
 		7: "right_trigger",
 		10: "L3"
 	};	
+	
+	Input._isEscapeCompatible = function(keyName) {
+		return keyName === 'cancel';
+	};
 	
 	Graphics._createAllElements = function() {
 		this._createErrorPrinter();
@@ -378,6 +409,51 @@ var $battleSceneManager = new BattleSceneManager();
 				delete $gameSystem.persuadeOptions[args[0]][args[1]];
 			}
 		}	
+		
+		if (command === 'deployShips') {
+			$gameSystem.deployShips();
+		}
+		
+		if (command === 'deployAll') {
+			$gameSystem.deployActors(args[0]);
+		}
+		
+		if (command === 'deployAllLocked') {
+			$gameSystem.deployActors(args[0], true);
+		}
+		
+		if (command === 'deployActor') {
+			var actor_unit = $gameActors.actor(args[0]);
+			var event = $gameMap.event(args[1]);
+			if(actor_unit && event){
+				$gameSystem.deployActor(actor_unit, event, args[2]);
+			}			
+		}
+		
+		if (command === 'deploySlot') {
+			var slot = args[0];
+			var deployInfo = $gameSystem.getDeployInfo();
+			var actor_id = deployInfo.assigned[slot];
+			var actor_unit = $gameActors.actor(actor_id);
+			var eventId = -1;
+			var ctr = 0;
+			var actorEventCtr = 0;
+			var events = $gameMap.events();
+			while(eventId == -1 && ctr < events.length){
+				var event = events[ctr];
+				if (event.isType() === 'actor'){
+					if(actorEventCtr == slot){
+						eventId = event.eventId();
+					}
+					actorEventCtr++;
+				}
+				ctr++;
+			}
+			if(actor_unit && eventId != -1){
+				$gameSystem.deployActor(actor_unit, $gameMap.event(eventId), args[1]);
+			}			
+		}
+		
     };		
 //====================================================================
 // ●Game_Temp
@@ -958,6 +1034,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$statCalc.applyBattleStartWill();
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
         this.runBattleStartEvent(); // ゲーム開始時の自動イベントを実行する
+		this.runAfterDeployEvent();
 		//clear stage temp variables
 		for(var i = 21; i <= 60; i++){
 			$gameVariables.setValue(i, 0);
@@ -969,6 +1046,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.regionHighlights = {};
 		$gameTemp.enemyUpgradeLevel = 0;
 		$gameSystem.persuadeOptions = {};
+		$gameTemp.currentSwapSource = -1;
         this.srpgStartActorTurn();//アクターターンを開始する
     };
 
@@ -1028,25 +1106,21 @@ var $battleSceneManager = new BattleSceneManager();
 
     // イベントのメモからアクターを読み込み、対応するイベントＩＤに紐づけする
     Game_System.prototype.setSrpgActors = function() {
-        var fix_actors = [];
+  
         $gameVariables.setValue(_existActorVarID, 0);
 		$gameVariables.setValue(_actorsDestroyed, 0);
-		$gameVariables.setValue(_existShipVarId, 0);		
-		
-        // 固定アクターを予約する
-        $gameMap.events().forEach(function(event) {
-            if (event.isType() === 'actor') {
-                var actorId = event.event().meta.id ? Number(event.event().meta.id) : 0;
-                if (actorId > 0) {
-                    fix_actors.push(actorId);
-                }
-            }
-        });
-        // アクターを読み込む
-        var i = 0;
+		$gameVariables.setValue(_existShipVarId, 0);	
+
+		this._availableUnits = $gameParty.allMembers();
+		this._availableUnits.forEach(function(actor){
+			$statCalc.initSRWStats(actor);
+		});
+    };
+
+	Game_System.prototype.deployShips = function() {
+		var _this = this;
+		var deployInfo = _this.getDeployInfo();
 		var shipCtr = 0;
-        var array = $gameParty.allMembers();
-		var deployInfo = $gameSystem.getDeployInfo();
 		
 		$gameMap.events().forEach(function(event) { //ensure to spawn ships first so that are drawn below the other actor sprites
 			if (event.isType() === 'ship') {
@@ -1057,12 +1131,12 @@ var $battleSceneManager = new BattleSceneManager();
 				}
 				if (actor_unit) {
 					actor_unit.event = event;
-                    $gameSystem.pushSrpgAllActors(event.eventId());
-                   
+                    _this.pushSrpgAllActors(event.eventId());
+                    event.isDeployed = true;
                     var bitmap = ImageManager.loadFace(actor_unit.faceName()); //顔グラフィックをプリロードする
                     var oldValue = $gameVariables.value(_existShipVarId);
                     $gameVariables.setValue(_existShipVarId, oldValue + 1);
-                    $gameSystem.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
+                    _this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 					$statCalc.initSRWStats(actor_unit);
 					actor_unit.setSrpgTurnEnd(false);	
                 } else {
@@ -1070,31 +1144,136 @@ var $battleSceneManager = new BattleSceneManager();
 				}
 			}
 		});
-        $gameMap.events().forEach(function(event) {
+	}
+	
+	
+	Game_System.prototype.deployActor = function(actor_unit, event, toAnimQueue) {
+		var _this = this;
+		actor_unit.event = event;
+		_this.pushSrpgAllActors(event.eventId());
+		event.isDeployed = true;
+		var bitmap = ImageManager.loadFace(actor_unit.faceName()); //顔グラフィックをプリロードする
+		var oldValue = $gameVariables.value(_existActorVarID);
+		$gameVariables.setValue(_existActorVarID, oldValue + 1);
+		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
+		$statCalc.initSRWStats(actor_unit);
+		actor_unit.setSrpgTurnEnd(false);			
+		if(!$gameTemp.enemyAppearQueue){
+			$gameTemp.enemyAppearQueue = [];
+		}	
+		if(toAnimQueue){				
+			$gameTemp.enemyAppearQueue.push(event);
+			event.erase();
+		} else {
+			event.appear();
+			$gameMap.setEventImages();			
+		}
+	}
+	
+	Game_System.prototype.getEventDeploySlot = function(event) {
+		var _this = this;
+		if(!this.eventToDeploySlot){
+			this.eventToDeploySlot = {};
+			var i = 0;
+			$gameMap.events().forEach(function(event) {
+				if(event.isType() === 'actor') {
+					_this.eventToDeploySlot[event.eventId()] = i++;
+				}
+			});
+		}
+		return this.eventToDeploySlot[event.eventId()];
+	}
+	
+	Game_System.prototype.highlightDeployTiles = function() {
+		var _this = this;
+		if(!$gameSystem.highlightedTiles){
+			$gameSystem.highlightedTiles = [];
+		}
+		this.removeDeployTileHighlights();
+		$gameTemp.currentDeployTileHighlights = [];
+		var deployInfo = _this.getDeployInfo();
+		var i = 0;
+		$gameMap.events().forEach(function(event) {
+			if(event.isType() === 'actor') {
+				if(i == $gameTemp.currentSwapSource){
+					$gameSystem.highlightedTiles.push({x: event.posX(), y: event.posY(), color: "#00FF00"});
+				} else if(deployInfo.lockedSlots[i]){
+					$gameSystem.highlightedTiles.push({x: event.posX(), y: event.posY(), color: "yellow"});
+				} else {
+					$gameSystem.highlightedTiles.push({x: event.posX(), y: event.posY(), color: "white"});
+				}
+				$gameTemp.currentDeployTileHighlights.push({x: event.posX(), y: event.posY()});
+				i++;
+			}
+		});
+		
+		$gameSystem.highlightsRefreshed = true;
+	}	
+	
+	Game_System.prototype.removeDeployTileHighlights = function() {
+		var _this = this;
+		if($gameTemp.currentDeployTileHighlights && $gameSystem.highlightedTiles){
+			var tileLookup = {};
+			$gameTemp.currentDeployTileHighlights.forEach(function(coords){
+				if(!tileLookup[coords.x]){
+					tileLookup[coords.x] = {};
+				}
+				tileLookup[coords.x][coords.y] = true;
+			});
+						
+			var tmp = [];
+			for(var i = 0; i < $gameSystem.highlightedTiles.length; i++){
+				if(!tileLookup[$gameSystem.highlightedTiles[i].x] || !tileLookup[$gameSystem.highlightedTiles[i].x][$gameSystem.highlightedTiles[i].y]){
+					tmp.push($gameSystem.highlightedTiles);
+				}
+			}
+			$gameSystem.highlightedTiles = tmp;
+			$gameSystem.highlightsRefreshed = true;
+		}
+	}
+	
+	Game_System.prototype.undeployActors = function(){
+		$gameMap.events().forEach(function(event) {
+			if (event.isType() === 'actor') {
+				event.isDeployed = false;
+				event.erase();
+			}
+		});
+	}
+	
+	Game_System.prototype.redeployActors = function(){
+		 $gameMap.events().forEach(function(event) {
             if (event.isType() === 'actor') {
+				event.isDeployed = false;
+			}
+		 });
+		 this.deployActors();
+	}
+	
+	Game_System.prototype.deployActors = function(toAnimQueue, lockedOnly) {
+		var _this = this;
+		var deployInfo = _this.getDeployInfo();
+		var i = 0;
+        $gameMap.events().forEach(function(event) {
+            if (event.isType() === 'actor' && !event.isDeployed) {
               	var actor_unit;
-				var actorId = deployInfo.assigned[i++];				
-				if(typeof actorId != "undefined"){
-					actor_unit = $gameActors.actor(actorId);
-				}
-				
-                if (actor_unit) {
-					actor_unit.event = event;
-                    $gameSystem.pushSrpgAllActors(event.eventId());
-                 
-                    var bitmap = ImageManager.loadFace(actor_unit.faceName()); //顔グラフィックをプリロードする
-                    var oldValue = $gameVariables.value(_existActorVarID);
-                    $gameVariables.setValue(_existActorVarID, oldValue + 1);
-                    $gameSystem.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
-					$statCalc.initSRWStats(actor_unit);
-					actor_unit.setSrpgTurnEnd(false);	
-                } else {
-					event.erase();
-				}
+				var actorId = deployInfo.assigned[i];		
+				if(!lockedOnly || deployInfo.lockedSlots[i]){
+					if(typeof actorId != "undefined"){
+						actor_unit = $gameActors.actor(actorId);
+					}
+					
+					if (actor_unit) {
+						_this.deployActor(actor_unit, event, toAnimQueue);
+					} else {
+						event.erase();
+					}
+				}	
+				i++;	
             }		
         });
-    };
-
+	}
+	
     // イベントのメモからエネミーを読み込み、対応するイベントＩＤに紐づけする
     Game_System.prototype.setSrpgEnemys = function() {
         $gameVariables.setValue(_existEnemyVarID, 0);
@@ -1178,6 +1357,15 @@ var $battleSceneManager = new BattleSceneManager();
     Game_System.prototype.runBattleStartEvent = function() {
         $gameMap.events().forEach(function(event) {
             if (event.isType() === 'battleStart') {
+                if (event.pageIndex() >= 0) event.start();
+                $gameTemp.pushSrpgEventList(event);
+            }
+        });
+    };
+	
+	Game_System.prototype.runAfterDeployEvent = function() {
+        $gameMap.events().forEach(function(event) {
+            if (event.isType() === 'afterDeploy') {
                 if (event.pageIndex() >= 0) event.start();
                 $gameTemp.pushSrpgEventList(event);
             }
@@ -2964,7 +3152,8 @@ var $battleSceneManager = new BattleSceneManager();
             _SRPG_Game_Player_moveByInput.call(this);
         }
     };
-
+	
+	
 /* 戦闘中のイベント起動に関する処理
  * 戦闘中、通常のイベント内容は起動しないようにする
  * 戦闘中はユニットが選択されたと判断して、移動範囲演算とステータスの表示を行う(行動可能アクターなら行動する)。
@@ -2973,7 +3162,7 @@ var $battleSceneManager = new BattleSceneManager();
     var _SRPG_Game_Player_startMapEvent = Game_Player.prototype.startMapEvent;
     Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
         if ($gameSystem.isSRPGMode() == true) {
-            if (!$gameMap.isEventRunning() && $gameSystem.isBattlePhase() === 'actor_phase') {
+			if (!$gameMap.isEventRunning() && $gameSystem.isBattlePhase() === 'actor_phase') {
                 if ($gameSystem.isSubBattlePhase() === 'normal') {
                     $gameMap.eventsXy(x, y).forEach(function(event) {
                         if (event.isTriggerIn(triggers) && !event.isErased()) {
@@ -3213,6 +3402,9 @@ var $battleSceneManager = new BattleSceneManager();
                 return false;
             }
         }
+		if($gameSystem.isSubBattlePhase() === 'rearrange_deploys'){
+			return true;
+		}
         return _SRPG_Game_Player_canMove.call(this);
     };
 
@@ -3995,6 +4187,8 @@ Game_Interpreter.prototype.updateWaitMode = function() {
 	case 'enemy_appear':
         waiting = $gameTemp.enemyAppearQueueIsProcessing;
         break;	
+	case 'manual_deploy':
+		waiting = $gameTemp.doingManualDeploy;
     }
 	
     if (!waiting) {
@@ -4135,6 +4329,20 @@ Game_Interpreter.prototype.processEnemyAppearQueue = function(){
 	this.setWaitMode("enemy_appear");
 	$gameTemp.enemyAppearQueueIsProcessing = true;
 	$gameTemp.unitAppearTimer = 0;
+}
+
+Game_Interpreter.prototype.processUnitAppearQueue = function(){
+	this.setWaitMode("enemy_appear");
+	$gameTemp.enemyAppearQueueIsProcessing = true;
+	$gameTemp.unitAppearTimer = 0;
+}
+
+Game_Interpreter.prototype.manualDeploy = function(){
+	this.setWaitMode("manual_deploy");
+	$gameTemp.doingManualDeploy = true;
+	$gameTemp.disableHighlightGlow = true;
+	$gameSystem.setSubBattlePhase("deploy_selection_window");
+	$gameTemp.pushMenu = "in_stage_deploy";
 }
 
 // 指定した座標にプレイヤーを移動する
@@ -4338,8 +4546,24 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						this._lowerBody.scale.x = -1;
 					}	
 				}
-			}
-		}
+				if(this._upperBody && this._lowerBody){	
+					if(battlerArray[0] === 'actor' && $gameTemp.doingManualDeploy){
+						this._frameCount+=2;
+						this._frameCount %= 200;
+						if(this._frameCount < 100){
+							this._upperBody.opacity = this._frameCount + 80;
+							this._lowerBody.opacity = this._frameCount + 80;
+						} else {
+							this._upperBody.opacity = 200 + 80 - this._frameCount;
+							this._lowerBody.opacity = 200 + 80 - this._frameCount;
+						}
+					} else {
+						this._upperBody.opacity = 255;
+						this._lowerBody.opacity = 255;
+					}
+				}
+			}			
+		}		
 	}
 	
     Sprite_Character.prototype.isTurnEndUnit = function() {
@@ -4362,6 +4586,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     Sprite_Character.prototype.setCharacterBitmap = function() {
         _SRPG_Sprite_Character_setCharacterBitmap.call(this);
         this._turnEndBitmap = ImageManager.loadCharacter('srpg_set');
+		this._frameCount = 0;
     };
 	
 	Sprite_Character.prototype.setUpperBody = function(sprite) {
@@ -4784,6 +5009,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this._character.isDoingAppearAnim = false;
 		} else {
 			if(this._animationFrame == 3){
+				this._character.appear();
 				this._character.refreshImage();
 			}				
 			this.x = this._character.screenX();
@@ -4918,13 +5144,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this.construct();
 		}	
 		this.updatePosition();		
-		this._frameCount+=2;
-		this._frameCount %= 200;
-		if(this._frameCount < 100){
-			this.opacity = this._frameCount + 80;
+		if($gameTemp.disableHighlightGlow){
+			this.opacity = 128;
 		} else {
-			this.opacity = 200 + 80 - this._frameCount;
-		}
+			this._frameCount+=2;
+			this._frameCount %= 200;
+			if(this._frameCount < 100){
+				this.opacity = this._frameCount + 80;
+			} else {
+				this.opacity = 200 + 80 - this._frameCount;
+			}
+		}		
 	};
 	
 	Sprite_AreaHighlights.prototype.updatePosition = function() {
@@ -4958,9 +5188,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._explosionSprites = {};
 		this._appearSprites = {};
 		$gameMap.events().forEach(function(event) {
-			this.createBShadow(event._eventId,event);
-			this.createExplosionSprite(event._eventId,event);
-			this.createAppearSprite(event._eventId,event);
+			this.createBShadow(event._eventId,event);			
 		}, this);
 		//_SRPG_Spriteset_Map_createTilemap_createCharacters.call(this);
 		this._characterSprites = [];
@@ -5017,6 +5245,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		for (var i = 0; i < this._characterSprites.length; i++) {
 			this._baseSprite.addChild(this._characterSprites[i]);
 		}
+		$gameMap.events().forEach(function(event) {
+			this.createExplosionSprite(event._eventId,event);
+			this.createAppearSprite(event._eventId,event);
+		}, this);	
 	};
 	
 	Spriteset_Map.prototype.createExplosionSprite = function(id,character) {
@@ -6368,6 +6600,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.createConditionsWindow();
 		this.createItemWindow();
 		this.createDeploymentWindow();
+		this.createDeploymentInStageWindow();
 		this.createDeploySelectionWindow();
 		$battleSceneManager.init();	
 		//SceneManager.stop();
@@ -6517,6 +6750,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.addWindow(this._deploymentWindow);
 		this._deploymentWindow.hide();
 		this.idToMenu["deployment"] = this._deploymentWindow;
+    };
+	
+	Scene_Map.prototype.createDeploymentInStageWindow = function() {
+		var _this = this;
+		this._deploymentInStageWindow = new Window_DeploymentInStage(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		this._deploymentInStageWindow.close();
+		this.addWindow(this._deploymentInStageWindow);
+		this._deploymentInStageWindow.hide();
+		this.idToMenu["in_stage_deploy"] = this._deploymentInStageWindow;
     };
 	
 	Scene_Map.prototype.createUpgradeUnitSelectionWindow = function() {
@@ -7155,6 +7397,77 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				this._intermissionWindow.close();
 				this._intermissionWindow.hide();
 			}
+		}
+		
+		if($gameSystem.isSubBattlePhase() === 'rearrange_deploys'){
+			if(Input.isTriggered("ok")){
+				
+				var event;// = $statCalc.activeUnitAtPosition({x: $gamePlayer.posX(), y: $gamePlayer.posY()}).event;
+				var events = $gameMap.events();
+				events.forEach(function(e){
+					if(e.posX() == $gamePlayer.posX() && e.posY() == $gamePlayer.posY()){
+						event = e;
+					}
+				});
+				if(event && event.isType() == "actor"){				
+					var slot = $gameSystem.getEventDeploySlot(event);
+					var deployInfo = $gameSystem.getDeployInfo();
+					if(!deployInfo.lockedSlots[slot]){
+						SoundManager.playOk();	
+						if($gameTemp.currentSwapSource == -1){
+							$gameTemp.currentSwapSource = slot;
+							$gameSystem.highlightDeployTiles();
+						} else {
+							var swapSource = $gameTemp.currentSwapSource;
+							var selection = slot;									
+							
+							var sourceActor = deployInfo.assigned[swapSource];
+							var targetActor = deployInfo.assigned[selection];
+							if(typeof sourceActor != undefined){
+								deployInfo.assigned[selection] = sourceActor;
+							} else {
+								delete deployInfo.assigned[selection];
+							}
+							
+							if(typeof targetActor != undefined){
+								deployInfo.assigned[swapSource] = targetActor;
+							} else {
+								delete deployInfo.assigned[swapSource];
+							}
+							$gameSystem.setDeployInfo(deployInfo);
+							$gameTemp.currentSwapSource = -1;
+							
+							$gameSystem.redeployActors();
+							$gameSystem.highlightDeployTiles();
+							$gameMap.setEventImages();
+						}
+					} else {
+						SoundManager.playBuzzer();	
+					}
+				}	
+			}	
+			
+			if(Input.isTriggered("menu")){	
+				$gameSystem.removeDeployTileHighlights();
+				$gameTemp.doingManualDeploy = false;
+				$gameTemp.disableHighlightGlow = false;
+				$gameSystem.undeployActors();
+				$gameSystem.deployActors(true);
+				$gameSystem.setSubBattlePhase("initialize");
+			}
+			
+			if(Input.isTriggered("cancel")){
+				SoundManager.playCancel();	
+				if($gameTemp.currentSwapSource == -1){
+					$gameSystem.setSubBattlePhase("deploy_selection_window");
+					$gameTemp.pushMenu = "in_stage_deploy";
+				} else {
+					$gameSystem.undeployActors();
+					$gameTemp.currentSwapSource = -1;
+					$gameSystem.highlightDeployTiles();
+				}
+			}
+			return;
 		}
 		
 		if ($gameSystem.isSubBattlePhase() == "auto_spirits"){

@@ -90,6 +90,7 @@ CSSUIManager.prototype.initAllWindows = function(){
 	this.initWindow("unit_summary");
 	this.initWindow("terrain_details");
 	this.initWindow("deployment");
+	this.initWindow("deployment_in_stage");
 	this.initWindow("deploy_selection");
 }
 

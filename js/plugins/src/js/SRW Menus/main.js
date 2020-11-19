@@ -61,6 +61,9 @@ window.Window_TerrainDetails = Window_TerrainDetails;
 import Window_Deployment from "./Window_Deployment.js";
 window.Window_Deployment = Window_Deployment;
 
+import Window_DeploymentInStage from "./Window_DeploymentInStage.js";
+window.Window_DeploymentInStage = Window_DeploymentInStage;
+
 import Window_DeploySelection from "./Window_DeploySelection.js";
 window.Window_DeploySelection = Window_DeploySelection;
 
