@@ -695,6 +695,11 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
 }
 
+StatCalc.prototype.getMechDataById = function(id, forActor){
+	var mech = $dataClasses[id];
+	return this.getMechData(mech, forActor);
+}	
+
 StatCalc.prototype.getMechData = function(mech, forActor, items){	
 	var result = {
 		id: -1,
@@ -786,6 +791,13 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 				requiredLevel: 0
 			}
 		}
+		if(mechProperties.mechCombinesFrom){
+			result.combinesFrom = JSON.parse(mechProperties.mechCombinesFrom);
+		}
+		if(mechProperties.mechCombinesTo){
+			result.combinesInto = JSON.parse(mechProperties.mechCombinesTo);
+		}
+		result.combinedActor = mechProperties.mechCombinedActor;		
 		
 		result.abilities = this.getMechAbilityInfo(mechProperties);
 		result.itemSlots = parseInt(mechProperties.mechItemSlots);		
@@ -808,6 +820,131 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		}
 		
 		result.weapons = this.getMechWeapons(mechData, mechProperties);
+	}
+	return result;
+}
+
+StatCalc.prototype.split = function(actor){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		var combineInfo = actor.SRWStats.mech.combineInfo;
+		var targetActor = $gameActors.actor(actor.SRWStats.mech.combinedActor);
+		var calculatedStats = this.getCalculatedMechStats(actor);
+		var combinedHPRatio = calculatedStats.currentHP / calculatedStats.maxHP;
+		var combinedENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
+		targetActor.SRWStats.mech = this.getMechData(actor.currentClass(), true);
+		this.calculateSRWMechStats(targetActor.SRWStats.mech);		
+		calculatedStats = this.getCalculatedMechStats(targetActor);
+		calculatedStats.currentHP = Math.floor(combinedHPRatio * calculatedStats.maxHP);
+		calculatedStats.currentEN = Math.floor(combinedENRatio * calculatedStats.maxEN);
+		for(var i = 0; i < combineInfo.participants.length; i++){
+			if(combineInfo.participants[i] != targetActor.actorId()){
+				var actor = $gameActors.actor(combineInfo.participants[i]);
+				var space = this.getAdjacentFreeSpace({x: targetActor.event.posX(), y: targetActor.event.posY()});
+				var calculatedStats = this.getCalculatedMechStats(actor);
+				calculatedStats.currentHP = Math.floor(combinedHPRatio * calculatedStats.maxHP);
+				calculatedStats.currentEN = Math.floor(combinedENRatio * calculatedStats.maxEN);
+				var event = actor.event;
+				event.appear();
+				event.locate(space.x, space.y);
+				event.refreshImage();
+			}
+		}		
+		targetActor.initImages(targetActor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+		targetActor.event.refreshImage();
+	}
+}
+
+StatCalc.prototype.combine = function(actor){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		var combineResult = this.canCombine(actor);
+		if(combineResult.isValid){
+			var HPRatioSum = 0;
+			var HPRatioCount = 0;
+			var ENRatioSum = 0;
+			var ENRatioCount = 0;
+			var combinesInto = combineResult.combinesInto;
+			var targetMechData = this.getMechDataById(combinesInto, true);
+			targetMechData.combineInfo = combineResult;
+			var targetActor = $gameActors.actor(targetMechData.combinedActor);
+			var calculatedStats = this.getCalculatedMechStats(targetActor);
+			HPRatioSum+=calculatedStats.currentHP / calculatedStats.maxHP;
+			HPRatioCount++;
+			ENRatioSum+=calculatedStats.currentEN / calculatedStats.maxEN;
+			ENRatioCount++;
+			targetActor.SRWStats.mech = targetMechData;
+			this.calculateSRWMechStats(targetActor.SRWStats.mech);
+			//$gameSystem.redeployActor(targetActor, targetActor.event);
+			for(var i = 0; i < combineResult.participants.length; i++){
+				if(combineResult.participants[i] != targetActor.actorId()){
+					var actor = $gameActors.actor(combineResult.participants[i]);
+					var calculatedStats = this.getCalculatedMechStats(actor);
+					HPRatioSum+=calculatedStats.currentHP / calculatedStats.maxHP;
+					HPRatioCount++;
+					ENRatioSum+=calculatedStats.currentEN / calculatedStats.maxEN;
+					ENRatioCount++;					
+					actor.event.erase();
+				}
+			}
+			
+			calculatedStats = this.getCalculatedMechStats(targetActor);
+			calculatedStats.currentHP = Math.floor(calculatedStats.maxHP * HPRatioSum / HPRatioCount);
+			calculatedStats.currentEN = Math.floor(calculatedStats.maxEN * ENRatioSum / ENRatioCount);
+			//targetActor.event.locate(actor.event.posX(), actor.event.posY());
+			targetActor.initImages(targetActor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+			targetActor.event.refreshImage();
+		}		
+	}
+}
+
+StatCalc.prototype.isCombined = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		 return actor.SRWStats.mech.combinesFrom && actor.SRWStats.mech.combinesFrom.length;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.canCombine = function(actor){
+	var result = {
+		isValid: false,
+		participants: []
+	};
+	var _this = this;
+	if(this.isActorSRWInitialized(actor)){
+		var combinesInto = actor.SRWStats.mech.combinesInto;
+		if(combinesInto != null){
+			var required = this.getMechDataById(combinesInto).combinesFrom;
+			var requiredLookup = {};
+			for(var i = 0; i < required.length; i++){
+				requiredLookup[required[i]] = true;
+			}
+			var stack = [actor];
+			var candidates = [];
+			var visited = {};
+			while(candidates.length < required.length && stack.length){
+				var current = stack.pop();
+				if(!visited[current.event.eventId()]){
+					var currentMechId = current.SRWStats.mech.id;
+					if(!current.event.isErased() && requiredLookup[currentMechId]){
+						candidates.push(current.actorId());
+					}
+					var adjacent = _this.getAdjacentActors(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
+					for(var i = 0; i < adjacent.length; i++){
+						if(!visited[adjacent[i].event.eventId()]){							
+							stack.push(adjacent[i]);
+						}
+					}
+					visited[current.event.eventId()] = true;
+				}				
+			}
+			if(candidates.length == required.length){
+				result = {
+					isValid: true,
+					participants: candidates,
+					combinesInto: combinesInto
+				};
+			}
+		}
 	}
 	return result;
 }

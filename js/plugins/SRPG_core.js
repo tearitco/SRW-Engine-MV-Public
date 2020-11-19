@@ -2110,21 +2110,22 @@ var $battleSceneManager = new BattleSceneManager();
 		return this._level >= this.maxLevel();
 	};
 	
-	Game_Actor.prototype.initImages = function(slotId, item) {
+	Game_Actor.prototype.initImages = function(overworldSpriteData) {
 		var actor = this.actor();
-		var overworldSpriteData;
-		if($dataClasses[actor.classId].meta.srpgOverworld){
-			overworldSpriteData = $dataClasses[actor.classId].meta.srpgOverworld.split(",");
-		} else {
-			overworldSpriteData = [actor.characterName, actor.characterIndex];
-		}		
+		if(!overworldSpriteData){
+			if($dataClasses[actor.classId].meta.srpgOverworld){
+				overworldSpriteData = $dataClasses[actor.classId].meta.srpgOverworld.split(",");
+			} else {
+				overworldSpriteData = [actor.characterName, actor.characterIndex];
+			}
+		}
+				
 		this._characterName = overworldSpriteData[0];
 		this._characterIndex = overworldSpriteData[1];
 		this._faceName = actor.faceName;
 		this._faceIndex = actor.faceIndex;
 		this._battlerName = actor.battlerName;
 	};
-
 
     // 装備変更可能か
     Window_EquipSlot.prototype.isEnabled = function(index) {
@@ -6238,7 +6239,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					}		
 					if($gameSystem.getPersuadeOption(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_persuade, 'persuade');
-					}					
+					}	
+					if($statCalc.canCombine(_this._actor).isValid){
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_combine, 'combine');
+					}	
+					if($statCalc.isCombined(_this._actor)){
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_split, 'split');
+					}		
 					_this.addWaitCommand();					
 				}
 				
@@ -6920,9 +6927,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._mapSrpgActorCommandWindow.setHandler('board',  this.commandBoard.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('deploy',  this.commandDeploy.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('heal',  this.commandHeal.bind(this));
-		this._mapSrpgActorCommandWindow.setHandler('resupply',  this.commandResupply.bind(this));		
-		
+		this._mapSrpgActorCommandWindow.setHandler('resupply',  this.commandResupply.bind(this));				
 		this._mapSrpgActorCommandWindow.setHandler('persuade', this.persuadeActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('combine', this.combineActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('split', this.splitActorMenuCommand.bind(this));
+		
         this._mapSrpgActorCommandWindow.setHandler('cancel', this.cancelActorMenuCommand.bind(this));
 		$gameTemp.actorCommandPosition = -1;
         this.addWindow(this._mapSrpgActorCommandWindow);
@@ -8560,6 +8569,18 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var battlerArray = actor;		
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('actor_move');
+    };		
+	
+	Scene_Map.prototype.splitActorMenuCommand = function() {   
+		$statCalc.split($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
+    };
+	
+	Scene_Map.prototype.combineActorMenuCommand = function() {   
+		$statCalc.combine($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
     };
 		
 	Scene_Map.prototype.persuadeActorMenuCommand = function() {
