@@ -411,7 +411,7 @@ var $battleSceneManager = new BattleSceneManager();
 		}	
 		
 		if (command === 'deployShips') {
-			$gameSystem.deployShips();
+			$gameSystem.deployShips(args[0]);
 		}
 		
 		if (command === 'deployAll') {
@@ -1117,7 +1117,7 @@ var $battleSceneManager = new BattleSceneManager();
 		});
     };
 
-	Game_System.prototype.deployShips = function() {
+	Game_System.prototype.deployShips = function(toAnimQueue) {
 		var _this = this;
 		var deployInfo = _this.getDeployInfo();
 		var shipCtr = 0;
@@ -1139,6 +1139,14 @@ var $battleSceneManager = new BattleSceneManager();
                     _this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 					$statCalc.initSRWStats(actor_unit);
 					actor_unit.setSrpgTurnEnd(false);	
+					
+					if(toAnimQueue){				
+						$gameTemp.enemyAppearQueue.push(event);
+						event.erase();
+					} else {
+						event.appear();
+						$gameMap.setEventImages();			
+					}
                 } else {
 					event.erase();
 				}
@@ -7454,6 +7462,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.undeployActors();
 				$gameSystem.deployActors(true);
 				$gameSystem.setSubBattlePhase("initialize");
+				
+				$gameMap._interpreter.setWaitMode("enemy_appear");
+				$gameTemp.enemyAppearQueueIsProcessing = true;
+				$gameTemp.unitAppearTimer = 0;
 			}
 			
 			if(Input.isTriggered("cancel")){

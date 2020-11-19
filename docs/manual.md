@@ -577,6 +577,7 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 * UnlockUnit class_id
 
+
 * SetLevel actor\_id level
 
 * addKills actor\_id amount
@@ -686,6 +687,24 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 
 * setEnemyUpgradeLevel level
 	Sets the upgrade level for all enemies that will appear on the current stage.
+	
+* addPersuadeOption actor\_id event\_id var\_id
+Adds the option to use the persuade command for the actor with the specified id when they are adjacent tot the 	specified event. After using the persuade option the Control Variable with the specified id will be set to 1,  which can then be checked for in the afterAction event to implement the conversation.	
+
+* removePersuadeOption actor\_id event\_id
+Removes the specified persuade option. This command should be called after the conversation has occurred if the conversation is supposed to be one time only. 
+
+* deployShips toAnimationQueue
+Deploys all ships according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+* deployAll toAnimationQueue
+Deploys all allies according the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+* deployAllLocked toAnimationQueue
+Deploys all allies that are in a locked slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+ 
+* deploySlot slot toAnimationQueue
+Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
 
 ## Script commands
 
@@ -787,6 +806,13 @@ They can also be used as conditionals in IF statements.
 
 	Spawns all enemies that are currently in the queue with their spawn animation.<br>
 	Event processing will automatically wait for all enemies to be spawned before continuing execution.
+	
+* this.processUnitAppearQueue()
+	Spawns all units that are currently in the queue with their spawn animation.<br>
+	Event processing will automatically wait for all units to be spawned before continuing execution.
+	
+* this.manualDeploy()
+	Shows the deployment selection window and lets the player select deployment positions. Event processing will automatically wait for all units to be spawned before continuing execution.
 	
 * this.destroyEvent(event\_id)
 
