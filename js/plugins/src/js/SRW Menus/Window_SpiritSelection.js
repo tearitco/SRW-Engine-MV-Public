@@ -64,6 +64,7 @@ Window_SpiritSelection.prototype.incrementPage = function(){
 		this._currentSelection+=this._selectionRowSize;
 		SoundManager.playCursor();
 	} else if(this._currentActor + 1 < this.getMaxActor()){
+		this._currentSelection-=this._selectionRowSize;
 		this._currentActor++;
 		SoundManager.playCursor();
 	}
@@ -74,6 +75,7 @@ Window_SpiritSelection.prototype.decrementPage = function(){
 		this._currentSelection-=this._selectionRowSize;
 		SoundManager.playCursor();
 	} else if(this._currentActor > 0){
+		this._currentSelection+=this._selectionRowSize;
 		this._currentActor--;
 		SoundManager.playCursor();
 	}	 
@@ -173,15 +175,19 @@ Window_SpiritSelection.prototype.getAvailableActors = function() {
 Window_SpiritSelection.prototype.redraw = function() {	
 	var _this = this;
 	var content = "";	
-
-	var actor = this.getAvailableActors()[this._currentActor];
+	var availableActors = this.getAvailableActors();
+	var actor = availableActors[this._currentActor];
 	
 	var calculatedStats = actor.SRWStats.pilot.stats.calculated;
 	var spiritList = $statCalc.getSpiritList(actor);
 	var currentLevel = $statCalc.getCurrentLevel(actor);
 	content+="<div class='spirit_selection_content'>";
 	content+="<div class='spirit_selection_row spirit_selection'>";
+	//content+="<div id='spirit_selection_icons_container'>";//icons container
+	content+="<div id='previous_selection_icon'></div>";//icon 	
 	content+="<div id='spirit_selection_icon'></div>";//icon 	
+	content+="<div id='next_selection_icon'></div>";//icon 	
+	//content+="</div>";
 	content+="<div class='scaled_text' id='spirit_selection_SP_display'>SP "+(calculatedStats.currentSP + "/" + calculatedStats.SP)+"</div>";//icon 
 	content+="<div class='spirit_selection_block scaled_text fitted_text'>";	
 	var selectedIdx = this.getCurrentSelection();
@@ -196,6 +202,8 @@ Window_SpiritSelection.prototype.redraw = function() {
 	content+="</div>";
 	
 	content+="<div class='spirit_selection_row details'>";
+	
+	
 	content+="<div class='spirit_list_container'>";
 	content+="<div class='spirit_list'>";
 	content+="<div class='section_column'>";
@@ -231,15 +239,28 @@ Window_SpiritSelection.prototype.redraw = function() {
 	content+="</div>";
 	content+="</div>";
 	content+="</div>";
+	
 	content+="</div>";
 	content+="</div>";
 	_this._bgFadeContainer.innerHTML = content;
 	
 	this.updateScaledDiv(_this._bgFadeContainer);
 	this.updateScaledDiv(_this._bgFadeContainer.querySelector("#spirit_selection_icon"));
+	this.updateScaledDiv(_this._bgFadeContainer.querySelector("#previous_selection_icon"));
+	this.updateScaledDiv(_this._bgFadeContainer.querySelector("#next_selection_icon"));
 	
 	var actorIcon = this._bgFadeContainer.querySelector("#spirit_selection_icon");
 	this.loadActorFace(actor.actorId(), actorIcon);
+	
+	if(availableActors[this._currentActor-1]){
+		actorIcon = this._bgFadeContainer.querySelector("#previous_selection_icon");
+		this.loadActorFace(availableActors[this._currentActor-1].actorId(), actorIcon);
+	}
+	
+	if(availableActors[this._currentActor+1]){
+		actorIcon = this._bgFadeContainer.querySelector("#next_selection_icon");
+		this.loadActorFace(availableActors[this._currentActor+1].actorId(), actorIcon);
+	}
 	
 	Graphics._updateCanvas();
 }

@@ -8598,12 +8598,24 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$statCalc.split($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('normal');
+		var se = {};
+		se.name = 'SRWTransform';
+		se.pan = 0;
+		se.pitch = 100;
+		se.volume = 80;
+		AudioManager.playSe(se);
     };
 	
 	Scene_Map.prototype.combineActorMenuCommand = function() {   
 		$statCalc.combine($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('normal');
+		var se = {};
+		se.name = 'SRWTransform';
+		se.pan = 0;
+		se.pitch = 100;
+		se.volume = 80;
+		AudioManager.playSe(se);
     };
 		
 	Scene_Map.prototype.persuadeActorMenuCommand = function() {
