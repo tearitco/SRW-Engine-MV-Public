@@ -14,10 +14,21 @@ Window_SpiritSelection.prototype.initialize = function() {
 	this._currentSelection = 0;
 	this._maxSelection = 6;
 	this._selectionRowSize = 3;
+	this._currentActor = 0;
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
 	window.addEventListener("resize", function(){
 		_this.requestRedraw();
 	});	
+}
+
+Window_SpiritSelection.prototype.getMaxActor = function(){
+	return this.getAvailableActors().length;
+}
+
+Window_SpiritSelection.prototype.resetSelection = function(){
+	this._currentSelection = 0;
+	this._currentPage = 0;
+	this._currentActor = 0;
 }
 
 Window_SpiritSelection.prototype.incrementSelection = function(){	
@@ -52,14 +63,20 @@ Window_SpiritSelection.prototype.incrementPage = function(){
 	if(this._currentSelection+this._selectionRowSize < this._maxSelection){
 		this._currentSelection+=this._selectionRowSize;
 		SoundManager.playCursor();
-	} 
+	} else if(this._currentActor + 1 < this.getMaxActor()){
+		this._currentActor++;
+		SoundManager.playCursor();
+	}
 }
 
 Window_SpiritSelection.prototype.decrementPage = function(){		
 	if(this._currentSelection-this._selectionRowSize >= 0){
 		this._currentSelection-=this._selectionRowSize;
 		SoundManager.playCursor();
-	}	
+	} else if(this._currentActor > 0){
+		this._currentActor--;
+		SoundManager.playCursor();
+	}	 
 }
 
 Window_SpiritSelection.prototype.getCurrentSelection = function(){
@@ -101,15 +118,18 @@ Window_SpiritSelection.prototype.update = function() {
 		}
 		
 		if(Input.isTriggered('ok')){			
-			var actor = $gameTemp.currentMenuUnit.actor;
+			var actor = this.getAvailableActors()[this._currentActor];
 			var currentLevel = $statCalc.getCurrentLevel(actor);
 			var spiritList = $statCalc.getSpiritList(actor);
 			var selectedIdx = this.getCurrentSelection();
-	
+		
 			if(spiritList[selectedIdx] && spiritList[selectedIdx].level <= currentLevel && this.getSpiritEnabledState(selectedIdx) > 0){
+				var spiritInfo = JSON.parse(JSON.stringify(spiritList[selectedIdx]));
+				spiritInfo.caster = actor;
+				spiritInfo.target = $gameTemp.currentMenuUnit.actor;
 				$gameTemp.popMenu = true;	
 				if(this._callbacks["selected"]){
-					this._callbacks["selected"](spiritList[selectedIdx]);
+					this._callbacks["selected"](spiritInfo);
 				}
 			}
 		}
@@ -128,22 +148,34 @@ Window_SpiritSelection.prototype.update = function() {
 
 Window_SpiritSelection.prototype.getSpiritEnabledState = function(listIdx){
 	var result = 1;
-	var actor = $gameTemp.currentMenuUnit.actor;
-	var selectedSpirit = $statCalc.getSpiritList(actor)[listIdx];
+	var caster = this.getAvailableActors()[this._currentActor];
+	var target = $gameTemp.currentMenuUnit.actor;
+	var selectedSpirit = $statCalc.getSpiritList(caster)[listIdx];
 	var spiritDisplayInfo = $spiritManager.getSpiritDisplayInfo(selectedSpirit.idx);
-	if(!spiritDisplayInfo.enabledHandler(actor)){
+	if(!spiritDisplayInfo.enabledHandler(target)){
 		result = -1;
-	} else if(selectedSpirit.cost > $statCalc.getCalculatedPilotStats(actor).currentSP){
+	} else if(selectedSpirit.cost > $statCalc.getCalculatedPilotStats(caster).currentSP){
 		result = -2;
 	} 
 	return result;
 }
 
+Window_SpiritSelection.prototype.getAvailableActors = function() {
+	var actor = $gameTemp.currentMenuUnit.actor;
+	var subPilotIds = $statCalc.getSubPilots(actor);
+	var subPilots = [];
+	for(var i = 0; i < subPilotIds.length; i++){
+		subPilots.push($gameActors.actor(subPilotIds[i]));
+	}
+	return [actor].concat(subPilots);
+}	
+
 Window_SpiritSelection.prototype.redraw = function() {	
 	var _this = this;
-	var content = "";
+	var content = "";	
+
+	var actor = this.getAvailableActors()[this._currentActor];
 	
-	var actor = $gameTemp.currentMenuUnit.actor;
 	var calculatedStats = actor.SRWStats.pilot.stats.calculated;
 	var spiritList = $statCalc.getSpiritList(actor);
 	var currentLevel = $statCalc.getCurrentLevel(actor);

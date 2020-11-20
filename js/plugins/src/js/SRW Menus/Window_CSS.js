@@ -245,9 +245,9 @@ Window_CSS.prototype.getAvailableUnits = function(){
 			}
 		}
 	}		
-	this._availableUnits.forEach(function(unit){
+	/*this._availableUnits.forEach(function(unit){
 		$statCalc.initSRWStats(unit);
-	});
+	});*/
 	return this._availableUnits;
 }
 

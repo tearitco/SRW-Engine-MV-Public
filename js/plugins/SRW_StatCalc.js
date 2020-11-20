@@ -797,7 +797,10 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		if(mechProperties.mechCombinesTo){
 			result.combinesInto = JSON.parse(mechProperties.mechCombinesTo);
 		}
-		result.combinedActor = mechProperties.mechCombinedActor;		
+		result.combinedActor = mechProperties.mechCombinedActor;	
+		if(mechProperties.mechSubPilots){
+			result.subPilots = JSON.parse(mechProperties.mechSubPilots);
+		}	
 		
 		result.abilities = this.getMechAbilityInfo(mechProperties);
 		result.itemSlots = parseInt(mechProperties.mechItemSlots);		
@@ -822,6 +825,12 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		result.weapons = this.getMechWeapons(mechData, mechProperties);
 	}
 	return result;
+}
+
+StatCalc.prototype.getSubPilots = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.subPilots || [];
+	}
 }
 
 StatCalc.prototype.split = function(actor){

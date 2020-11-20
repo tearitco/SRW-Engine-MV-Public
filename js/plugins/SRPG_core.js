@@ -3312,8 +3312,19 @@ var $battleSceneManager = new BattleSceneManager();
                             if (event.isType() == 'actor' && spiritDef.targetType == "ally" || event.isType() == 'enemy'  && spiritDef.targetType == "enemy") {
                                 var actionBattlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
                                 var targetBattlerArray = $gameSystem.EventToUnit(event.eventId());
-								var caster = actionBattlerArray[1];
-								var target = targetBattlerArray[1];	
+								var spiritInfo = $gameTemp.currentTargetingSpirit;
+								var target;
+								if(spiritInfo.target){
+									target = spiritInfo.target;
+								} else {
+									target = battlerArray[1];
+								}
+								var caster;
+								if(spiritInfo.caster){
+									caster = spiritInfo.caster;
+								} else {
+									caster = battlerArray[1];
+								}
 								
 								if(spiritDef.singleTargetEnabledHandler(target)){
 									$spiritManager.applyEffect($gameTemp.currentTargetingSpirit.idx, caster, [target], $gameTemp.currentTargetingSpirit.cost);
@@ -7016,19 +7027,31 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._spiritWindow.close();
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		var battlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
-		var actor = battlerArray[1];
-		var initialTargetingResult = $spiritManager.performInitialTargeting(spiritInfo.idx, actor);
+		var target;
+		if(spiritInfo.target){
+			target = spiritInfo.target;
+		} else {
+			target = battlerArray[1];
+		}
+		var caster;
+		if(spiritInfo.caster){
+			caster = spiritInfo.caster;
+		} else {
+			caster = battlerArray[1];
+		}
+		var initialTargetingResult = $spiritManager.performInitialTargeting(spiritInfo.idx, target);
+		
 		if(initialTargetingResult.type == "enemy" || initialTargetingResult.type == "ally"){
 		 //manual Targeting required
 			 $gameTemp.currentTargetingSpirit = spiritInfo;
 			 $gameSystem.setSubBattlePhase('actor_target_spirit');
 		} else {
 			//apply immediately
-			$spiritManager.applyEffect(spiritInfo.idx, actor, initialTargetingResult.targets, spiritInfo.cost);
+			$spiritManager.applyEffect(spiritInfo.idx, caster, initialTargetingResult.targets, spiritInfo.cost);
 			
 			//Implementation of Great Wall Ace Bonus
 			if(spiritInfo.idx == 22 && $statCalc.applyStatModsToValue(initialTargetingResult.targets[0], 0, ["great_wall"])) { //Wall
-				$spiritManager.applyEffect(9, actor, initialTargetingResult.targets, 0); //Drive
+				$spiritManager.applyEffect(9, caster, initialTargetingResult.targets, 0); //Drive
 			}
 			if(initialTargetingResult.targets.length == 1){
 				$gameTemp.spiritTargetActor = initialTargetingResult.targets[0];

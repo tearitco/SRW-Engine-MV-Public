@@ -855,12 +855,12 @@ SpiritManager.prototype.initDefinitions = function(){
 	);
 }
 
-SpiritManager.prototype.performInitialTargeting = function(idx, actor){
+SpiritManager.prototype.performInitialTargeting = function(idx, target){
 	var spiritDef = this._spiritDefinitions[idx];
 	var targets = [];
 	if(spiritDef){
 		if(spiritDef.targetType == "self"){
-			targets.push(actor);
+			targets.push(target);
 		}
 		if(spiritDef.targetType == "enemy_all"){
 			targets = $statCalc.getAllActors("enemy");
