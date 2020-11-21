@@ -197,6 +197,41 @@ And one type for weapons:
 \<mechUpgradeMobilityCost: 0\><br>
 \<mechUpgradAccuracyCost: 1\><br>
 
+### Sub-pilots
+
+A mech can have any number of sub-pilots. The spirit commands of the sub-pilots are usable by the unit as a whole.
+Swapping sub-pilots is not supported.
+
+\<mechSubPilots:\[3,5\]\>: The ids of the sub-pilots.
+
+### Transform
+
+Units can be given the ability to transform into other units.
+
+\<mechTransformsInto:1\>: The id of the mech into which the mech can transform.
+\<mechTransformWill:0\>: The required will for transformation.
+\<mechTransformRestores:0\> If 1 the mech will recover all HP and EN after transforming. If 0 the old HP and EN will carry over.
+
+### Combining Units
+
+Units can be given the ability to combine into other units. Combined units have the ability to split back into their components. The combine command will be available in the unit menu if all required units are adjacent on the map.
+
+#### Mechs that combine
+
+\<mechCombinesTo:5\>: The id off the mech into which the unit can combine.
+
+#### Combined mechs
+
+\<mechCombinesFrom:\[1,3\]\>: The ids of the mechs that are needed to combine into this unit. <br>
+\<mechCombinedActor:1\>: The id of the main pilot for the combined mech.
+
+
+#### Inheriting upgrades
+
+When working with transforming or combining mechs it usually desirable for the upgrade levels of the transformed or combined mech to match those of the base mech.
+
+\<mechInheritsUpgradesFrom:1\>: The id of the mech from which the mech will inherit upgrade levels.
+
 ### Attacks
 
 The attacks available to the mech, identified by a Weapon ID.<br>
@@ -576,6 +611,7 @@ Variables 0021-0040 are stageTemp variables that can be used to keep track of th
 	This command starts or end the intermission. Only called on the intermission map.
 
 * UnlockUnit class_id
+
 
 
 * SetLevel actor\_id level
