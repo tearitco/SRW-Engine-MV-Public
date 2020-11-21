@@ -1241,6 +1241,7 @@ var $battleSceneManager = new BattleSceneManager();
 	}
 	
 	Game_System.prototype.undeployActors = function(){
+		$gameVariables.setValue(_existActorVarID, 0);
 		$gameMap.events().forEach(function(event) {
 			if (event.isType() === 'actor') {
 				event.isDeployed = false;
@@ -1250,6 +1251,7 @@ var $battleSceneManager = new BattleSceneManager();
 	}
 	
 	Game_System.prototype.redeployActors = function(){
+		$gameVariables.setValue(_existActorVarID, 0);
 		 $gameMap.events().forEach(function(event) {
             if (event.isType() === 'actor') {
 				event.isDeployed = false;
