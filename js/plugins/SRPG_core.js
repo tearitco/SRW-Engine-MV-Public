@@ -6257,6 +6257,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					if($statCalc.isCombined(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_split, 'split');
 					}		
+					if($statCalc.canTransform(_this._actor)){
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_transform, 'transform');
+					}	
+					
 					_this.addWaitCommand();					
 				}
 				
@@ -6942,6 +6946,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._mapSrpgActorCommandWindow.setHandler('persuade', this.persuadeActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('combine', this.combineActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('split', this.splitActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('transform', this.transformActorMenuCommand.bind(this));
+		
 		
         this._mapSrpgActorCommandWindow.setHandler('cancel', this.cancelActorMenuCommand.bind(this));
 		$gameTemp.actorCommandPosition = -1;
@@ -8592,7 +8598,19 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var battlerArray = actor;		
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('actor_move');
-    };		
+    };
+
+	Scene_Map.prototype.transformActorMenuCommand = function() {   
+		$statCalc.transform($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
+		var se = {};
+		se.name = 'SRWTransform';
+		se.pan = 0;
+		se.pitch = 100;
+		se.volume = 80;
+		AudioManager.playSe(se);
+    };	
 	
 	Scene_Map.prototype.splitActorMenuCommand = function() {   
 		$statCalc.split($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);

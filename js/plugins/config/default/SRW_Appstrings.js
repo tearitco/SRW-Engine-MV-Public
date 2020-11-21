@@ -44,6 +44,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_persuade: "Persuade",
 	cmd_combine: "Combine",
 	cmd_split: "Split",
+	cmd_transform: "Transform",
 	cmd_attack: "Attack",
 	cmd_end_turn: "End Turn",
 	cmd_list: "Unit List",

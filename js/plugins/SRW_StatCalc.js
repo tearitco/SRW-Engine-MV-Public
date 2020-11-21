@@ -802,11 +802,21 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 			result.subPilots = JSON.parse(mechProperties.mechSubPilots);
 		}	
 		
+		result.transformsInto = mechProperties.mechTransformsInto * 1;			
+		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
+		result.transformRestores = mechProperties.mechTransformRestores * 1 || 0;	
+
+		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || 0;		
+		
 		result.abilities = this.getMechAbilityInfo(mechProperties);
 		result.itemSlots = parseInt(mechProperties.mechItemSlots);		
 		
 		if(forActor){
-			result.stats.upgradeLevels = this.getStoredMechData(mech.id).mechUpgrades;
+			if(result.inheritsUpgradesFrom){
+				result.stats.upgradeLevels = this.getStoredMechData(result.inheritsUpgradesFrom).mechUpgrades;
+			} else {
+				result.stats.upgradeLevels = this.getStoredMechData(mech.id).mechUpgrades;
+			}			
 			result.items = this.getActorMechItems(mech.id);
 		} else {
 			result.items = items || [];
@@ -832,6 +842,31 @@ StatCalc.prototype.getSubPilots = function(actor){
 		return actor.SRWStats.mech.subPilots || [];
 	}
 }
+StatCalc.prototype.canTransform = function(actor){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		return actor.SRWStats.mech.transformsInto != null && actor.SRWStats.mech.transformWill <= this.getCurrentWill(actor);
+	} 
+	return false;
+}
+
+StatCalc.prototype.transform = function(actor){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		if(this.canTransform(actor)){			
+			var calculatedStats = this.getCalculatedMechStats(actor);
+			var previousHPRatio = calculatedStats.currentHP / calculatedStats.maxHP;
+			var previousENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
+			actor.SRWStats.mech = this.getMechDataById(actor.SRWStats.mech.transformsInto, true);
+			this.calculateSRWMechStats(actor.SRWStats.mech);
+			if(!actor.SRWStats.mech.transformRestores){
+				calculatedStats = this.getCalculatedMechStats(actor);
+				calculatedStats.currentHP = Math.round(previousHPRatio * calculatedStats.maxHP);
+				calculatedStats.currentEN = Math.round(previousENRatio * calculatedStats.maxEN);
+			}						
+			actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+			actor.event.refreshImage();			
+		}		
+	}
+}
 
 StatCalc.prototype.split = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
@@ -843,15 +878,15 @@ StatCalc.prototype.split = function(actor){
 		targetActor.SRWStats.mech = this.getMechData(actor.currentClass(), true);
 		this.calculateSRWMechStats(targetActor.SRWStats.mech);		
 		calculatedStats = this.getCalculatedMechStats(targetActor);
-		calculatedStats.currentHP = Math.floor(combinedHPRatio * calculatedStats.maxHP);
-		calculatedStats.currentEN = Math.floor(combinedENRatio * calculatedStats.maxEN);
+		calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
+		calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);
 		for(var i = 0; i < combineInfo.participants.length; i++){
 			if(combineInfo.participants[i] != targetActor.actorId()){
 				var actor = $gameActors.actor(combineInfo.participants[i]);
 				var space = this.getAdjacentFreeSpace({x: targetActor.event.posX(), y: targetActor.event.posY()});
 				var calculatedStats = this.getCalculatedMechStats(actor);
-				calculatedStats.currentHP = Math.floor(combinedHPRatio * calculatedStats.maxHP);
-				calculatedStats.currentEN = Math.floor(combinedENRatio * calculatedStats.maxEN);
+				calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
+				calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);
 				var event = actor.event;
 				event.appear();
 				event.locate(space.x, space.y);
@@ -896,8 +931,8 @@ StatCalc.prototype.combine = function(actor){
 			}
 			
 			calculatedStats = this.getCalculatedMechStats(targetActor);
-			calculatedStats.currentHP = Math.floor(calculatedStats.maxHP * HPRatioSum / HPRatioCount);
-			calculatedStats.currentEN = Math.floor(calculatedStats.maxEN * ENRatioSum / ENRatioCount);
+			calculatedStats.currentHP = Math.round(calculatedStats.maxHP * HPRatioSum / HPRatioCount);
+			calculatedStats.currentEN = Math.round(calculatedStats.maxEN * ENRatioSum / ENRatioCount);
 			//targetActor.event.locate(actor.event.posX(), actor.event.posY());
 			targetActor.initImages(targetActor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 			targetActor.event.refreshImage();
@@ -982,14 +1017,26 @@ StatCalc.prototype.storeActorData = function(actor){
 			kills: actor.SRWStats.pilot.kills,
 			abilities: actor.SRWStats.pilot.abilities,
 		});
-		$SRWSaveManager.storeMechData(actor.currentClass().id, {
+		var classId;
+		if(actor.SRWStats.mech.inheritsUpgradesFrom != null){
+			classId = actor.SRWStats.mech.inheritsUpgradesFrom;
+		} else {
+			classId = actor.currentClass().id;
+		}
+		$SRWSaveManager.storeMechData(classId, {
 			mechUpgrades: actor.SRWStats.mech.stats.upgradeLevels
 		});		
 	}	
 }
 
 StatCalc.prototype.storeMechData = function(mech){
-	$SRWSaveManager.storeMechData(mech.classData.id, {
+	var classId;
+	if(mech.inheritsUpgradesFrom != null){
+		classId = mech.inheritsUpgradesFrom;
+	} else {
+		classId = mech.classData.id;
+	}
+	$SRWSaveManager.storeMechData(classId, {
 		mechUpgrades: mech.stats.upgradeLevels
 	});	
 }
@@ -2357,6 +2404,15 @@ StatCalc.prototype.applyHPRegen = function(type){
 			_this.recoverHPPercent(actor, _this.getCurrentTerrainMods(actor).hp_regen);	
 		}				
 	});
+}
+
+StatCalc.prototype.setAllWill = function(type, amount){
+	var _this = this;
+	var result = [];
+	this.iterateAllActors(type, function(actor){			
+		_this.setWill(actor, amount);
+	});
+	return result;
 }
 
 StatCalc.prototype.setAllHPPercent = function(type, percent){
