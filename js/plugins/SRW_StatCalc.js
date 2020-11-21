@@ -2014,7 +2014,7 @@ StatCalc.prototype.getAdjacentFreeSpace = function(position, type){
 	
 	var candidates = [];
 	for(var i = 0; i < $gameMap.width(); i++){
-		for(var j = 0; j < $gameMap.width(); j++){
+		for(var j = 0; j < $gameMap.height(); j++){
 			if(!occupiedCoordLookup[i] || !occupiedCoordLookup[i][j]){
 				candidates.push({position: {x: i, y: j}, distance: Math.hypot(position.x-i, position.y-j)});
 			}

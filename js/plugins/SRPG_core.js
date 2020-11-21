@@ -426,6 +426,7 @@ var $battleSceneManager = new BattleSceneManager();
 			var actor_unit = $gameActors.actor(args[0]);
 			var event = $gameMap.event(args[1]);
 			if(actor_unit && event){
+				event.setType("actor");
 				$gameSystem.deployActor(actor_unit, event, args[2]);
 			}			
 		}
@@ -452,6 +453,14 @@ var $battleSceneManager = new BattleSceneManager();
 			if(actor_unit && eventId != -1){
 				$gameSystem.deployActor(actor_unit, $gameMap.event(eventId), args[1]);
 			}			
+		}
+		
+		if (command === 'moveEventToPoint') {
+			$gameMap._interpreter.setWaitMode("move_to_point");
+			$gameSystem.setSrpgWaitMoving(true);
+			var event = $gameMap.event(args[0]);
+			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
+			event.srpgMoveToPoint(position, true);
 		}
 		
     };		
@@ -1047,6 +1056,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameTemp.enemyUpgradeLevel = 0;
 		$gameSystem.persuadeOptions = {};
 		$gameTemp.currentSwapSource = -1;
+		$gameTemp.enemyAppearQueue = [];
         this.srpgStartActorTurn();//アクターターンを開始する
     };
 
@@ -1060,6 +1070,10 @@ var $battleSceneManager = new BattleSceneManager();
     Game_System.prototype.setEventToUnit = function(event_id, type, data) {
         this._EventToUnit[event_id] = [type, data];
     };
+	
+	Game_System.prototype.clearEventToUnit = function(event_id) {
+		delete this._EventToUnit[event_id];
+	}
 
     //イベントＩＤから対応するアクター・エネミーデータを返す
     Game_System.prototype.EventToUnit = function(event_id) {
@@ -1154,7 +1168,6 @@ var $battleSceneManager = new BattleSceneManager();
 		});
 	}
 	
-	
 	Game_System.prototype.deployActor = function(actor_unit, event, toAnimQueue) {
 		var _this = this;
 		actor_unit.event = event;
@@ -1242,18 +1255,22 @@ var $battleSceneManager = new BattleSceneManager();
 	
 	Game_System.prototype.undeployActors = function(){
 		$gameVariables.setValue(_existActorVarID, 0);
-		$gameMap.events().forEach(function(event) {
+		$gameSystem.clearSrpgAllActors();
+		$gameMap.events().forEach(function(event) {			
 			if (event.isType() === 'actor') {
+				$gameSystem.clearEventToUnit(event.eventId());
 				event.isDeployed = false;
 				event.erase();
 			}
 		});
 	}
 	
-	Game_System.prototype.redeployActors = function(){
+	Game_System.prototype.redeployActors = function(){                                                                                                                                                                                                                             
 		$gameVariables.setValue(_existActorVarID, 0);
-		 $gameMap.events().forEach(function(event) {
+		$gameSystem.clearSrpgAllActors();
+		$gameMap.events().forEach(function(event) {
             if (event.isType() === 'actor') {
+				$gameSystem.clearEventToUnit(event.eventId());
 				event.isDeployed = false;
 			}
 		 });
@@ -3662,7 +3679,7 @@ var $battleSceneManager = new BattleSceneManager();
         }
     };
 	
-	Game_Event.prototype.srpgMoveToPoint = function(targetPosition) {
+	Game_Event.prototype.srpgMoveToPoint = function(targetPosition, ignoreMoveTable) {
 		this._pendingMoveToPoint = true;
 		this._targetPosition = targetPosition;
 		
@@ -3672,7 +3689,7 @@ var $battleSceneManager = new BattleSceneManager();
 		for(var i = 0; i < $gameMap.width(); i++){
 			pathfindingGrid[i] = [];
 			for(var j = 0; j < $gameMap.height(); j++){
-				pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || $gameTemp._MoveTable[i][j][0] == -1) ? 0 : 1;
+				pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : 1;
 			}
 		}
 		var graph = new Graph(pathfindingGrid);
@@ -4210,6 +4227,10 @@ Game_Interpreter.prototype.updateWaitMode = function() {
         break;	
 	case 'manual_deploy':
 		waiting = $gameTemp.doingManualDeploy;
+		break;	
+	case 'move_to_point':
+		waiting = $gameSystem.srpgWaitMoving();
+		break;	
     }
 	
     if (!waiting) {
@@ -4419,6 +4440,22 @@ Game_Interpreter.prototype.setSquadMode = function(squadId, mode) {
 			}	
 		}
 	});
+}
+
+Game_Interpreter.prototype.isDeployed = function(actorId) {
+	var isDeployed = false;
+	$gameMap.events().forEach(function(event) {
+		if (event.isType() === 'actor') {
+			var battlerArray = $gameSystem.EventToUnit(event.eventId());
+			if(battlerArray){
+				var actor = battlerArray[1];
+				if(actor.actorId() == actorId){
+					isDeployed = true;
+				}
+			}				
+		}
+	});
+	return isDeployed;
 }
 
 Game_Interpreter.prototype.isSquadWiped = function(squadId) {
