@@ -1535,6 +1535,9 @@ var $battleSceneManager = new BattleSceneManager();
     Game_System.prototype.srpgTurnPlus = function() {
         var oldValue = $gameVariables.value(_turnVarID);
         $gameVariables.setValue(_turnVarID, oldValue + 1);
+		
+		var oldValue = $gameVariables.value(_turnCountVariable);
+        $gameVariables.setValue(_turnCountVariable, oldValue + 1);
     };
 
 //戦闘の計算に関係する処理
@@ -3313,17 +3316,13 @@ var $battleSceneManager = new BattleSceneManager();
                                 var actionBattlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
                                 var targetBattlerArray = $gameSystem.EventToUnit(event.eventId());
 								var spiritInfo = $gameTemp.currentTargetingSpirit;
-								var target;
-								if(spiritInfo.target){
-									target = spiritInfo.target;
-								} else {
-									target = battlerArray[1];
-								}
+								var target = targetBattlerArray[1];
+							
 								var caster;
 								if(spiritInfo.caster){
 									caster = spiritInfo.caster;
 								} else {
-									caster = battlerArray[1];
+									caster = actionBattlerArray[1];
 								}
 								
 								if(spiritDef.singleTargetEnabledHandler(target)){
@@ -4420,6 +4419,19 @@ Game_Interpreter.prototype.setSquadMode = function(squadId, mode) {
 	});
 }
 
+Game_Interpreter.prototype.isSquadWiped = function(squadId) {
+	var isWiped = true;
+	$gameMap.events().forEach(function(event) {
+		if (event.isType() === 'enemy') {
+			var enemy = $gameSystem.EventToUnit(event.eventId())[1];	
+			if(enemy.squadId == squadId && !event.isErased()){
+				isWiped = false;
+			}	
+		}
+	});
+	return isWiped;
+}
+
 // 指定したイベントのターゲットＩＤを設定する（戦闘モードが'aimingEvent'または'aimingActor'でのみ機能する）
 Game_Interpreter.prototype.setTargetId = function(eventId, targetId) {
     var battlerArray = $gameSystem.EventToUnit(eventId);
@@ -4565,6 +4577,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						this._upperBody.scale.x = -1;
 						this._lowerBody.scale.x = -1;
 					}	
+				} else {
+					this.scale.x = 1;				
+					if(this._upperBody && this._lowerBody){	
+						this._upperBody.scale.x = 1;
+						this._lowerBody.scale.x = 1;
+					}
 				}
 				if(this._upperBody && this._lowerBody){	
 					if(battlerArray[0] === 'actor' && $gameTemp.doingManualDeploy){
@@ -7424,6 +7442,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		if($gameSystem._isIntermission){
 			if(!this._intermissionWindowOpen){
+				$gameSystem.clearData();//make sure stage temp data is cleared when moving between stages
 				this._intermissionWindowOpen = true;
 				this._intermissionWindow.setActor($gameSystem._availableUnits[0]);
 				/*this._intermissionWindow.refresh();

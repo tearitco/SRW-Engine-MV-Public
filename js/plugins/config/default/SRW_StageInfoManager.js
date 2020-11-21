@@ -1,8 +1,12 @@
 function SRWStageInfoManager(){
 	this._stageInfo = {
-		0: {
-			name: "From the void they came",
-			displayId: 0
+		1: {
+			name: "Escape",
+			displayId: 1
+		},
+		2: {
+			name: "Reunion",
+			displayId: 2
 		}
 	}
 }
