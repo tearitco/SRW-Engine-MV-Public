@@ -1468,7 +1468,7 @@ var $battleSceneManager = new BattleSceneManager();
                 $gameTemp.pushSrpgEventList(event);
             }
             var battlerArray = $gameSystem.EventToUnit(event.eventId());
-            if (battlerArray && battlerArray[0] === 'actor' && battlerArray[1].isAlive()) {
+            if (battlerArray && battlerArray[0] === 'actor' && battlerArray[1].isAlive() && !event.isErased()) {
                 $gameSystem.aliveActorIdList.push(event.eventId());
                 battlerArray[1].SRPGActionTimesSet();
 				var SPRegen = 0;
@@ -2637,7 +2637,7 @@ var $battleSceneManager = new BattleSceneManager();
         } else {
             return _SRPG_Game_Party_allMembers.call(this);
         }
-    };*/
+    };
 
     // セーブファイル用の処理
     var _SRPG_Game_Party_charactersForSavefile = Game_Party.prototype.charactersForSavefile;
@@ -7299,6 +7299,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			if ($gameSystem.isSubBattlePhase() === 'rewards_display') {
 				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()) {
 					 //this._rewardsWindow.close();
+					 $gameTemp.popMenu = true;	
 					 this._rewardsWindow.hide();
 					 this._rewardsWindow.deactivate();
 					 if($gameTemp.rewardsInfo.levelResult.hasLevelled){
@@ -7311,7 +7312,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						se.pan = 0;
 						se.pitch = 100;
 						se.volume = 80;
-						AudioManager.playSe(se);
+						AudioManager.playSe(se);						
 						$gameTemp.pushMenu = "level_up";
 					} else {
 						 this.srpgPrepareNextAction();
@@ -7321,6 +7322,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}
 			if ($gameSystem.isSubBattlePhase() === 'level_up_display') {
 				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()) {
+					$gameTemp.popMenu = true;
 					this._levelUpWindow.hide();
 					this._levelUpWindow.deactivate();
 					$gameTemp.rewardsInfo = {};					
@@ -7455,6 +7457,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		var menuStack = $gameTemp.menuStack;
 		if($gameTemp.popMenu){
+			//console.log("Pop Menu " + $gameTemp.menuStack[menuStack.length-1]);
 			if(menuStack.length){
 				var menu = menuStack.pop();
 				if(menu){
@@ -7479,6 +7482,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}		
 		
 		if($gameTemp.pushMenu){
+			//console.log("Push Menu "+$gameTemp.pushMenu);
 			if(menuStack.length){
 				var menu = menuStack[menuStack.length-1];
 				if(menu){
