@@ -69,6 +69,7 @@ var $battleSceneManager = new BattleSceneManager();
     var _srpgTroopID = Number(parameters['srpgTroopID'] || 1);
     var _srpgBattleSwitchID = Number(parameters['srpgBattleSwitchID'] || 1);
 	var _endIntermissionSwitchID = 3;
+	var _inIntermissionSwitchID = 4;
     var _existActorVarID = Number(parameters['existActorVarID'] || 1);
     var _existEnemyVarID = Number(parameters['existEnemyVarID'] || 2);
 	
@@ -244,7 +245,13 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'UnlockUnit') {
             $SRWSaveManager.setUnitUnlocked(args[0]);
         }
+		if (command === 'unlockUnit') {
+            $SRWSaveManager.setUnitUnlocked(args[0]);
+        }
 		if (command === 'SetLevel') {
+            $SRWSaveManager.setPilotLevel(args[0], args[1]);
+        }
+		if (command === 'setLevel') {
             $SRWSaveManager.setPilotLevel(args[0], args[1]);
         }
 		if (command === 'addKills') {
@@ -427,7 +434,7 @@ var $battleSceneManager = new BattleSceneManager();
 			var event = $gameMap.event(args[1]);
 			if(actor_unit && event){
 				event.setType("actor");
-				$gameSystem.deployActor(actor_unit, event, args[2]);
+				$gameSystem.deployActor(actor_unit, event, args[2] * 1);
 			}			
 		}
 		
@@ -461,8 +468,22 @@ var $battleSceneManager = new BattleSceneManager();
 			var event = $gameMap.event(args[0]);
 			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
 			event.srpgMoveToPoint(position, true);
+			if(args[3] * 1){
+				$gameTemp.followMove = true;
+			}			
 		}
 		
+		if (command === 'setEventFlying') {
+			var actor = $gameSystem.EventToUnit(args[0])[1];
+			if($statCalc.canFly(actor)){
+				$statCalc.setFlying(actor, true);
+			}			
+		}
+		
+		if (command === 'setEventLanded') {
+			var actor = $gameSystem.EventToUnit(args[0])[1];		
+			$statCalc.setFlying(actor, false);						
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -1048,6 +1069,7 @@ var $battleSceneManager = new BattleSceneManager();
 		for(var i = 21; i <= 60; i++){
 			$gameVariables.setValue(i, 0);
 		}
+	
         $gameVariables.setValue(_turnVarID, 1); //ターン数を初期化する
         $gameSystem.resetSearchedItemList(); //探索済み座標を初期化する
 		$gameSystem._specialTheme = -1;
@@ -2603,7 +2625,7 @@ var $battleSceneManager = new BattleSceneManager();
     };
 
     // SRPG戦闘中にはallMembersで呼び出す配列を変える→メニューで戦闘参加アクターを呼び出す
-    var _SRPG_Game_Party_allMembers = Game_Party.prototype.allMembers;
+   /* var _SRPG_Game_Party_allMembers = Game_Party.prototype.allMembers;
     Game_Party.prototype.allMembers = function() {
         if ($gameSystem.isSRPGMode() == true && $gameSystem.isSubBattlePhase() !== 'initialize') {
             var _list = [];
@@ -2615,7 +2637,7 @@ var $battleSceneManager = new BattleSceneManager();
         } else {
             return _SRPG_Game_Party_allMembers.call(this);
         }
-    };
+    };*/
 
     // セーブファイル用の処理
     var _SRPG_Game_Party_charactersForSavefile = Game_Party.prototype.charactersForSavefile;
@@ -3716,6 +3738,7 @@ var $battleSceneManager = new BattleSceneManager();
 		if(battlerArray && battlerArray[1]){
 			var isActor = battlerArray[1].isActor();
 		}	
+		var followMove = !isActor || $gameTemp.followMove;
 		if(battlerArray && battlerArray[1]){
 			$statCalc.setCurrentTerrainFromRegionIndex(battlerArray[1], $gameMap.regionId(this._x, this._y));
 			$gameMap.initSRWTileProperties();
@@ -3740,17 +3763,18 @@ var $battleSceneManager = new BattleSceneManager();
 					var targetPosition = this._pathToCurrentTarget[this._pathToCurrentTarget.length-1];
 					this._pathToCurrentTarget = [];
 					this.locate(targetPosition.x, targetPosition.y);
-					if(!isActor){
+					if(followMove){
 						$gamePlayer.locate(targetPosition.x, targetPosition.y);
 					}
 					$gamePlayer.setMoveSpeed(4);
 					this._targetPosition = null;
 					this._pathToCurrentTarget = null;
 					this._pendingMoveToPoint = false;
+					$gameTemp.followMove = false;
 					$gameSystem.setSrpgWaitMoving(false);
 				} else {				
 					this.setMoveSpeed(6);
-					if(!isActor){
+					if(followMove){
 						$gamePlayer.setMoveSpeed(6);
 					}
 					var nextPosition = this._pathToCurrentTarget.shift();
@@ -3760,12 +3784,12 @@ var $battleSceneManager = new BattleSceneManager();
 						if(deltaX != 0){
 							if(Math.sign(deltaX) == 1){
 								this.moveStraight(6); //right
-								if(!isActor){
+								if(followMove){
 									$gamePlayer.moveStraight(6);
 								}
 							} else {
 								this.moveStraight(4); //left
-								if(!isActor){
+								if(followMove){
 									$gamePlayer.moveStraight(4);
 								}
 							}
@@ -3773,12 +3797,12 @@ var $battleSceneManager = new BattleSceneManager();
 						if(deltaY != 0){
 							if(Math.sign(deltaY) == 1){
 								this.moveStraight(2); //down
-								if(!isActor){
+								if(followMove){
 									$gamePlayer.moveStraight(2);
 								}
 							} else {
 								this.moveStraight(8); //up
-								if(!isActor){
+								if(followMove){
 									$gamePlayer.moveStraight(8);
 								}
 							}
@@ -3788,6 +3812,7 @@ var $battleSceneManager = new BattleSceneManager();
 						this._targetPosition = null;
 						this._pathToCurrentTarget = null;
 						this._pendingMoveToPoint = false;
+						$gameTemp.followMove = false;
 						$gameSystem.setSrpgWaitMoving(false);
 					}	
 				}
@@ -7578,6 +7603,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			return;
 		}
 		
+		
+		
+		
 		if ($gameSystem.isSubBattlePhase() == "auto_spirits"){
 			if($gameMap._interpreter.isRunning()){
 				return;
@@ -7759,9 +7787,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
                 this.srpgInvokeAutoUnitAction();
                 return;
             }
-        }
+        }		
+		
         //エネミーフェイズの処理
         if ($gameSystem.isBattlePhase() === 'enemy_phase') {
+			if ($gameSystem.isSubBattlePhase() == "rewards_display"){
+				return;
+			}
+			if ($gameSystem.isSubBattlePhase() == "level_up_display"){
+				return;
+			}			
 			$gameTemp.enemyWaitTimer--;
 			if($gameTemp.enemyWaitTimer < 0){			
 				if ($gameSystem.isSubBattlePhase() === 'enemy_command') {

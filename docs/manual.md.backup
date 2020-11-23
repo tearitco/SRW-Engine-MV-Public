@@ -226,7 +226,7 @@ Units can be given the ability to combine into other units. Combined units have 
 \<mechCombinedActor:1\>: The id of the main pilot for the combined mech.
 
 
-#### Inheriting upgrades
+### Inheriting upgrades
 
 When working with transforming or combining mechs it usually desirable for the upgrade levels of the transformed or combined mech to match those of the base mech.
 
@@ -597,7 +597,15 @@ The first two pages of Control Variables are reserved for specific functions in 
 * 0019 - Defeat Condition Text
 * 0020 - Ship Count: The current number of active ships on the stage
 
-Variables 0021-0040 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
+Variables 0021-0060 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
+<b>The engine will automatically clear these when a new stage starts!</b>
+
+## Switches
+
+* 0001 - Game Over
+* 0002 - Mastery achieved 
+
+The first two pages of switches, 0001-0040,  are reserved for stageTemp switches that can be used to keep track things over the course of a single stage. 
 <b>The engine will automatically clear these when a new stage starts!</b>
 
 ## Plugin commands

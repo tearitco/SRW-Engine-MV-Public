@@ -597,8 +597,9 @@ The first two pages of Control Variables are reserved for specific functions in 
 * 0019 - Defeat Condition Text
 * 0020 - Ship Count: The current number of active ships on the stage
 
-Variables 0021-0040 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
+Variables 0021-0060 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
 <b>The engine will automatically clear these when a new stage starts!</b>
+
 
 ## Plugin commands
 

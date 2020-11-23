@@ -802,7 +802,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 			result.subPilots = JSON.parse(mechProperties.mechSubPilots);
 		}	
 		
-		result.transformsInto = mechProperties.mechTransformsInto * 1;			
+		result.transformsInto = mechProperties.mechTransformsInto * 1 || null;			
 		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
 		result.transformRestores = mechProperties.mechTransformRestores * 1 || 0;	
 
@@ -1776,6 +1776,11 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 
 StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly){
 	if(this.isActorSRWInitialized(actor)){
+		if(weapon.isCombination){			
+			if(!this.getCombinationWeaponParticipants(actor, weapon).isValid){
+				return false;
+			} 						
+		}
 		if(weapon.currentAmmo == 0){ //current ammo is -1 for attacks that don't consume any
 			return false;
 		}
