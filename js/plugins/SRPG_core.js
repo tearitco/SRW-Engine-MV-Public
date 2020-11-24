@@ -4506,32 +4506,36 @@ Sample:
 		songId: "Battle1", // the id of the song that should be played during the battle scene
 		actor: {
 			id: 1, // the id of the actor pilot
-			action: "attack", // the action the actor will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			action: "attack", // the action the actor will take: "attack", "defend", "evade". 
 			weapon: 1, // the id of the attack the actor will use. Only used if the action is "attack".
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			startHP: 20, // the start HP of the actor in percent
-			targetEndHP: 5, // the end HP of the actor in percent
+			targetEndHP: 5, // the end HP of the target in percent
 		},
 		actorSupport: { // ommit this section if there is no actor supporter
 			id: 3, // the id of the actor pilot
-			action: "attack", // the action the actor will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			action: "attack", // the action the actor will take: "attack", "defend", "evade". 
 			weapon: 5, // the id of the attack the actor will use. Only used if the action is "attack".
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			startHP: 100, // the start HP of the actor in percent
-			targetEndHP: 0, // the end HP of the actor in percent
+			targetEndHP: 0, // the end HP of the target in percent
 		},
 		enemy: {
 			id: 1, // the id of the enemy pilot
 			mechId: 10, // the id of the enemy mech
 			weapon: 6, // the id of the attack the actor will use. Only used if the action is "attack".
-			action: "attack", // the action the enemy will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			action: "attack", // the action the enemy will take: "attack", "defend", "evade". 
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			startHP: 80, // the start HP of the enemy in percent
-			targetEndHP: 5, // the end HP of the enemy in percent
+			targetEndHP: 5, // the end HP of the target in percent
 		},
 		enemySupport: { // ommit this section if there is no enemy supporter
 			id: 3, // the id of the enemy pilot
-			action: "defend", // the action the enemy will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			action: "defend", // the action the enemy will take: "attack", "defend", "evade". 
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			weapon: -1, // the id of the attack the actor will use. Only used if the action is "attack".
 			startHP: 100, // the start HP of the enemy in percent
-			targetEndHP: 0, // the end HP of the enemy in percent
+			targetEndHP: 0, // the end HP of the target in percent
 		}			
 	});
 
