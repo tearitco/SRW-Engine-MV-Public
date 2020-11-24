@@ -600,13 +600,6 @@ The first two pages of Control Variables are reserved for specific functions in 
 Variables 0021-0060 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
 <b>The engine will automatically clear these when a new stage starts!</b>
 
-## Switches
-
-* 0001 - Game Over
-* 0002 - Mastery achieved 
-
-The first two pages of switches, 0001-0040,  are reserved for stageTemp switches that can be used to keep track things over the course of a single stage. 
-<b>The engine will automatically clear these when a new stage starts!</b>
 
 ## Plugin commands
 

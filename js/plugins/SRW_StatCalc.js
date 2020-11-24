@@ -1588,6 +1588,21 @@ StatCalc.prototype.getActorMechWeapons = function(actor){
 	}	
 }
 
+StatCalc.prototype.getActorMechWeapon = function(actor, weaponId){
+	var result;
+	if(this.isActorSRWInitialized(actor)){
+		var weapons = this.getActorMechWeapons(actor);
+		weapons.forEach(function(weapon){
+			if(weapon.id == weaponId){
+				result = weapon;
+			}
+		});
+	} else {
+		return {};
+	}
+	return result;	
+}
+
 StatCalc.prototype.getCurrentWill = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		return actor.SRWStats.pilot.will;

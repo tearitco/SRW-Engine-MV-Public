@@ -276,6 +276,7 @@ BattleAnimationBuilder.prototype.Summon_Swarm = function(){
 	var onDestroyOverwrite = [];
 	
 	onDestroyOverwrite[1340] = [	
+		{type: "set_destroyed_text", target: "active_target"},
 		{type: "hide_sprite", target: "active_target"},
 		{type: "rotate", target: "Camera", params: {rotation: _this._defaultRotations.camera_main_idle}},
 		{type: "teleport", target: "Camera", params: {position: _this._defaultPositions.camera_main_idle}},

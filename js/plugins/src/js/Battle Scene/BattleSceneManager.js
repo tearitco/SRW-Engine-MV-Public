@@ -881,7 +881,44 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				//_this._camera.setTarget(targetObj.position);
 				_this._camera.lockedTarget = targetObj.position;
 			}			
-		},		
+		},	
+	
+		set_damage_text: function(target, params){
+			var action = _this._currentAnimatedAction.attacked;
+			var entityType = action.isActor ? "actor" : "enemy";
+			var entityId = action.ref.SRWStats.pilot.id;
+			var tempData;
+			if(entityType == "actor"){
+				tempData = _this._participantInfo.actor;
+			} else {
+				tempData = _this._participantInfo.enemy;
+			}	
+			var type;
+			if(tempData.animatedHP / $statCalc.getCalculatedMechStats(action.ref).maxHP < 0.25){
+				type = "damage_critical";
+			} else {
+				type = "damage";
+			}
+			var battleText = _this._battleTextManager.getText(entityType, entityId, type, params.id);
+			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
+		},
+		
+		set_evade_text: function(target, params){
+			var action = _this._currentAnimatedAction.attacked;
+			var entityType = action.isActor ? "actor" : "enemy";
+			var entityId = action.ref.SRWStats.pilot.id;
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "evade", params.id);
+			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
+		},
+		
+		set_destroyed_text: function(target, params){
+			var action = _this._currentAnimatedAction.attacked;
+			var entityType = action.isActor ? "actor" : "enemy";
+			var entityId = action.ref.SRWStats.pilot.id;
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "destroyed", params.id);
+			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
+		},
+		
 		set_attack_text: function(target, params){
 			var action = _this._currentAnimatedAction;
 			var entityType = action.isActor ? "actor" : "enemy";
@@ -1199,10 +1236,17 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			} else if(targetObj == _this._enemySprite.sprite || targetObj == _this._enemySupporterSprite.sprite) {
 				_this.registerMatrixAnimation("translate", targetObj, targetObj.position, _this._defaultPositions.enemy_main_idle, startTick, params.duration);
 			}
+			
+			
 			_this._animationList[startTick + params.duration] = [
 				{type: "set_sprite_index", target: target, params:{index: 0}},
-				{type: "show_damage", target: "", params:{}}
-			];	
+				{type: "show_damage", target: "", params:{}},
+				
+			];
+			var action = _this._currentAnimatedAction.attacked;			
+			if(!action.isDestroyed && action.isHit){
+				_this._animationList[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
+			}
 		},
 		destroy: function(target, params){
 			var targetObj = getTargetObject(target);
@@ -1210,6 +1254,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		
 			var spriteInfo = _this.createSceneSprite("destruction", "effects/death_explosion", targetObj.position, 256, flipX);	
 			spriteInfo.sprite.playAnimation(0, 36, false, 30);
+			
+			var action = _this._currentAnimatedAction.attacked;
+			var entityType = action.isActor ? "actor" : "enemy";
+			var entityId = action.ref.SRWStats.pilot.id;
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "destroyed", params.id);
+			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
+			
 			_this._animationSpritesInfo.push(spriteInfo);
 			_this._animationList[startTick + 26] = [
 				{target: target, type: "hide_sprite", params: {}}
@@ -1373,7 +1424,7 @@ BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef)
 			overwriteAnimList(attackDef.onHitOverwrite);
 		}
 		if(cacheRef.attacked && cacheRef.attacked.isDestroyed){
-			if(cacheRef.type != "support attack" || cacheRef.damageInflicted > $statCalc.getCalculatedMechStats(cacheRef.attacked.ref).currentHP){			
+			if(cacheRef.type != "support attack" || cacheRef.damageInflicted >= $statCalc.getCalculatedMechStats(cacheRef.attacked.ref).currentHP){			
 				//this._animationList = this._animationList.concat(attackDef.onDestroy);
 				_this.mergeAnimList(attackDef.onDestroy);
 				if(attackDef.onDestroyOverwrite){
@@ -1436,7 +1487,7 @@ BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 		{type: "reset_position", target: "active_target", params: {duration: 10}}
 	];
 	
-	onHit[220] = [];//padding
+	onHit[300] = [];//padding
 	var onMiss = [];
 	
 	
@@ -1449,7 +1500,7 @@ BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 	onMiss[200] = [
 		{type: "reset_position", target: "active_target", params: {duration: 10}}
 	];
-	onMiss[280] = [];//padding
+	onMiss[300] = [];//padding
 	
 	var onDestroy = [];
 	
@@ -1866,7 +1917,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 			function continueScene(){			
 				_this.setUpActionSceneState(nextAction);			
 				var textType = "";
-				if(nextAction.type == "initiator"){
+				if(nextAction.type == "initiator" || nextAction.type == "support attack"){
 					textType = "battle_intro";
 				}
 				if(nextAction.type == "defender"){

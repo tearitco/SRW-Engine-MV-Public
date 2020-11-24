@@ -9,121 +9,147 @@ SRWBattleTextManager.prototype.initDefinitions = function(){
 		actors: {},
 		enemies: {}
 	};
-	_this._definitions.actors[10] = { //Rushia
+	_this._definitions.actors[1] = { //Harold
 		battle_intro: {
 			default: [
-				"Rushia will make you part of the Fandead army.",
-				"If you underestimate Rushia you'll be in a lot of trouble."
+				"Let's see how well you stand up to my assault!",
+				"Don't underestimate me just because I can't fly!"
 			]
 		},
 		retaliate: {
 			default: [
-				"Oi, did you just attack Rushia? OI?!"
+				"Right back at ya, pal."
 			]
 		},
 		attacks: {
-			0: ["Arise! Fandeads!"],
-			1: ["Go forth and destroy Rushia's enemies!"],	
+			0: ["Things are about to get rough."],
+			1: ["HAAAAAAA"],	
+			2: ["HAAAAAAAAAAA"],
+			3: ["HAAAAAAAAAAAAAAA"],
+			4: ["HAAAAAAAAAAAAAAAAAA"],
+			5: ["HAAAAAAAAAAAAAAAAAAAAAA"],	
+			6: ["HAH!"],
+			7: ["End of the line for you, pal."],
 		},
 		evade: {
 			default: [
-				"You won't hit Rushia that easily."
+				"Whew, I actually dodged something for once."
 			]
-		}
-	};
-	_this._definitions.actors[11] = { //Pekora
-		battle_intro: {
+		},
+		damage: {
 			default: [
-				"Let me show you how we do things down in Pekoland peko.",
-				"Time to lay a beat down peko."
+				"Hey! You're scuffing the paint on my armor!"
 			]
 		},
-		retaliate: {
+		damage_critical: {
 			default: [
-				"W-wait, no need to beat up Pekora."
+				"Well, this is looking kinda bad..."
 			]
 		},
-		attacks: {
-			
-		},
-		evade: {
+		destroyed: {
 			default: [
-				"You think an attack like that would hit Pekora? AH\u2798 HA\u279A HA\u279A HA\u279A",
-				"Better luck next time! Peko Peko Peko Peko..."
+				"Aaaaaaaaaagh!"
 			]
-		}
-	};
-	_this._definitions.actors[12] = { //Fubuki
-		battle_intro: {
-			default: [
-				"Here I gooooooooo!",
-				"Can you stand up to my Hamburger powered attacks?",
-				"Watch out... I'm spiderman..."
-			]
-		},
-		retaliate: {
-			default: [
-				"So that's how it's going to be. Sou sou sou sou sou..."
-			]
-		},
-		attacks: {
-			0: ["Prepare to face ca- foxkinds' ultimate technique!"],
-			1: ["O YAYAYAYAYAYAYAYAYAYA-"],
-			2: ["DADADADADADADADADADADADA-"],
-			3: ["ORA ORA ORA ORA ORA ORA ORA ORA"],
-			4: ["MUDA MUDA MUDA MUDA MUDA MUDA MUDA MUDA"],
-			5: ["ARI ARI ARI ARI ARI ARI ARI ARI"],
-			6: ["..."],
-			7: ["Arrivederci..."],
-			8: ["Ah-"]
-		},
-		evade: {
-			default: [
-				"Ah, that was close...",
-				"Ah, ba ba ba ba..."
-			]
-		},
+		}, 
 		support_defend: {
 			default: [
-				"Leave it to me!"
+				"Stand back!"
 			]
 		}
-	};
+	};	
 	
-	_this._definitions.actors[13] = { //Matsuri
+	_this._definitions.actors[3] = { //Marsha
 		battle_intro: {
 			default: [
-				"You will now face the full power of Hololive!",
+				"Line right up for your free explosion!"
 			]
 		},
 		retaliate: {
 			default: [
-				"OI YAGOO, I'm coming for you!"
+				"You're messing with the wrong witch, punk!"
 			]
 		},
 		attacks: {
-			0: ["I AM GOD"],
-			1: ["OK?"],
+			0: ["Time to get serious!"],
+			1: ["Got get 'em boys!"]		
 		},
 		evade: {
 			default: [
-				"Hey, watch where you're going!"
+				"Better luck next time!"
 			]
 		},
+		damage: {
+			default: [
+				"Ack, I'm not built for actually taking hits..."
+			]
+		},
+		damage_critical: {
+			default: [
+				"H-Harold, could you give me some cover please..."
+			]
+		},
+		destroyed: {
+			default: [
+				"Iyaaaaaaaaaa!"
+			]
+		}, 
 		support_defend: {
-			
+			default: [
+				"Wait, why am I jumping in to take an attack?!"
+			]
 		}
-	};
+	};	
 	
-	_this._definitions.actors[14] = { //Aqua
+	_this._definitions.enemies[1] = { //Bat
 		battle_intro: {
 			default: [
-				"I'll show you what I learned during my time in the resistance!",
+				"Skree!"
 			]
 		},
 		retaliate: {
 			default: [
-				"D-don't think attacking me will earn you any favors."
+				"Skr-Skreeee!"
+			]
+		},
+		attacks: {
+
+		},
+		evade: {
+			default: [
+				"Skree skree!"
+			]
+		},
+		damage: {
+			default: [
+				"Skree!"
+			]
+		},
+		damage_critical: {
+			default: [
+				"Skree..."
+			]
+		},
+		destroyed: {
+			default: [
+				"SKREEEEEEEEEEEE!"
+			]
+		}, 
+		support_defend: {
+			default: [
+				"Skree!"
+			]
+		}
+	}
+	
+	_this._definitions.enemies[3] = { //Orc
+		battle_intro: {
+			default: [
+				"... Attack..."
+			]
+		},
+		retaliate: {
+			default: [
+				"... Attack!"
 			]
 		},
 		attacks: {
@@ -131,34 +157,71 @@ SRWBattleTextManager.prototype.initDefinitions = function(){
 		},
 		evade: {
 			default: [
-				"Ah, ha- ha- ha- ha..."
+				"Ha!"
 			]
 		},
+		damage: {
+			default: [
+				"Gah!"
+			]
+		},
+		damage_critical: {
+			default: [
+				"Grugh!!"
+			]
+		},
+		destroyed: {
+			default: [
+				"GRAAAAAAAAGH!"
+			]
+		}, 
 		support_defend: {
-			
+			default: [
+				"... Defend..."
+			]
 		}
-	};
+	}
 	
-	_this._definitions.enemies[15] = { //Minor Regret
+	_this._definitions.enemies[5] = { //Wraith
 		battle_intro: {
 			default: [
-				"... If only... I could have..."
+				"Be cursed with me..."
 			]
 		},
 		retaliate: {
 			default: [
-				"... You... Begone..."
-			]
-		},
-		support_defend: {
-			default: [
-				"... Will... Defend... My..."
+				"Unforgivable..."
 			]
 		},
 		attacks: {
 			
+		},
+		evade: {
+			default: [
+				"Useless."
+			]
+		},
+		damage: {
+			default: [
+				"Agh!"
+			]
+		},
+		damage_critical: {
+			default: [
+				"Pain..."
+			]
+		},
+		destroyed: {
+			default: [
+				"SHYAAAAAAA..."
+			]
+		}, 
+		support_defend: {
+			default: [
+				"... Defend..."
+			]
 		}
-	} //Rushia
+	}
 }
 
 SRWBattleTextManager.prototype.getText = function(target, id, type, subType){

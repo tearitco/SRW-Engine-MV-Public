@@ -4256,6 +4256,9 @@ Game_Interpreter.prototype.updateWaitMode = function() {
 	case 'move_to_point':
 		waiting = $gameSystem.srpgWaitMoving();
 		break;	
+	case 'battle_demo':
+		waiting = $gameTemp.playingBattleDemo;
+		break;
     }
 	
     if (!waiting) {
@@ -4494,6 +4497,260 @@ Game_Interpreter.prototype.isSquadWiped = function(squadId) {
 		}
 	});
 	return isWiped;
+}
+
+/**************************************
+Sample:
+	this.playBattleScene({
+		enemyFirst: 0, // if 0 the actor will move first, if 1 the enemy will move first. This also affects the supports. If 0, the actor support will be attacking otherwise defending. If 1, the enemy support will be attacking otherwise defending.
+		songId: "Battle1", // the id of the song that should be played during the battle scene
+		actor: {
+			id: 1, // the id of the actor pilot
+			action: "attack", // the action the actor will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			weapon: 1, // the id of the attack the actor will use. Only used if the action is "attack".
+			startHP: 20, // the start HP of the actor in percent
+			targetEndHP: 5, // the end HP of the actor in percent
+		},
+		actorSupport: { // ommit this section if there is no actor supporter
+			id: 3, // the id of the actor pilot
+			action: "attack", // the action the actor will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			weapon: 5, // the id of the attack the actor will use. Only used if the action is "attack".
+			startHP: 100, // the start HP of the actor in percent
+			targetEndHP: 0, // the end HP of the actor in percent
+		},
+		enemy: {
+			id: 1, // the id of the enemy pilot
+			mechId: 10, // the id of the enemy mech
+			weapon: 6, // the id of the attack the actor will use. Only used if the action is "attack".
+			action: "attack", // the action the enemy will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			startHP: 80, // the start HP of the enemy in percent
+			targetEndHP: 5, // the end HP of the enemy in percent
+		},
+		enemySupport: { // ommit this section if there is no enemy supporter
+			id: 3, // the id of the enemy pilot
+			action: "defend", // the action the enemy will take: "attack", "defend", "evade". Evade will always cause attacks to miss!
+			weapon: -1, // the id of the attack the actor will use. Only used if the action is "attack".
+			startHP: 100, // the start HP of the enemy in percent
+			targetEndHP: 0, // the end HP of the enemy in percent
+		}			
+	});
+
+**************************************/
+Game_Interpreter.prototype.prepareBattleSceneActor = function(params) {
+	var actor = new Game_Actor(params.id, 0, 0);
+	$statCalc.initSRWStats(actor);
+	params.unit = actor;
+	actor.event = {
+		eventId: function(){return 1;}
+	};
+	
+	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneSupportActor = function(params) {
+	var actor = new Game_Actor(params.id, 0, 0);
+	$statCalc.initSRWStats(actor);
+	params.unit = actor;
+	actor.event = {
+		eventId: function(){return 3;}
+	};
+	
+	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneEnemy = function(params) {
+	var enemy = new Game_Enemy(params.id, 0, 0);
+	$statCalc.initSRWStats(enemy);
+	params.unit = enemy;
+	enemy._mechClass = params.mechId;	
+	$statCalc.initSRWStats(enemy);
+	enemy.event = {
+		eventId: function(){return 2;}
+	};
+	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneSupportEnemy = function(params) {
+	var enemy = new Game_Enemy(params.id, 0, 0);
+	$statCalc.initSRWStats(enemy);
+	params.unit = enemy;
+	enemy._mechClass = params.mechId;	
+	$statCalc.initSRWStats(enemy);
+	enemy.event = {
+		eventId: function(){return 4;}
+	};
+	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneAction = function(params) {
+	var unit = params.unit;
+	
+	var action;
+	if(params.action == "attack"){		
+		action = {
+			type: "attack",
+			attack: $statCalc.getActorMechWeapon(unit, params.weapon),
+			target: 0
+		}
+	}
+	if(params.action == "defend"){		
+		action = {
+			type: "defend",
+			attack: -1,
+			target: 0
+		}
+	}
+	if(params.action == "evade"){		
+		action = {
+			type: "evade",
+			attack: -1,
+			target: 0
+		}
+	}
+	return action;
+}
+
+Game_Interpreter.prototype.setBattleSceneHP = function(actor, params) {
+	if(actor && params){
+		var mechStats = $statCalc.getCalculatedMechStats(actor);
+		mechStats.currentHP = Math.floor(mechStats.maxHP * (params.startHP / 100));
+	}	
+}
+
+Game_Interpreter.prototype.playBattleScene = function(params) {
+	this.setWaitMode("battle_demo");
+	$gameTemp.playingBattleDemo = true;
+	$gameTemp.battleEffectCache = {};
+	
+	var actorInfo = this.prepareBattleSceneActor(params.actor);
+	var enemyInfo = this.prepareBattleSceneEnemy(params.enemy);
+	
+	var actor = actorInfo.actor;
+	var enemy = enemyInfo.actor;
+	
+	var attacker;
+	var defender;
+	if(params.enemyFirst){
+		attacker = enemyInfo;
+		defender = actorInfo;
+	} else {
+		attacker = actorInfo;
+		defender = enemyInfo;
+	}
+	
+	$battleCalc.prepareBattleCache(attacker, "initiator");
+	$battleCalc.prepareBattleCache(defender, "defender");
+		
+	
+	var actorCacheEntry = $gameTemp.battleEffectCache[actor._cacheReference];
+	var enemyCacheEntry = $gameTemp.battleEffectCache[enemy._cacheReference];
+	
+	var supportAttacker;
+	var supportDefender;
+	
+	var actorSupportInfo;	
+	if(params.actorSupport){
+		actorSupportInfo = this.prepareBattleSceneSupportActor(params.actorSupport);		
+	}
+	var actorSupport;
+	var actorSupportCacheEntry;
+	if(actorSupportInfo){
+		actorSupport = actorSupportInfo.actor;
+		if(params.enemyFirst){
+			supportDefender = actorSupportInfo;
+			$battleCalc.prepareBattleCache(actorSupportInfo, "support defend");
+		} else {
+			supportAttacker = actorSupportInfo;
+			$battleCalc.prepareBattleCache(actorSupportInfo, "support attack");
+		}	
+		actorSupportCacheEntry = $gameTemp.battleEffectCache[actorSupport._cacheReference];	
+	}
+	
+	var enemySupportInfo;	
+	if(params.enemySupport){
+		enemySupportInfo = this.prepareBattleSceneSupportEnemy(params.enemySupport);		
+	}
+	var enemySupport;
+	var enemySupportCacheEntry;
+	if(enemySupportInfo){
+		enemySupport = enemySupportInfo.actor;
+		if(params.enemyFirst){
+			supportAttacker = enemySupportInfo;
+			$battleCalc.prepareBattleCache(enemySupportInfo, "support attack");
+		} else {
+			supportDefender = enemySupportInfo;
+			$battleCalc.prepareBattleCache(enemySupportInfo, "support defend");
+		}	
+		enemySupportCacheEntry = $gameTemp.battleEffectCache[enemySupport._cacheReference];	
+	}	
+		
+	this.setBattleSceneHP(actor, params.actor);
+	this.setBattleSceneHP(enemy, params.enemy);
+	this.setBattleSceneHP(actorSupport, params.actorSupport);
+	this.setBattleSceneHP(enemySupport, params.enemySupport);
+
+	function BattleAction(attacker, defender, supportDefender){
+		this._attacker = attacker;
+		this._defender = defender;
+		this._supportDefender = supportDefender;
+	}
+	
+	BattleAction.prototype.execute = function(orderIdx){
+		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
+		var activeDefender = this._defender;
+		if(this._supportDefender) {
+			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._cacheReference];
+			if(!sCache.hasActed){
+				activeDefender = this._supportDefender;
+				dCache = sCache;
+			}
+		}		
+		if(!aCache.isDestroyed && !dCache.isDestroyed){		
+			aCache.actionOrder = orderIdx;
+			aCache.attacked = dCache;
+			aCache.hasActed = true;
+			dCache.hasActed = true;
+			var isHit = this._attacker.params.hits;
+			if(isHit){
+				aCache.hits = isHit;
+				aCache.inflictedCritical = this._attacker.params.isCrit;
+				dCache.isHit = isHit;
+				dCache.tookCritical = this._attacker.params.isCrit;
+				
+				var mechStats = $statCalc.getCalculatedMechStats(activeDefender.actor);
+				var damagePercent = activeDefender.params.startHP - this._attacker.params.targetEndHP;
+				var damage = Math.floor(mechStats.maxHP * (damagePercent / 100));
+				aCache.damageInflicted = damage;
+				dCache.damageTaken = damage;
+				if(this._attacker.params.targetEndHP <= 0){
+					dCache.isDestroyed = true;
+				}
+			} else {
+				aCache.damageInflicted = 0;
+				dCache.damageTaken = 0;
+			}
+		}
+	}
+	
+	var actions = [];
+	if(supportAttacker){			
+		actions.push(new BattleAction(supportAttacker, defender, supportDefender));								
+	}	
+	actions.push(new BattleAction(attacker, defender, supportDefender));	
+	actions.push(new BattleAction(defender, attacker));			
+	
+	
+	for(var i = 0; i < actions.length; i++){
+		actions[i].execute(i);
+	}
+	
+	$gameSystem.setSubBattlePhase('halt');
+	SceneManager.stop();	
+	$battleSceneManager.playBattleScene();
+	if(params.songId){
+		$songManager.playSong(params.songId);
+	}	
 }
 
 // 指定したイベントのターゲットＩＤを設定する（戦闘モードが'aimingEvent'または'aimingActor'でのみ機能する）
@@ -7752,9 +8009,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
             }
         }
 			
-        if ($gameMap.isEventRunning() == true) {
-            return;
-        }
+        
         //戦闘開始の処理
         if (this._callSrpgBattle == true && this._mapSrpgBattleWindow.isClosed()) {
             this._callSrpgBattle = false;
@@ -7763,11 +8018,20 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         }
         //戦闘終了後の処理
         if ($gameSystem.isSubBattlePhase() === 'after_battle') {
-			$gameTemp.clearMoveTable();
-            this.srpgBattlerDeadAfterBattle();
-            //this.srpgAfterAction();
+			if($gameTemp.playingBattleDemo){
+				$gameSystem.setSubBattlePhase('normal');
+				$gameTemp.playingBattleDemo = false;
+			} else {
+				$gameTemp.clearMoveTable();
+				this.srpgBattlerDeadAfterBattle();
+			}			
             return;
         }
+		
+		if ($gameMap.isEventRunning() == true) {
+            return;
+        }
+		
         //アクターフェイズの開始処理
         if ($gameSystem.isBattlePhase() === 'actor_phase' && $gameSystem.isSubBattlePhase() === 'initialize') {
 			if($gameVariables.value(_turnVarID) != 1){

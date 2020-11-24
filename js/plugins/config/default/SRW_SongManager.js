@@ -23,6 +23,17 @@ SRWSongManager.prototype.clearSpecialTheme = function(){
 	$gameSystem._specialTheme = -1;
 }
 
+SRWSongManager.prototype.playSong = function(songId){
+	if(songId){
+		var bgm = {};
+		bgm.name = songId;
+		bgm.pan = 0;
+		bgm.pitch = 100;
+		bgm.volume = 90;
+		AudioManager.playBgm(bgm);
+	}
+}
+
 SRWSongManager.prototype.playBattleSong = function(actorId, enemyId){
 	var songId;
 	if($gameSystem._specialTheme != -1){
@@ -36,14 +47,7 @@ SRWSongManager.prototype.playBattleSong = function(actorId, enemyId){
 			songId = this._actorSongMapping[actorId];
 		}
 	}
-	if(songId){
-		var bgm = {};
-		bgm.name = songId;
-		bgm.pan = 0;
-		bgm.pitch = 100;
-		bgm.volume = 70;
-		AudioManager.playBgm(bgm);
-	}	
+	this.playSong(songId);	
 }
 
 SRWSongManager.prototype.playStageSong = function(){
@@ -53,12 +57,5 @@ SRWSongManager.prototype.playStageSong = function(){
 	} else {
 		songId = $gameSystem.currentStageSong;
 	}	
-	if(songId){
-		var bgm = {};
-		bgm.name = songId;
-		bgm.pan = 0;
-		bgm.pitch = 100;
-		bgm.volume = 70;
-		AudioManager.playBgm(bgm);
-	}	
+	this.playSong(songId);	
 }

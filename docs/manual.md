@@ -600,6 +600,9 @@ The first two pages of Control Variables are reserved for specific functions in 
 Variables 0021-0060 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
 <b>The engine will automatically clear these when a new stage starts!</b>
 
+## Switches
+
+<b>The first page of switches is reserved for engine specific functions and should not be used!</b>
 
 ## Plugin commands
 
@@ -888,6 +891,7 @@ They can also be used as conditionals in IF statements.
 
 * this.getActorKillCount(actor\_id)
 	Returns the current amount of kills the actor with the specified id has.	
+
 	
 * this.setBattleMode(event\_id, mode)
 
