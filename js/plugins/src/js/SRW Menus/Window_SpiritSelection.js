@@ -152,13 +152,18 @@ Window_SpiritSelection.prototype.getSpiritEnabledState = function(listIdx){
 	var result = 1;
 	var caster = this.getAvailableActors()[this._currentActor];
 	var target = $gameTemp.currentMenuUnit.actor;
-	var selectedSpirit = $statCalc.getSpiritList(caster)[listIdx];
-	var spiritDisplayInfo = $spiritManager.getSpiritDisplayInfo(selectedSpirit.idx);
-	if(!spiritDisplayInfo.enabledHandler(target)){
+	var list = $statCalc.getSpiritList(caster);
+	if(listIdx < list.length){	
+		var selectedSpirit = list[listIdx];
+		var spiritDisplayInfo = $spiritManager.getSpiritDisplayInfo(selectedSpirit.idx);
+		if(!spiritDisplayInfo.enabledHandler(target)){
+			result = -1;
+		} else if(selectedSpirit.cost > $statCalc.getCalculatedPilotStats(caster).currentSP){
+			result = -2;
+		} 
+	} else {
 		result = -1;
-	} else if(selectedSpirit.cost > $statCalc.getCalculatedPilotStats(caster).currentSP){
-		result = -2;
-	} 
+	}
 	return result;
 }
 
