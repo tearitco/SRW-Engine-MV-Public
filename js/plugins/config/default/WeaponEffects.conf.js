@@ -1,0 +1,133 @@
+$SRWConfig.weaponEffects = function(){
+	this.addDefinition(
+		0, 
+		"Barrier Piercing", 
+		"Ignores barriers on the target.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "pierce_barrier", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		1, 
+		"Ignore Size", 
+		"Ignore negative effects of the target's size when attacking.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "ignore_size", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		2, 
+		"Accuracy Down", 
+		"Accuracy reduced by 30 for 1 turn.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_accuracy_down", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		3, 
+		"Mobility Down", 
+		"Mobility reduced by 30 for 1 turn.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_mobility_down", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		4, 
+		"Armor Down", 
+		"Armor reduced by 500 for 1 turn.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_armor_down", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		5, 
+		"Movement Down", 
+		"Movement reduced by 3 for 1 turn.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_move_down", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		6, 
+		"Attack Power Down", 
+		"Attack Power reduced by 500 for 1 turn.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_attack_down", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+
+	this.addDefinition(
+		7, 
+		"Range Down", 
+		"Attack Range reduced by 3 for 1 turn.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_range_down", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		8, 
+		"SP Down", 
+		"SP reduced by 10.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_SP_down", modType: "addFlat", value: 10}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	this.addDefinition(
+		9, 
+		"Will Down", 
+		"Will reduced by 10.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_will_down", modType: "addFlat", value: 10}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+}
