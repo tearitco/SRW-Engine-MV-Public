@@ -1,4 +1,4 @@
-$SRWConfig.stageInfo  = {
+$SRWConfig.stageInfo = {
 	1: {
 		name: "Escape",
 		displayId: 1
