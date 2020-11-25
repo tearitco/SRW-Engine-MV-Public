@@ -1,14 +1,5 @@
 function SRWStageInfoManager(){
-	this._stageInfo = {
-		1: {
-			name: "Escape",
-			displayId: 1
-		},
-		2: {
-			name: "Reunion",
-			displayId: 2
-		}
-	}
+	this._stageInfo = $SRWConfig.stageInfo;
 }
 
 SRWStageInfoManager.prototype.getStageInfo = function(id){
