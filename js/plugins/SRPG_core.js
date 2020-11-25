@@ -4502,6 +4502,7 @@ Game_Interpreter.prototype.isSquadWiped = function(squadId) {
 /**************************************
 Sample:
 	this.playBattleScene({
+		eventId: 0, // if included the matching event text will be used for the scene(see BattleText.conf.js).
 		enemyFirst: 0, // if 0 the actor will move first, if 1 the enemy will move first. This also affects the supports. If 0, the actor support will be attacking otherwise defending. If 1, the enemy support will be attacking otherwise defending.
 		songId: "Battle1", // the id of the song that should be played during the battle scene
 		actor: {
@@ -4708,6 +4709,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 			if(!sCache.hasActed){
 				activeDefender = this._supportDefender;
 				dCache = sCache;
+				dCache.defended = this._defender.actor;
 			}
 		}		
 		if(!aCache.isDestroyed && !dCache.isDestroyed){		
@@ -4747,6 +4749,9 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	
 	for(var i = 0; i < actions.length; i++){
 		actions[i].execute(i);
+	}
+	if(params.eventId != null){
+		$gameTemp.scriptedBattleDemoId = params.eventId;
 	}
 	
 	$gameSystem.setSubBattlePhase('halt');
@@ -8024,6 +8029,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         if ($gameSystem.isSubBattlePhase() === 'after_battle') {
 			if($gameTemp.playingBattleDemo){
 				$gameSystem.setSubBattlePhase('normal');
+				$gameTemp.scriptedBattleDemoId = null;
 				$gameTemp.playingBattleDemo = false;
 			} else {
 				$gameTemp.clearMoveTable();

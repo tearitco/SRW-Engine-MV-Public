@@ -554,6 +554,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 					isHit = 1;
 					activeDefender = this._supportDefender;
 					activeDefenderCache = sCache;
+					
+					activeDefenderCache.defended = this._defender.actor;
 					isSupportDefender = true;
 					aCache.attacked = sCache;
 					sCache.hasActed = true;						
@@ -596,7 +598,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			
 			if(activeDefenderCache.damageTaken >= activeDefender.actor.hp){
 				activeDefenderCache.isDestroyed = true;
-			}	
+			}				
 			
 			var weaponref = this._attacker.action.attack;
 			var ENCost = weaponref.ENCost;

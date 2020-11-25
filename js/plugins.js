@@ -19,6 +19,7 @@ var $plugins =
 {"name":"SRW_SaveManager","status":true,"description":"","parameters":{}},
 {"name":"SRW_BattleCalc","status":true,"description":"","parameters":{}},
 {"name":"SRW_StatCalc","status":true,"description":"","parameters":{}},
+{"name":"SRW_BattleTextManager","status":true,"description":"","parameters":{}},
 {"name":"--SRPG Plugins--------","status":false,"description":"----------------------------------------------------------------------","parameters":{}},
 {"name":"SRPG_core","status":true,"description":"(v1.22) SRPG battle system (tactical battle system) on map.","parameters":{"srpgTroopID":"1","srpgBattleSwitchID":"1","existActorVarID":"1","existEnemyVarID":"2","turnVarID":"3","activeEventID":"4","targetEventID":"5","defaultMove":"4","srpgBattleExpRate":"0.4","srpgBattleExpRateForActors":"0.1","srpgBattleQuickLaunch":"true","srpgActorCommandEquip":"true","srpgBattleEndAllHeal":"true","srpgStandUnitSkip":"true","srpgPredictionWindowMode":"1","srpgAutoBattleStateId":"14","srpgBestSearchRouteSize":"30","srpgDamageDirectionChange":"true","enemyDefaultClass":"Enemy","textSrpgEquip":"Equip","textSrpgMove":"Move","textSrpgRange":"Range","textSrpgWait":"Wait","textSrpgTurnEnd":"End Turn","textSrpgAutoBattle":"Auto Battle"}},
 {"name":"SRPG_ImmediateSkill","status":true,"description":"Create skills that do not consume turns in SRPG converter.","parameters":{}},
