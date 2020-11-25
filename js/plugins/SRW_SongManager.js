@@ -1,18 +1,9 @@
 function SRWSongManager(){
-	this._actorSongMapping = {
-		1: "Battle1",
-		3: "Battle1"
-	}
-	this._enemySongMapping = {
-		
-	}
+	this._actorSongMapping = $SRWConfig.battleSongs.actorSongMapping;
+	this._enemySongMapping = $SRWConfig.battleSongs.enemySongMapping;
 	
-	this._actorSongPriority = {
-		
-	}
-	this._enemySongPriority = {
-	
-	}
+	this._actorSongPriority = $SRWConfig.battleSongs.actorSongPriority;
+	this._enemySongPriority = $SRWConfig.battleSongs.enemySongPriority;
 }
 
 SRWSongManager.prototype.setSpecialTheme = function(songId){
