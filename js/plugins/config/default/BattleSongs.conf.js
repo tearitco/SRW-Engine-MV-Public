@@ -4,12 +4,12 @@ $SRWConfig.battleSongs = {
 		3: "Battle1"
 	},
 	enemySongMapping: {
-		
+		5: "SRW_Boss1"
 	},
 	actorSongPriority: {
 		
 	},
 	enemySongPriority: {
-	
+		5: 2
 	}
 };

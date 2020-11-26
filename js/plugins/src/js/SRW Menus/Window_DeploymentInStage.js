@@ -50,9 +50,9 @@ Window_DeploymentInStage.prototype.onCancel = function() {
 
 Window_DeploymentInStage.prototype.onMenu = function(){
 	Input.clear();
-	$gameSystem.setSubBattlePhase("rearrange_deploys");
+	$gameSystem.setSubBattlePhase("rearrange_deploys_init");
 	//$gameTemp.doingManualDeploy = false;
 	$gameSystem.highlightDeployTiles();
 	$gameSystem.redeployActors(false);
-	$gameTemp.popMenu = true;
+	//$gameTemp.popMenu = true;
 }

@@ -433,7 +433,13 @@ var $battleSceneManager = new BattleSceneManager();
 			var actor_unit = $gameActors.actor(args[0]);
 			var event = $gameMap.event(args[1]);
 			if(actor_unit && event){
-				event.setType("actor");
+				var type;
+				if(event.event().meta.type){
+					type = event.event().meta.type;
+				} else {
+					type = "actor";
+				}
+				event.setType(type);
 				$gameSystem.deployActor(actor_unit, event, args[2] * 1);
 			}			
 		}
@@ -1117,7 +1123,7 @@ var $battleSceneManager = new BattleSceneManager();
     Game_System.prototype.ActorToEvent = function(actor_id) {
         var eventId = 0;
         $gameMap.events().forEach(function(event) {
-            if (event.isType() === 'actor' || event.isType() === 'ship') {
+            if (event.isType() === 'actor' || event.isType() === 'ship' || event.isType() === 'ship_event') {
 				var unit =  $gameSystem.EventToUnit(event.eventId());
 				if(unit){
 					var actor = unit[1];
@@ -1423,36 +1429,28 @@ var $battleSceneManager = new BattleSceneManager();
 
     //次のカーソル移動先のアクターを取得する(R)
     Game_System.prototype.getNextRActor = function() {
-        for (var i = 0; i < this.aliveActorIdList.length; i++) {
-            this.actorLRId += 1;
-            if (this.actorLRId >= this.aliveActorIdList.length) this.actorLRId = 0;
-            //if (this.actorLRId < 0) this.actorLRId = this.aliveActorIdList.length - 1;
-            var battlerArray = $gameSystem.EventToUnit(this.aliveActorIdList[this.actorLRId]);
-            if (battlerArray && battlerArray[0] === 'actor' && battlerArray[1].isAlive()) {
-                break;
-            }
-        }
-        var actor1 = $gameMap.event(this.aliveActorIdList[this.actorLRId]);
-        if (actor1) {
-            $gamePlayer.locate(actor1.posX(), actor1.posY());
-        }
+        var candidates =  $statCalc.getAllCandidates("actor");
+		this.actorLRId++;
+		if(this.actorLRId >= candidates.length){
+			this.actorLRId = 0;
+		}
+       	var candidate = candidates[this.actorLRId];
+		if(candidate){
+			$gamePlayer.locate(candidate.pos.x, candidate.pos.y);
+		}  
     }
 
     //次のカーソル移動先のアクターを取得する(L)
-    Game_System.prototype.getNextLActor = function() {
-        for (var i = 0; i < this.aliveActorIdList.length; i++) {
-            this.actorLRId -= 1;
-            //if (this.actorLRId >= this.aliveActorIdList.length) this.actorLRId = 0;
-            if (this.actorLRId < 0) this.actorLRId = this.aliveActorIdList.length - 1;
-            var battlerArray = $gameSystem.EventToUnit(this.aliveActorIdList[this.actorLRId]);
-            if (battlerArray && battlerArray[0] === 'actor' && battlerArray[1].isAlive()) {
-                break;
-            }
-        }
-        var actor1 = $gameMap.event(this.aliveActorIdList[this.actorLRId]);
-        if (actor1) {			
-			$gamePlayer.locate(actor1.posX(), actor1.posY());
-        }
+    Game_System.prototype.getNextLActor = function() {       
+		var candidates =  $statCalc.getAllCandidates("actor");
+		this.actorLRId--;
+		if(this.actorLRId < 0){
+			this.actorLRId = candidates.length-1;
+		}
+       	var candidate = candidates[this.actorLRId];
+		if(candidate){
+			$gamePlayer.locate(candidate.pos.x, candidate.pos.y);
+		}        
     }
 
     //アクターターンの開始
@@ -2637,11 +2635,13 @@ var $battleSceneManager = new BattleSceneManager();
         } else {
             return _SRPG_Game_Party_allMembers.call(this);
         }
-    };
+    };*/
 
     // セーブファイル用の処理
     var _SRPG_Game_Party_charactersForSavefile = Game_Party.prototype.charactersForSavefile;
     Game_Party.prototype.charactersForSavefile = function() {
+		return null;
+		
         if ($gameSystem.isSRPGMode() == true) {
             return this.allMembers().map(function(actor) {
                 return [actor.characterName(), actor.characterIndex()];
@@ -2653,6 +2653,8 @@ var $battleSceneManager = new BattleSceneManager();
 
     var _SRPG_Game_Party_facesForSavefile = Game_Party.prototype.facesForSavefile;
     Game_Party.prototype.facesForSavefile = function() {
+		return null;
+		
         if ($gameSystem.isSRPGMode() == true) {
             return this.allMembers().map(function(actor) {
                 return [actor.faceName(), actor.faceIndex()];
@@ -3219,7 +3221,7 @@ var $battleSceneManager = new BattleSceneManager();
                 if ($gameSystem.isSubBattlePhase() === 'normal') {
                     $gameMap.eventsXy(x, y).forEach(function(event) {
                         if (event.isTriggerIn(triggers) && !event.isErased()) {
-                            if (event.isType() === 'actor' || event.isType() === 'ship') {
+                            if (event.isType() === 'actor' || event.isType() === 'ship' || event.isType() === 'ship_event') {
                                 SoundManager.playOk();
                                 $gameTemp.setActiveEvent(event);
 								var battlerArray = $gameSystem.EventToUnit(event.eventId());
@@ -3968,7 +3970,7 @@ Game_Interpreter.prototype.fromActorMinimumDistance = function(variableId, event
     var minDistance = 999;
     var event1 = $gameMap.event(eventId);
     $gameMap.events().forEach(function(event) {
-        if (event.isType() === 'actor' || event.isType() === 'ship') {
+        if (event.isType() === 'actor' || event.isType() === 'ship' || event.isType() === 'ship_event') {
             var event2 = $gameMap.event(event.eventId());
             if (event1 && event2 && !event1.isErased() && !event2.isErased()) {
                 var value = $gameSystem.unitDistance(event1, event2);
@@ -4413,6 +4415,7 @@ Game_Interpreter.prototype.manualDeploy = function(){
 	$gameTemp.disableHighlightGlow = true;
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
 	$gameTemp.pushMenu = "in_stage_deploy";
+	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployInfo()));
 }
 
 // 指定した座標にプレイヤーを移動する
@@ -4886,7 +4889,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 // ●Sprite_Character
 //====================================================================
     //ターン終了したユニットか返す
-	
+	//Character sprites are split into two a bottom and top part to improve overlap for units whose map icon goes outside their current tiles.
+	//This can happen for flying units for example.
+	//The base sprite is normally hidden, but is still available.
 	Sprite_Character.prototype.update = function(character) {
 		Sprite_Base.prototype.update.call(this);
 		this.updateBitmap();
@@ -4899,10 +4904,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			var battlerArray = $gameSystem.EventToUnit(this._character.eventId());
 			if (battlerArray) {
 				if (battlerArray[0] === 'enemy') {
-					this.scale.x = -1;		
-					/*if(this._turnEndSprite)	{
-						this._turnEndSprite.scale.x = -1;	
-					}	*/		
+					this.scale.x = -1;			
 					if(this._upperBody && this._lowerBody){	
 						this._upperBody.scale.x = -1;
 						this._lowerBody.scale.x = -1;
@@ -5018,8 +5020,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			var d = 24;
 			this._upperBody.setFrame(sx, sy, pw, ph - d);
 			this._lowerBody.setFrame(sx, sy + ph - d, pw, d);			
+			
 			this.visible = false;
 			
+			//hack to ensure there's no weird overlap issues when deploying an actor from a ship
+			if($gameTemp.activeShip && $gameTemp.activeShip.event.eventId() != this._character.eventId()){
+				if(this._character.posX() == $gameTemp.activeShip.position.x && this._character.posY() == $gameTemp.activeShip.position.y){
+					this.visible = true;
+					this.setFrame(sx, sy, pw, ph);
+				}				
+			}		
+			//this.visible = false;
 			if ($gameSystem.isSRPGMode() == true && this._character.isEvent() == true) {
 				var battlerArray = $gameSystem.EventToUnit(this._character.eventId());
 				if (battlerArray) {				
@@ -5571,7 +5582,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var actorTurnEndSprites = [];
 		
 		$gameMap.events().forEach(function(event) {
-			if(event.isType() == "ship"){
+			if(event.isType() == "ship" || event.isType() == "ship_event"){
 				ships.push(new Sprite_Character(event));
 				shipBottoms.push(new Sprite());
 				shipTurnEndSprites.push(new Sprite());
@@ -5583,7 +5594,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}, this);
 		
 		$gameMap.events().forEach(function(event) {
-			if(event.isType() == "ship"){				
+			if(event.isType() == "ship" || event.isType() == "ship_event"){				
 				shipTops.push(new Sprite());
 			} else {			
 				actorTops.push(new Sprite());
@@ -5602,7 +5613,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			ships[i].setTurnEnd(shipTurnEndSprites[i]);
 		}
 		
-		this._characterSprites = ships.concat(actors).concat(shipBottoms).concat(shipTurnEndSprites).concat(actorBottoms).concat(actorTurnEndSprites).concat(shipTops).concat(actorTops);
+		this._characterSprites = shipBottoms.concat(shipTurnEndSprites).concat(actorBottoms).concat(actorTurnEndSprites).concat(shipTops).concat(actorTops).concat(ships).concat(actors);
 		$gameMap.vehicles().forEach(function(vehicle) {
 			this._characterSprites.push(new Sprite_Character(vehicle));
 		}, this);
@@ -6628,8 +6639,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 				
 				function deployMenu(){
-					_this.addMoveCommand();
+					_this.addMoveCommand();					
 					_this.addCommand(APPSTRINGS.MAPMENU.cmd_spirit, 'spirit');
+					if($statCalc.canFly(_this._actor) && $statCalc.getCurrentTerrain(_this._actor) != "space"){
+						if($statCalc.isFlying(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_land, 'land');
+						} else {
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_fly, 'fly');
+						}
+					}
 					if($statCalc.getConsumables(_this._actor).length){
 						 _this.addCommand(APPSTRINGS.MAPMENU.cmd_item, 'item');
 					}
@@ -7621,13 +7639,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
                 this.menuCalling = false;
                 return;
             }			
-            if ($gameSystem.isSubBattlePhase() === 'normal') {
+            if ($gameSystem.isSubBattlePhase() === 'normal' && !$gameSystem._isIntermission) {
 				$gameTemp.isPostMove = false;
-                if (Input.isTriggered('pageup')) {
-                    SoundManager.playCursor();
+                if (Input.isTriggered('pageup')) {                   
                     $gameSystem.getNextLActor();
-                } else if (Input.isTriggered('pagedown')) {
-                    SoundManager.playCursor();
+                } else if (Input.isTriggered('pagedown')) {      
                     $gameSystem.getNextRActor();
                 }
             }
@@ -7797,6 +7813,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				this._intermissionWindow.hide();
 			}
 		}
+		if($gameSystem.isSubBattlePhase() === 'rearrange_deploys_init'){
+			$gameSystem.setSubBattlePhase('rearrange_deploys');
+			Input.update();
+			if(Input.isPressed("menu") || Input.isLongPressed("menu")){
+				$gameTemp.menuStillHeld = true;
+			}
+			$gameTemp.popMenu = true;
+			return;
+		}
 		
 		if($gameSystem.isSubBattlePhase() === 'rearrange_deploys'){
 			if(Input.isTriggered("ok")){
@@ -7846,7 +7871,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}	
 			}	
 			
-			if(Input.isTriggered("menu")){	
+			if(!Input.isTriggered("menu")){
+				$gameTemp.menuStillHeld = false;
+			}
+			
+			if(!$gameTemp.menuStillHeld && Input.isTriggered("menu")){	
 				$gameSystem.removeDeployTileHighlights();
 				$gameTemp.doingManualDeploy = false;
 				$gameTemp.disableHighlightGlow = false;
@@ -7857,15 +7886,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameMap._interpreter.setWaitMode("enemy_appear");
 				$gameTemp.enemyAppearQueueIsProcessing = true;
 				$gameTemp.unitAppearTimer = 0;
-			}
+			} 
 			
 			if(Input.isTriggered("cancel")){
 				SoundManager.playCancel();	
 				if($gameTemp.currentSwapSource == -1){
+					$gameSystem.setDeployInfo($gameTemp.originalDeployInfo);
 					$gameSystem.setSubBattlePhase("deploy_selection_window");
 					$gameTemp.pushMenu = "in_stage_deploy";
 				} else {
-					$gameSystem.undeployActors();
+					$gameSystem.undeployActors();					
 					$gameTemp.currentSwapSource = -1;
 					$gameSystem.highlightDeployTiles();
 				}
@@ -8862,7 +8892,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		$gameTemp.deployWindowCallback = function(deployed){
 			var shipEvent = $gameTemp.activeEvent();
-			$gameTemp.activeShip = {position: {x: shipEvent.posX(), y: shipEvent.posY()}, actor: $gameSystem.EventToUnit(shipEvent.eventId())[1]};
+			$gameTemp.activeShip = {position: {x: shipEvent.posX(), y: shipEvent.posY()}, actor: $gameSystem.EventToUnit(shipEvent.eventId())[1], event: $gameTemp.activeEvent()};
 			/*var freeSpace = $statCalc.getAdjacentFreeSpace({x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
 			if(freeSpace){				
 				$statCalc.removeBoardedUnit(deployed.actor, $gameTemp.activeShip);				
@@ -9251,7 +9281,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     Scene_Map.prototype.menuActorTurnEnd = function() {
         for (var i = 1; i <= $gameMap.isMaxEventId(); i++) {
             var event = $gameMap.event(i);
-            if (event && !event.isErased() && (event.isType() === 'actor' || event.isType() === 'ship')) {
+            if (event && !event.isErased() && (event.isType() === 'actor' || event.isType() === 'ship'  || event.isType() === 'ship_event')) {
                 var actor = $gameSystem.EventToUnit(event.eventId())[1];
                 if (actor && actor.canInput() == true && !actor.srpgTurnEnd()) {
                     if ($gameTemp.isAutoBattleFlag() == true) {
@@ -9304,7 +9334,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
         for (var i = 1; i <= $gameMap.isMaxEventId() + 1; i++) {
             var event = $gameMap.event(i);
-            if (event && !event.isErased() && (event.isType() === 'actor' || event.isType() === 'ship')) {
+            if (event && !event.isErased() && (event.isType() === 'actor' || event.isType() === 'ship'  || event.isType() === 'ship_event')) {
                 var actor = $gameSystem.EventToUnit(event.eventId())[1];
                 if (actor && actor.canMove() == true && !actor.srpgTurnEnd()) {
                     break;

@@ -8,6 +8,16 @@ export default function Window_Intermission(CSSUIManager) {
 Window_Intermission.prototype = Object.create(Window_CSS.prototype);
 Window_Intermission.prototype.constructor = Window_Intermission;
 
+Window_Intermission.prototype.show = function() {
+	//this.resetSelection();
+	this._handlingInput = false;
+    this.visible = true;
+	this._redrawRequested = true;
+	this._visibility = "";
+	this.refresh();	
+	Graphics._updateCanvas();
+};
+
 Window_Intermission.prototype.initialize = function() {
 	var _this = this;
 	this._commands = [

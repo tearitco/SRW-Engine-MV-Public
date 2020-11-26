@@ -546,6 +546,13 @@ StatCalc.prototype.getAvailableSpiritStates = function(type){
 	];
 }
 
+StatCalc.prototype.refreshAllSRWStats = function(type){
+	var _this = this;
+	this.iterateAllActors(type, function(actor, event){			
+		_this.initSRWStats(actor, _this.getCurrentLevel(actor));				
+	});
+}
+
 StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 	if(!level){
 		level = 1;
