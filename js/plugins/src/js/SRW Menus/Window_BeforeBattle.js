@@ -47,6 +47,9 @@ Window_BeforeBattle.prototype.getMaxMainSelection = function(){
 
 Window_BeforeBattle.prototype.incrementMainSelection = function(){
 	this._currentSelection++;
+	if(this._currentSelection == 1 && ENGINE_SETTINGS.DISABLE_FULL_BATTLE_SCENE){
+		this._currentSelection++;
+	}
 	if(this._currentSelection >= this.getMaxMainSelection()){
 		this._currentSelection = 0;
 	}
@@ -54,6 +57,9 @@ Window_BeforeBattle.prototype.incrementMainSelection = function(){
 
 Window_BeforeBattle.prototype.decrementMainSelection = function(){
 	this._currentSelection--;
+	if(this._currentSelection == 1 && ENGINE_SETTINGS.DISABLE_FULL_BATTLE_SCENE){
+		this._currentSelection--;
+	}
 	if(this._currentSelection < 0){
 		this._currentSelection = this.getMaxMainSelection() - 1;
 	}
@@ -101,6 +107,9 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	
 	var windowNode = this.getWindowNode();
 	
+	if(ENGINE_SETTINGS.DISABLE_FULL_BATTLE_SCENE){
+		windowNode.classList.add("full_scene_disabled");
+	}
 	
 	this._enemy_header = document.createElement("div");
 	this._enemy_header.id = this.createId("enemy_header");
@@ -515,7 +524,7 @@ Window_BeforeBattle.prototype.createParticipantBlock = function(ref, action, isS
 		
 		content+="<div class='attack_name fitted_text'>";	
 		var attack = action.attack;
-		if(attack){	
+		if(attack && action.type == "attack"){	
 			if(attack.type == "M"){
 				content+="<img class='attack_list_type scaled_width' src='svg/punch_blast.svg'>";
 			} else {

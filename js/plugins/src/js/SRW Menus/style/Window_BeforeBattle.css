@@ -504,3 +504,19 @@
 #before_battle_action_selection .action_block.selected {
 	background-color: var(--selected-color);
 }
+
+#before_battle.full_scene_disabled #before_battle_btn_demo {
+	display: none;
+}
+
+#before_battle.full_scene_disabled #before_battle_btn_asssist {
+	left: 61%;
+}
+
+#before_battle.full_scene_disabled #before_battle_btn_action {
+	left: 45%;
+}
+
+#before_battle.full_scene_disabled #before_battle_action_selection {
+	left: 47%;
+}
