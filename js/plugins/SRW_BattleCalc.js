@@ -249,10 +249,16 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		//initial attack
 		var weaponInfo = attackerAction.attack;
 		var weaponPower = $statCalc.getWeaponPower(attackerInfo.actor, weaponInfo)*1;
-		var weaponTerrainRating = this._weaponTerrainValues[$statCalc.getWeaponTerrainMod(attackerInfo.actor, weaponInfo)];
+		var weaponTerrainRating = this._weaponTerrainValues[$statCalc.getWeaponTerrainMod(defenderInfo.actor, weaponInfo)];
+		
 		var attackerPilotOffense;
 		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
 		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
+		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
+		if(weaponInfo.particleType == "beam" && $statCalc.getCurrentTerrain(defenderInfo.actor) == "water"){
+			weaponTerrainRating = this._weaponTerrainValues["D"];
+		}
+			
 		if(weaponInfo.type == "M"){ //melee
 			attackerPilotOffense = attackerPilotStats.melee;
 			weaponPower = $statCalc.applyStatModsToValue(attackerInfo.actor, weaponPower, ["weapon_melee"]);
@@ -267,7 +273,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		var initialAttack = weaponPower * weaponTerrainRating + (attackerPilotOffense + attackerWill) / 200;
 		//initial defense
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
-		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
+		
 		var armor =  defenderMechStats.armor;
 		if($statCalc.isArmorDown(defenderInfo.actor)){
 			armor-=500;
