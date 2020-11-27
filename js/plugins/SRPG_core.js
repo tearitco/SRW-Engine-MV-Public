@@ -19,6 +19,7 @@
 
  
 //disable touch support
+
 TouchInput.update = function() {}
  
 //Control variable ids 
@@ -1156,6 +1157,12 @@ var $battleSceneManager = new BattleSceneManager();
 		this._availableUnits = $gameParty.allMembers();
 		this._availableUnits.forEach(function(actor){
 			$statCalc.initSRWStats(actor);
+		});
+		
+		$gameMap.events().forEach(function(event) {
+			if (event.isType() === 'actor' || event.isType() === 'ship' || event.isType() === 'ship_event') {
+				event.erase();
+			}
 		});
     };
 
