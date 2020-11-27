@@ -281,7 +281,7 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponWill:-1\>Will requirement for the weapon, -1 if there is no requirement<br>
 \<weaponTerrain:AABA\><br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
-\<weaponParticleType: "missile"\><br> The particle type of the weapon. Missile, funnel, beam, gravity, physical or "".	
+\<weaponParticleType: "missile"\><br> The particle type of the weapon. Missile, funnel, beam, gravity, physical or  "".	
  
 Weapons can have up to two special effects.
 

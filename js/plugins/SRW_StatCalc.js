@@ -185,7 +185,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 				willRequired: parseInt(weaponProperties.weaponWill),
 				terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
 				effects: effects,
-				particleType: weaponProperties.weaponParticleType || "", //missile, funnel, beam, gravity, physical or "".
+				particleType: weaponProperties.weaponCategory || "", //missile, funnel, beam, gravity, physical or "".
 				animId: parseInt(weaponProperties.weaponAnimId) || -1,
 				isMap: isMap, 
 				mapId: mapId,
