@@ -3,7 +3,7 @@
 # Set-up
 
 Extract the archive containing the sample project.<br>
-In the project directory navigate to js/plugins/config and copy all files from the "default" directory to the "active" directory.
+In the project directory navigate to js/plugins/config and copy the "default" directory into a new "active" directory.
 
 # Plugin Config
 
