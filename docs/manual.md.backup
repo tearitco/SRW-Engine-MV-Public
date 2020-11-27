@@ -5,10 +5,9 @@
 Extract the archive containing the sample project.<br>
 In the project directory navigate to js/plugins/config and copy all files from the "default" directory to the "active" directory.
 
-# Config Plugins
+# Plugin Config
 
-SRW Engine MV uses a number of plugins that are referred to as config plugins. These plugins live in the js/plugins/config directory inside two folders: default and active. The default folder contains the default settings, while the active folder contains settings modified for your game if applicable. The file in the default folder is overwritten by the file in the active folder with the same name. When the engine is updated only the defaults will be changed and the files in the active folder will never be touched. So if you want to customize any of these files for your game always first copy them to the active folder and modify the version in the active folder. <br>
-If an aspect of the engine is managed using a config plugin it will be referred to as a config plugin and the file name will be included.
+The config for the plugins that make up SRW Engine MV lives in the js/plugins/config directory inside two folders: default and active. The default folder contains the default settings, while the active folder contains settings modified for your game if applicable. The file in the default folder is overwritten by the file in the active folder with the same name. When the engine is updated only the defaults will be changed and the files in the active folder will never be touched. So if you want to customize any of these files for your game always first copy them to the active folder and modify the version in the active folder. <br>
 
 # Terrain
 
@@ -303,7 +302,7 @@ A combination attack has the following additional metadata:
 
 ## MAP Attacks
 
-MAP attacks are defined in a config plugin: js/plugins/config/active/SRW_MapAttackManager.js<br>
+MAP attacks are defined in: js/plugins/config/active/MapAttacks.conf.js<br>
 A definition may look as follows: <br>
 
 ```javascript
@@ -325,11 +324,12 @@ this.addDefinition(
 
 The definition defines the MAP attack as it should look when the user is targeting it to the right. The engine will automatically translate this when the targeting direction changes.
 
+
 # Spirit Commands
 
 Spirit commands are buff, debuff and healing commands that units can use when taking their turn, but only before moving. Spirit commands can apply to the own unit, another ally, an enemy, all allies or all enemies. Spirit commands consume SP to be used, but the cost is not part of the base definition and is instead defined when they are assigned to a Pilot. This allows Spirit commands to have different costs depending on the user.
 
-Spirit commands are managed in a Config Plugin: js/plugins/config/active/SRW_SpiritManager.js
+Spirit commands are managed in: js/plugins/config/active/Spirits.conf.js
 
 [A list of default Spirit commands is available here.](default_spirits.md)
 
@@ -376,9 +376,9 @@ this.addDefinition(
 
 There are several types of special abilities and effects in SRW Engine MV: Pilot abilities, Mech abilities, Item effects and weapon effects.
 
-These abilities and effects are managed in a Config Plugin: js/plugins/config/active/SRW_AbilityManager.js
-
 ## Pilot Abilities
+
+Pilot abilities are managed in js/plugins/config/active/PilotAbilities.conf.js
 
 Pilot abilities can be assigned to pilots. These abilities can have levels and can level up as the pilot levels up. For more information on assigning abilities please check the section on Pilots.<br>  
   
@@ -430,6 +430,8 @@ The format of a Pilot Ability definition is as follows:
 
 ## Mech Abilities
 
+Mech abilities are managed in js/plugins/config/active/MechAbilities.conf.js
+
 Mech Abilities are assigned to mechs and are normally part of the mech definition and cannot be changed. For more information on how Mech abilities are assigned please see the section on Mechs.
 
 Mechs have a special ability called a Full Upgrade Bonus which is unlocked when a mech is fully upgraded. Full Upgraded Bonuses are defined in the same way as regular mech abilities but they have an additional check in their isActive function to verify that a unit is fully upgraded.
@@ -457,6 +459,8 @@ The format of a Mech Ability definition is as follows:
 
 ## Item Effects
 
+Item effects are managed in js/plugins/config/active/ItemEffects.conf.js
+
 Mechs can hold items that give them certain abilities. Some items are consumables that only apply their effect once consumed. Consumables return after a stage has been completed.
 
 [A list of default Items is available here.](default_items.md)
@@ -482,6 +486,8 @@ The format of an Item Effect definition is as follows:
 ```
 
 ## Weapon Effects
+
+Weapon effects are managed in js/plugins/config/active/WeaponEffects.conf.js
 
 Weapons can have special effects that apply or that they inflict when used. 
 
@@ -572,6 +578,14 @@ The beforeDesctruction event will run after battle occurred but before any rewar
 
 The afterAction event runs every time a unit completes its turn. This is the event where checks for stage completion/loss requirements will usually will be done. It will then also contain scripting for the after stage story section, setting up deploys for the next stage and sending the player to the Intermission map. 
 
+## Other event types
+
+Events that are used for units can have special roles assigned to them using metadata as well.
+
+* \<type: ship\>: Specifies that the event will be linked to a ship type unit. These events are used when automatically deploying ship units.
+* \<type: ship_event\>: Specifies that the event will become a ship through a scripted deploy during the stage. These events are not used for automatic deployment. Events that will become ships must be tagged as such to ensure that they have proper z-indexing.
+* \<type: actor\>: Specifies that the event will be linked to an actor pilot. These events become selectable positions when doing a manual deploy.
+
 ## Control Variables
 
 The first two pages of Control Variables are reserved for specific functions in the engine:
@@ -600,6 +614,9 @@ The first two pages of Control Variables are reserved for specific functions in 
 Variables 0021-0060 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
 <b>The engine will automatically clear these when a new stage starts!</b>
 
+## Switches
+
+<b>The first page of switches is reserved for engine specific functions and should not be used!</b>
 
 ## Plugin commands
 
@@ -742,6 +759,15 @@ Deploys all allies that are in a locked slot according to the current deploy inf
  
 * deploySlot slot toAnimationQueue
 Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+* moveEventToPoint event\_id x y follow
+Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
+
+* setEventFlying event\_id
+Put the specified event into a flying state if the unit is capable of flight.
+
+* setEventLanded event\_id
+Put the specified event into a grounded state.
 
 ## Script commands
 
@@ -888,6 +914,7 @@ They can also be used as conditionals in IF statements.
 
 * this.getActorKillCount(actor\_id)
 	Returns the current amount of kills the actor with the specified id has.	
+
 	
 * this.setBattleMode(event\_id, mode)
 
@@ -901,11 +928,19 @@ They can also be used as conditionals in IF statements.
 
 * this.setSquadMode(squad_id, mode)
 
-	Set the battle mode for all enimes that are part of the specified squad.<br>
+	Set the battle mode for all enemies that are part of the specified squad.<br>
 
 * this.turnEnd()
 
 	End the turn of the unit currently taking its turn.
+
+* this.isDeployed(actor\_id)
+	
+	Can be used as conditional to check if the actor with the specified id is currently deployed.
+	
+* this.isSquadWiped(squad\_id)
+
+	Can be used as a conditional to check if the enemy squad with the specified id is currently wiped out.
 
 
 	
