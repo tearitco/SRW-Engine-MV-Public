@@ -9289,17 +9289,20 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         for (var i = 1; i <= $gameMap.isMaxEventId(); i++) {
             var event = $gameMap.event(i);
             if (event && !event.isErased() && (event.isType() === 'actor' || event.isType() === 'ship'  || event.isType() === 'ship_event')) {
-                var actor = $gameSystem.EventToUnit(event.eventId())[1];
-                if (actor && actor.canInput() == true && !actor.srpgTurnEnd()) {
-                    if ($gameTemp.isAutoBattleFlag() == true) {
-                        actor.addState(_srpgAutoBattleStateId);
-                    } else {
-                        $gameTemp.setActiveEvent(event);
-                        actor.onAllActionsEnd();
-                        actor.useSRPGActionTimes(99);
-                        this.srpgAfterAction();
-                    }
-                }
+                var battlerArray =  $gameSystem.EventToUnit(event.eventId());
+				if(battlerArray){
+					var actor = battlerArray[1];
+					if (actor && actor.canInput() == true && !actor.srpgTurnEnd()) {
+						if ($gameTemp.isAutoBattleFlag() == true) {
+							actor.addState(_srpgAutoBattleStateId);
+						} else {
+							$gameTemp.setActiveEvent(event);
+							actor.onAllActionsEnd();
+							actor.useSRPGActionTimes(99);
+							this.srpgAfterAction();
+						}
+					}
+				}				
             }
         }
         $gameTemp.setAutoBattleFlag(false);
@@ -9342,10 +9345,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         for (var i = 1; i <= $gameMap.isMaxEventId() + 1; i++) {
             var event = $gameMap.event(i);
             if (event && !event.isErased() && (event.isType() === 'actor' || event.isType() === 'ship'  || event.isType() === 'ship_event')) {
-                var actor = $gameSystem.EventToUnit(event.eventId())[1];
-                if (actor && actor.canMove() == true && !actor.srpgTurnEnd()) {
-                    break;
-                }
+                var battlerArray =  $gameSystem.EventToUnit(event.eventId());
+				if(battlerArray){
+					var actor = battlerArray[1];
+					if (actor && actor.canMove() == true && !actor.srpgTurnEnd()) {
+						break;
+					}
+				}
             }
             if (i > $gameMap.isMaxEventId()) {
                 $gameSystem.srpgStartEnemyTurn(); // エネミーターンの開始
