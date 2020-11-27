@@ -199,7 +199,7 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._enemySupportDoubleImage.id = this.createId("enemy_support_double_image");
 	this._enemySupportDoubleImage.classList.add("scaled_text");
 	this._enemySupportDoubleImage.innerHTML = "DOUBLE IMAGE";
-
+	
 	this._actorBarrier = document.createElement("div");
 	this._actorBarrier.id = this.createId("actor_barrier");
 	this._actorBarrierImage = document.createElement("img");
@@ -478,7 +478,13 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			special_targetDoubleImage: "enemy_double_image",
 			special_targetSupportDoubleImage: "enemy_support_double_image",
 			special_targetBarrier: "enemy_barrier",
-			special_targetSupportBarrier: "enemy_support_barrier"
+			special_targetSupportBarrier: "enemy_support_barrier",
+			
+			special_targetParry: "enemy_parry",
+			special_targetSupportParry: "enemy_support_parry",
+			
+			special_targetJamming: "enemy_jamming",
+			special_targetSupportJamming: "enemy_support_jamming",
 		},
 		"enemy": {
 			support: this._enemySupporter,
@@ -502,7 +508,13 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			special_targetDoubleImage: "actor_double_image",
 			special_targetSupportDoubleImage: "actor_support_double_image",
 			special_targetBarrier: "actor_barrier",
-			special_targetSupportBarrier: "actor_support_barrier"
+			special_targetSupportBarrier: "actor_support_barrier",
+			
+			special_targetParry: "actor_parry",
+			special_targetSupportParry: "actor_support_parry",
+			
+			special_targetJamming: "actor_jamming",
+			special_targetSupportJamming: "actor_support_jamming",
 		}
 	};
 	var currentInfo = typeInfo[type];
@@ -610,6 +622,38 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 				evadeAnimation = {target: target, type: "double_image"};
 				evadeAnimation.special = {};
 				evadeAnimation.special[currentInfo.special_targetDoubleImage] = true;
+				this._animationQueue.push([evadeAnimation]);
+			}					
+		} if(nextAction.attacked.isParry){
+			if(nextAction.attacked.type == "support defend"){				
+				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportDefend}]);			
+			 
+				evadeAnimation = {target: target, type: "no_damage"};
+				evadeAnimation.special = {};
+				evadeAnimation.special[currentInfo.special_targetSupportParry] = true;
+				this._animationQueue.push([evadeAnimation]);
+						
+				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);			
+			} else {
+				evadeAnimation = {target: target, type: "no_damage"};
+				evadeAnimation.special = {};
+				evadeAnimation.special[currentInfo.special_targetParry] = true;
+				this._animationQueue.push([evadeAnimation]);
+			}					
+		} else if(nextAction.attacked.isJamming){
+			if(nextAction.attacked.type == "support defend"){				
+				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportDefend}]);			
+			 
+				evadeAnimation = {target: target, type: "no_damage"};
+				evadeAnimation.special = {};
+				evadeAnimation.special[currentInfo.special_targetSupportJamming] = true;
+				this._animationQueue.push([evadeAnimation]);
+						
+				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);			
+			} else {
+				evadeAnimation = {target: target, type: "no_damage"};
+				evadeAnimation.special = {};
+				evadeAnimation.special[currentInfo.special_targetJamming] = true;
 				this._animationQueue.push([evadeAnimation]);
 			}					
 		} else {
@@ -744,8 +788,10 @@ Window_BattleBasic.prototype.update = function() {
 								_this._actorCounter.style.display = "block";
 								setTimeout(function(){ _this._actorCounter.style.display = "none" }, 200);		
 							}
+														
 							if(nextAnimation.special.enemy_double_image){
 								_this._enemyDoubleImage.style.display = "block";
+								_this._enemyDoubleImage.innerHTML = "DOUBLE IMAGE";
 								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
 
 								var se = {};
@@ -757,6 +803,7 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.actor_double_image){
 								_this._actorDoubleImage.style.display = "block";
+								_this._actorDoubleImage.innerHTML = "DOUBLE IMAGE";
 								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
 
 								var se = {};
@@ -768,6 +815,7 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.enemy_support_double_image){
 								_this._enemySupportDoubleImage.style.display = "block";
+								_this._enemySupportDoubleImage.innerHTML = "DOUBLE IMAGE";
 								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
 
 								var se = {};
@@ -779,10 +827,109 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.actor_support_double_image){
 								_this._actorSupportDoubleImage.style.display = "block";
+								_this._actorSupportDoubleImage.innerHTML = "DOUBLE IMAGE";
 								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
 
 								var se = {};
 								se.name = 'SRWDoubleImage';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);									
+							}
+							
+							if(nextAnimation.special.enemy_parry){
+								_this._enemyDoubleImage.style.display = "block";
+								_this._enemyDoubleImage.innerHTML = "PARRY";
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWParry';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
+							}
+							if(nextAnimation.special.actor_parry){
+								_this._actorDoubleImage.style.display = "block";
+								_this._actorDoubleImage.innerHTML = "PARRY";
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWParry';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);								
+							}
+							if(nextAnimation.special.enemy_support_parry){
+								_this._enemySupportDoubleImage.style.display = "block";
+								_this._enemySupportDoubleImage.innerHTML = "PARRY";
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWParry';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
+							}
+							if(nextAnimation.special.actor_support_parry){
+								_this._actorSupportDoubleImage.style.display = "block";
+								_this._actorSupportDoubleImage.innerHTML = "PARRY";
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWParry';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);									
+							}
+							
+							if(nextAnimation.special.enemy_jamming){
+								_this._enemyDoubleImage.style.display = "block";
+								_this._enemyDoubleImage.innerHTML = "JAMMING";
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWJamming';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
+							}
+							if(nextAnimation.special.actor_jamming){
+								_this._actorDoubleImage.style.display = "block";
+								_this._actorDoubleImage.innerHTML = "JAMMING";
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWJamming';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);								
+							}
+							if(nextAnimation.special.enemy_support_jamming){
+								_this._enemySupportDoubleImage.style.display = "block";
+								_this._enemySupportDoubleImage.innerHTML = "JAMMING";
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWJamming';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
+							}
+							if(nextAnimation.special.actor_support_jamming){
+								_this._actorSupportDoubleImage.style.display = "block";
+								_this._actorSupportDoubleImage.innerHTML = "JAMMING";
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWJamming';
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;

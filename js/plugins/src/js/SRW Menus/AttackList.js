@@ -129,8 +129,22 @@ AttackList.prototype.createAttributeBlock = function(attack) {
 		content+="P";
 	} 
 	content+="</div>";
-	content+="<div class='attribute_block_entry scaled_width scaled_height scaled_text'>";	
-	content+=attack.particleType;	
+	content+="<div class='attribute_block_entry scaled_width scaled_height scaled_text'>";
+	if(attack.particleType == "missile"){
+		content+="Mi";	
+	}
+	if(attack.particleType == "physical"){
+		content+="Ph";	
+	}
+	if(attack.particleType == "funnel"){
+		content+="Fu";	
+	}
+	if(attack.particleType == "beam"){
+		content+="Be";	
+	}
+	if(attack.particleType == "gravity"){
+		content+="Gr";	
+	}	
 	content+="</div>";
 	
 	

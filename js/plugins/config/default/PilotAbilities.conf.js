@@ -684,4 +684,34 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		1
 	);
+	this.addDefinition(
+		39, 
+		"Parry", 
+		"When triggered, negates damage from physical weapons. The chance to trigger increases with the skill's level. ", 
+		true,
+		true,
+		function(actor, level){
+			var effectTable = [
+				[{type: "parry_rate", modType: "addFlat", value: 0.5}], //1
+				[{type: "parry_rate", modType: "addFlat", value: 0.10}], //2
+				[{type: "parry_rate", modType: "addFlat", value: 0.15}], //3
+				[{type: "parry_rate", modType: "addFlat", value: 0.20}], //4
+				[{type: "parry_rate", modType: "addFlat", value: 0.25}], //5
+				[{type: "parry_rate", modType: "addFlat", value: 0.30}], //6
+				[{type: "parry_rate", modType: "addFlat", value: 0.35}], //7
+				[{type: "parry_rate", modType: "addFlat", value: 0.40}], //8
+				[{type: "parry_rate", modType: "addFlat", value: 0.45}], //9				
+			];
+			if(effectTable[level-1]){
+				return effectTable[level-1];
+			} else {
+				return [];
+			}			
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		1
+	);
 }

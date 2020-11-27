@@ -322,4 +322,19 @@ $SRWConfig.mechAbilties = function(){
 		[0],
 		1
 	);	
+	this.addDefinition(
+		23, 
+		"Jamming", 
+		"The accuracy of a Missile type weapon used against this unit is halved.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "jamming_rate", modType: "addFlat", value: 0.5}];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		1
+	);	
 };

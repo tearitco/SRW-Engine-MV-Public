@@ -524,6 +524,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 		if(!aCache.isDestroyed && !dCache.isDestroyed) {
 			aCache.actionOrder = orderIdx;
 			aCache.hasActed = true;
+			var weaponref = this._attacker.action.attack;
 			aCache.attacked = dCache;
 			$gameTemp.sortedBattleActorCaches.push(aCache);
 			dCache.isAttacked = true;
@@ -550,6 +551,17 @@ BattleCalc.prototype.generateBattleResult = function(){
 					dCache.isDoubleImage = true;
 					isHit = 0;
 				}
+				
+				if(weaponref.particleType == "physical" && Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["parry_rate"])){
+					dCache.isParry = true;
+					isHit = 0;
+				}
+				
+				if(weaponref.particleType == "missile" && Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["jamming_rate"])){
+					dCache.isJamming = true;
+					isHit = 0;
+				}
+				
 				if(isHit && sCache && !sCache.hasActed){
 					isHit = 1;
 					activeDefender = this._supportDefender;
@@ -600,7 +612,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 				activeDefenderCache.isDestroyed = true;
 			}				
 			
-			var weaponref = this._attacker.action.attack;
+			
 			var ENCost = weaponref.ENCost;
 			if(ENCost != -1){
 				aCache.ENUsed = ENCost;
