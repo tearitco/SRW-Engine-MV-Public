@@ -233,3 +233,15 @@ Description: When adjacent to Fubuki: Evasion +30%, Crit Rate +30%.
 Name: Caring Meme Queen
 
 Description: Take 20% less damage when support defending. +5 SP recovered at the start of the turn.
+
+**ID 39**
+
+Name: Parry
+
+Description: When triggered, negates damage from physical weapons. The chance to trigger increases with the skill's level.
+
+**ID 40**
+
+Name: Shoot Down
+
+Description: Allows the pilot to deflect funnel and missile attacks. Activation depends on Skill stat difference with the enemy.

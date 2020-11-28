@@ -687,7 +687,7 @@ $SRWConfig.pilotAbilties = function(){
 	this.addDefinition(
 		39, 
 		"Parry", 
-		"When triggered, negates damage from physical weapons. The chance to trigger increases with the skill's level. ", 
+		"When triggered, negates damage from physical weapons. The chance to trigger increases with the skill's level.", 
 		true,
 		true,
 		function(actor, level){
@@ -717,7 +717,7 @@ $SRWConfig.pilotAbilties = function(){
 	this.addDefinition(
 		40, 
 		"Shoot Down", 
-		"", 
+		"Allows the pilot to deflect funnel and missile attacks. Activation depends on Skill stat difference with the enemy.", 
 		false,
 		true,
 		function(actor, level){

@@ -137,3 +137,40 @@ Description: The unit can heal an adjacent Unit.
 Name: Resupply
 
 Description: The unit can recover all EN for an adjacent Unit. The target's Will is reduced by 10.
+
+**ID 23** 
+
+Name: Jamming
+
+Description: The accuracy of a Missile type weapon used against this unit is halved.
+
+**ID 24**	
+	
+Name: E Field, 
+
+Description: Reduces all damage by 1500. 15 EN per use.
+		
+**ID 25** 
+
+Name: AB Field 
+
+Description: Reduces beam damage by 1200. 10 EN per use. 
+
+	
+**ID 26** 
+
+Name: Passive Bit
+
+Description: Reduces beam damage by 1100. 5 EN per use.
+		
+**ID 27** 
+
+Name: Beam Coat
+
+Description: Reduces beam damage by 900. 5 EN per use.
+
+**ID 28** 
+
+Name: Distortion Field
+
+Description: Reduces gravity and beam damage by 3000. Reduces other types of damage by 1000 damage. 10 EN per use.
