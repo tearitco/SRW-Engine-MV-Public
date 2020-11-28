@@ -249,6 +249,9 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'unlockUnit') {
             $SRWSaveManager.setUnitUnlocked(args[0]);
         }
+		if (command === 'lockUnit') {
+            $SRWSaveManager.setUnitLocked(args[0]);
+        }
 		if (command === 'SetLevel') {
             $SRWSaveManager.setPilotLevel(args[0], args[1]);
         }
@@ -1032,6 +1035,10 @@ var $battleSceneManager = new BattleSceneManager();
 		this._isIntermission = true;
 	}
 	
+	Game_System.prototype.isIntermission = function(id){
+		return this._isIntermission;
+	}
+	
 	Game_System.prototype.getAvailableUnits = function(id){
 		return this._availableUnits;
 	}
@@ -1050,6 +1057,7 @@ var $battleSceneManager = new BattleSceneManager();
 	}
 	
 	Game_System.prototype.endIntermission = function(){
+		$gameTemp.intermissionPending = false;
 		this._isIntermission = false;
 	}	
 	
@@ -4029,7 +4037,11 @@ Game_Interpreter.prototype.showStageConditions = function(){
         $gameMessage.setPositionType(1);
 		$gameMessage.add(APPSTRINGS.GENERAL.label_victory_condition + ": "+$gameVariables.value(_victoryConditionText));
 		$gameMessage.add(APPSTRINGS.GENERAL.label_defeat_condition + ": "+$gameVariables.value(_defeatConditionText));
-		$gameMessage.add(APPSTRINGS.GENERAL.label_mastery_condition + ": "+$gameVariables.value(_masteryConditionText));
+		var masteryText = $gameVariables.value(_masteryConditionText);
+		if($SRWSaveManager.isMapSRPointLocked($gameMap.mapId())){
+			masteryText = APPSTRINGS.GENERAL.label_mastery_locked;
+		}
+		$gameMessage.add(APPSTRINGS.GENERAL.label_mastery_condition + ": "+masteryText);
 		
 		this._index++;
         this.setWaitMode('message');
@@ -4507,6 +4519,10 @@ Game_Interpreter.prototype.isSquadWiped = function(squadId) {
 		}
 	});
 	return isWiped;
+}
+
+Game_Interpreter.prototype.canObtainSRPoint = function() {
+	return !$SRWSaveManager.isMapSRPointLocked($gameMap.mapId());
 }
 
 /**************************************
@@ -5555,8 +5571,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 // ●Spriteset_Map
 //====================================================================
     var _SRPG_Spriteset_Map_createTilemap = Spriteset_Map.prototype.createTilemap;
-    Spriteset_Map.prototype.createTilemap = function() {
+    Spriteset_Map.prototype.createTilemap = function() {		
 		_SRPG_Spriteset_Map_createTilemap.call(this);
+		if($gameTemp.intermissionPending){
+			return;
+		}
 		this._gridSprite = new Sprite_SrpgGrid();
 		this._baseSprite.addChild(this._gridSprite);   
 		this._highlightSprite = new Sprite_AreaHighlights();
@@ -5570,6 +5589,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	
 	var _SRPG_Spriteset_Map_createTilemap_createCharacters = Spriteset_Map.prototype.createCharacters;
 	Spriteset_Map.prototype.createCharacters = function() {
+		if($gameTemp.intermissionPending){
+			return;
+		}
 		this._bshadowSprites = {};
 		this._explosionSprites = {};
 		this._appearSprites = {};
@@ -5677,27 +5699,29 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     };
 
     Spriteset_Map.prototype.updateSrpgMoveTile = function() {
-        if ($gameTemp.resetMoveList() == true) {
-            for (var i = 0; i < $gameSystem.spriteMoveTileMax(); i++) {
-                this._srpgMoveTile[i].clearThisMoveTile();
-            }
-            $gameTemp.setResetMoveList(false);
-        }
-        if ($gameTemp.isMoveListValid()) {
-            if (!this._srpgMoveTile[0].isThisMoveTileValid()) {
-                var list = $gameTemp.moveList();
-                for (var i = 0; i < list.length; i++) {
-                    var pos = list[i];
-                    this._srpgMoveTile[i].setThisMoveTile(pos[0], pos[1], pos[2]);
-                }
-            }
-        } else {
-            if (this._srpgMoveTile[0].isThisMoveTileValid()) {
-                for (var i = 0; i < $gameSystem.spriteMoveTileMax(); i++) {
-                    this._srpgMoveTile[i].clearThisMoveTile();
-                }
-            }
-        }
+		if(this._srpgMoveTile){		
+			if ($gameTemp.resetMoveList() == true) {
+				for (var i = 0; i < $gameSystem.spriteMoveTileMax(); i++) {
+					this._srpgMoveTile[i].clearThisMoveTile();
+				}
+				$gameTemp.setResetMoveList(false);
+			}
+			if ($gameTemp.isMoveListValid()) {
+				if (!this._srpgMoveTile[0].isThisMoveTileValid()) {
+					var list = $gameTemp.moveList();
+					for (var i = 0; i < list.length; i++) {
+						var pos = list[i];
+						this._srpgMoveTile[i].setThisMoveTile(pos[0], pos[1], pos[2]);
+					}
+				}
+			} else {
+				if (this._srpgMoveTile[0].isThisMoveTileValid()) {
+					for (var i = 0; i < $gameSystem.spriteMoveTileMax(); i++) {
+						this._srpgMoveTile[i].clearThisMoveTile();
+					}
+				}
+			}
+		}
     };
 
 //====================================================================
@@ -7646,7 +7670,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
                 this.menuCalling = false;
                 return;
             }			
-            if ($gameSystem.isSubBattlePhase() === 'normal' && !$gameSystem._isIntermission) {
+            if ($gameSystem.isSubBattlePhase() === 'normal' && !$gameSystem.isIntermission()) {
 				$gameTemp.isPostMove = false;
                 if (Input.isTriggered('pageup')) {                   
                     $gameSystem.getNextLActor();
@@ -7797,7 +7821,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			return;
 		}
 		
-		if($gameSystem._isIntermission){
+		if($gameSystem.isIntermission()){
 			if(!this._intermissionWindowOpen){
 				$gameSystem.clearData();//make sure stage temp data is cleared when moving between stages
 				this._intermissionWindowOpen = true;
@@ -10227,6 +10251,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
             _SRPG_SceneMap_startEncounterEffect.call(this);
         }
     };
+	
+Scene_Gameover.prototype.gotoTitle = function() {
+	$gameTemp.intermissionPending = true;
+	$SRWSaveManager.lockMapSRPoint($gameMap.mapId());	
+	$gamePlayer.reserveTransfer(2, 0, 0);//send player to intermission after losing
+    SceneManager.goto(Scene_Map);
+};
 
 //====================================================================
 // ●Scene_Menu
@@ -10894,7 +10925,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		this.drawText($gameVariables.value(_defeatConditionText), x + valueOffset, lineheight * 3, width - valueOffset);
 		
-		this.drawText($gameVariables.value(_masteryConditionText), x + valueOffset, lineheight * 5, width - valueOffset);
+		var masteryText = $gameVariables.value(_masteryConditionText);
+		if($SRWSaveManager.isMapSRPointLocked($gameMap.mapId())){
+			masteryText = APPSTRINGS.GENERAL.label_mastery_locked;
+		}
+		this.drawText(masteryText, x + valueOffset, lineheight * 5, width - valueOffset);
 		/*
 		this.drawText(APPSTRINGS.MAPMENU.label_funds, x, 0, width);
 		this.drawText(this.value(), x + columnOffset , 0, width);

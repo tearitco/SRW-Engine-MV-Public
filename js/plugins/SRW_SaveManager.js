@@ -96,6 +96,13 @@ SRWSaveManager.prototype.setUnitUnlocked = function(unitClassId){
 	$gameSystem.unlockedUnits[unitClassId] = true;
 }
 
+SRWSaveManager.prototype.setUnitLocked = function(unitClassId){
+	if(!$gameSystem.unlockedUnits){
+		$gameSystem.unlockedUnits = {};
+	}
+	delete $gameSystem.unlockedUnits[unitClassId];
+}
+
 SRWSaveManager.prototype.setPilotLevel = function(pilotId, level){
 	var actorData = this.getActorData(pilotId);
 	actorData.exp = level * 500;
@@ -112,4 +119,18 @@ SRWSaveManager.prototype.addPP = function(pilotId, amount){
 	var actorData = this.getActorData(pilotId);
 	actorData.PP+=amount*1;
 	this.storeActorData(pilotId, actorData);
+}
+
+SRWSaveManager.prototype.lockMapSRPoint = function(mapId){
+	if(!$gameSystem.lockedSRPoints){
+		$gameSystem.lockedSRPoints = {};
+	}
+	$gameSystem.lockedSRPoints[mapId] = true;
+}
+
+SRWSaveManager.prototype.isMapSRPointLocked = function(mapId){
+	if(!$gameSystem.lockedSRPoints){
+		$gameSystem.lockedSRPoints = {};
+	}
+	return $gameSystem.lockedSRPoints[mapId];
 }
