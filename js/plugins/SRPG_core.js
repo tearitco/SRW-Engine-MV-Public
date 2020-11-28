@@ -4050,13 +4050,13 @@ Game_Interpreter.prototype.showStageConditions = function(){
 		$gameMessage.setFaceImage("", "");
 		$gameMessage.setBackground(0);
         $gameMessage.setPositionType(1);
-		$gameMessage.add(APPSTRINGS.GENERAL.label_victory_condition + ": "+$gameVariables.value(_victoryConditionText));
-		$gameMessage.add(APPSTRINGS.GENERAL.label_defeat_condition + ": "+$gameVariables.value(_defeatConditionText));
+		$gameMessage.add(APPSTRINGS.GENERAL.label_victory_condition + ": "+($gameVariables.value(_victoryConditionText) || ""));
+		$gameMessage.add(APPSTRINGS.GENERAL.label_defeat_condition + ": "+($gameVariables.value(_defeatConditionText) || ""));
 		var masteryText = $gameVariables.value(_masteryConditionText);
 		if($SRWSaveManager.isMapSRPointLocked($gameMap.mapId())){
 			masteryText = APPSTRINGS.GENERAL.label_mastery_locked;
 		}
-		$gameMessage.add(APPSTRINGS.GENERAL.label_mastery_condition + ": "+masteryText);
+		$gameMessage.add(APPSTRINGS.GENERAL.label_mastery_condition + ": "+(masteryText || ""));
 		
 		this._index++;
         this.setWaitMode('message');
@@ -10948,15 +10948,15 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		this.changeTextColor("#FFFFFF");
 		
 		var valueOffset = 20;
-		this.drawText($gameVariables.value(_victoryConditionText), x + valueOffset, lineheight, width - valueOffset);
+		this.drawText($gameVariables.value(_victoryConditionText) || "", x + valueOffset, lineheight, width - valueOffset);
 		
-		this.drawText($gameVariables.value(_defeatConditionText), x + valueOffset, lineheight * 3, width - valueOffset);
+		this.drawText($gameVariables.value(_defeatConditionText) || "", x + valueOffset, lineheight * 3, width - valueOffset);
 		
 		var masteryText = $gameVariables.value(_masteryConditionText);
 		if($SRWSaveManager.isMapSRPointLocked($gameMap.mapId())){
 			masteryText = APPSTRINGS.GENERAL.label_mastery_locked;
 		}
-		this.drawText(masteryText, x + valueOffset, lineheight * 5, width - valueOffset);
+		this.drawText(masteryText || "", x + valueOffset, lineheight * 5, width - valueOffset);
 		/*
 		this.drawText(APPSTRINGS.MAPMENU.label_funds, x, 0, width);
 		this.drawText(this.value(), x + columnOffset , 0, width);
