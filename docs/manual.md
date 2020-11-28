@@ -943,5 +943,7 @@ They can also be used as conditionals in IF statements.
 
 	Can be used as a conditional to check if the enemy squad with the specified id is currently wiped out.
 
+* this.canObtainSRPoint()
 
+	Should always be used to check if the SR point is still obtainable on the stage before awarding it. This will 	    return false if the player has previously had a Game Over on the current map.
 	
