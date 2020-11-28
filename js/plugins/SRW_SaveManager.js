@@ -121,11 +121,43 @@ SRWSaveManager.prototype.addPP = function(pilotId, amount){
 	this.storeActorData(pilotId, actorData);
 }
 
+SRWSaveManager.prototype.getSRCount = function(mapId){
+	if(!$gameSystem.awardedSRPoints){
+		$gameSystem.awardedSRPoints = {};
+	}
+	return Object.keys($gameSystem.awardedSRPoints).length;
+}
+
+SRWSaveManager.prototype.hasMapSRPoint = function(mapId){
+	if(!$gameSystem.awardedSRPoints){
+		$gameSystem.awardedSRPoints = {};
+	}
+	return $gameSystem.awardedSRPoints[mapId];
+}
+
+SRWSaveManager.prototype.awardMapSRPoint = function(mapId){	
+	if(!$gameSystem.lockedSRPoints){
+		$gameSystem.lockedSRPoints = {};
+	}
+	if(!$gameSystem.awardedSRPoints){
+		$gameSystem.awardedSRPoints = {};
+	}
+	var alreadyHadPoint = $gameSystem.awardedSRPoints[mapId] == true;
+	if(!$gameSystem.lockedSRPoints[mapId]){
+		$gameSystem.awardedSRPoints[mapId] = true;
+	}	
+	return !alreadyHadPoint && $gameSystem.awardedSRPoints[mapId] == true;
+}
+
 SRWSaveManager.prototype.lockMapSRPoint = function(mapId){
 	if(!$gameSystem.lockedSRPoints){
 		$gameSystem.lockedSRPoints = {};
 	}
+	if(!$gameSystem.awardedSRPoints){
+		$gameSystem.awardedSRPoints = {};
+	}
 	$gameSystem.lockedSRPoints[mapId] = true;
+	delete $gameSystem.awardedSRPoints[mapId];
 }
 
 SRWSaveManager.prototype.isMapSRPointLocked = function(mapId){

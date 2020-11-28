@@ -358,7 +358,7 @@ Window_Intermission.prototype.redraw = function() {
 	this._tooltipText.innerHTML = toolTipText;
 	
 	this._deployCountText.innerHTML = APPSTRINGS.INTERMISSION.next_map_units+": <div class='deploy_amount'>"+$gameSystem.getDeployInfo().count+"</div>";
-	this._srPointsValue.innerHTML = $gameVariables.value(_SRCountVariable);		
+	this._srPointsValue.innerHTML = $SRWSaveManager.getSRCount();		
 	
 	this._fundsValue.innerHTML = $gameParty.gold();		
 	

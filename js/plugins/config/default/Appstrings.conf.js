@@ -30,7 +30,9 @@ APPSTRINGS.GENERAL = {
 	label_victory_condition: "Victory Condition",
 	label_defeat_condition: "Defeat  Condition",
 	label_mastery_condition: "Mastery Condition",
-	label_mastery_locked: "Unobtainable after Game Over on this stage."
+	label_mastery_locked: "Unobtainable after Game Over on this stage.",
+	label_mastery_completed: "Completed!",
+	label_mastery_completed_message: "Mastery Condition completed!",
 }
 
 APPSTRINGS.MAPMENU = {

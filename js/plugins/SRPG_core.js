@@ -494,6 +494,21 @@ var $battleSceneManager = new BattleSceneManager();
 			var actor = $gameSystem.EventToUnit(args[0])[1];		
 			$statCalc.setFlying(actor, false);						
 		}
+		
+		if (command === 'awardSRPoint') {
+			var mapId = $gameMap.mapId();
+			var isNewlyAwarded = $SRWSaveManager.awardMapSRPoint(mapId);	
+			if(isNewlyAwarded){
+				var se = {};
+				se.name = 'SRWMastery';
+				se.pan = 0;
+				se.pitch = 100;
+				se.volume = 80;
+				AudioManager.playSe(se);
+				$gameMap._interpreter.showMasteryGet();
+				$gameVariables.setValue(_masteryConditionText, APPSTRINGS.GENERAL.label_mastery_completed);	
+			}						
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -4043,6 +4058,18 @@ Game_Interpreter.prototype.showStageConditions = function(){
 		}
 		$gameMessage.add(APPSTRINGS.GENERAL.label_mastery_condition + ": "+masteryText);
 		
+		this._index++;
+        this.setWaitMode('message');
+	}
+	return false;
+}
+
+Game_Interpreter.prototype.showMasteryGet = function(){
+	if (!$gameMessage.isBusy()) {
+		$gameMessage.setFaceImage("", "");
+		$gameMessage.setBackground(1);
+        $gameMessage.setPositionType(1);
+		$gameMessage.add("\\TA[1]\n" + APPSTRINGS.GENERAL.label_mastery_completed_message);				
 		this._index++;
         this.setWaitMode('message');
 	}

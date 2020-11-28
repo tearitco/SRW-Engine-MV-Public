@@ -770,6 +770,9 @@ Put the specified event into a flying state if the unit is capable of flight.
 * setEventLanded event\_id
 Put the specified event into a grounded state.
 
+* awardSRPoint
+Grants the SR point for the current stage. Does not award the point if the SR point is locked for the current stage. If the point was newly awarded it automatically displays the reward text and plays a sound effect.
+
 ## Script commands
 
 These added commands can be used in Script commands while making event scripts.<br>
