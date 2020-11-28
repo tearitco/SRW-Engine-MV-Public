@@ -387,6 +387,12 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			}
 			
 			var reductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier"]);
+			if(weaponInfo.particleType == "beam"){
+				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["beam_reduction_barrier"])
+			}
+			if(weaponInfo.particleType == "gravity"){
+				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["gravity_reduction_barrier"])
+			}
 			if(reductionBarrierAmount) {
 				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier_cost"]);
 				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
@@ -565,6 +571,13 @@ BattleCalc.prototype.generateBattleResult = function(){
 				
 				if(weaponref.particleType == "missile" && Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["jamming_rate"])){
 					dCache.isJamming = true;
+					isHit = 0;
+				}
+				
+				var aSkill = $statCalc.getPilotStat(aCache.ref, "skill");
+				var dSkill = $statCalc.getPilotStat(dCache.ref, "skill");				
+				if((weaponref.particleType == "funnel" || weaponref.particleType == "missile") && $statCalc.applyStatModsToValue(this._defender.actor, 0, ["shoot_down"]) && dSkill > aSkill){
+					dCache.isShootDown = true;
 					isHit = 0;
 				}
 				

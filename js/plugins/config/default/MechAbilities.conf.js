@@ -337,4 +337,74 @@ $SRWConfig.mechAbilties = function(){
 		[0],
 		1
 	);	
+	
+	this.addDefinition(
+		24, 
+		"E Field", 
+		"Reduces all damage by 1500. 15 EN per use.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "reduction_barrier", modType: "addFlat", value: 1000},{type: "reduction_barrier_cost", modType: "addFlat", value: 15}];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 120;
+		}
+	);
+	
+	this.addDefinition(
+		25, 
+		"AB Field", 
+		"Reduces beam damage by 1200. 10 EN per use.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "beam_reduction_barrier", modType: "addFlat", value: 1200},{type: "reduction_barrier_cost", modType: "addFlat", value: 10}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		26, 
+		"Passive Bit", 
+		"Reduces beam damage by 1100. 5 EN per use.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "beam_reduction_barrier", modType: "addFlat", value: 1100},{type: "reduction_barrier_cost", modType: "addFlat", value: 5}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		27, 
+		"Beam Coat", 
+		"Reduces beam damage by 900. 5 EN per use.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "beam_reduction_barrier", modType: "addFlat", value: 900},{type: "reduction_barrier_cost", modType: "addFlat", value: 5}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		28, 
+		"Distortion Field", 
+		"Reduces gravity and beam damage by 3000. Reduces other types of damage by 1000 damage. 10 EN per use.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "reduction_barrier", modType: "addFlat", value: 1000},{type: "beam_reduction_barrier", modType: "addFlat", value: 2000},{type: "gravity_reduction_barrier", modType: "addFlat", value: 2000},{type: "reduction_barrier_cost", modType: "addFlat", value: 5}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
 };

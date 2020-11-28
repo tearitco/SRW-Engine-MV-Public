@@ -714,4 +714,21 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		1
 	);
+	this.addDefinition(
+		40, 
+		"Shoot Down", 
+		"", 
+		false,
+		true,
+		function(actor, level){
+			return [
+				{type: "shoot_down", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		1
+	);
 }

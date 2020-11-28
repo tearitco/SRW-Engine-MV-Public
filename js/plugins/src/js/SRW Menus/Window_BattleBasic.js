@@ -485,6 +485,9 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			
 			special_targetJamming: "enemy_jamming",
 			special_targetSupportJamming: "enemy_support_jamming",
+			
+			special_targetShootDown: "enemy_shoot_down",
+			special_targetSupportShootDown: "enemy_support_shoot_down",
 		},
 		"enemy": {
 			support: this._enemySupporter,
@@ -515,6 +518,9 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			
 			special_targetJamming: "actor_jamming",
 			special_targetSupportJamming: "actor_support_jamming",
+			
+			special_targetShootDown: "actor_shoot_down",
+			special_targetSupportShootDown: "actor_support_shoot_down",
 		}
 	};
 	var currentInfo = typeInfo[type];
@@ -656,6 +662,22 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 				evadeAnimation.special[currentInfo.special_targetJamming] = true;
 				this._animationQueue.push([evadeAnimation]);
 			}					
+		} else if(nextAction.attacked.isShootDown){
+			if(nextAction.attacked.type == "support defend"){				
+				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportDefend}]);			
+			 
+				evadeAnimation = {target: target, type: "no_damage"};
+				evadeAnimation.special = {};
+				evadeAnimation.special[currentInfo.special_targetSupportShootDown] = true;
+				this._animationQueue.push([evadeAnimation]);
+						
+				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);			
+			} else {
+				evadeAnimation = {target: target, type: "no_damage"};
+				evadeAnimation.special = {};
+				evadeAnimation.special[currentInfo.special_targetShootDown] = true;
+				this._animationQueue.push([evadeAnimation]);
+			}					
 		} else {
 			evadeAnimation = {target: currentInfo.targetMain, type: currentInfo.anim_targetEvade};
 			evadeAnimation.special = {};
@@ -677,7 +699,7 @@ Window_BattleBasic.prototype.update = function() {
 			return;
 		}
 		if(this._finishing){
-			if(this._finishTimer <= 0){
+			if(this._finishTimer <= 0 && !$gameTemp.pauseBasicBattle){
 				this._finishing = false;
 				$gameTemp.popMenu = true;
 				$gameSystem.setSubBattlePhase('after_battle');
@@ -930,6 +952,55 @@ Window_BattleBasic.prototype.update = function() {
 
 								var se = {};
 								se.name = 'SRWJamming';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);									
+							}
+							
+							if(nextAnimation.special.enemy_shoot_down){
+								_this._enemyDoubleImage.style.display = "block";
+								_this._enemyDoubleImage.innerHTML = "SHOOT DOWN";
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWShootDown';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
+							}
+							if(nextAnimation.special.actor_shoot_down){
+								_this._actorDoubleImage.style.display = "block";
+								_this._actorDoubleImage.innerHTML = "SHOOT DOWN";
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWShootDown';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);								
+							}
+							if(nextAnimation.special.enemy_support_shoot_down){
+								_this._enemySupportDoubleImage.style.display = "block";
+								_this._enemySupportDoubleImage.innerHTML = "SHOOT DOWN";
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWShootDown';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);		
+							}
+							if(nextAnimation.special.actor_support_shoot_down){
+								_this._actorSupportDoubleImage.style.display = "block";
+								_this._actorSupportDoubleImage.innerHTML = "SHOOT DOWN";
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+
+								var se = {};
+								se.name = 'SRWShootDown';
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
