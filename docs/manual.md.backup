@@ -771,7 +771,29 @@ Put the specified event into a flying state if the unit is capable of flight.
 Put the specified event into a grounded state.
 
 * awardSRPoint
-Grants the SR point for the current stage. Does not award the point if the SR point is locked for the current stage.
+Grants the SR point for the current stage. Does not award the point if the SR point is locked for the current stage. If the point was newly awarded it automatically displays the reward text and plays a sound effect.
+
+* showEnemyPhase
+
+Show text declaring the start of an enemy phase. Automatically shows the correct faction color and displays "Ally Phase" instead if a faction is configured to be friendly to the player.
+
+* enableFaction faction\_id
+
+Enables the specified faction. Faction 0 is for standard enemies and is enabled by default. Factions 1 and 2 are additional factions whose aggro can be configured with other commands. Enemies spawned as those other factions will only take their turns if the correct faction is enabled.
+
+* disableFaction faction\_id
+
+Disables the specified faction.
+
+* setFactionAggro faction\_id targets
+
+Set the aggro for the specified faction. Targets should be in the following format, ex.: 
+["player",0,2]. This example will make members of the specified faction aggressive towards player units and units of faction 0(default enemies) and faction 2.
+
+* clearFactionAggro faction\_id
+
+Clears all current faction aggro settings for the specified faction.
+
 
 ## Script commands
 
@@ -835,7 +857,7 @@ They can also be used as conditionals in IF statements.
 	To be used in the before_destruction event.<br>
 	This can be used for bosses that run away when destroyed etc.
 
-* this.addEnemy(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion)
+* this.addEnemy(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId)
 
 	Spawn an enemy on the map, the event that will be used must already exist.<br>
 	The following can be set:<br>
@@ -857,8 +879,9 @@ They can also be used as conditionals in IF statements.
 		<br>
 		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
 		<br>
-		* targetRegion: the id of the region that the enemy should move towards<br>
-	A setting can be left blank by entering "" as its value.		
+		* targetRegion: the id of the region that the enemy should move towards<br>	
+		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
+A setting can be left blank by entering "" as its value.	
 	
 * this.addEnemies(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion)
 	
