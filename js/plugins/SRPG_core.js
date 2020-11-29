@@ -1199,9 +1199,26 @@ var $battleSceneManager = new BattleSceneManager();
 		 };
 	}
 	
+	Game_System.prototype.getFactionId = function(actor) {
+		if(actor.isActor()){
+			return "player";
+		} else {
+			return actor.factionId;
+		}		
+	}
+	
 	Game_System.prototype.getEnemyFactionInfo = function(enemy) {
 		 return this.factionConfig[enemy.factionId];
 	}
+	
+	Game_System.prototype.isFriendly = function(actor, factionId) {
+		var factionInfo = this.getUnitFactionInfo(actor);
+		if(factionId == "player"){
+			return !factionInfo.attacksPlayers;
+		} else {
+			return factionInfo.attacksFactions.indexOf(factionId) == -1;
+		}
+	}	
 	
 	Game_System.prototype.getUnitFactionInfo = function(actor) {
 		if(actor.isActor()){
@@ -3462,7 +3479,7 @@ var $battleSceneManager = new BattleSceneManager();
 											x: $gameTemp.activeEvent().posX(),
 											y: $gameTemp.activeEvent().posY(),
 										};
-										var supporters = $statCalc.getSupportAttackCandidates("actor", position);
+										var supporters = $statCalc.getSupportAttackCandidates("player", position);
 										var supporterInfo = [];
 										var supporterSelected = -1;
 										var bestDamage = 0;
@@ -3480,7 +3497,7 @@ var $battleSceneManager = new BattleSceneManager();
 										$gameTemp.supportAttackCandidates = supporterInfo;
 										$gameTemp.supportAttackSelected = supporterSelected;
 										
-										var supporters = $statCalc.getSupportDefendCandidates("enemy", {x: event.posX(), y: event.posY()});
+										var supporters = $statCalc.getSupportDefendCandidates($gameSystem.getFactionId($gameTemp.currentBattleEnemy), {x: event.posX(), y: event.posY()});
 										var supporterSelected = -1;
 										var minDamage = -1;
 										for(var i = 0; i < supporters.length; i++){
@@ -8676,7 +8693,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if(battleEffect.attackedBy && battleEffect.isDestroyed){
 					$statCalc.modifyWill(battleEffect.attackedBy.ref, 2);
 					//$statCalc.modifyAllWill(battleEffect.isActor ? "actor" : "enemy", 1);	
-					$statCalc.applyEnemyDestroyedWill($gameSystem.isEnemy(battleEffect.attackedBy.ref) ? "enemy" : "actor");	
+					$statCalc.applyEnemyDestroyedWill($gameSystem.getFactionId(battleEffect.attackedBy.ref));	
 				}
 				if(battleEffect.isAttacked){		
 					if(!battleEffect.isHit){
@@ -8754,7 +8771,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if(battleEffect.attacked && battleEffect.attacked.isDestroyed){					
 					$statCalc.modifyWill(battleEffect.ref, 4);
 					//$statCalc.modifyAllWill(battleEffect.isActor ? "actor" : "enemy", 1);	
-					$statCalc.applyEnemyDestroyedWill($gameSystem.isEnemy(battleEffect.ref) ? "enemy" : "actor");	
+					$statCalc.applyEnemyDestroyedWill($gameSystem.getFactionId(battleEffect.ref));	
 				}	
 				if(battleEffect.isAttacked){		
 					if(!battleEffect.isHit){
@@ -10166,7 +10183,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			};
 		}
 		
-		var supporters = $statCalc.getSupportDefendCandidates($gameSystem.isEnemy(actorInfo.actor) ? "enemy" : "actor", actorInfo.pos);
+		var supporters = $statCalc.getSupportDefendCandidates($gameSystem.getFactionId(actorInfo.actor), actorInfo.pos);
 		var supporterSelected = -1;
 		var minDamage = -1;
 		for(var i = 0; i < supporters.length; i++){
@@ -10180,7 +10197,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.supportDefendCandidates = supporters;
 		$gameTemp.supportDefendSelected = supporterSelected;
 		
-		var supporters = $statCalc.getSupportAttackCandidates($gameSystem.isEnemy(enemyInfo.actor) ? "enemy" : "actor", {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
+		var supporters = $statCalc.getSupportAttackCandidates($gameSystem.getFactionId(enemyInfo.actor), {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
 		var supporterInfo = [];
 		var supporterSelected = -1;
 		var bestDamage = 0;

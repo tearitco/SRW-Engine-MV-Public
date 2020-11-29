@@ -520,10 +520,10 @@ StatCalc.prototype.applyTurnStartWill = function(type, factionId){
 	});
 }
 
-StatCalc.prototype.applyEnemyDestroyedWill = function(type){
+StatCalc.prototype.applyEnemyDestroyedWill = function(factionId){
 	var _this = this;
 	this.iterateAllActors(null, function(actor, event){	
-		if((type == "actor" && !$gameSystem.isEnemy(actor)) || (type == "enemy" && $gameSystem.isEnemy(actor))){
+		if($gameSystem.isFriendly(actor, factionId)){
 			_this.modifyWill(actor, _this.applyStatModsToValue(actor, 1, ["destroy_will"]));
 		}		
 	});
@@ -2212,13 +2212,13 @@ StatCalc.prototype.getSupportRecipientCandidates = function(type, position, all)
 	return result;
 }
 
-StatCalc.prototype.getSupportAttackCandidates = function(type, position){
+StatCalc.prototype.getSupportAttackCandidates = function(factionId, position){
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
 			var maxSupportAttacks = $statCalc.applyStatModsToValue(actor, 0, ["support_attack"]);
 			if(maxSupportAttacks > actor.SRWStats.battleTemp.supportAttackCount && !actor.SRWStats.battleTemp.hasFinishedTurn){
-				if((type == "actor" && !$gameSystem.isEnemy(actor)) || (type == "enemy" && $gameSystem.isEnemy(actor))){
+				if($gameSystem.isFriendly(actor, factionId)){
 					result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});	
 				}				
 			}			
@@ -2233,13 +2233,13 @@ StatCalc.prototype.incrementSupportAttackCounter = function(actor){
 	}
 }
 	
-StatCalc.prototype.getSupportDefendCandidates = function(type, position){
+StatCalc.prototype.getSupportDefendCandidates = function(factionId, position){
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
 			var maxSupportDefends = $statCalc.applyStatModsToValue(actor, 0, ["support_defend"]);			
 			if(maxSupportDefends > actor.SRWStats.battleTemp.supportDefendCount){
-				if((type == "actor" && !$gameSystem.isEnemy(actor)) || (type == "enemy" && $gameSystem.isEnemy(actor))){
+				if($gameSystem.isFriendly(actor, factionId)){
 					result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});
 				}				
 			}
