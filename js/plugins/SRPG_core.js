@@ -513,6 +513,22 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'showEnemyPhase') {
 			$gameMap._interpreter.showEnemyPhaseText();
 		}
+		
+		if (command === 'enableFaction') {
+			$gameSystem.enableFaction(args[0]);
+		}
+		
+		if (command === 'disableFaction') {
+			$gameSystem.disableFaction(args[0]);
+		}			
+		
+		if (command === 'setFactionAggro') {
+			$gameSystem.setFactionAggro(args[0], JSON.parse(args[1]));
+		}
+		
+		if (command === 'clearFactionAggro') {
+			$gameSystem.clearFactionAggro(args[0]);
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -1123,26 +1139,57 @@ var $battleSceneManager = new BattleSceneManager();
 			1: {
 				attacksPlayers:false,
 				attacksFactions: [0],
-				active: true
+				active: false
 			},
 			2: {
 				attacksPlayers:false,
 				attacksFactions: [0],
-				active: true
+				active: false
 			}
 		};
         this.srpgStartActorTurn();//アクターターンを開始する
     };
 	
+	Game_System.prototype.enableFaction = function(id) {
+		if(this.factionConfig[id]){
+			this.factionConfig[id].active = true;
+		}		
+	}
+	
+	Game_System.prototype.disableFaction = function(id) {
+		if(this.factionConfig[id]){
+			this.factionConfig[id].active = false;
+		}		
+	}
+	
+	Game_System.prototype.setFactionAggro = function(id, aggro) {
+		if(this.factionConfig[id]){
+			this.factionConfig[id].attacksFactions = [];
+			for(var i = 0; i < aggro.length; i++){
+				if(aggro[i] == "player"){
+					this.factionConfig[id].attacksPlayers = true;
+				} else {
+					this.factionConfig[id].attacksFactions.push(aggro[i]);
+				}
+			}		
+		}
+	}		
+	
+	Game_System.prototype.clearFactionAggro = function(id) {
+		if(this.factionConfig[id]){
+			this.factionConfig[id].attacksFactions = [];
+		}
+	}
+	
 	Game_System.prototype.getPlayerFactionInfo = function() {
 		 var aggressiveFactions = [];
-		 if($gameSystem.factionConfig[0].attacksPlayers){
+		 if(this.factionConfig[0].attacksPlayers){
 			 aggressiveFactions.push(0);
 		 }
-		 if($gameSystem.factionConfig[1].attacksPlayers){
+		 if(this.factionConfig[1].attacksPlayers){
 			 aggressiveFactions.push(1);
 		 }
-		 if($gameSystem.factionConfig[2].attacksPlayers){
+		 if(this.factionConfig[2].attacksPlayers){
 			 aggressiveFactions.push(2);
 		 }
 		 return {
@@ -1153,7 +1200,7 @@ var $battleSceneManager = new BattleSceneManager();
 	}
 	
 	Game_System.prototype.getEnemyFactionInfo = function(enemy) {
-		 return $gameSystem.factionConfig[enemy.factionId];
+		 return this.factionConfig[enemy.factionId];
 	}
 	
 	Game_System.prototype.getUnitFactionInfo = function(actor) {
@@ -1640,17 +1687,16 @@ var $battleSceneManager = new BattleSceneManager();
             }
         });
 		
-		$statCalc.clearSpiritOnAll("enemy", "strike");
-		$statCalc.clearSpiritOnAll("enemy", "wall");
-		$statCalc.clearSpiritOnAll("enemy", "focus");
+		$statCalc.clearSpiritOnAll("enemy", "strike", factionId);
+		$statCalc.clearSpiritOnAll("enemy", "wall", factionId);
+		$statCalc.clearSpiritOnAll("enemy", "focus", factionId);
 		$statCalc.clearSpiritOnAll("actor", "disrupt");
 		$statCalc.clearSpiritOnAll("actor", "analyse");
-		$statCalc.clearTempEffectOnAll("enemy", "victory_turn");
-		$statCalc.applyTurnStartWill("enemy");
-		$statCalc.applyENRegen("enemy");
-		$statCalc.applyAmmoRegen("enemy");
-		$statCalc.applyHPRegen("enemy");
-		$statCalc.resetAllBattleTemp();
+		$statCalc.applyTurnStartWill("enemy", factionId);
+		$statCalc.applyENRegen("enemy", factionId);
+		$statCalc.applyAmmoRegen("enemy", factionId);
+		$statCalc.applyHPRegen("enemy", factionId);
+		$statCalc.resetAllBattleTemp(null, factionId);
 		$statCalc.resetAllStatus("actor");
 		$gameTemp.enemyWaitTimer = 0;
         this.setBattlePhase('enemy_phase');
@@ -10134,7 +10180,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.supportDefendCandidates = supporters;
 		$gameTemp.supportDefendSelected = supporterSelected;
 		
-		var supporters = $statCalc.getSupportAttackCandidates("enemy", {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
+		var supporters = $statCalc.getSupportAttackCandidates($gameSystem.isEnemy(enemyInfo.actor) ? "enemy" : "actor", {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
 		var supporterInfo = [];
 		var supporterSelected = -1;
 		var bestDamage = 0;

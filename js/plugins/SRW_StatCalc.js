@@ -511,10 +511,12 @@ StatCalc.prototype.applyBattleStartWill = function(){
 	});
 }
 
-StatCalc.prototype.applyTurnStartWill = function(type){
+StatCalc.prototype.applyTurnStartWill = function(type, factionId){
 	var _this = this;
 	this.iterateAllActors(type, function(actor, event){			
-		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_turn_will"]) + 1);				
+		if(actor.isActor() || actor.factionId == factionId || factionId == null){
+			_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_turn_will"]) + 1);	
+		}		
 	});
 }
 
@@ -2431,15 +2433,17 @@ StatCalc.prototype.recoverHPPercent = function(actor, percent){
 	} 	
 }
 
-StatCalc.prototype.applyHPRegen = function(type){
+StatCalc.prototype.applyHPRegen = function(type, factionId){
 	var _this = this;
 	this.iterateAllActors(type, function(actor, event){	
-		if(_this.isBoarded(actor)){
-			_this.recoverHPPercent(actor, 20);	
-		} else {
-			_this.recoverHPPercent(actor, _this.applyStatModsToValue(actor, 0, ["HP_regen"]));			
-			_this.recoverHPPercent(actor, _this.getCurrentTerrainMods(actor).hp_regen);	
-		}				
+		if(actor.isActor() || actor.factionId == factionId || factionId == null){
+			if(_this.isBoarded(actor)){
+				_this.recoverHPPercent(actor, 20);	
+			} else {
+				_this.recoverHPPercent(actor, _this.applyStatModsToValue(actor, 0, ["HP_regen"]));			
+				_this.recoverHPPercent(actor, _this.getCurrentTerrainMods(actor).hp_regen);	
+			}
+		}		
 	});
 }
 
@@ -2568,15 +2572,17 @@ StatCalc.prototype.recoverENPercent = function(actor, percent){
 	}
 }
 
-StatCalc.prototype.applyENRegen = function(type){
+StatCalc.prototype.applyENRegen = function(type, factionId){
 	var _this = this;
-	this.iterateAllActors(type, function(actor, event){			
-		if(_this.isBoarded(actor)){
-			_this.recoverENPercent(actor, 20);	
-		} else {
-			_this.recoverENPercent(actor, _this.applyStatModsToValue(actor, 0, ["EN_regen"]));	
-			_this.recoverENPercent(actor, _this.getCurrentTerrainMods(actor).en_regen);	
-		}				
+	this.iterateAllActors(type, function(actor, event){		
+		if(actor.isActor() || actor.factionId == factionId || factionId == null){
+			if(_this.isBoarded(actor)){
+				_this.recoverENPercent(actor, 20);	
+			} else {
+				_this.recoverENPercent(actor, _this.applyStatModsToValue(actor, 0, ["EN_regen"]));	
+				_this.recoverENPercent(actor, _this.getCurrentTerrainMods(actor).en_regen);	
+			}	
+		}	
 	});
 }
 
@@ -2626,10 +2632,12 @@ StatCalc.prototype.canRecoverAmmo = function(actor, percent){
 	} 	
 }
 
-StatCalc.prototype.applyAmmoRegen = function(type){
+StatCalc.prototype.applyAmmoRegen = function(type, factionId){
 	var _this = this;
-	this.iterateAllActors(type, function(actor, event){			
-		_this.recoverAmmoPercent(actor, _this.applyStatModsToValue(actor, 0, ["ammo_regen"]));				
+	this.iterateAllActors(type, function(actor, event){	
+		if(actor.isActor() || actor.factionId == factionId || factionId == null){
+			_this.recoverAmmoPercent(actor, _this.applyStatModsToValue(actor, 0, ["ammo_regen"]));				
+		}	
 	});
 }
 
@@ -2645,10 +2653,12 @@ StatCalc.prototype.clearSpirit = function(actor, spirit){
 	} 	
 }
 
-StatCalc.prototype.clearSpiritOnAll = function(type, spirit){		
+StatCalc.prototype.clearSpiritOnAll = function(type, spirit, factionId){		
 	var _this = this;
-	_this.iterateAllActors(type, function(actor){			
-		_this.clearSpirit(actor, spirit);						
+	_this.iterateAllActors(type, function(actor){	
+		if(actor.isActor() || actor.factionId == factionId || factionId == null){
+			_this.clearSpirit(actor, spirit);
+		}								
 	});
 }
 
@@ -2679,10 +2689,12 @@ StatCalc.prototype.clearTempEffectOnAll = function(type, effect){
 	});
 }
 
-StatCalc.prototype.resetAllBattleTemp = function(type){		
+StatCalc.prototype.resetAllBattleTemp = function(type, factionId){		
 	var _this = this;
-	_this.iterateAllActors(type, function(actor){			
-		_this.resetBattleTemp(actor);						
+	_this.iterateAllActors(type, function(actor){
+		if(actor.isActor() || actor.factionId == factionId || factionId == null){		
+			_this.resetBattleTemp(actor);	
+		}		
 	});
 }
 

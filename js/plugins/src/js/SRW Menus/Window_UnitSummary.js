@@ -101,15 +101,16 @@ Window_UnitSummary.prototype.redraw = function() {
 		this.updateScaledDiv(_this._bgFadeContainer);
 		this.updateScaledDiv(_this._bgFadeContainer.querySelector("#unit_summary_icon"));	
 		var actorIcon = this._bgFadeContainer.querySelector("#unit_summary_icon");
-		_this._bgFadeContainer.classList.remove("enemy");
-		_this._bgFadeContainer.classList.remove("actor");
+		//_this._bgFadeContainer.classList.remove("enemy");
+		//_this._bgFadeContainer.classList.remove("actor");
 		if(actor.isActor()){
-			_this._bgFadeContainer.classList.add("actor");
+			//_this._bgFadeContainer.classList.add("actor");
 			this.loadActorFace(actor.actorId(), actorIcon);
 		} else {
-			_this._bgFadeContainer.classList.add("enemy");
+			//_this._bgFadeContainer.classList.add("enemy");
 			this.loadEnemyFace(actor.enemyId(), actorIcon);
-		}		
+		}	
+		_this.assignFactionColorClass(_this._bgFadeContainer, actor);
 	}
 	
 	Graphics._updateCanvas();

@@ -14,15 +14,10 @@
 	--heightpixels: 157;
     padding: 0;
     margin: 0;
-	background-color: rgba(38, 110, 172, 0.9);
 	position: absolute;
 	top: 0;
 	right: 0;
 	border-bottom-left-radius: 1vw;
-}
-
-#unit_summary .bg_fade_container.enemy {
-	background-color: rgba(172, 38, 38, 0.9);
 }
 
 #unit_summary .unit_summary_content {
@@ -191,4 +186,20 @@
 
 #unit_summary .mech_hp_en_container .hp_display .max_hp{
 	display: none;
+}
+
+#unit_summary .faction_color.ally {
+	background-color: rgba(38, 110, 172, 0.9);
+}
+
+#unit_summary .faction_color.enemy {
+	background-color: rgba(172, 38, 38, 0.9);
+}
+
+#unit_summary .faction_color.faction_1 {
+	background-color: rgba(38, 172, 83, 0.9);
+}
+
+#unit_summary .faction_color.faction_2 {
+	background-color: rgba(172, 172, 38, 0.9);
 }
