@@ -494,10 +494,16 @@ BattleCalc.prototype.generateBattleResult = function(){
 		supportDefender = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];
 	}
 	
+	var attackerSide;
+	var defenderSide;
 	if($gameTemp.isEnemyAttack){
+		attackerSide = "enemy";
+		defenderSide = "actor";
 		attacker = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
 		defender = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
 	} else {
+		attackerSide = "actor";
+		defenderSide = "enemy";
 		attacker = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
 		defender = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
 	}
@@ -513,15 +519,17 @@ BattleCalc.prototype.generateBattleResult = function(){
 		this.prepareBattleCache(supportDefender, "support defend");
 	}		
 	
-	function BattleAction(attacker, defender, supportDefender){
+	function BattleAction(attacker, defender, supportDefender, side){
 		this._attacker = attacker;
 		this._defender = defender;
 		this._supportDefender = supportDefender;
+		this._side = side;
 	}
 	
 	BattleAction.prototype.execute = function(orderIdx){
 		var mainAttackerCache = $gameTemp.battleEffectCache[attacker.actor._cacheReference];
 		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		aCache.side = this._side;
 		if(aCache.type == "support attack" && mainAttackerCache.isDestroyed){
 			return; //the support attacker does not get to attack if the main attacker is down
 		}
@@ -654,22 +662,24 @@ BattleCalc.prototype.generateBattleResult = function(){
 		}						
 	}
 	
+	
+	
 	var actions = [];
 	var defenderCounterActivates = Math.random() < $statCalc.applyStatModsToValue(defender.actor, 0, ["counter_rate"]);
 	if(defenderCounterActivates){
 		$gameTemp.defenderCounterActivated = true;
-		actions.push(new BattleAction(defender, attacker));
+		actions.push(new BattleAction(defender, attacker, null, defenderSide));
 		if(supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender));								
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide));								
 		}	
-		actions.push(new BattleAction(attacker, defender, supportDefender));			
+		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));			
 	} else {
 		$gameTemp.defenderCounterActivated = false;
 		if(supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender));								
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide));								
 		}	
-		actions.push(new BattleAction(attacker, defender, supportDefender));	
-		actions.push(new BattleAction(defender, attacker));			
+		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
+		actions.push(new BattleAction(defender, attacker, null, defenderSide));			
 	}
 	
 	for(var i = 0; i < actions.length; i++){

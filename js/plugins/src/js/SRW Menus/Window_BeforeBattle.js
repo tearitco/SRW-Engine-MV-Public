@@ -38,7 +38,9 @@ Window_BeforeBattle.prototype.show = function(){
 }
 
 Window_BeforeBattle.prototype.getMaxMainSelection = function(){
-	if($gameTemp.isEnemyAttack){
+	if(!$gameTemp.currentBattleActor.isActor()){
+		return 2;
+	} else if($gameTemp.isEnemyAttack){
 		return 4;
 	} else {
 		return 3;
@@ -114,6 +116,7 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	this._enemy_header = document.createElement("div");
 	this._enemy_header.id = this.createId("enemy_header");
 	this._enemy_header.classList.add("scaled_text");
+	this._enemy_header.classList.add("faction_color");
 	this._enemy_label = document.createElement("div");
 	this._enemy_label.classList.add("enemy_label");
 	this._enemy_header.appendChild(this._enemy_label);
@@ -122,6 +125,7 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	this._ally_header = document.createElement("div");
 	this._ally_header.id = this.createId("ally_header");
 	this._ally_header.classList.add("scaled_text");
+	this._ally_header.classList.add("faction_color");
 	this._ally_label = document.createElement("div");
 	this._ally_label.classList.add("ally_label");
 	this._ally_header.appendChild(this._ally_label);	
@@ -129,18 +133,22 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	
 	this._ally_main = document.createElement("div");
 	this._ally_main.id = this.createId("ally_main");
+	this._ally_main.classList.add("faction_color");
 	windowNode.appendChild(this._ally_main);	
 	
 	this._ally_support = document.createElement("div");
 	this._ally_support.id = this.createId("ally_support");
+	this._ally_support.classList.add("faction_color");
 	windowNode.appendChild(this._ally_support);	
 	
 	this._enemy_main = document.createElement("div");
 	this._enemy_main.id = this.createId("enemy_main");
+	this._enemy_main.classList.add("faction_color");
 	windowNode.appendChild(this._enemy_main);		
 	
 	this._enemy_support = document.createElement("div");
 	this._enemy_support.id = this.createId("enemy_support");
+	this._enemy_support.classList.add("faction_color");
 	windowNode.appendChild(this._enemy_support);	
 	
 	this._btn_start = document.createElement("div");
@@ -159,13 +167,13 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	this._btn_demo.setAttribute("action_id", 1);
 	windowNode.appendChild(this._btn_demo);	
 	
-	this._btn_asssist = document.createElement("div");
-	this._btn_asssist.id = this.createId("btn_asssist");
-	this._btn_asssist.innerHTML = "Select Assist";
-	this._btn_asssist.classList.add("action_btn");
-	this._btn_asssist.classList.add("scaled_text");
-	this._btn_asssist.setAttribute("action_id", 2);
-	windowNode.appendChild(this._btn_asssist);	
+	this._btn_assist = document.createElement("div");
+	this._btn_assist.id = this.createId("btn_asssist");
+	this._btn_assist.innerHTML = "Select Assist";
+	this._btn_assist.classList.add("action_btn");
+	this._btn_assist.classList.add("scaled_text");
+	this._btn_assist.setAttribute("action_id", 2);
+	windowNode.appendChild(this._btn_assist);	
 	
 	this._btn_action = document.createElement("div");
 	this._btn_action.id = this.createId("btn_action");
@@ -464,7 +472,7 @@ Window_BeforeBattle.prototype.createParticipantBlock = function(ref, action, isS
 	
 		content+="<div class='main_content'>";
 	
-		if(allyOrEnemy == "ally"){
+		if(ref.isActor()){
 			content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='pilot_icon'>";
 			content+="</div>";
 		} else {
@@ -554,6 +562,7 @@ Window_BeforeBattle.prototype.createParticipantBlock = function(ref, action, isS
 	return content;
 }
 
+
 Window_BeforeBattle.prototype.redraw = function() {
 	var _this = this;
 	//this._mechList.redraw();	
@@ -637,13 +646,30 @@ Window_BeforeBattle.prototype.redraw = function() {
 		_this._btn_demo.innerHTML = "DEMO: OFF";
 	}
 	
-	if($gameTemp.isEnemyAttack){
-		_this._btn_action.style.display = "";
-	} else {
+	if(!$gameTemp.currentBattleActor.isActor()){
 		_this._btn_action.style.display = "none";
-	}
+		_this._btn_assist.style.display = "none";
+	} else {
+		_this._btn_action.style.display = "";
+		_this._btn_assist.style.display = "";
+		if($gameTemp.isEnemyAttack){
+			_this._btn_action.style.display = "";
+		} else {
+			_this._btn_action.style.display = "none";
+		}
+	}	
 	
 	_this._enemy_header.classList.remove("support_selection_header");
+	_this.assignFactionColorClass(_this._enemy_header, $gameTemp.currentBattleEnemy);
+	_this.assignFactionColorClass(_this._enemy_main, $gameTemp.currentBattleEnemy);
+	_this.assignFactionColorClass(_this._enemy_support, $gameTemp.currentBattleEnemy);
+	
+	_this.assignFactionColorClass(_this._ally_header, $gameTemp.currentBattleActor);
+	_this.assignFactionColorClass(_this._ally_main, $gameTemp.currentBattleActor);
+	_this.assignFactionColorClass(_this._ally_support, $gameTemp.currentBattleActor);
+	
+	
+	
 	_this._support_selection.style.display = "none";
 	
 	if(_this._currentUIState == "support_selection"){

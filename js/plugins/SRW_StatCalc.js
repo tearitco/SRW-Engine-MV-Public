@@ -1778,7 +1778,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 				var rangeResult;
 				var type = actor.isActor() ? "enemy" : "actor";
 				
-				if(!this.getAllInRange(type, pos, weapon.range, weapon.minRange).length){
+				if(!this.getAllInRange($gameSystem.getUnitFactionInfo(actor), pos, weapon.range, weapon.minRange).length){
 					canUse = false;
 					detail.target = true;
 				}
@@ -1937,12 +1937,19 @@ StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 }
 
 
-StatCalc.prototype.getAllInRange = function(type, pos, range, minRange){
+StatCalc.prototype.getAllInRange = function(factionConfig, pos, range, minRange){
 	var _this = this;
 	var result = [];
-	this.iterateAllActors(type, function(actor, event){			
+	this.iterateAllActors(null, function(actor, event){			
 		var isInRange = $battleCalc.isTargetInRange({x: pos.x, y: pos.y}, {x: event.posX(), y: event.posY()}, range, minRange);
-		if(isInRange && !event._erased){
+		var isValidTarget = false;
+		if(factionConfig.attacksPlayers && actor.isActor()){
+			isValidTarget = true;
+		}
+		if(actor.isEnemy() && factionConfig.attacksFactions.indexOf(actor.factionId) != -1){
+			isValidTarget = true;
+		}
+		if(isValidTarget && isInRange && !event._erased){
 			result.push(event);
 		}			
 	});

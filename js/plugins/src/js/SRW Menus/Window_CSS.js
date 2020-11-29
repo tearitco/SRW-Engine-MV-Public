@@ -361,3 +361,25 @@ Window_CSS.prototype.updateScaledDiv = function(div, noWidth, noHeight) {
 		div.style.height = (originalHeight * Graphics.getScale()) + "px";
 	}	
 }
+
+
+Window_CSS.prototype.assignFactionColorClass = function(elem, ref) {
+	elem.classList.add("faction_color");
+	elem.classList.remove("ally");
+	elem.classList.remove("enemy");
+	elem.classList.remove("faction_1");
+	elem.classList.remove("faction_2");
+	if(ref.isActor()){
+		elem.classList.add("ally");
+	} else {
+		if(ref.factionId == 0){
+			elem.classList.add("enemy");
+		}
+		if(ref.factionId == 1){
+			elem.classList.add("faction_1");
+		}
+		if(ref.factionId == 2){
+			elem.classList.add("faction_2");
+		}
+	}
+}

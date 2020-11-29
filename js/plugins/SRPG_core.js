@@ -1109,8 +1109,64 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.persuadeOptions = {};
 		$gameTemp.currentSwapSource = -1;
 		$gameTemp.enemyAppearQueue = [];
+		
+		$gameSystem.factionConfig = {
+			0: {
+				attacksPlayers:true,
+				attacksFactions: [1,2],
+				active: true
+			},
+			1: {
+				attacksPlayers:false,
+				attacksFactions: [0],
+				active: false
+			},
+			2: {
+				attacksPlayers:false,
+				attacksFactions: [0],
+				active: false
+			}
+		};
         this.srpgStartActorTurn();//アクターターンを開始する
     };
+	
+	Game_System.prototype.getPlayerFactionInfo = function() {
+		 var aggressiveFactions = [];
+		 if($gameSystem.factionConfig[0].attacksPlayers){
+			 aggressiveFactions.push(0);
+		 }
+		 if($gameSystem.factionConfig[1].attacksPlayers){
+			 aggressiveFactions.push(1);
+		 }
+		 if($gameSystem.factionConfig[2].attacksPlayers){
+			 aggressiveFactions.push(2);
+		 }
+		 return {
+			attacksPlayers:false,
+			attacksFactions: aggressiveFactions,
+			active: true 
+		 };
+	}
+	
+	Game_System.prototype.getEnemyFactionInfo = function(enemy) {
+		 return $gameSystem.factionConfig[enemy.factionId];
+	}
+	
+	Game_System.prototype.getUnitFactionInfo = function(actor) {
+		if(actor.isActor()){
+			return this.getPlayerFactionInfo();
+		} else {
+			return this.getEnemyFactionInfo(actor);
+		}
+	}
+	
+	Game_System.prototype.isEnemy = function(actor) {
+		if(actor.isActor()){
+			return false;
+		} else {
+			return this.getEnemyFactionInfo(actor).attacksPlayers;
+		}
+	}
 
     //イベントＩＤに対応するアクター・エネミーデータを初期化する
     Game_System.prototype.clearData = function() {
@@ -1548,7 +1604,8 @@ var $battleSceneManager = new BattleSceneManager();
     };
 
     //エネミーターンの開始
-    Game_System.prototype.srpgStartEnemyTurn = function() {
+    Game_System.prototype.srpgStartEnemyTurn = function(factionId) {
+		$gameTemp.currentFaction = factionId;
 		$songManager.playStageSong();
 		
         $gameMap.events().forEach(function(event) {
@@ -4160,14 +4217,15 @@ Game_Interpreter.prototype.addEnemiesFromObj = function(params) {
 			params.targetId, 
 			params.items, 
 			params.squadId, 
-			params.targetRegion
+			params.targetRegion,
+			params.factionId
 		);
 	}
 }
 
-Game_Interpreter.prototype.addEnemies = function(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion) {
+Game_Interpreter.prototype.addEnemies = function(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId) {
 	for(var i = startId; i <= endId; i++){
-		this.addEnemy(toAnimQueue, i, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion);
+		this.addEnemy(toAnimQueue, i, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId);
 	}
 }
 
@@ -4182,12 +4240,13 @@ Game_Interpreter.prototype.addEnemyFromObj = function(params){
 		params.targetId, 
 		params.items, 
 		params.squadId, 
-		params.targetRegion
+		params.targetRegion,
+		params.factionId
 	);
 }
 
 // 新規エネミーを追加する（増援）
-Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion) {
+Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId) {
     var enemy_unit = new Game_Enemy(enemyId, 0, 0);
     var event = $gameMap.event(eventId);
 	if(typeof squadId == "undefined" || squadId == ""){
@@ -4196,10 +4255,14 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 	if(typeof targetRegion == "undefined"|| targetRegion == ""){
 		targetRegion = -1;
 	}
+	if(typeof factionId == "undefined"|| factionId == ""){
+		factionId = 0;
+	}
     if (enemy_unit && event) { 	
 		enemy_unit._mechClass = mechClass;	
 		enemy_unit.squadId = squadId;	
 		enemy_unit.targetRegion = targetRegion;	
+		enemy_unit.factionId = factionId;	
 		if (enemy_unit) {
 			enemy_unit.event = event;
 			if (mode) {
@@ -4688,10 +4751,16 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	
 	var attacker;
 	var defender;
+	var attackerSide;
+	var defenderSide;
 	if(params.enemyFirst){
+		attackerSide = "enemy";
+		defenderSide = "actor";
 		attacker = enemyInfo;
 		defender = actorInfo;
 	} else {
+		attackerSide = "actor";
+		defenderSide = "enemy";
 		attacker = actorInfo;
 		defender = enemyInfo;
 	}
@@ -4747,15 +4816,17 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	this.setBattleSceneHP(actorSupport, params.actorSupport);
 	this.setBattleSceneHP(enemySupport, params.enemySupport);
 
-	function BattleAction(attacker, defender, supportDefender){
+	function BattleAction(attacker, defender, supportDefender, side){
 		this._attacker = attacker;
 		this._defender = defender;
 		this._supportDefender = supportDefender;
+		this._side = side;
 	}
 	
 	BattleAction.prototype.execute = function(orderIdx){
 		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
 		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
+		aCache.side = this._side;
 		var activeDefender = this._defender;
 		if(this._supportDefender) {
 			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._cacheReference];
@@ -4794,10 +4865,10 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	
 	var actions = [];
 	if(supportAttacker){			
-		actions.push(new BattleAction(supportAttacker, defender, supportDefender));								
+		actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide));								
 	}	
-	actions.push(new BattleAction(attacker, defender, supportDefender));	
-	actions.push(new BattleAction(defender, attacker));			
+	actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
+	actions.push(new BattleAction(defender, attacker, defenderSide));			
 	
 	
 	for(var i = 0; i < actions.length; i++){
@@ -4953,7 +5024,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if (this._character.isEvent() == true) {
 			var battlerArray = $gameSystem.EventToUnit(this._character.eventId());
 			if (battlerArray) {
-				if (battlerArray[0] === 'enemy') {
+				if ($gameSystem.isEnemy(battlerArray[1])) {
 					this.scale.x = -1;			
 					if(this._upperBody && this._lowerBody){	
 						this._upperBody.scale.x = -1;
@@ -6633,7 +6704,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					y: $gameTemp.activeEvent().posY()
 				};
 				var fullRange = $statCalc.getFullWeaponRange(battler, $gameTemp.isPostMove);
-				var hasTarget = $statCalc.getAllInRange(type, pos, fullRange.range, fullRange.minRange).length > 0;
+				var hasTarget = $statCalc.getAllInRange($gameSystem.getPlayerFactionInfo(), pos, fullRange.range, fullRange.minRange).length > 0;
 				var hasMapWeapon = $statCalc.hasMapWeapon(battler);
 				
 				function boardingMenu(){
@@ -6721,60 +6792,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					deployMenu();
 				} else {
 					regularMenu();
-				}
-				
-				/*if($gameSystem.isSubBattlePhase() == 'confirm_boarding'){
-					this.addCommand(APPSTRINGS.MAPMENU.board, 'board');
-				} else {				
-					if($gameTemp.isHitAndAway){
-						this.addMoveCommand();
-					} else {
-						if($gameSystem.isSubBattlePhase() !== 'post_move_command_window'){
-							this.addMoveCommand();
-							if($statCalc.isShip(this._actor) && $statCalc.hasBoardedUnits(this._actor) && $statCalc.getAdjacentFreeSpace({x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()})){
-								this.addCommand(APPSTRINGS.MAPMENU.deploy, 'deploy');
-							}							
-						}				
-						var battler = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
-						var type = battler.isActor() ? "enemy" : "actor";
-						var pos = {
-							x: $gameTemp.activeEvent().posX(),
-							y: $gameTemp.activeEvent().posY()
-						};
-						var fullRange = $statCalc.getFullWeaponRange(battler, $gameTemp.isPostMove);
-						var hasTarget = $statCalc.getAllInRange(type, pos, fullRange.range, fullRange.minRange).length > 0;
-						var hasMapWeapon = $statCalc.hasMapWeapon(battler);
-						if((hasTarget || hasMapWeapon) && (!$gameTemp.activeShip || $gameTemp.isPostMove)){
-							this.addCommand(APPSTRINGS.MAPMENU.cmd_attack, 'attack');
-						}
-						
-						//this.addSkillCommands();
-						if($gameSystem.isSubBattlePhase() !== 'post_move_command_window'){
-							this.addCommand(APPSTRINGS.MAPMENU.cmd_spirit, 'spirit');
-						}
-						
-						if($statCalc.applyStatModsToValue(this._actor, 0, ["heal"]) && !$gameTemp.activeShip){
-							this.addCommand(APPSTRINGS.MAPMENU.cmd_heal, 'heal');
-						}
-						
-						if($statCalc.applyStatModsToValue(this._actor, 0, ["resupply"]) && !$gameTemp.isPostMove && !$gameTemp.activeShip){
-							this.addCommand(APPSTRINGS.MAPMENU.cmd_resupply, 'resupply');
-						}
-						if($statCalc.getConsumables(this._actor).length){
-							 this.addCommand(APPSTRINGS.MAPMENU.cmd_item, 'item');
-						}					
-						if($gameSystem.isSubBattlePhase() !== 'post_move_command_window' && $statCalc.canFly(this._actor) && $statCalc.getCurrentTerrain(this._actor) != "space"){					
-							if($statCalc.isFlying(this._actor)){
-								this.addCommand(APPSTRINGS.MAPMENU.cmd_land, 'land');
-							} else {
-								this.addCommand(APPSTRINGS.MAPMENU.cmd_fly, 'fly');
-							}					
-						}
-					}				
-					if(!$gameTemp.activeShip || $gameTemp.isPostMove){
-						this.addWaitCommand();
-					}					
-				}*/
+				}				
             }
         } else {
             _SRPG_Window_ActorCommand_makeCommandList.call(this);
@@ -8707,7 +8725,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$gameTemp.currentBattleResult = null;
 			if(actorIsDestroyed){				
 				this.srpgPrepareNextAction();
-			} else {
+			} else if($gameTemp.rewardsInfo){
 				$gameParty.gainGold($gameTemp.rewardsInfo.fundGain);			
 				$gameSystem.setSubBattlePhase("rewards_display");				
 				/*this._rewardsWindow.refresh();
@@ -8715,8 +8733,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				this._rewardsWindow.show();
 				this._rewardsWindow.activate();	*/
 				$gameTemp.pushMenu = "rewards";
-			}
-						
+			} else {
+				this.srpgPrepareNextAction();
+			}						
 		} else {
 			this.srpgPrepareNextAction();
 		}
@@ -9405,7 +9424,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
             }
             if (i > $gameMap.isMaxEventId()) {
-                $gameSystem.srpgStartEnemyTurn(); // エネミーターンの開始
+                $gameSystem.srpgStartEnemyTurn(0); // エネミーターンの開始
                 return;
             }
         }
@@ -9466,7 +9485,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
             var event = $gameMap.event(i);
             if (event && event.isType() === 'enemy') {
                 var enemy = $gameSystem.EventToUnit(event.eventId())[1];
-                if (enemy.canMove() == true && !enemy.srpgTurnEnd() && !event.isErased()) {
+                if (enemy.canMove() == true && !enemy.srpgTurnEnd() && !event.isErased() && enemy.factionId == $gameTemp.currentFaction) {
                     break;
                 }
             }
@@ -9553,6 +9572,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     //エネミーの移動先決定と移動実行
     Scene_Map.prototype.srpgInvokeEnemyMove = function() {
 		var _this = this;
+		$gameVariables.setValue(_currentActorId, -1); //ensure no active actor id lingers
 		$gameTemp.enemyWeaponSelection = null;
         var event = $gameTemp.activeEvent();
         var type = $gameSystem.EventToUnit(event.eventId())[0];
@@ -9684,37 +9704,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     // 移動力と射程を足した範囲内にいる対象をリストアップする
     Scene_Map.prototype.srpgMakeCanAttackTargets = function(battler, targetType) {
         var moveRangeList = $gameTemp.moveList();
-        var targetList = [];
-        // 対象：使用者であれば、自分だけを対象に含める
-      /*  if (battler.currentAction().isForUser()) {
-            targetList.push($gameTemp.activeEvent());
-            return targetList;
-        }
-        // 対象をリストアップする：優先ターゲットが設定されている場合は、そのイベントのみリストに加える
-       /* for (var i = 0; i < moveRangeList.length; i++) {
-            var pos =  moveRangeList[i];
-            var events = $gameMap.eventsXyNt(pos[0], pos[1]);
-            for (var j = 0; j < events.length; j++) {
-                var event = events[j];
-                if (event.isType() === targetType && !event.isErased() &&
-                    targetList.indexOf(event) === -1) {
-                    if (!battler.isConfused() || $gameTemp.activeEvent() != event) {
-                        if ($gameTemp.isSrpgPriorityTarget()) {
-                            if ($gameTemp.isSrpgPriorityTarget() == event) targetList.push(event);
-                        } else {
-                            targetList.push(event);
-                        }
-                    }
-                }
-            }
-        }*/		
-		var type = battler.isActor() ? "enemy" : "actor";
+        var targetList = [];	
+		//var type = battler.isActor() ? "enemy" : "actor";
 		var pos = {
 			x: $gameTemp.activeEvent().posX(),
 			y: $gameTemp.activeEvent().posY()
 		};
 		var fullRange = $statCalc.getFullWeaponRange(battler, $gameTemp.isPostMove);
-        return $statCalc.getAllInRange(type, pos, fullRange.range, fullRange.minRange);
+        return $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
+		
     };
 
      //優先ターゲットの決定

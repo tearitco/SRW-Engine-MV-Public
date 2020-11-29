@@ -334,23 +334,27 @@ Window_BattleBasic.prototype.readBattleCache = function() {
 		var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 		_this._actionQueue[battleEffect.actionOrder] = battleEffect;
 		battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP;
-		if(battleEffect.isActor){
+		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.actor.participating = true;
 				_this._participantInfo.actor.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+				_this._participantInfo.actor.ref = battleEffect.ref;
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
 				_this._participantInfo.actor_supporter.participating = true;
 				_this._participantInfo.actor_supporter.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+				_this._participantInfo.actor_supporter.ref = battleEffect.ref;
 			}
 		} else {
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.enemy.participating = true;
 				_this._participantInfo.enemy.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+				_this._participantInfo.enemy.ref = battleEffect.ref;
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
 				_this._participantInfo.enemy_supporter.participating = true;
 				_this._participantInfo.enemy_supporter.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+				_this._participantInfo.enemy_supporter = battleEffect.ref;
 			}
 		}				
 	});
@@ -371,7 +375,10 @@ Window_BattleBasic.prototype.show = function() {
 	}, 300);
 	_this.initTimer = 48;
 	_this.createComponents();
-	_this.readBattleCache();	
+	_this.readBattleCache();
+	_this.assignFactionColorClass(_this._activeZoneContainerLeft, _this._participantInfo.enemy.ref);
+	_this.assignFactionColorClass(_this._activeZoneContainerRight, _this._participantInfo.actor.ref);
+	
 	_this.loadRequiredImages().then(function(){
 		_this._handlingInput = false;
 		_this.visible = true;
@@ -450,7 +457,7 @@ Window_BattleBasic.prototype.animateDestroy = function(elem, imgElem) {
 Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	var _this = this;
 	var type;
-	if(nextAction.isActor){
+	if(nextAction.side == "actor"){
 		type = "actor";
 	} else {
 		type = "enemy";

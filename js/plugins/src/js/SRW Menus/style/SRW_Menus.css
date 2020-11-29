@@ -422,3 +422,19 @@ body {
 .inactive {
 	color: #888888;
 }
+
+.faction_color.ally {
+	background-color: rgba(38, 110, 172, 0.7);
+}
+
+.faction_color.enemy {
+	background-color: rgba(172, 38, 38, 0.7);
+}
+
+.faction_color.faction_1 {
+	background-color: rgba(38, 172, 83, 0.7);
+}
+
+.faction_color.faction_2 {
+	background-color: rgba(172, 172, 38, 0.7);
+}
