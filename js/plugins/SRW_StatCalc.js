@@ -515,15 +515,17 @@ StatCalc.prototype.applyTurnStartWill = function(type, factionId){
 	var _this = this;
 	this.iterateAllActors(type, function(actor, event){			
 		if(actor.isActor() || actor.factionId == factionId || factionId == null){
-			_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_turn_will"]) + 1);	
+			_this.modifyWill(actor, _this.applyStatModsToValue(actor, 1, ["start_turn_will"]));	
 		}		
 	});
 }
 
 StatCalc.prototype.applyEnemyDestroyedWill = function(type){
 	var _this = this;
-	this.iterateAllActors(type, function(actor, event){			
-		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 1, ["destroy_will"]));				
+	this.iterateAllActors(null, function(actor, event){	
+		if((type == "actor" && !$gameSystem.isEnemy(actor)) || (type == "enemy" && $gameSystem.isEnemy(actor))){
+			_this.modifyWill(actor, _this.applyStatModsToValue(actor, 1, ["destroy_will"]));
+		}		
 	});
 }
 

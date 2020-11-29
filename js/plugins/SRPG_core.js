@@ -8676,7 +8676,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if(battleEffect.attackedBy && battleEffect.isDestroyed){
 					$statCalc.modifyWill(battleEffect.attackedBy.ref, 2);
 					//$statCalc.modifyAllWill(battleEffect.isActor ? "actor" : "enemy", 1);	
-					$statCalc.applyEnemyDestroyedWill(battleEffect.attackedBy.isActor ? "actor" : "enemy");	
+					$statCalc.applyEnemyDestroyedWill($gameSystem.isEnemy(battleEffect.attackedBy.ref) ? "enemy" : "actor");	
 				}
 				if(battleEffect.isAttacked){		
 					if(!battleEffect.isHit){
@@ -8754,7 +8754,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if(battleEffect.attacked && battleEffect.attacked.isDestroyed){					
 					$statCalc.modifyWill(battleEffect.ref, 4);
 					//$statCalc.modifyAllWill(battleEffect.isActor ? "actor" : "enemy", 1);	
-					$statCalc.applyEnemyDestroyedWill(battleEffect.isActor ? "actor" : "enemy");	
+					$statCalc.applyEnemyDestroyedWill($gameSystem.isEnemy(battleEffect.ref) ? "enemy" : "actor");	
 				}	
 				if(battleEffect.isAttacked){		
 					if(!battleEffect.isHit){
