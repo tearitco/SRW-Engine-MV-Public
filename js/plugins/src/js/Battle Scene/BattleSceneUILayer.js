@@ -101,14 +101,14 @@ BattleSceneUILayer.prototype.animateHP = function(target, oldPercent, newPercent
 	var maxValue;
 	var isHidden;
 	if(target == "actor"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentActor).maxHP;
-		isHidden = !$statCalc.isRevealed(_this._currentActor);
+		maxValue = $statCalc.getCalculatedMechStats(_this._currentActor.ref).maxHP;
+		isHidden = !$statCalc.isRevealed(_this._currentActor.ref);
 		_this._allyStatData.HP.max = maxValue;
 		_this._allyStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
 	}
 	if(target == "enemy"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy).maxHP;
-		isHidden = !$statCalc.isRevealed(_this._currentEnemy);
+		maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy.ref).maxHP;
+		isHidden = !$statCalc.isRevealed(_this._currentEnemy.ref);
 		_this._enemyStatData.HP.max = maxValue;
 		_this._enemyStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
 	}
@@ -121,14 +121,14 @@ BattleSceneUILayer.prototype.animateEN = function(target, oldPercent, newPercent
 	var maxValue;
 	var isHidden;
 	if(target == "actor"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentActor).maxEN;
-		isHidden = !$statCalc.isRevealed(_this._currentActor);
+		maxValue = $statCalc.getCalculatedMechStats(_this._currentActor.ref).maxEN;
+		isHidden = !$statCalc.isRevealed(_this._currentActor.ref);
 		_this._allyStatData.EN.max = maxValue;
 		_this._allyStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
 	}
 	if(target == "enemy"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy).maxEN;
-		isHidden = !$statCalc.isRevealed(_this._currentEnemy);
+		maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy.ref).maxEN;
+		isHidden = !$statCalc.isRevealed(_this._currentEnemy.ref);
 		_this._enemyStatData.EN.max = maxValue;
 		_this._enemyStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
 	}
@@ -153,11 +153,11 @@ BattleSceneUILayer.prototype.animateStat = function(elems, maxValue, oldPercent,
 			if(type == "HP" && newValue <= 100000){ 
 				isHidden = false;
 				if(target == "actor"){
-					$statCalc.setRevealed(_this._currentActor);
+					$statCalc.setRevealed(_this._currentActor.ref);
 					_this.setStat(_this._currentActor, "EN");
 				}
 				if(target == "enemy"){
-					$statCalc.setRevealed(_this._currentEnemy);
+					$statCalc.setRevealed(_this._currentEnemy.ref);
 					_this.setStat(_this._currentEnemy, "EN");
 				}		
 				
@@ -199,19 +199,19 @@ BattleSceneUILayer.prototype.getStatElements = function(target, type) {
 	}
 }
 
-BattleSceneUILayer.prototype.setStat = function(actor, type) {
+BattleSceneUILayer.prototype.setStat = function(effect, type) {
 	var _this = this;
-	var stats = $statCalc.getCalculatedMechStats(actor);
+	var stats = $statCalc.getCalculatedMechStats(effect.ref);
 	var maxValue;
 	var value;
 	var target;
 	var isHidden;
-	if(actor.isActor()){
+	if(effect.side == "actor"){
 		target = "actor";
-		_this._currentActor = actor;		
+		_this._currentActor = effect;		
 	} else {
 		target = "enemy";
-		_this._currentEnemy = actor;
+		_this._currentEnemy = effect;
 	}
 	if(type == "HP"){
 		maxValue = stats.maxHP;
@@ -220,7 +220,7 @@ BattleSceneUILayer.prototype.setStat = function(actor, type) {
 		maxValue = stats.maxEN;
 		value = stats.currentEN;
 	}
-	isHidden = !$statCalc.isRevealed(actor);
+	isHidden = !$statCalc.isRevealed(effect.ref);
 	var elems = _this.getStatElements(target, type);	
 	this.updateStatContent(elems, maxValue, value, type, isHidden);
 }

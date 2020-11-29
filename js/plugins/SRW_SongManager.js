@@ -25,17 +25,32 @@ SRWSongManager.prototype.playSong = function(songId){
 	}
 }
 
-SRWSongManager.prototype.playBattleSong = function(actorId, enemyId){
+SRWSongManager.prototype.getUnitSongInfo = function(actor){
+	if(actor.isActor()){
+		return {
+			id: this._actorSongMapping[actor.actorId()],
+			priority: this._actorSongPriority[actor.actorId()] || 1
+		};
+	} else {
+		return {
+			id: this._enemySongMapping[actor.enemyId()],
+			priority: this._enemySongPriority[actor.enemyId()] || 1
+		};
+	}
+}
+
+SRWSongManager.prototype.playBattleSong = function(actor, enemy){
 	var songId;
 	if($gameSystem._specialTheme != -1){
 		songId = $gameSystem._specialTheme;
 	} else {
-		var actorPriority = this._actorSongPriority[actorId] || 1;
-		var enemyPriority = this._enemySongPriority[enemyId] || 0;
-		if(enemyPriority > actorPriority){
-			songId = this._enemySongMapping[enemyId];
+		var actorSongInfo = this.getUnitSongInfo(actor);		
+		var enemySongInfo = this.getUnitSongInfo(enemy);		
+
+		if(enemySongInfo.priority > actorSongInfo.priority){
+			songId = enemySongInfo.id;
 		} else {
-			songId = this._actorSongMapping[actorId];
+			songId = actorSongInfo.id;
 		}
 	}
 	this.playSong(songId);	

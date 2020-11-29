@@ -948,26 +948,24 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		enable_support_defender: function(target, params){
 			_this._supportDefenderActive = true;			
 			var action = _this._currentAnimatedAction.attacked;
-			var entityType = action.isActor ? "actor" : "enemy";
 			var ref = _this._currentAnimatedAction.attacked.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
 			var currentHP;
-			if(action.isActor){
+			if(action.side == "actor"){
 				currentHP = _this._participantInfo.actor_supporter.tempHP;
 				_this._actorSprite.sprite.isVisible = false;
 			} else {
 				currentHP = _this._participantInfo.enemy_supporter.tempHP;
 				_this._enemySprite.sprite.isVisible = false;
 			}
-			_this._UILayerManager.setStat(ref, "HP");
-			_this._UILayerManager.setStat(ref, "EN");
+			_this._UILayerManager.setStat(action, "HP");
+			_this._UILayerManager.setStat(action, "EN");
 		},
 		
 		disable_support_defender: function(target, params){
 			_this._supportDefenderActive = false;
 			var action = _this._currentAnimatedAction.attacked;
-			var entityType = action.isActor ? "actor" : "enemy";
-			if(entityType == "actor"){
+			if(action.side == "actor"){
 				action = _this._participantInfo.actor.effect;
 			} else {
 				action = _this._participantInfo.enemy.effect;
@@ -975,15 +973,15 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var ref = action.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
 			var currentHP;
-			if(action.isActor){
+			if(action.side == "actor"){
 				currentHP = _this._participantInfo.actor.tempHP;
 				_this._actorSprite.sprite.isVisible = true;
 			} else {
 				currentHP = _this._participantInfo.enemy.tempHP;
 				_this._enemySprite.sprite.isVisible = true;
 			}
-			_this._UILayerManager.setStat(ref, "HP");
-			_this._UILayerManager.setStat(ref, "EN");
+			_this._UILayerManager.setStat(action, "HP");
+			_this._UILayerManager.setStat(action, "EN");
 		},		
 		fade_in_bg: function(target, params){
 			var targetObj = getTargetObject(target);
@@ -1095,7 +1093,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				];
 				_this.mergeAnimList(additions);
 				
-				var entityType = action.isActor ? "actor" : "enemy";
+				var entityType = action.side;
 				_this._UILayerManager.setNotification(entityType, "DOUBLE IMAGE");
 			} else {
 				if(params.commands){
@@ -1277,11 +1275,11 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		show_damage: function(target, params){	
 			var originalAction = _this._currentAnimatedAction;
 			var action = _this._currentAnimatedAction.attacked;
-			var target = action.isActor ? "actor" : "enemy";			
+			var target = action.side;			
 			_this._UILayerManager.showDamage(target, originalAction.damageInflicted);
 			
 			var HPProvider;
-			if(action.isActor){
+			if(action.side == "actor"){
 				if(action.type == "support defend"){
 					HPProvider = _this._participantInfo.actor_supporter;
 				} else {
@@ -1299,7 +1297,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		drain_hp_bar: function(target, params){			
 			var originalAction = _this._currentAnimatedAction;
 			var action = _this._currentAnimatedAction.attacked;
-			var target = action.isActor ? "actor" : "enemy";
+			var target = action.side;
 			var stats = $statCalc.getCalculatedMechStats(action.ref);
 			if(!_this._barDrainInfo[target]) {
 				_this._barDrainInfo[target] = {};
@@ -1308,7 +1306,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				_this._barDrainInfo[target].HP = 0;
 			}
 			var HPProvider;
-			if(action.isActor){
+			if(action.side == "actor"){
 				if(action.type == "support defend"){
 					HPProvider = _this._participantInfo.actor_supporter;
 				} else {
@@ -1337,7 +1335,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		drain_en_bar: function(target, params){			
 			var action = _this._currentAnimatedAction;
 			if(action.ENUsed != -1){
-				var target = action.isActor ? "actor" : "enemy";
+				var target = action.side;
 				var stats = $statCalc.getCalculatedMechStats(action.ref);
 				if(!_this._barDrainInfo[target]) {
 					_this._barDrainInfo[target] = {};
@@ -1542,7 +1540,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 		var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
 		var imgSize = $statCalc.getBattleSceneImageSize(battleEffect.ref) || _this._defaultSpriteSize;
 		var mechStats = $statCalc.getCalculatedMechStats(battleEffect.ref);
-		if(battleEffect.isActor){
+		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.actor.participating = true;
 				_this._participantInfo.actor.effect = battleEffect;				
@@ -1778,18 +1776,18 @@ BattleSceneManager.prototype.showScene = function() {
 	setTimeout(finalize, 1000); //TODO: add more intelligent pre-loading
 		
 	function finalize(){
-			_this._UILayerManager.resetTextBox();
+		_this._UILayerManager.resetTextBox();
 		if(_this._participantInfo.actor.participating){
 			var ref = _this._participantInfo.actor.effect.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
-			_this._UILayerManager.setStat(ref, "HP");
-			_this._UILayerManager.setStat(ref, "EN");
+			_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+			_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
 		}
 		if(_this._participantInfo.enemy.participating){
 			var ref = _this._participantInfo.enemy.effect.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
-			_this._UILayerManager.setStat(ref, "HP");
-			_this._UILayerManager.setStat(ref, "EN");
+			_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+			_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
 		}
 		
 		var firstAction = _this._actionQueue[0];
@@ -1831,7 +1829,7 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 		_this._doubleImageActive = false;
 		_this._actorSupporterSprite.sprite.isVisible = false;
 		_this._enemySupporterSprite.sprite.isVisible = false;
-		if(action.isActor){
+		if(action.side == "actor"){
 			_this._animationDirection = 1;
 			_this._bgScrollDirection = 1;
 			_this._enemySprite.sprite.isVisible = false;
@@ -1936,10 +1934,10 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				var battleText = _this._battleTextManager.getText(entityType, entityId, textType, _this.getBattleTextId(nextAction.attacked));
 				_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText);
 				if(nextAction.type == "support attack"){
-					_this._UILayerManager.setNotification(entityType, "Support Attack");
+					_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
 				}				
 				_this._currentAnimatedAction = nextAction;
-				if(nextAction.isActor){
+				if(nextAction.side == "actor"){
 					_this._animationDirection = 1;
 					_this._bgScrollDirection = 1;
 					_this._active_main = _this._actorSprite.sprite;	

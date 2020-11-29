@@ -509,6 +509,10 @@ var $battleSceneManager = new BattleSceneManager();
 				$gameVariables.setValue(_masteryConditionText, APPSTRINGS.GENERAL.label_mastery_completed);	
 			}						
 		}
+		
+		if (command === 'showEnemyPhase') {
+			$gameMap._interpreter.showEnemyPhaseText();
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -1119,12 +1123,12 @@ var $battleSceneManager = new BattleSceneManager();
 			1: {
 				attacksPlayers:false,
 				attacksFactions: [0],
-				active: false
+				active: true
 			},
 			2: {
 				attacksPlayers:false,
 				attacksFactions: [0],
-				active: false
+				active: true
 			}
 		};
         this.srpgStartActorTurn();//アクターターンを開始する
@@ -1166,6 +1170,10 @@ var $battleSceneManager = new BattleSceneManager();
 		} else {
 			return this.getEnemyFactionInfo(actor).attacksPlayers;
 		}
+	}
+	
+	Game_System.prototype.isEnemyPhase = function(actor) {
+		return $gameSystem.factionConfig[$gameTemp.currentFaction].attacksPlayers;
 	}
 
     //イベントＩＤに対応するアクター・エネミーデータを初期化する
@@ -1606,6 +1614,16 @@ var $battleSceneManager = new BattleSceneManager();
     //エネミーターンの開始
     Game_System.prototype.srpgStartEnemyTurn = function(factionId) {
 		$gameTemp.currentFaction = factionId;
+		if(factionId > 2){
+			$gameSystem.srpgTurnEnd();
+			return;
+		}
+		
+		if(!$gameSystem.factionConfig[factionId].active){
+			$gameTemp.currentFaction++;
+			this.srpgStartEnemyTurn($gameTemp.currentFaction);
+			return;
+		}		
 		$songManager.playStageSong();
 		
         $gameMap.events().forEach(function(event) {
@@ -3370,7 +3388,7 @@ var $battleSceneManager = new BattleSceneManager();
                                
 								var isInRange = $battleCalc.isTargetInRange({x: $gameTemp.activeEvent()._x, y: $gameTemp.activeEvent()._y}, {x: event.posX(), y: event.posY()}, $statCalc.getRealWeaponRange(actionBattlerArray[1], $gameTemp.actorAction.attack.range), $gameTemp.actorAction.attack.minRange);
 								if(isInRange){
-									if((targetBattlerArray[0] === 'enemy' && $gameTemp.actorAction.type === "attack") || 
+									if(($gameSystem.isEnemy(targetBattlerArray[1]) && $gameTemp.actorAction.type === "attack") || 
 									   (targetBattlerArray[0] === 'actor' && $gameTemp.actorAction.type === "support")){
 										//$gameSystem.setSrpgBattleWindowNeedRefresh(actionBattlerArray, targetBattlerArray);
 										//$gameSystem.setSrpgStatusWindowNeedRefresh(actionBattlerArray);
@@ -4121,6 +4139,34 @@ Game_Interpreter.prototype.showStageConditions = function(){
 	return false;
 }
 
+Game_Interpreter.prototype.showEnemyPhaseText = function(){
+	if (!$gameMessage.isBusy()) {
+		$gameMessage.setFaceImage("", "");
+		$gameMessage.setBackground(1);
+        $gameMessage.setPositionType(1);
+		var text;
+		if($gameSystem.isEnemyPhase()){
+			text =  APPSTRINGS.GENERAL.label_enemy_phase;
+		} else {
+			text =  APPSTRINGS.GENERAL.label_ally_phase;
+		}
+		var colorId;
+		if($gameTemp.currentFaction == 0){
+			colorId = 18;
+		}
+		if($gameTemp.currentFaction == 1){
+			colorId = 3;
+		}
+		if($gameTemp.currentFaction == 2){
+			colorId = 14;
+		}
+		$gameMessage.add("\\TA[1]\n\\>\\C["+colorId+"]\\{"+text+"\n\\.\\.\\|\\^");				
+		this._index++;
+        this.setWaitMode('message');
+	}
+	return false;
+}
+
 Game_Interpreter.prototype.showMasteryGet = function(){
 	if (!$gameMessage.isBusy()) {
 		$gameMessage.setFaceImage("", "");
@@ -4613,6 +4659,10 @@ Game_Interpreter.prototype.isSquadWiped = function(squadId) {
 
 Game_Interpreter.prototype.canObtainSRPoint = function() {
 	return !$SRWSaveManager.isMapSRPointLocked($gameMap.mapId());
+}
+
+Game_Interpreter.prototype.activeFaction = function() {
+	return $gameTemp.currentFaction;
 }
 
 /**************************************
@@ -9490,7 +9540,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
                 }
             }
             if (i > $gameMap.isMaxEventId()) {
-                $gameSystem.srpgTurnEnd(); // ターンを終了する
+				$gameTemp.currentFaction++;
+                $gameSystem.srpgStartEnemyTurn($gameTemp.currentFaction); // ターンを終了する
                 return;
             }
         }
@@ -10180,7 +10231,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			SceneManager.stop();
 			$gameSystem.setSubBattlePhase('halt');			
 			$battleSceneManager.playBattleScene();
-			$songManager.playBattleSong($gameTemp.currentBattleActor.actorId(), $gameTemp.currentBattleEnemy.enemyId());
+			$songManager.playBattleSong($gameTemp.currentBattleActor, $gameTemp.currentBattleEnemy);
 		} else {
 			$gameTemp.popMenu = true;//remove before battle menu
 			$gameSystem.setSubBattlePhase('battle_basic');

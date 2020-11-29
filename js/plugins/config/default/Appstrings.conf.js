@@ -33,6 +33,8 @@ APPSTRINGS.GENERAL = {
 	label_mastery_locked: "Unobtainable after Game Over on this stage.",
 	label_mastery_completed: "Completed!",
 	label_mastery_completed_message: "Mastery Condition completed!",
+	label_enemy_phase: "Enemy Phase",
+	label_ally_phase: "Ally Phase",
 }
 
 APPSTRINGS.MAPMENU = {

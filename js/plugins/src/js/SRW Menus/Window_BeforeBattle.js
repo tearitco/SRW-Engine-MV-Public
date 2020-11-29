@@ -424,7 +424,7 @@ Window_BeforeBattle.prototype.createParticipantBlock = function(ref, action, isS
 		content+="<div class='scaled_text percent_indicator'>";
 		var hitRate = -1;
 		if(action.type == "attack"){	
-			if(ref.isActor()){
+			if(allyOrEnemy == "ally"){
 				if(isSupport){
 					var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
 					if(supporter){					
