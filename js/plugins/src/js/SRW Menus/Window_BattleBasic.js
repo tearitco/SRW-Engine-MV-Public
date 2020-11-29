@@ -354,7 +354,7 @@ Window_BattleBasic.prototype.readBattleCache = function() {
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
 				_this._participantInfo.enemy_supporter.participating = true;
 				_this._participantInfo.enemy_supporter.img = $statCalc.getBasicBattleImage(battleEffect.ref);
-				_this._participantInfo.enemy_supporter = battleEffect.ref;
+				_this._participantInfo.enemy_supporter.ref = battleEffect.ref;
 			}
 		}				
 	});

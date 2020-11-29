@@ -4886,11 +4886,19 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 				dCache.defended = this._defender.actor;
 			}
 		}		
+		
 		if(!aCache.isDestroyed && !dCache.isDestroyed){		
 			aCache.actionOrder = orderIdx;
 			aCache.attacked = dCache;
 			aCache.hasActed = true;
 			dCache.hasActed = true;
+			
+			if(this._side == "actor"){
+				dCache.side = "enemy";
+			} else {
+				dCache.side = "actor";
+			}
+			
 			var isHit = this._attacker.params.hits;
 			if(isHit){
 				aCache.hits = isHit;
@@ -10112,7 +10120,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			};
 		}
 		
-		var supporters = $statCalc.getSupportDefendCandidates("actor", actorInfo.pos);
+		var supporters = $statCalc.getSupportDefendCandidates($gameSystem.isEnemy(actorInfo.actor) ? "enemy" : "actor", actorInfo.pos);
 		var supporterSelected = -1;
 		var minDamage = -1;
 		for(var i = 0; i < supporters.length; i++){

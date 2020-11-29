@@ -632,6 +632,12 @@ BattleCalc.prototype.generateBattleResult = function(){
 			activeDefenderCache.hasThresholdBarrier = damageResult.hasThresholdBarrier;
 			activeDefenderCache.barrierBroken = damageResult.thresholdBarrierBroken;
 			
+			if(this._side == "actor"){
+				activeDefenderCache.side = "enemy";
+			} else {
+				activeDefenderCache.side = "actor";
+			}
+			
 			aCache.damageInflicted = damageResult.damage;
 			activeDefenderCache.damageTaken+=damageResult.damage;
 			

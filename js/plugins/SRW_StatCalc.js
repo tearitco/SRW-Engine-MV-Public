@@ -2210,12 +2210,13 @@ StatCalc.prototype.getSupportRecipientCandidates = function(type, position, all)
 
 StatCalc.prototype.getSupportAttackCandidates = function(type, position){
 	var result = [];
-	this.iterateAllActors(type, function(actor, event){
+	this.iterateAllActors(null, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
 			var maxSupportAttacks = $statCalc.applyStatModsToValue(actor, 0, ["support_attack"]);
 			if(maxSupportAttacks > actor.SRWStats.battleTemp.supportAttackCount && !actor.SRWStats.battleTemp.hasFinishedTurn){
-				
-				result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});	
+				if((type == "actor" && !$gameSystem.isEnemy(actor)) || (type == "enemy" && $gameSystem.isEnemy(actor))){
+					result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});	
+				}				
 			}			
 		}					
 	});
@@ -2230,11 +2231,13 @@ StatCalc.prototype.incrementSupportAttackCounter = function(actor){
 	
 StatCalc.prototype.getSupportDefendCandidates = function(type, position){
 	var result = [];
-	this.iterateAllActors(type, function(actor, event){
+	this.iterateAllActors(null, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
 			var maxSupportDefends = $statCalc.applyStatModsToValue(actor, 0, ["support_defend"]);			
 			if(maxSupportDefends > actor.SRWStats.battleTemp.supportDefendCount){
-				result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});	
+				if((type == "actor" && !$gameSystem.isEnemy(actor)) || (type == "enemy" && $gameSystem.isEnemy(actor))){
+					result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});
+				}				
 			}
 		}					
 	});
