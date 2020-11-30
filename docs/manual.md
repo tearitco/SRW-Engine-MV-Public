@@ -804,7 +804,20 @@ Combine the event with the specified id. The unit for the event should be able t
 
 * splitEvent event\_id 
 
-Split the event with the specified id. The unit unit for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+
+* transformActor actor\_id
+
+Transforms the actor with the specified id. The unit for the actor should be able to transform!
+
+* combineActor actor\_id
+
+Combine the actor with the specified id. The unit for the actor should be able to combine and the other members of the combination should be deployed for best results.
+
+* splitActor actor\_id 
+
+Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+
 
 ## Script commands
 

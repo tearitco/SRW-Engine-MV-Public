@@ -562,6 +562,39 @@ var $battleSceneManager = new BattleSceneManager();
 			se.volume = 80;
 			AudioManager.playSe(se);
 		}
+		
+		if (command === 'transformActor') {
+			var actor = $gameActors.actor(args[0]);
+			$statCalc.transform(actor, true);
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);
+		}	
+
+		if (command === 'combineActor') {
+			var actor = $gameActors.actor(args[0]);
+			$statCalc.combine(actor, true);
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);
+		}	
+
+		if (command === 'splitActor') {
+			var actor = $gameActors.actor(args[0]);
+			$statCalc.split(actor, true);
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);
+		}
     };		
 //====================================================================
 // ●Game_Temp
