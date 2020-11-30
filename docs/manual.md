@@ -794,6 +794,17 @@ Set the aggro for the specified faction. Targets should be in the following form
 
 Clears all current faction aggro settings for the specified faction.
 
+* transformEvent event\_id
+
+Transforms the event with the specified id. The unit for the event should be able to transform!
+
+* combineEvent event\_id
+
+Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
+
+* splitEvent event\_id 
+
+Split the event with the specified id. The unit unit for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
 ## Script commands
 

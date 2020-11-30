@@ -794,6 +794,16 @@ Set the aggro for the specified faction. Targets should be in the following form
 
 Clears all current faction aggro settings for the specified faction.
 
+* transformEvent event\_id
+
+Transforms the event with the specified id. The unit for the event should be able to transform!
+
+* combineEvent event\_id
+
+Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
+
+* splitEvent envent\
+
 
 ## Script commands
 
@@ -881,6 +891,7 @@ They can also be used as conditionals in IF statements.
 		<br>
 		* targetRegion: the id of the region that the enemy should move towards<br>	
 		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
+
 A setting can be left blank by entering "" as its value.	
 	
 * this.addEnemies(toAnimQueue, startId, endId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion)

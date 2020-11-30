@@ -8429,6 +8429,19 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			} else {
 				this._terrainDetailsWindow.hide();
 			}
+			
+			if(summaryUnit && Input.isTriggered("menu")){
+				$gameTemp.detailPagesWindowCancelCallback = function(){
+					$gameTemp.detailPagesWindowCancelCallback = null;
+					$gameSystem.setSubBattlePhase('normal');
+				};
+				$gameTemp.currentMenuUnit = {
+					actor: summaryUnit,
+					mech: summaryUnit.SRWStats.mech
+				};
+				$gameSystem.setSubBattlePhase('enemy_unit_summary');
+				$gameTemp.pushMenu = "detail_pages";
+			}			
 		}	
 		
 		if ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_target_spirit') {
