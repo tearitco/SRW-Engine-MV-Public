@@ -13,6 +13,7 @@ var $plugins =
 {"name":"MadeWithMv","status":false,"description":"Show a Splash Screen \"Made with MV\" and/or a Custom Splash Screen before going to main screen.","parameters":{"Show Made With MV":"true","Made with MV Image":"MadeWithMv","Show Custom Splash":"false","Custom Image":"","Fade Out Time":"40","Fade In Time":"40","Wait Time":"80"}},
 {"name":"SimpleMsgSideView","status":false,"description":"at sideview battle, only display item/skill names.","parameters":{"displayAttack":"0","position":"1"}},
 {"name":"--SRW Plugins--------","status":false,"description":"----------------------------------------------------------------------","parameters":{}},
+{"name":"SRW_Editor","status":true,"description":"","parameters":{}},
 {"name":"SRW_MapAttackManager","status":true,"description":"","parameters":{}},
 {"name":"SRW_StageInfoManager","status":true,"description":"","parameters":{}},
 {"name":"SRW_SongManager","status":true,"description":"","parameters":{}},

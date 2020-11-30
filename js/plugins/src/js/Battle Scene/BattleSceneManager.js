@@ -1882,7 +1882,9 @@ BattleSceneManager.prototype.endScene = function() {
 		_this._UIcontainer.style.display = "";
 		_this.fadeFromBlack(1000).then(function(){
 			$gameSystem.setSubBattlePhase('after_battle');
-			SceneManager.resume();
+			if(!$gameTemp.editMode){
+				SceneManager.resume();
+			}			
 		});			
 	});	
 }

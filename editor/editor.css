@@ -1,0 +1,102 @@
+:root {
+	--theme-color: #1c70d9;	
+	--light-theme-color: #e0eeff;
+}
+
+#srw_editor {
+	width: 100vw;
+    height: 100vh;
+    background-color: #FFFFFF;
+    z-index: 999999;
+    position: absolute;
+    top: 0;
+    left: 0;
+	font-family: Trebuchet MS;
+}
+
+#srw_editor .header {
+	width: 100%;
+	height: 50px;
+	display: flex;
+	align-items: center;
+	padding-left: 10px;
+	font-size: 20px;
+	color: #FFFFFF;
+	background-color: var(--theme-color);
+}
+
+#srw_editor .content {
+	width: 100%;
+	height: calc(100% - 50px);
+}
+
+#srw_editor #attack_editor {
+	display: flex;
+	height: 100%;
+}
+
+#srw_editor #attack_editor .edit_controls {
+	width: 30%;
+}
+
+#srw_editor #attack_editor .timeline{
+	height: 50%;
+	width: 100%;
+}
+
+#srw_editor #attack_editor .edit_panel{
+	height: 50%;
+	width: 100%;
+	background-color: var(--light-theme-color);
+}
+
+#srw_editor #attack_editor .preview{
+	height: 100%;	
+    width: 70%;
+	background-color: #3a3b55;
+	
+}
+
+#srw_editor #attack_editor .preview_window_container {
+	position: relative;
+	margin-top: 5%;
+	display: flex;  
+    justify-content: center;
+}
+
+#srw_editor #attack_editor .preview_window {
+	width: 1110px;
+    height: 624px;
+	background-color: #000000;
+	position: relative;
+}
+
+#srw_editor #attack_editor .preview_controls {
+	margin-left: auto;
+	margin-right: auto;
+	width: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#srw_editor #attack_editor .preview_controls img{
+	width: 40px;
+	cursor: pointer;
+	filter: invert(78%) sepia(31%) saturate(3977%) hue-rotate(196deg) brightness(110%) contrast(110%);
+}
+
+#srw_editor #battle_scene_layer {
+	width: 100%;
+	height: 100%;
+}
+
+#srw_editor #battle_scene_ui_layer {
+	width: 100%;
+	height: 100%;
+}
+
+#srw_editor #fade_container {
+	width: 100%;
+	height: 100%;
+}

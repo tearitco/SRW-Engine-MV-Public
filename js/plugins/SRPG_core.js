@@ -43,6 +43,8 @@ var _defeatConditionText = 19;
 
 var _existShipVarId = 20;
 
+var $SRWEditor = new SRWEditor();
+
 var $SRWStageInfoManager = new SRWStageInfoManager();
 var $SRWSaveManager = new SRWSaveManager();
 var $statCalc = new StatCalc();
@@ -159,65 +161,51 @@ var $battleSceneManager = new BattleSceneManager();
 		$battleSceneManager.initContainer();			
 	};
 	
-	/*Graphics.startLoading = function() {
-		this._loadingCount = 0;
-
-		ProgressWatcher.truncateProgress();
-		ProgressWatcher.setProgressListener(this._updateProgressCount.bind(this));
-		this._progressTimeout = setTimeout(function() {
-			if(!SceneManager._stopped){
-				Graphics._showProgress();
-			}			
-		}, 1500);
-	};*/
-	
 	var Graphics_updateCanvas = Graphics._updateCanvas;
 	Graphics._updateCanvas = function(){
 		Graphics_updateCanvas.call(this);
-		
-		/*if($CSSUIManager){
-			$CSSUIManager.updateLayer({width: this._width, height: this._height});
-		}	*/
-		var customUILayer = document.querySelector("#custom_UI_layer");
-		if(customUILayer){
-			customUILayer.width = this._width;
-			customUILayer.height = this._height;
-			this._centerElement(customUILayer);
+		if(!$gameTemp || !$gameTemp.editMode){
+			var customUILayer = document.querySelector("#custom_UI_layer");
+			if(customUILayer){
+				customUILayer.width = this._width;
+				customUILayer.height = this._height;
+				this._centerElement(customUILayer);
+			}	
+			var battleSceneLayer = document.querySelector("#battle_scene_layer");
+			if(battleSceneLayer){
+				battleSceneLayer.width = this._width;
+				battleSceneLayer.height = this._height;
+				this._centerElement(battleSceneLayer);
+			}	
+			var battleSceneUILayer = document.querySelector("#battle_scene_ui_layer");
+			if(battleSceneUILayer){
+				battleSceneUILayer.width = this._width;
+				battleSceneUILayer.height = this._height;
+				this._centerElement(battleSceneUILayer);
+			}	
+			var fadeContainer = document.querySelector("#fade_container");
+			if(fadeContainer){
+				fadeContainer.width = this._width;
+				fadeContainer.height = this._height;
+				this._centerElement(fadeContainer);
+			}	
 		}	
-		var battleSceneLayer = document.querySelector("#battle_scene_layer");
-		if(battleSceneLayer){
-			battleSceneLayer.width = this._width;
-			battleSceneLayer.height = this._height;
-			this._centerElement(battleSceneLayer);
-		}	
-		var battleSceneUILayer = document.querySelector("#battle_scene_ui_layer");
-		if(battleSceneUILayer){
-			battleSceneUILayer.width = this._width;
-			battleSceneUILayer.height = this._height;
-			this._centerElement(battleSceneUILayer);
-		}	
-		var fadeContainer = document.querySelector("#fade_container");
-		if(fadeContainer){
-			fadeContainer.width = this._width;
-			fadeContainer.height = this._height;
-			this._centerElement(fadeContainer);
-		}	
-		
-		$CSSUIManager.updateScaledText();
+		$CSSUIManager.updateScaledText();				
+	}
+	var Graphics_getScale = Graphics.getScale;
+	
+	Graphics.getScale = function(){
+		if(!$gameTemp || !$gameTemp.editMode){
+			return Graphics_getScale.call(this);
+		} else {
+			return 1;
+		}		
 	}
 	
-	/*Graphics._centerElement = function(element) {
-		var width = Math.floor(element.width * this._realScale);
-		var height = Math.floor(element.height * this._realScale);
-		element.style.position = 'absolute';
-		element.style.margin = 'auto';
-		element.style.top = 0;
-		element.style.left = 0;
-		element.style.right = 0;
-		element.style.bottom = 0;
-		element.style.width = width + 'px';
-		element.style.height = height + 'px';
-	};*/
+	Graphics._getCurrentWidth = function(){			
+		return this._width * this.getScale();
+			
+	}
 
     var _Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -5014,20 +5002,24 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	this.setBattleSceneHP(actorSupport, params.actorSupport);
 	this.setBattleSceneHP(enemySupport, params.enemySupport);
 
-	function BattleAction(attacker, defender, supportDefender, side){
+	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
 		this._attacker = attacker;
 		this._defender = defender;
 		this._supportDefender = supportDefender;
 		this._side = side;
+		this._isSupportAttack = isSupportAttack;
 	}
 	
 	BattleAction.prototype.execute = function(orderIdx){
 		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		if(this._isSupportAttack){
+			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
+		}
 		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
 		aCache.side = this._side;
 		var activeDefender = this._defender;
 		if(this._supportDefender) {
-			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._cacheReference];
+			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
 			if(!sCache.hasActed){
 				activeDefender = this._supportDefender;
 				dCache = sCache;
@@ -5071,10 +5063,10 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	
 	var actions = [];
 	if(supportAttacker){			
-		actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide));								
+		actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
 	}	
 	actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
-	actions.push(new BattleAction(defender, attacker, defenderSide));			
+	actions.push(new BattleAction(defender, attacker, null, defenderSide));			
 	
 	
 	for(var i = 0; i < actions.length; i++){

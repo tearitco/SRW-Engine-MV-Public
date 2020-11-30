@@ -86,7 +86,16 @@
 				event.preventDefault();
 				this._switchFullScreen();
 				break;
-			}
+			case 122:   /* F11 */
+				event.preventDefault();
+				if(SceneManager._scene instanceof Scene_Title){
+					$gameTemp.editMode = true;
+					AudioManager.fadeOutBgm(60);
+					SceneManager.stop();
+					$SRWEditor.init();
+				}				
+				break;
+			}		
 		}
 	};
 
