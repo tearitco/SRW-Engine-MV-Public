@@ -3410,10 +3410,21 @@ var $battleSceneManager = new BattleSceneManager();
 									$gameSystem.setSrpgActorCommandWindowNeedRefresh(battlerArray);
 									$gameParty.pushSrpgBattleActors(battlerArray[1]);
 									$gameSystem.setSubBattlePhase('actor_command_window');
-								} /*else {
-                                    $gameSystem.setSrpgStatusWindowNeedRefresh(battlerArray);
-                                    $gameSystem.setSubBattlePhase('status_window');
-                                }*/
+								} else {
+									$gameTemp.detailPagesWindowCancelCallback = function(){
+										$gameTemp.detailPagesWindowCancelCallback = null;
+										$gameSystem.setSubBattlePhase('normal');
+									}
+									
+									var battlerArray = $gameSystem.EventToUnit(event.eventId());
+									$gameTemp.currentMenuUnit = {
+										actor: battlerArray[1],
+										mech: battlerArray[1].SRWStats.mech
+									};
+									
+									$gameSystem.setSubBattlePhase('enemy_unit_summary');
+									$gameTemp.pushMenu = "detail_pages";
+                                }
                                 return;
                             } else if (event.isType() === 'enemy') {
                                /* SoundManager.playOk();
