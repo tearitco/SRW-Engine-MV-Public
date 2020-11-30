@@ -1451,7 +1451,7 @@ BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef)
 BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 	var _this = this;
 	
-	var mainAnimation = [];
+	var mainAnimation = {};
 	
 	mainAnimation[0] = [
 		{type: "set_sprite_index", target: "active_main", params: {index: 1}},
@@ -1478,7 +1478,7 @@ BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 		{type: "translate", target: "active_main", params: {startPosition: new BABYLON.Vector3(6, 0, 0.99), position: new BABYLON.Vector3(-6, 0, 0.99), duration: 30}}
 	];
 	
-	var onHit = [];
+	var onHit = {};
 	
 	onHit[150] = [
 		{type: "set_sprite_index", target: "active_target", params: {index: 3}},
@@ -1494,7 +1494,7 @@ BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 	];
 	
 	onHit[300] = [];//padding
-	var onMiss = [];
+	var onMiss = {};
 	
 	
 	onMiss[150] = [
@@ -1508,7 +1508,7 @@ BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 	];
 	onMiss[300] = [];//padding
 	
-	var onDestroy = [];
+	var onDestroy = {};
 	
 	onDestroy[280] = [
 		{type: "destroy", target: "active_target", params: {}}
@@ -1519,7 +1519,8 @@ BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 		mainAnimation: mainAnimation,
 		onHit: onHit,
 		onMiss: onMiss,
-		onDestroy: onDestroy
+		onDestroy: onDestroy, 
+		onDestroyOverwrite: {}
 	};
 	return this.playAttackAnimation(cacheRef, defaultAttack);
 }
@@ -1961,7 +1962,10 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							_this.processActionQueue();
 						});
 					} else {
-						_this.playDefaultAttackAnimation(nextAction).then(function(){
+						/*_this.playDefaultAttackAnimation(nextAction).then(function(){
+							_this.processActionQueue();
+						});*/
+						_this.playAttackAnimation(nextAction, _this._animationBuilder.buildAnimation(0, _this)).then(function(){
 							_this.processActionQueue();
 						});
 					}

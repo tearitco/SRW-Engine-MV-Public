@@ -23,6 +23,11 @@ SRWEditor.prototype.init = function(){
 	$gameSystem.skyBattleParallax1 = "Empty";
 	
 	$gameSystem.setSubBattlePhase('after_battle');
+	
+	_this._previewAttackHits = true;
+	_this._previewAttackDestroys = false;
+	_this._enemySideAttack = false;
+	
 	_this.show();
 }
 
@@ -62,6 +67,27 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<img id='stop_button' src='editor/svg/pause-button.svg'>";
 	content+="</div>";
+	
+	content+="<div class='preview_extra_controls'>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Enemy Side</div>";
+	content+="<input id='chk_enemy_side' type='checkbox'></input>";	
+	content+="</div>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Attack hits</div>";
+	content+="<input id='chk_hits' checked type='checkbox'></input>";	
+	content+="</div>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Attack destroys</div>";
+	content+="<input id='chk_destroys' type='checkbox'></input>";	
+	content+="</div>";	
+	
+	content+="</div>";
+	content+="</div>";
+	
 	content+="</div>";
 	content+="</div>";
 	
@@ -90,6 +116,18 @@ SRWEditor.prototype.showAttackEditor = function(){
 	document.querySelector("#stop_button").addEventListener("click", function(){
 		$battleSceneManager.endScene();
 	});
+	
+	document.querySelector("#chk_hits").addEventListener("change", function(){
+		_this._previewAttackHits = this.checked;
+	});
+	
+	document.querySelector("#chk_destroys").addEventListener("change", function(){
+		_this._previewAttackDestroys = this.checked;
+	});
+	
+	document.querySelector("#chk_enemy_side").addEventListener("change", function(){
+		_this._enemySideAttack = this.checked;
+	});
 }
 
 SRWEditor.prototype.killAudioAfterScene = function(){
@@ -102,19 +140,20 @@ SRWEditor.prototype.killAudioAfterScene = function(){
 }
 
 SRWEditor.prototype.playBattleScene = function(){
+	var _this = this;
 	if($gameSystem.isSubBattlePhase() == "after_battle"){
 		$gameSystem.setSubBattlePhase("halt");
+		
 		$gameMap._interpreter.playBattleScene({
-			eventId: 0, // if included the matching event text will be used for the scene(see BattleText.conf.js).
-			enemyFirst: 0, // if 0 the actor will move first, if 1 the enemy will move first. This also affects the supports. If 0, the actor support will be attacking otherwise defending. If 1, the enemy support will be attacking otherwise defending.
+			enemyFirst: _this._enemySideAttack, // if 0 the actor will move first, if 1 the enemy will move first. This also affects the supports. If 0, the actor support will be attacking otherwise defending. If 1, the enemy support will be attacking otherwise defending.
 			songId: "Battle1", // the id of the song that should be played during the battle scene
 			actor: {
 				id: 1, // the id of the actor pilot
-				action: "attack", // the action the actor will take: "attack", "defend", "evade". 
+				action: _this._enemySideAttack ? "defend" : "attack", // the action the actor will take: "attack", "defend", "evade". 
 				weapon: 1, // the id of the attack the actor will use. Only used if the action is "attack".
-				hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 				startHP: 100, // the start HP of the actor in percent
-				targetEndHP: 50, // the end HP of the target in percent
+				targetEndHP: _this._previewAttackDestroys ? 0 : 50, // the end HP of the target in percent
 			},
 			/*actorSupport: { // ommit this section if there is no actor supporter
 				id: 3, // the id of the actor pilot
@@ -128,10 +167,10 @@ SRWEditor.prototype.playBattleScene = function(){
 				id: 1, // the id of the enemy pilot
 				mechId: 10, // the id of the enemy mech
 				weapon: 6, // the id of the attack the actor will use. Only used if the action is "attack".
-				action: "defend", // the action the enemy will take: "attack", "defend", "evade". 
-				hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+				action: _this._enemySideAttack ? "attack" : "defend", // the action the enemy will take: "attack", "defend", "evade". 
+				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 				startHP: 100, // the start HP of the enemy in percent
-				targetEndHP: 100, // the end HP of the target in percent
+				targetEndHP: _this._previewAttackDestroys ? 0 : 50, // the end HP of the target in percent
 			},
 			/*enemySupport: { // ommit this section if there is no enemy supporter
 				id: 3, // the id of the enemy pilot

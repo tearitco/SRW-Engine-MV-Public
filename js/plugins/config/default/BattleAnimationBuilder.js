@@ -1,14 +1,101 @@
 function BattleAnimationBuilder(){	
-	this._animLookup = {
+	/*this._animLookup = {
 		1: this.Summon_Swarm,
 		2: this.Boss_Beam,
 		3: this.All_Out_Assault
-	}
+	}*/
+	var _this = this;
+	this.loadDefinitions(
+		"active", 
+		function(data){
+			_this.processDefinitions(data)
+		}, function(){
+			_this.loadDefinitions(
+				"default",
+				function(data){
+					_this.processDefinitions(data)
+				}
+			)	
+		}
+	);
+}
+
+BattleAnimationBuilder.prototype.loadDefinitions = function(type, onload, onerror){
+	var xhr = new XMLHttpRequest();
+    var url = 'js/plugins/config/'+type+'/BattleAnimations.json';
+    xhr.open('GET', url);
+    xhr.overrideMimeType('application/json');
+    xhr.onload = function() {
+        if (xhr.status < 400) {
+            onload(JSON.parse(xhr.responseText));            
+        }
+    };
+    xhr.onerror = onerror;
+    window[name] = null;
+    xhr.send();
+}
+
+BattleAnimationBuilder.prototype.getEasingFunctions = function(){
+	return {
+		"sine": "SineEase",		
+		"circle": "CircleEase",
+		"back": "BackEase",
+		"bounce": "BounceEase",
+		"cubic": "CubicEase",
+		"elastic": "ElasticEase",
+		"exponential": "ExponentialEase",
+		"power": "PowerEase",
+		"quadratic": "QuadraticEase",
+		"quartic": "QuarticEase",
+		"quintic": "QuinticEase"
+	};
+}
+
+BattleAnimationBuilder.prototype.processDefinitions = function(data){
+	var _this = this;
+	
+	var paramHandlers = {
+		easingFunction: function(value){
+			return new BABYLON[_this.getEasingFunctions()[value]]()
+		}
+	};
+	_this._animLookup = data;
+	Object.keys(this._animLookup).forEach(function(id){
+		var data = _this._animLookup[id].data;
+		Object.keys(data).forEach(function(animTimelineType){
+			var timeLineData = data[animTimelineType];
+			var tmp = [];
+			Object.keys(timeLineData).forEach(function(tick){
+				tmp[tick] = timeLineData[tick];
+				var commands = tmp[tick];
+				commands.forEach(function(command){
+					var params = command.params;
+					Object.keys(params).forEach(function(param){
+						if(paramHandlers[param]){
+							params[param] = paramHandlers[param](params[param]);
+						}
+						if(param == "commands"){
+							var innerCommands = params[param];
+							innerCommands.forEach(function(command){
+								var params = command.params;
+								Object.keys(params).forEach(function(param){
+									if(paramHandlers[param]){
+										params[param] = paramHandlers[param](params[param]);
+									}
+								});
+							});
+						}
+					});
+				});
+			});
+			data[animTimelineType] = tmp;
+		});
+	}); 
 }
 
 BattleAnimationBuilder.prototype.buildAnimation = function(idx, context){
 	if(this._animLookup[idx]){
-		return this._animLookup[idx].call(context);
+		return this._animLookup[idx].data;
 	} else {
 		return null;
 	}	
