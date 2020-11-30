@@ -731,4 +731,21 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		1
 	);
+	this.addDefinition(
+		41, 
+		"Attack Again", 
+		"Allows the pilot to provide a support attack for themself if their Skill stat is atleast 20 points higher than the opponent's.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "attack_again", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		1
+	);
 }

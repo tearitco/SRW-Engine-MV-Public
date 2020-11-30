@@ -3480,6 +3480,13 @@ var $battleSceneManager = new BattleSceneManager();
 											y: $gameTemp.activeEvent().posY(),
 										};
 										var supporters = $statCalc.getSupportAttackCandidates("player", position);
+										
+										var aSkill = $statCalc.getPilotStat($gameTemp.currentBattleActor, "skill");
+										var dSkill = $statCalc.getPilotStat($gameTemp.currentBattleEnemy, "skill");
+										
+										if((aSkill - dSkill >= 20) && $statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["attack_again"])){
+											supporters.push({actor: $gameTemp.currentBattleActor, pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}});
+										}
 										var supporterInfo = [];
 										var supporterSelected = -1;
 										var bestDamage = 0;
@@ -10198,11 +10205,19 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.supportDefendSelected = supporterSelected;
 		
 		var supporters = $statCalc.getSupportAttackCandidates($gameSystem.getFactionId(enemyInfo.actor), {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
+		
+		var aSkill = $statCalc.getPilotStat(enemyInfo.actor, "skill");
+		var dSkill = $statCalc.getPilotStat(actorInfo.actor, "skill");
+		
+		if((aSkill - dSkill >= 20) && $statCalc.applyStatModsToValue(enemyInfo.actor, 0, ["attack_again"])){
+			supporters.push({actor:enemyInfo.actor, pos: {x: enemyInfo.actor.event.posX(), y: enemyInfo.actor.event.posY()}});
+		}
+		
 		var supporterInfo = [];
 		var supporterSelected = -1;
 		var bestDamage = 0;
 		for(var i = 0; i < supporters.length; i++){
-			var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo);
+			var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], actorInfo);
 			if(weaponResult.weapon){
 				supporters[i].action = {type: "attack", attack: weaponResult.weapon};
 				supporterInfo.push(supporters[i]);

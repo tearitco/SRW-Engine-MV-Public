@@ -465,8 +465,16 @@ BattleCalc.prototype.prepareBattleCache = function(actionObject, type){
 	} else {
 		actor._cacheReference = "e_"+actor.enemyId();
 	}*/
-	actor._cacheReference = actor.event.eventId();
-	$gameTemp.battleEffectCache[actor._cacheReference] = {
+	var ref;
+	if(type == "initiator" || type == "defender"){
+		ref = actor.event.eventId();
+		actor._cacheReference = ref;
+		
+	} else {
+		ref = "support_"+actor.event.eventId();
+		actor._supportCacheReference = ref;		
+	}	
+	$gameTemp.battleEffectCache[ref] = {
 		ref: actor,
 		damageTaken: 0,
 		isActor: actor.isActor(),
@@ -519,16 +527,20 @@ BattleCalc.prototype.generateBattleResult = function(){
 		this.prepareBattleCache(supportDefender, "support defend");
 	}		
 	
-	function BattleAction(attacker, defender, supportDefender, side){
+	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
 		this._attacker = attacker;
 		this._defender = defender;
 		this._supportDefender = supportDefender;
 		this._side = side;
+		this._isSupportAttack = isSupportAttack;
 	}
 	
 	BattleAction.prototype.execute = function(orderIdx){
 		var mainAttackerCache = $gameTemp.battleEffectCache[attacker.actor._cacheReference];
 		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		if(this._isSupportAttack){
+			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
+		}
 		aCache.side = this._side;
 		if(aCache.type == "support attack" && mainAttackerCache.isDestroyed){
 			return; //the support attacker does not get to attack if the main attacker is down
@@ -539,7 +551,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
 		var sCache;
 		if(this._supportDefender) {
-			sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._cacheReference];
+			sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
 		}
 		if(!aCache.isDestroyed && !dCache.isDestroyed) {
 			aCache.actionOrder = orderIdx;
@@ -676,13 +688,13 @@ BattleCalc.prototype.generateBattleResult = function(){
 		$gameTemp.defenderCounterActivated = true;
 		actions.push(new BattleAction(defender, attacker, null, defenderSide));
 		if(supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide));								
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
 		}	
 		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));			
 	} else {
 		$gameTemp.defenderCounterActivated = false;
 		if(supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide));								
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
 		}	
 		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
 		actions.push(new BattleAction(defender, attacker, null, defenderSide));			
