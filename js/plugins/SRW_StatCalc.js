@@ -860,9 +860,9 @@ StatCalc.prototype.canTransform = function(actor){
 	return false;
 }
 
-StatCalc.prototype.transform = function(actor){
+StatCalc.prototype.transform = function(actor, force){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		if(this.canTransform(actor)){			
+		if(this.canTransform(actor ) || force){			
 			var calculatedStats = this.getCalculatedMechStats(actor);
 			var previousHPRatio = calculatedStats.currentHP / calculatedStats.maxHP;
 			var previousENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
@@ -909,9 +909,9 @@ StatCalc.prototype.split = function(actor){
 	}
 }
 
-StatCalc.prototype.combine = function(actor){
+StatCalc.prototype.combine = function(actor, forced){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		var combineResult = this.canCombine(actor);
+		var combineResult = this.canCombine(actor, forced);
 		if(combineResult.isValid){
 			var HPRatioSum = 0;
 			var HPRatioCount = 0;
@@ -959,7 +959,7 @@ StatCalc.prototype.isCombined = function(actor){
 	}
 }
 
-StatCalc.prototype.canCombine = function(actor){
+StatCalc.prototype.canCombine = function(actor, forced){
 	var result = {
 		isValid: false,
 		participants: []
@@ -983,7 +983,13 @@ StatCalc.prototype.canCombine = function(actor){
 					if(!current.event.isErased() && requiredLookup[currentMechId]){
 						candidates.push(current.actorId());
 					}
-					var adjacent = _this.getAdjacentActors(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
+					var adjacent;
+					if(forced){
+						adjacent = _this.getAdjacentActors(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
+					} else {
+						adjacent = _this.getAllCandidateActors(actor.isActor() ? "actor" : "enemy");
+					}
+						
 					for(var i = 0; i < adjacent.length; i++){
 						if(!visited[adjacent[i].event.eventId()]){							
 							stack.push(adjacent[i]);
@@ -992,7 +998,7 @@ StatCalc.prototype.canCombine = function(actor){
 					visited[current.event.eventId()] = true;
 				}				
 			}
-			if(candidates.length == required.length){
+			if(candidates.length == required.length || forced){
 				result = {
 					isValid: true,
 					participants: candidates,
@@ -2133,6 +2139,16 @@ StatCalc.prototype.getAllCandidates = function(type){
 	this.iterateAllActors(type, function(actor, event){	
 		if(!event.isErased()){
 			result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}, event: event});	
+		}					
+	});
+	return result;
+}
+
+StatCalc.prototype.getAllCandidateActors = function(type){
+	var result = [];
+	this.iterateAllActors(type, function(actor, event){	
+		if(!event.isErased()){
+			result.push(actor);	
 		}					
 	});
 	return result;

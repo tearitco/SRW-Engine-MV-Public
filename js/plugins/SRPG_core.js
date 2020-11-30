@@ -529,6 +529,39 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'clearFactionAggro') {
 			$gameSystem.clearFactionAggro(args[0]);
 		}
+		
+		if (command === 'transformEvent') {
+			var actor = $gameSystem.EventToUnit(args[0])[1];
+			$statCalc.transform(actor, true);
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);
+		}	
+
+		if (command === 'combineEvent') {
+			var actor = $gameSystem.EventToUnit(args[0])[1];
+			$statCalc.combine(actor, true);
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);
+		}	
+
+		if (command === 'splitEvent') {
+			var actor = $gameSystem.EventToUnit(args[0])[1];
+			$statCalc.split(actor, true);
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);
+		}
     };		
 //====================================================================
 // ●Game_Temp
