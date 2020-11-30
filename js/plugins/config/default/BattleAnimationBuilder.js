@@ -54,48 +54,57 @@ BattleAnimationBuilder.prototype.getEasingFunctions = function(){
 BattleAnimationBuilder.prototype.processDefinitions = function(data){
 	var _this = this;
 	
+	
+	_this._animLookup = data;
+	/*Object.keys(this._animLookup).forEach(function(id){
+		var data = _this._animLookup[id].data;
+		
+	}); */
+}
+
+BattleAnimationBuilder.prototype.processDefinition = function(data){
+	var _this = this;
 	var paramHandlers = {
 		easingFunction: function(value){
 			return new BABYLON[_this.getEasingFunctions()[value]]()
 		}
 	};
-	_this._animLookup = data;
-	Object.keys(this._animLookup).forEach(function(id){
-		var data = _this._animLookup[id].data;
-		Object.keys(data).forEach(function(animTimelineType){
-			var timeLineData = data[animTimelineType];
-			var tmp = [];
-			Object.keys(timeLineData).forEach(function(tick){
-				tmp[tick] = timeLineData[tick];
-				var commands = tmp[tick];
-				commands.forEach(function(command){
-					var params = command.params;
-					Object.keys(params).forEach(function(param){
-						if(paramHandlers[param]){
-							params[param] = paramHandlers[param](params[param]);
-						}
-						if(param == "commands"){
-							var innerCommands = params[param];
-							innerCommands.forEach(function(command){
-								var params = command.params;
-								Object.keys(params).forEach(function(param){
-									if(paramHandlers[param]){
-										params[param] = paramHandlers[param](params[param]);
-									}
-								});
+	
+	data = JSON.parse(JSON.stringify(data));
+	Object.keys(data).forEach(function(animTimelineType){
+		var timeLineData = data[animTimelineType];
+		var tmp = [];
+		Object.keys(timeLineData).forEach(function(tick){
+			tmp[tick] = timeLineData[tick];
+			var commands = tmp[tick];
+			commands.forEach(function(command){
+				var params = command.params;
+				Object.keys(params).forEach(function(param){
+					if(paramHandlers[param]){
+						params[param] = paramHandlers[param](params[param]);
+					}
+					if(param == "commands"){
+						var innerCommands = params[param];
+						innerCommands.forEach(function(command){
+							var params = command.params;
+							Object.keys(params).forEach(function(param){
+								if(paramHandlers[param]){
+									params[param] = paramHandlers[param](params[param]);
+								}
 							});
-						}
-					});
+						});
+					}
 				});
 			});
-			data[animTimelineType] = tmp;
 		});
-	}); 
+		data[animTimelineType] = tmp;
+	});
+	return data;
 }
 
 BattleAnimationBuilder.prototype.buildAnimation = function(idx, context){
 	if(this._animLookup[idx]){
-		return this._animLookup[idx].data;
+		return this.processDefinition(this._animLookup[idx].data);
 	} else {
 		return null;
 	}	
