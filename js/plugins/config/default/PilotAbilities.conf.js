@@ -745,6 +745,40 @@ $SRWConfig.pilotAbilties = function(){
 		function(actor, level){
 			return true;
 		},
+		[200],
+		1
+	);
+	this.addDefinition(
+		42, 
+		"Double Action", 
+		"Allows the pilot an additional action each turn.", 
+		false,
+		true,
+		function(actor, level){
+			return [
+				{type: "extra_action", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		1
+	);
+	this.addDefinition(
+		43, 
+		"Triple Action", 
+		"Allows the pilot two additional actions each turn.", 
+		false,
+		true,
+		function(actor, level){
+			return [
+				{type: "extra_action", modType: "addFlat", value: 2}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
 		[0],
 		1
 	);

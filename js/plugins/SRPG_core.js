@@ -1364,6 +1364,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameVariables.setValue(_existActorVarID, oldValue + 1);
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 		$statCalc.initSRWStats(actor_unit);
+		actor_unit.SRPGActionTimesSet($statCalc.applyStatModsToValue(actor_unit, 1, ["extra_action"]));
 		actor_unit.setSrpgTurnEnd(false);			
 		if(!$gameTemp.enemyAppearQueue){
 			$gameTemp.enemyAppearQueue = [];
@@ -1626,7 +1627,7 @@ var $battleSceneManager = new BattleSceneManager();
             var battlerArray = $gameSystem.EventToUnit(event.eventId());
             if (battlerArray && battlerArray[0] === 'actor' && battlerArray[1].isAlive() && !event.isErased()) {
                 $gameSystem.aliveActorIdList.push(event.eventId());
-                battlerArray[1].SRPGActionTimesSet();
+                battlerArray[1].SRPGActionTimesSet($statCalc.applyStatModsToValue(battlerArray[1], 1, ["extra_action"]));
 				var SPRegen = 0;
 				SPRegen = $statCalc.applyStatModsToValue(battlerArray[1], SPRegen, ["SP_regen"]);
 				$statCalc.recoverSP(battlerArray[1], SPRegen);
@@ -1636,7 +1637,7 @@ var $battleSceneManager = new BattleSceneManager();
 				}
             }
             if (battlerArray && battlerArray[0] === 'enemy' && battlerArray[1].isAlive()) {
-                battlerArray[1].SRPGActionTimesSet();
+                battlerArray[1].SRPGActionTimesSet(1);
             }
         });
 		$statCalc.clearSpiritOnAll("actor", "strike");
@@ -1697,7 +1698,7 @@ var $battleSceneManager = new BattleSceneManager();
             }
 			var battlerArray = $gameSystem.EventToUnit(event.eventId());
 			if (battlerArray && battlerArray[0] === 'enemy' && battlerArray[1].isAlive()) {
-                battlerArray[1].SRPGActionTimesSet();
+                battlerArray[1].SRPGActionTimesSet($statCalc.applyStatModsToValue(battlerArray[1], 1, ["extra_action"]));
 				var SPRegen = 0;
 				SPRegen = $statCalc.applyStatModsToValue(battlerArray[1], SPRegen, ["SP_regen"]);
 				$statCalc.recoverSP(battlerArray[1], SPRegen);
@@ -2169,8 +2170,8 @@ var $battleSceneManager = new BattleSceneManager();
     };
 
     // 行動回数を設定する（SRPG用）
-    Game_Battler.prototype.SRPGActionTimesSet = function() {
-        this._SRPGActionTimes = _SRPG_Game_Battler_makeActionTimes.call(this);
+    Game_Battler.prototype.SRPGActionTimesSet = function(amount) {
+        this._SRPGActionTimes = amount || 1;
     };
 
     // 行動回数を返す
