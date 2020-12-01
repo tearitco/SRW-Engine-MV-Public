@@ -35,6 +35,10 @@ APPSTRINGS.GENERAL = {
 	label_mastery_completed_message: "Mastery Condition completed!",
 	label_enemy_phase: "Enemy Phase",
 	label_ally_phase: "Ally Phase",
+	label_yes: "YES",
+	label_no: "NO",
+	label_ask_end_turn_single: "unit can still take an action, end your turn?",
+	label_ask_end_turn_multi: "units can still take an action, end your turn?"
 }
 
 APPSTRINGS.MAPMENU = {

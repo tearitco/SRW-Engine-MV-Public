@@ -67,6 +67,10 @@ window.Window_DeploymentInStage = Window_DeploymentInStage;
 import Window_DeploySelection from "./Window_DeploySelection.js";
 window.Window_DeploySelection = Window_DeploySelection;
 
+import Window_ConfirmEndTurn from "./Window_ConfirmEndTurn.js";
+window.Window_ConfirmEndTurn = Window_ConfirmEndTurn;
+
+
 import "./style/SRW_Menus.css";
 
 

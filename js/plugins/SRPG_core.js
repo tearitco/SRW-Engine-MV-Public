@@ -596,7 +596,7 @@ var $battleSceneManager = new BattleSceneManager();
 			AudioManager.playSe(se);
 		}
 		
-		if (command === 'preventActorDeathQuote') {
+		if (command === 'preventActorDeathQuote') {srpg
 			if(!$gameTemp.preventedDeathQuotes){
 				$gameTemp.preventedDeathQuotes = {};
 			}
@@ -1371,6 +1371,21 @@ var $battleSceneManager = new BattleSceneManager();
             }
         });
     }
+	
+	Game_System.prototype.getActorsWithAction = function(){
+		var _this = this;		
+		var result = [];
+		$gameMap.events().forEach(function(event) {
+			var battlerArray = _this.EventToUnit(event.eventId());
+			if(battlerArray){
+				var actor = battlerArray[1];
+				if(actor.isActor() && !actor.srpgTurnEnd()){
+					result.push(actor);
+				}
+			}
+        });
+		return result;
+	}
 
     // イベントのメモからアクターを読み込み、対応するイベントＩＤに紐づけする
     Game_System.prototype.setSrpgActors = function() {
@@ -3719,7 +3734,8 @@ var $battleSceneManager = new BattleSceneManager();
 				$gameSystem.isSubBattlePhase() === 'process_map_attack_queue' ||
 				$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
 				$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' 	
+				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
+				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'				
 				
 				){
                 return false;
@@ -7286,6 +7302,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.createConditionsWindow();
 		this.createItemWindow();
 		this.createDeploymentWindow();
+		this.createEndTurnConfirmWindow();
 		this.createDeploymentInStageWindow();
 		this.createDeploySelectionWindow();
 		$battleSceneManager.init();	
@@ -7357,10 +7374,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	};
 	
 	Scene_Map.prototype.commandTurnEnd = function() {
-        $gameTemp.setTurnEndFlag(true);
-        $gameTemp.setAutoBattleFlag(false);
 		this._commandWindow.hide();
 		this._goldWindow.hide();
+		if($gameSystem.getActorsWithAction().length){
+			$gameSystem.setSubBattlePhase('confirm_end_turn');
+			$gameTemp.pushMenu = "confirm_end_turn";
+		} else {
+			$gameTemp.setTurnEndFlag(true);
+			$gameTemp.setAutoBattleFlag(false);
+		}		
     }
 	
 	Scene_Map.prototype.commandUnitList = function() {
@@ -7437,6 +7459,23 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._deploymentWindow.hide();
 		this.idToMenu["deployment"] = this._deploymentWindow;
     };
+	
+	Scene_Map.prototype.createEndTurnConfirmWindow = function() {
+		var _this = this;
+		this._endTurnConfirmWindow = new Window_ConfirmEndTurn(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		this._endTurnConfirmWindow.close();
+		this.addWindow(this._endTurnConfirmWindow);
+		this._endTurnConfirmWindow.registerCallback("selected", function(result){
+			$gameTemp.AHeld = true;
+			$gameSystem.setSubBattlePhase("normal");
+			if(result){
+				$gameTemp.setTurnEndFlag(true);
+				$gameTemp.setAutoBattleFlag(false);
+			} 
+		});
+		this._endTurnConfirmWindow.hide();
+		this.idToMenu["confirm_end_turn"] = this._endTurnConfirmWindow;
+    };	
 	
 	Scene_Map.prototype.createDeploymentInStageWindow = function() {
 		var _this = this;
@@ -7924,7 +7963,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.isSubBattlePhase() === 'process_map_attack_queue' ||
 				$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
 				$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary'
+				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
+				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'	
 				) {
                 this.menuCalling = false;
                 return;
@@ -8455,9 +8495,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			} else {
 				_this._summaryWindow.hide();
 				
-				if(Input.isTriggered('ok')){				
-					_this.showPauseMenu();
-					$gameSystem.setSubBattlePhase('pause_menu');				
+				if(Input.isTriggered('ok')){
+					if(!$gameTemp.AHeld){
+						_this.showPauseMenu();
+						$gameSystem.setSubBattlePhase('pause_menu');
+					}									
+				} else {
+					$gameTemp.AHeld = false;
 				}
 			}		
 		

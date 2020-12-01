@@ -92,6 +92,7 @@ CSSUIManager.prototype.initAllWindows = function(){
 	this.initWindow("deployment");
 	this.initWindow("deployment_in_stage");
 	this.initWindow("deploy_selection");
+	this.initWindow("confirm_end_turn");
 }
 
 CSSUIManager.prototype.initWindow = function(id){
