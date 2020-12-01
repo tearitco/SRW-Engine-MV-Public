@@ -820,7 +820,7 @@ Split the actor with the specified id. The unit for the actor should be a combin
 
 * preventActorDeathQuote actor\_id 
 
-Prevents the default death quote from being played
+Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. 
 
 
 ## Script commands
