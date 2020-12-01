@@ -36,7 +36,7 @@ SRWEditor.prototype.show = function(){
 	var content = "";
 	
 	content+="<div class='header'>";
-	content+="SRW Editor v0.1";
+	content+="SRW Engine MV Editor v0.1";
 	content+="</div>";
 	
 	content+="<div class='content'>";
