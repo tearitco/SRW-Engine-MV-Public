@@ -818,6 +818,10 @@ Combine the actor with the specified id. The unit for the actor should be able t
 
 Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
+* preventActorDeathQuote actor\_id 
+
+Prevents the default death quote from being played
+
 
 ## Script commands
 

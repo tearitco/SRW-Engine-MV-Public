@@ -816,7 +816,7 @@ Combine the actor with the specified id. The unit for the actor should be able t
 
 * splitActor actor\_id 
 
-Split the actor with the specified id. The unit unit for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
 
 ## Script commands

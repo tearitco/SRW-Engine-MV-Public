@@ -595,6 +595,13 @@ var $battleSceneManager = new BattleSceneManager();
 			se.volume = 80;
 			AudioManager.playSe(se);
 		}
+		
+		if (command === 'preventActorDeathQuote') {
+			if(!$gameTemp.preventedDeathQuotes){
+				$gameTemp.preventedDeathQuotes = {};
+			}
+			$gameTemp.preventedDeathQuotes[args[0]] = true;
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -1213,6 +1220,7 @@ var $battleSceneManager = new BattleSceneManager();
 				active: false
 			}
 		};
+		$gameTemp.preventedDeathQuotes = {};
         this.srpgStartActorTurn();//アクターターンを開始する
     };
 	
@@ -4331,7 +4339,7 @@ Game_Interpreter.prototype.isActorDestructionQueued  = function(id){
 	var result = false;
 	if($gameTemp.deathQueue && $gameTemp.deathQueue.length){
 		$gameTemp.deathQueue.forEach(function(queuedDeath){
-			if(queuedDeath.actor.isActor() && queuedDeath.actor.actorId() == id){
+			if(queuedDeath.actor.isActor() && queuedDeath.actor.actorId() == id && (!$gameTemp.preventedDeathQuotes || !$gameTemp.preventedDeathQuotes[id])){
 				result = true;
 			}
 		});
