@@ -243,14 +243,198 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 SRWEditor.prototype.getCommandDisplayInfo = function(command){
 	var _this = this;
 	var displayInfo = {
+		kill_active_animations: {
+			hasTarget: false,
+			params: []
+		},
+		teleport: {
+			hasTarget: true,
+			params: ["position"]
+		},
+		rotate_to: {
+			hasTarget: true,
+			params: ["rotation"]
+		},
+		translate: {
+			hasTarget: true,
+			params: ["startPosition", "position", "duration", "easingFunction", "easingMode", "hide", "catmullRom"]
+		},
+		rotate: {
+			hasTarget: true,
+			params: ["startRotation", "rotation", "duration", "easingFunction", "easingMode"]
+		},
+		resize: {
+			hasTarget: true,
+			params: ["startSize", "endSize", "duration", "easingFunction", "easingMode"]
+		},
+		flip: {
+			hasTarget: true,
+			params: ["x", "y"]
+		},
+		shake: {
+			hasTarget: true,
+			params: ["magnitude_x", "magnitude_y", "duration", "easingFunction", "easingMode"]
+		},
+		set_camera_target: {
+			hasTarget: true,
+			params: []
+		},	
+	
+		set_damage_text: {
+			hasTarget: false,
+			params: []
+		},
 		
+		set_evade_text: {
+			hasTarget: false,
+			params: []
+		},
+		
+		set_destroyed_text: {
+			hasTarget: false,
+			params: []
+		},
+		
+		set_attack_text: {
+			hasTarget: false,
+			params: []
+		},
+		clear_attack_text: {
+			hasTarget: false,
+			params: []
+		},
+		show_support_defender_text: {
+			hasTarget: false,
+			params: []
+		},
+		enable_support_defender: {
+			hasTarget: false,
+			params: []
+		},
+		
+		disable_support_defender: {
+			hasTarget: false,
+			params: []
+		},		
+		fade_in_bg: {
+			hasTarget: true,
+			params: ["startFade", "endFade", "duration", "easingFunction", "easingMode"]
+		},		
+		fade_swipe: {
+			hasTarget: false,
+			params: ["time"]
+		},
+		fade_white: {
+			hasTarget: false,
+			params: ["time", "speed", "speedOut"]
+		},		
+		updateBgMode: {
+			hasTarget: true,
+			params: []
+		},	
+		next_phase: {
+			hasTarget: false,
+			params: ["cleanUpCommands", "commands"]
+		},
+		dodge_pattern: {
+			hasTarget: false,
+			params: ["commands"]
+		},
+		spawn_sprite: {
+			hasTarget: true,
+			params: ["animationFrames", "animationLoop", "animationDelay"]
+		},
+		remove_sprite: {
+			hasTarget: true,
+			params: []
+		},
+		create_bg: {
+			hasTarget: true,
+			params: ["path", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"]
+		},
+		remove_bg: {
+			hasTarget: true,
+			params: []
+		},	
+		create_layer: {
+			hasTarget: true,
+			params: ["path", "isBackground", "frameSize", "lineCount", "columnCount", "animationFrames", "animationLoop", "animationDelay"]
+		},
+		remove_layer: {
+			hasTarget: true,
+			params: []
+		},	
+		create_sky_box: {
+			hasTarget: true,
+			params: ["path", "color"]
+		},
+		remove_sky_box: {
+			hasTarget: true,
+			params: []
+		},	
+		play_effekseer: {
+			hasTarget: true,
+			params: ["path", "position", "scale", "speed", "rotation"]
+		},		
+		hide_effekseer: {
+			hasTarget: true,
+			params: []
+		},
+		set_sprite_index: {
+			hasTarget: true,
+			params: ["index"]
+		},
+		hide_sprite: {
+			hasTarget: true,
+			params: []
+		},
+		show_sprite: {
+			hasTarget: true,
+			params: []
+		},
+		hide_bgs: {
+			hasTarget: false,
+			params: []
+		},
+		show_bgs: {
+			hasTarget: true,
+			params: []
+		},
+		reset_position: {
+			hasTarget: true,
+			params: ["duration"]
+		},
+		destroy: {
+			hasTarget: true,
+			params: []
+		},
+		show_damage: {
+			hasTarget: true,
+			params: []
+		},
+		drain_hp_bar: {
+			hasTarget: true,
+			params: ["percent","duration"]
+		},
+		drain_en_bar: {
+			hasTarget: true,
+			params: ["percent","duration"]
+		},
+		play_se: {
+			hasTarget: true,
+			params: ["seId","pitch","volume"]
+		},
+		kill_se:  {
+			hasTarget: false,
+			params: []
+		},
 	};
 	if(displayInfo[command]){
 		return displayInfo[command]
 	} else {
 		return {
 			hasTarget: true,
-			hasParams: true
+			params: []
 		};
 	}
 }
@@ -264,7 +448,7 @@ SRWEditor.prototype.getCommandContent = function(command){
 	if(displayInfo.hasTarget){
 		result+="<div class='command_target command_row'><div class='command_label'>Target: </div><input class='target_input' value='"+command.target+"'></input></div>";
 	}
-	if(displayInfo.hasParams){
+	if(displayInfo.params.length){
 		result+="<div class='command_row'>";
 		result+="<div class='params_label'>Parameters</div>";
 		var params = command.params;
