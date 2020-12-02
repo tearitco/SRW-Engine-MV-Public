@@ -2045,10 +2045,10 @@ StatCalc.prototype.isFreeSpace = function(position, type){
 	return isFree;
 }
 
-StatCalc.prototype.getAdjacentFreeSpace = function(position, type){
+StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId){
 	var occupiedCoordLookup = {};
 	this.iterateAllActors(type, function(actor, event){			
-		if(!event.isErased()){
+		if(!event.isErased() && event.eventId() != eventId){
 			if(!occupiedCoordLookup[event.posX()]){
 				occupiedCoordLookup[event.posX()] = {};
 			}
