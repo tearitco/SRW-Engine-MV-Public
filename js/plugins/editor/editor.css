@@ -37,6 +37,7 @@
 
 #srw_editor #attack_editor .edit_controls {
 	width: 30%;
+	height: 100%;
 }
 
 #srw_editor #attack_editor .timeline{
@@ -118,4 +119,81 @@
 #srw_editor #fade_container {
 	width: 100%;
 	height: 100%;
+}
+
+#srw_editor .definition_select {
+	width: 200px;
+}
+
+#srw_editor .selection_controls {
+	width: calc(100% - 10px);
+	display: flex;
+	align-items: center;
+	height: 50px;
+	padding-left: 5px;
+	padding-right: 5px;
+	border-bottom: 1px solid #3a3b55;
+}
+
+#srw_editor .selection_control_buttons {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+}
+
+#srw_editor .selection_control_buttons button{
+	margin: 2px;
+	width: 60px;
+}
+
+#srw_editor .section {
+	
+}
+
+#srw_editor .section_label {
+	font-size: 18px;
+	padding-left: 8px;
+	padding-top: 8px;
+	color: #4f52b1;
+}
+
+#srw_editor .section_content {
+	padding: 10px;
+	font-size: 12px;
+}
+
+#srw_editor #def_name {
+	margin-left: 5px;
+}	
+
+#srw_editor #sequence_select {
+	margin-left: 5px;
+}
+
+#srw_editor .tick_block {
+	margin: 10px;
+	padding: 5px;
+	border-radius: 10px;
+	background-color: #b8c8f1;
+}
+
+#srw_editor .tick_input {
+	width: 40px;
+}
+
+#srw_editor .cmd_block {
+	margin: 4px;
+	padding: 2px;
+	border-radius: 10px;
+	background-color: #576082;
+	color: #FFFFFF;
+}
+
+#srw_editor .command_label {
+	display: inline-block;
+	width: 65px;
+}
+
+#srw_editor .command_row {
+	padding: 4px;
 }

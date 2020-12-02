@@ -1,10 +1,8 @@
 function BattleAnimationBuilder(){	
-	/*this._animLookup = {
-		1: this.Summon_Swarm,
-		2: this.Boss_Beam,
-		3: this.All_Out_Assault
-	}*/
 	var _this = this;
+	_this._isLoaded = new Promise(function(resolve, reject){
+		_this._resolveLoad = resolve;
+	});
 	this.loadDefinitions(
 		"active", 
 		function(data){
@@ -51,11 +49,46 @@ BattleAnimationBuilder.prototype.getEasingFunctions = function(){
 	};
 }
 
+BattleAnimationBuilder.prototype.getDefinitions = function(){
+	return this._animLookup;
+}
+
+BattleAnimationBuilder.prototype.isLoaded = function(){
+	return this._isLoaded;
+}
+
+BattleAnimationBuilder.prototype.save = function(id){
+	var fs = require('fs');
+	var dirPath = 'js/plugins/config/active';
+	if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath);
+    }
+	fs.writeFileSync('js/plugins/config/active/BattleAnimations.json', JSON.stringify(this._animLookup));
+}
+
+BattleAnimationBuilder.prototype.copyDef = function(id){
+	var newId = Math.max(...Object.keys(this._animLookup)) + 1;
+	this._animLookup[newId] = JSON.parse(JSON.stringify(this._animLookup[id]));
+	this.save();
+	return newId;
+}
+
+BattleAnimationBuilder.prototype.deleteDef = function(id){
+	delete this._animLookup[id];
+	this.save();
+}
+
+BattleAnimationBuilder.prototype.updateName = function(id, value){
+	this._animLookup[id].name = value;
+	this.save();
+}
+
 BattleAnimationBuilder.prototype.processDefinitions = function(data){
 	var _this = this;
 	
 	
 	_this._animLookup = data;
+	_this._resolveLoad();
 	/*Object.keys(this._animLookup).forEach(function(id){
 		var data = _this._animLookup[id].data;
 		

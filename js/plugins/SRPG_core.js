@@ -147,6 +147,25 @@ var $battleSceneManager = new BattleSceneManager();
 		return keyName === 'cancel';
 	};
 	
+	Input._shouldPreventDefault = function(keyCode) {
+		if($gameTemp.editMode){
+			return false;
+		} else {
+			switch (keyCode) {
+				case 8:     // backspace
+				case 33:    // pageup
+				case 34:    // pagedown
+				case 37:    // left arrow
+				case 38:    // up arrow
+				case 39:    // right arrow
+				case 40:    // down arrow
+					return true;
+			}
+		}		
+		return false;
+	};
+
+	
 	Graphics._createAllElements = function() {
 		this._createErrorPrinter();
 		this._createCanvas();

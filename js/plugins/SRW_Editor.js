@@ -8,7 +8,7 @@ SRWEditor.prototype.init = function(){
 	var link  = document.createElement('link');
 	link.rel  = 'stylesheet';
 	link.type = 'text/css';
-	link.href = 'editor/editor.css';
+	link.href = 'js/plugins/editor/editor.css';
 	link.media = 'all';
 	head.appendChild(link);
 	
@@ -27,7 +27,18 @@ SRWEditor.prototype.init = function(){
 	_this._previewAttackHits = true;
 	_this._previewAttackDestroys = false;
 	_this._enemySideAttack = false;
-	
+	_this._currentDefinition = 0;
+	_this._sequenceTypes = [
+		{name: "Main", id: "mainAnimation"},
+		{name: "Hit", id: "onHit"},		
+		{name: "Hit Overwrite", id: "onHitOverwrite"},		
+		{name: "Miss", id: "onMiss"},
+		{name: "Miss Overwrite", id: "onMissOverwrite"},
+		{name: "Destroy", id: "onDestroy"},
+		{name: "Destroy Overwrite", id: "onDestroyOverwrite"},
+	];
+	_this._currentSequenceType = "mainAnimation";
+	_this._paramHandlers = {};
 	_this.show();
 }
 
@@ -63,9 +74,9 @@ SRWEditor.prototype.showAttackEditor = function(){
 	content+="</div>";
 	content+="</div>";
 	content+="<div class='preview_controls'>";
-	content+="<img id='play_button' src='editor/svg/play-button.svg'>";
+	content+="<img id='play_button' src='js/plugins/editor/svg/play-button.svg'>";
 	
-	content+="<img id='stop_button' src='editor/svg/pause-button.svg'>";
+	content+="<img id='stop_button' src='js/plugins/editor/svg/pause-button.svg'>";
 	content+="</div>";
 	
 	content+="<div class='preview_extra_controls'>";
@@ -93,6 +104,8 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	containerNode.innerHTML = content;
 	
+	document.onkeydown = null;
+	
 	document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#battle_scene_layer"));
 	_this._battleSceneLayer = document.querySelector("#attack_editor #battle_scene_layer");
 	_this._battleSceneLayer.style.width = "";
@@ -108,6 +121,9 @@ SRWEditor.prototype.showAttackEditor = function(){
 	_this._battleSceneFadeLayer.style.width = "";
 	_this._battleSceneFadeLayer.style.height = "";
 	$battleSceneManager.init();	
+	this._animationBuilder = $battleSceneManager.getAnimationBuilder();
+	
+	this.showAttackEditorControls();
 
 	document.querySelector("#play_button").addEventListener("click", function(){
 		_this.playBattleScene();
@@ -128,6 +144,142 @@ SRWEditor.prototype.showAttackEditor = function(){
 	document.querySelector("#chk_enemy_side").addEventListener("change", function(){
 		_this._enemySideAttack = this.checked;
 	});
+}
+
+SRWEditor.prototype.showAttackEditorControls = function(){
+	var _this = this;
+	_this._animationBuilder.isLoaded().then(function(){
+		var containerNode = _this._contentDiv.querySelector(".content");
+		var content = "";
+		
+		content+="<div class='selection_controls'>";
+		content+="<select class='definition_select'>";
+		var definitions = _this._animationBuilder.getDefinitions();
+		Object.keys(definitions).forEach(function(id){
+			content+="<option "+(_this._currentDefinition == id ? "selected" : "")+" value='"+id+"'>"+id+" - "+definitions[id].name+"</option>";
+		});
+		content+="</select>";
+		content+="<div class='selection_control_buttons'>";
+		content+="<button id='copy_def'>Copy</button>";
+		content+="<button id='delete_def'>Delete</button>";
+
+		content+="</div>";
+		content+="</div>";
+		
+		content+="<div class='section'>";
+		content+="<div class='section_label'>Info</div>";
+		content+="<div class='section_content'>";
+		content+="Name<input id='def_name' value='"+definitions[_this._currentDefinition].name+"'></input>";
+		content+="</div>";
+		content+="</div>";
+		
+		content+="<div class='section'>";
+		content+="<div class='section_label'>Commands</div>";
+		content+="<div class='section_content'>";
+		
+		content+="Sequence<select id='sequence_select'>";
+		_this._sequenceTypes.forEach(function(sequenceInfo){
+			content+="<option "+(_this._currentSequenceType == sequenceInfo.id ? "selected" : "")+" value='"+sequenceInfo.id+"'>"+sequenceInfo.name+"</option>";
+		});
+		content+="</select>";
+		
+		content+="<div class='commands_scroll'>";
+	
+		var commands = definitions[_this._currentDefinition].data;
+		var sequence = commands[_this._currentSequenceType];
+		
+		Object.keys(sequence).forEach(function(tick){
+			var tickCommands = sequence[tick];
+			content+="<div data-tick='"+tick+"' class='tick_block'>";
+			content+="<input class='tick_input' value='"+tick+"'></input>";
+			var ctr = 0;
+			Object.keys(tickCommands).forEach(function(tick){
+				var command = tickCommands[tick];
+				content+="<div data-cmdidx='"+(ctr++)+"' class='cmd_block'>";
+				content+=_this.getCommandContent(command);
+				content+="</div>";
+			});
+			content+="</div>";
+		});
+		
+		content+="</div>";
+		content+="</div>";
+		
+		content+="</div>";
+		
+		containerNode.querySelector(".edit_controls").innerHTML = content;
+		
+		containerNode.querySelector(".definition_select").addEventListener("change", function(){
+			_this._currentDefinition = this.value;
+			_this.showAttackEditorControls();
+		});
+		
+		containerNode.querySelector("#sequence_select").addEventListener("change", function(){
+			_this._currentSequenceType = this.value;
+			_this.showAttackEditorControls();
+		});
+		
+		containerNode.querySelector("#copy_def").addEventListener("click", function(){
+			var newId = _this._animationBuilder.copyDef(_this._currentDefinition);
+			_this._currentDefinition = newId;
+			_this.showAttackEditorControls();
+		});
+		containerNode.querySelector("#delete_def").addEventListener("click", function(){
+			if(confirm("Delete the current definition?")){
+				_this._animationBuilder.deleteDef(_this._currentDefinition);
+				_this._currentDefinition = 0;
+				_this.showAttackEditorControls();
+			}			
+		});
+		
+		containerNode.querySelector("#def_name").addEventListener("blur", function(){
+			_this._animationBuilder.updateName(_this._currentDefinition, this.value);
+			_this.showAttackEditorControls();
+		});
+		
+	});	
+}
+
+SRWEditor.prototype.getCommandDisplayInfo = function(command){
+	var _this = this;
+	var displayInfo = {
+		
+	};
+	if(displayInfo[command]){
+		return displayInfo[command]
+	} else {
+		return {
+			hasTarget: true,
+			hasParams: true
+		};
+	}
+}
+
+SRWEditor.prototype.getCommandContent = function(command){
+	var _this = this;
+	var result = "";
+	var displayInfo = _this.getCommandDisplayInfo(command);
+	
+	result+="<div class='command_type command_row'><div class='command_label'>Command:</div><input class='type_input' value='"+command.type+"'></input></div>";
+	if(displayInfo.hasTarget){
+		result+="<div class='command_target command_row'><div class='command_label'>Target: </div><input class='target_input' value='"+command.target+"'></input></div>";
+	}
+	if(displayInfo.hasParams){
+		result+="<div class='command_row'>";
+		result+="<div class='params_label'>Parameters</div>";
+		var params = command.params;
+		Object.keys(params).forEach(function(param){
+			result+="<div data-param='"+param+"' class='command_param'>";		
+			if(_this._paramHandlers[param]){
+				result = _this._commandHandlers[command.type]
+			} else {
+				result+="???";
+			}
+			result+="</div>";
+		});
+		result+="</div>";
+	}
+	return result;
 }
 
 SRWEditor.prototype.killAudioAfterScene = function(){

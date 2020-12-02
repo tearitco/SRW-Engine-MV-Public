@@ -114,6 +114,10 @@ BattleSceneManager.prototype.init = function(){
 	}
 }
 
+BattleSceneManager.prototype.getAnimationBuilder = function(){
+	return this._animationBuilder;
+}	
+
 BattleSceneManager.prototype.initScene = function(){
 	var _this = this;
 	 // Create the scene space
