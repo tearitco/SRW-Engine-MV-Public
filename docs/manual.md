@@ -627,6 +627,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 	Generally only called by the init or intermission map to start a new stage.
 	
 * Intermission start|end
+
 	This command starts or end the intermission. Only called on the intermission map.
 
 * UnlockUnit class_id
@@ -744,94 +745,97 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 	Sets the upgrade level for all enemies that will appear on the current stage.
 	
 * addPersuadeOption actor\_id event\_id var\_id
-* 
-Adds the option to use the persuade command for the actor with the specified id when they are adjacent tot the 	specified event. After using the persuade option the Control Variable with the specified id will be set to 1,  which can then be checked for in the afterAction event to implement the conversation.	
+
+	Adds the option to use the persuade command for the actor with the specified id when they are adjacent tot the 	specified event. After using the persuade option the Control Variable with the specified id will be set to 1,  	which can then be checked for in the afterAction event to implement the conversation.	
 
 * removePersuadeOption actor\_id event\_id
-* 
-Removes the specified persuade option. This command should be called after the conversation has occurred if the conversation is supposed to be one time only. 
+
+	Removes the specified persuade option. This command should be called after the conversation has occurred if 		the conversation is supposed to be one time only. 
 
 * deployShips toAnimationQueue
-* 
-Deploys all ships according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+	Deploys all ships according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
 
 * deployAll toAnimationQueue
-* 
-Deploys all allies according the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+	Deploys all allies according the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
 
 * deployAllLocked toAnimationQueue
-* 
-Deploys all allies that are in a locked slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+	Deploys all allies that are in a locked slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
 
 * deployActor actor\_id event\_id toAnimationQueue
-* 
-Deploys the specified actor to the specified event. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+	Deploys the specified actor to the specified event. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
  
 * deploySlot slot toAnimationQueue
-* 
-Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+	Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
 
 * moveEventToPoint event\_id x y follow
-* 
-Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
+
+	Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
 
 * setEventFlying event\_id
-Put the specified event into a flying state if the unit is capable of flight.
+
+	Put the specified event into a flying state if the unit is capable of flight.
 
 * setEventLanded event\_id
-Put the specified event into a grounded state.
+
+	Put the specified event into a grounded state.
 
 * awardSRPoint
-Grants the SR point for the current stage. Does not award the point if the SR point is locked for the current stage. If the point was newly awarded it automatically displays the reward text and plays a sound effect.
+
+	Grants the SR point for the current stage. Does not award the point if the SR point is locked for the current stage. If the point was newly awarded it automatically displays the reward text and plays a sound effect.
 
 * showEnemyPhase
 
-Show text declaring the start of an enemy phase. Automatically shows the correct faction color and displays "Ally Phase" instead if a faction is configured to be friendly to the player.
+	Show text declaring the start of an enemy phase. Automatically shows the correct faction color and displays "Ally Phase" instead if a faction is configured to be friendly to the player.
 
 * enableFaction faction\_id
 
-Enables the specified faction. Faction 0 is for standard enemies and is enabled by default. Factions 1 and 2 are additional factions whose aggro can be configured with other commands. Enemies spawned as those other factions will only take their turns if the correct faction is enabled.
+	Enables the specified faction. Faction 0 is for standard enemies and is enabled by default. Factions 1 and 2 are additional factions whose aggro can be configured with other commands. Enemies spawned as those other factions will only take their turns if the correct faction is enabled.
 
 * disableFaction faction\_id
 
-Disables the specified faction.
+	Disables the specified faction.
 
 * setFactionAggro faction\_id targets
 
-Set the aggro for the specified faction. Targets should be in the following format, ex.: 
+	Set the aggro for the specified faction. Targets should be in the following format, ex.: 
 ["player",0,2]. This example will make members of the specified faction aggressive towards player units and units of faction 0(default enemies) and faction 2.
 
 * clearFactionAggro faction\_id
 
-Clears all current faction aggro settings for the specified faction.
+	Clears all current faction aggro settings for the specified faction.
 
 * transformEvent event\_id
 
-Transforms the event with the specified id. The unit for the event should be able to transform!
+	Transforms the event with the specified id. The unit for the event should be able to transform!
 
 * combineEvent event\_id
 
-Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
+	Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
 
 * splitEvent event\_id 
 
-Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+	Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
 * transformActor actor\_id
 
-Transforms the actor with the specified id. The unit for the actor should be able to transform!
+	Transforms the actor with the specified id. The unit for the actor should be able to transform!
 
 * combineActor actor\_id
 
-Combine the actor with the specified id. The unit for the actor should be able to combine and the other members of the combination should be deployed for best results.
+	Combine the actor with the specified id. The unit for the actor should be able to combine and the other members of the combination should be deployed for best results.
 
 * splitActor actor\_id 
 
-Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+	Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
 * preventActorDeathQuote actor\_id 
 
-Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. Only applicable in the beforeDestruction event.
+	Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. Only applicable in the beforeDestruction event.
 
 
 ## Script commands
