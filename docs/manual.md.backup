@@ -759,10 +759,10 @@ Deploys all allies according the current deploy info. If toAnimationQueue is set
 Deploys all allies that are in a locked slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
 
 * deployActor actor\_id event\_id toAnimationQueue
-Deploys the specified actor to the specified event. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+Deploys the specified actor to the specified event. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
  
 * deploySlot slot toAnimationQueue
-Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
 
 * moveEventToPoint event\_id x y follow
 Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
