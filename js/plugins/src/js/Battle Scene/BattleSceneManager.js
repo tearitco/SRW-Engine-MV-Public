@@ -118,6 +118,14 @@ BattleSceneManager.prototype.getAnimationBuilder = function(){
 	return this._animationBuilder;
 }	
 
+BattleSceneManager.prototype.getDefaultPositions = function(){
+	return this._defaultPositions;
+}	
+
+BattleSceneManager.prototype.getDefaultRotations = function(){
+	return this._defaultRotations;
+}	
+
 BattleSceneManager.prototype.initScene = function(){
 	var _this = this;
 	 // Create the scene space

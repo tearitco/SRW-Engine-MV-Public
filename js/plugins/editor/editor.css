@@ -225,6 +225,34 @@
 	margin-left: 4px;
 }
 
+#srw_editor .command_param[data-param="cleanUpCommands"]{
+	border-radius: 5px;
+	background-color: #b8c8f1;
+	color: #2f3754;
+}
+
+#srw_editor .command_param[data-param="commands"]{
+	border-radius: 5px;
+	background-color: #b8c8f1;
+	color: #2f3754;
+}
+
+#srw_editor .command_param[data-param="cleanUpCommands"] .position_select{
+	width: 80px;
+}
+
+#srw_editor .command_param[data-param="commands"] .position_select{
+	width: 80px;
+}
+
+#srw_editor .command_param[data-param="cleanUpCommands"] .rotation_select{
+	width: 80px;
+}
+
+#srw_editor .command_param[data-param="commands"] .rotation_select{
+	width: 80px;
+}
+
 #srw_editor .param_values {
 	display: flex;
 }

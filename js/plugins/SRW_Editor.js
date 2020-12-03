@@ -67,200 +67,247 @@ SRWEditor.prototype.init = function(){
 	_this._commandDisplayInfo = {
 		kill_active_animations: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Immediately stop all running animations."
 		},
 		teleport: {
 			hasTarget: true,
-			params: ["position"]
+			params: ["position"],
+			desc: "Immediately move an object."
 		},
 		rotate_to: {
 			hasTarget: true,
-			params: ["rotation"]
+			params: ["rotation"],
+			desc: "Immediately set to rotation of an object."
 		},
 		translate: {
 			hasTarget: true,
-			params: ["startPosition", "position", "duration", "easingFunction", "easingMode", "hide", "catmullRom"]
+			params: ["startPosition", "position", "duration", "easingFunction", "easingMode", "hide", "catmullRom"],
+			desc: "Move an object from the start position to the end position."
 		},
 		rotate: {
 			hasTarget: true,
-			params: ["startRotation", "rotation", "duration", "easingFunction", "easingMode"]
+			params: ["startRotation", "rotation", "duration", "easingFunction", "easingMode"],
+			desc: "Rotate an object from the start rotation to the end rotation."
 		},
 		resize: {
 			hasTarget: true,
-			params: ["startSize", "endSize", "duration", "easingFunction", "easingMode"]
+			params: ["startSize", "endSize", "duration", "easingFunction", "easingMode"],
+			desc: "Change the size of an object between the start size and end size."
 		},
 		flip: {
 			hasTarget: true,
-			params: ["x", "y"]
+			params: ["x", "y"],
+			desc: "Flip the texture of an object."
 		},
 		shake: {
 			hasTarget: true,
-			params: ["magnitude_x", "magnitude_y", "duration", "easingFunction", "easingMode"]
+			params: ["magnitude_x", "magnitude_y", "duration", "easingFunction", "easingMode"],
+			desc: "Shake the screen on the x and y axis with the specified magnitude."
 		},
 		set_camera_target: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Lock the camera on an object in the scene. The camera will always look straight at the object while locked."
 		},	
 	
 		set_damage_text: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Show damage text for the current target. This command is automatically called during the reset_position command."
 		},
 		
 		set_evade_text: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Show evade text for the current target. This command is automatically called during the reset_position command."
 		},
 		
 		set_destroyed_text: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Show destroyed text for the current target. This command is automatically called during the destroy command."
 		},
 		
 		set_attack_text: {
 			hasTarget: false,
-			params: []
+			params: ["id"],
+			desc: "Show attack text for the current target."
 		},
 		clear_attack_text: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Clear the text box."
 		},
 		show_support_defender_text: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Show text for the incoming support defender. This command is automatically called during the next_phase command if applicable."
 		},
 		enable_support_defender: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Switch out the defender for the support defender. This command is automatically called during the next_phase command if applicable."
 		},
 		
 		disable_support_defender: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Switch out the support defender for the defender. This command is automatically called after an attack if applicable."
 		},		
 		fade_in_bg: {
 			hasTarget: true,
-			params: ["startFade", "endFade", "duration", "easingFunction", "easingMode"]
+			params: ["startFade", "endFade", "duration", "easingFunction", "easingMode"],
+			desc: "Fade in the target background."
 		},		
 		fade_swipe: {
 			hasTarget: false,
-			params: ["time"]
+			params: ["time"],
+			desc: "Swipe the screen to black. This command is automatically called during the next_phase command."
 		},
 		fade_white: {
 			hasTarget: false,
-			params: ["time", "speed", "speedOut"]
+			params: ["time", "speed", "speedOut"],
+			desc: "Fade the screen to white and from white."
 		},		
 		updateBgMode: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Update the current default backgrounds to match the target. This command is automatically called during the next_phase command."
 		},	
 		next_phase: {
 			hasTarget: false,
-			params: ["cleanUpCommands", "commands"]
+			params: ["cleanUpCommands", "commands"],
+			desc: "Fade the screen to black and set the scene up for the second phase of the attack. This command automatically brings the support defender if available and sets up the default background to match the target."
 		},
 		dodge_pattern: {
 			hasTarget: false,
-			params: ["commands"]
+			params: ["commands"],
+			desc: "Show the target's doging action. The commands provided as parameters define the evade movement of the target. If the target has a special dodge action, like Double Image, the matching animation will be played instead."
 		},
 		spawn_sprite: {
 			hasTarget: true,
-			params: ["animationFrames", "animationLoop", "animationDelay"]
+			params: ["path", "position", "size", "frameSize", "animationFrames", "animationLoop", "animationDelay"],
+			desc: "Create a new sprite."
 		},
 		remove_sprite: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Remove a sprite."
 		},
 		create_bg: {
 			hasTarget: true,
-			params: ["path", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"]
+			params: ["path", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
+			desc: "Create a new background."
 		},
 		remove_bg: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Remove a background."
 		},	
 		create_layer: {
 			hasTarget: true,
-			params: ["path", "isBackground", "frameSize", "lineCount", "columnCount", "animationFrames", "animationLoop", "animationDelay"]
+			params: ["path", "isBackground", "frameSize", "lineCount", "columnCount", "animationFrames", "animationLoop", "animationDelay"],
+			desc: "Create a new layer."
 		},
 		remove_layer: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Remove a layer."
 		},	
 		create_sky_box: {
 			hasTarget: true,
-			params: ["path", "color"]
+			params: ["path", "color"],
+			desc: "Create a new sky box."
 		},
 		remove_sky_box: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Remove a sky box."
 		},	
 		play_effekseer: {
 			hasTarget: true,
-			params: ["path", "position", "scale", "speed", "rotation"]
+			params: ["path", "position", "scale", "speed", "rotation"],
+			desc: "Play a predefined effekseer effect."
 		},		
 		hide_effekseer: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Hide a running effekseer effect."
 		},
 		set_sprite_index: {
 			hasTarget: true,
-			params: ["index"]
+			params: ["index"],
+			desc: "Set the frame of a sprite."
 		},
 		hide_sprite: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Hide a sprite."
 		},
 		show_sprite: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Show a sprite."
 		},
 		hide_bgs: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Hide the default background elements."
 		},
 		show_bgs: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Show the default background elements."
 		},
 		reset_position: {
 			hasTarget: true,
-			params: ["duration"]
+			params: ["duration"],
+			desc: "Reset the position of the target to the default position."
 		},
 		destroy: {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: "Play the destruction animation of the target."
 		},
 		show_damage: {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Show the damage the target has taken for the current attack."
 		},
 		drain_hp_bar: {
 			hasTarget: false,
-			params: ["percent","duration"]
+			params: ["percent","duration"],
+			desc: "Show damage on the HP bar."
 		},
 		drain_en_bar: {
 			hasTarget: false,
-			params: ["percent","duration"]
+			params: ["percent","duration"],
+			desc: "Show EN spent."
 		},
 		play_se: {
 			hasTarget: false,
-			params: ["seId","pitch","volume"]
+			params: ["seId","pitch","volume"],
+			desc: "Play a sound effect."
 		},
 		kill_se:  {
 			hasTarget: false,
-			params: []
+			params: [],
+			desc: "Mute all playing sound effects."
 		},
 	};
+	
+	
 	_this._paramTooltips = {
-		position: "A position defined by an x, y and coordinate.",
-		rotation: "A rotation defined by an x, y and component. The rotations are describe with radian values.",
-		startPosition: "A position defined by an x, y and coordinate.",
+		position: "A position defined by an x, y and z coordinate.",
+		rotation: "A rotation defined by an x, y and z component. The rotations are describe with radian values.",
+		startPosition: "A position defined by an x, y and z and coordinate.",
 		duration: "The duration of the command in animation ticks.",
 		easingFunction: "Descibes how an object moves from point a to point b. If not specified the object will move linearly.",
 		easingMode: "In, out or inout. Parameterizes easingFunction.",
 		hide: "Hide the target object after the command has finished.",
 		catmullRom: "Describes four point for a Catmull-Rom spline.",
-		startRotation: "A rotation defined by an x, y and component. The rotations are describe with radian values.",
+		startRotation: "A rotation defined by an x, y and z component. The rotations are described with radian values.",
 		startSize: "The initial size of the target object.",
 		endSize: "The final size of the target object.",
 		x: "If 1 the object will be flipped along its x-axis.",
@@ -270,7 +317,7 @@ SRWEditor.prototype.init = function(){
 		startFade: "The initial opacity of the object, between 0-1.",
 		endFade: "The final opacity of the object, between 0-1.",
 		time: "The duration of the command in milliseconds.",
-		speed: "The speed of effect.",
+		speed: "The speed of the effect.",
 		speedIn: "The speed of the fadein 'fast' or 'slow'.",
 		speedOut: "The speed of the fadeout 'fast' or 'slow'.",
 		cleanUpCommands: "A list of commands to be run to clean up objects before the next phase.",
@@ -301,7 +348,15 @@ SRWEditor.prototype.init = function(){
 			result+="<div class='param_values'>";
 			result+="x: <input data-dataid='x' class='param_value param_coord' value='"+(value.x || 0)+"'></input>";
 			result+="y: <input data-dataid='y' class='param_value param_coord' value='"+(value.y || 0)+"'></input>";
-			result+="z: <input data-dataid='z' class='param_value param_coord' value='"+(value.z || 0)+"'></input>";					
+			result+="z: <input data-dataid='z' class='param_value param_coord' value='"+(value.z || 0)+"'></input>";
+
+			result+="<select class='position_select'>";
+			result+="<option  value=''></option>";
+			var defaultPositions = $battleSceneManager.getDefaultPositions();
+			Object.keys(defaultPositions).sort().forEach(function(type){
+				result+="<option "+(value == type ? "selected" : "")+" value='"+type+"'>"+type+"</option>";
+			});
+			result+="</select>";	
 			result+="</div>";
 			return result;
 		},
@@ -310,7 +365,15 @@ SRWEditor.prototype.init = function(){
 			result+="<div class='param_values'>";
 			result+="x: <input data-dataid='x' class='param_value param_coord' value='"+(value.x || 0)+"'></input>";
 			result+="y: <input data-dataid='y' class='param_value param_coord' value='"+(value.y || 0)+"'></input>";
-			result+="z: <input data-dataid='z' class='param_value param_coord' value='"+(value.z || 0)+"'></input>";					
+			result+="z: <input data-dataid='z' class='param_value param_coord' value='"+(value.z || 0)+"'></input>";	
+
+			result+="<select class='rotation_select'>";
+			result+="<option  value=''></option>";
+			var defaultRotations = $battleSceneManager.getDefaultRotations();
+			Object.keys(defaultRotations).sort().forEach(function(type){
+				result+="<option "+(value == type ? "selected" : "")+" value='"+type+"'>"+type+"</option>";
+			});
+			result+="</select>";	
 			result+="</div>";
 			return result;
 		},
@@ -383,10 +446,19 @@ SRWEditor.prototype.init = function(){
 		
 		},
 		cleanUpCommands: function(value){
-		
+			return _this._paramDisplayHandlers.commands(value);
 		},
 		commands: function(value){
-		
+			var content = "<div class='inner_commands'>";
+			if(value){			
+				value.forEach(function(command){
+					content+="<div data-cmdid='"+command.type+"' class='cmd_block'>";
+					content+=_this.getCommandContent(command);
+					content+="</div>";
+				});
+			}
+			content+="</div>";
+			return content;
 		},
 		animationFrames: function(value){
 		
@@ -603,7 +675,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			var ctr = 0;
 			Object.keys(tickCommands).forEach(function(tick){
 				var command = tickCommands[tick];
-				content+="<div data-cmdidx='"+(ctr++)+"' class='cmd_block'>";
+				content+="<div data-cmdid='"+command.type+"' data-cmdidx='"+(ctr++)+"' class='cmd_block'>";
 				content+=_this.getCommandContent(command);
 				content+="</div>";
 			});
@@ -656,7 +728,8 @@ SRWEditor.prototype.getCommandDisplayInfo = function(command){
 	} else {
 		return {
 			hasTarget: true,
-			params: []
+			params: [],
+			desc: ""
 		};
 	}
 }
@@ -666,7 +739,7 @@ SRWEditor.prototype.getCommandContent = function(command){
 	var result = "";
 	var displayInfo = _this.getCommandDisplayInfo(command.type);
 	
-	result+="<div class='command_type command_row'><div class='command_label'>Command:</div>"+_this.getCommandSelect(command.type)+"</div>";
+	result+="<div class='command_type command_row'><div class='command_label' title='"+displayInfo.desc+"'>Command:</div>"+_this.getCommandSelect(command.type)+"</div>";
 	if(displayInfo.hasTarget){
 		result+="<div class='command_target command_row'><div class='command_label'>Target: </div><input class='target_input' value='"+command.target+"'></input>"+_this.getTargetSelect(command.target)+"</div>";
 	}
