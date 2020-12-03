@@ -69,18 +69,18 @@ BattleAnimationBuilder.prototype.save = function(id){
 BattleAnimationBuilder.prototype.copyDef = function(id){
 	var newId = Math.max(...Object.keys(this._animLookup)) + 1;
 	this._animLookup[newId] = JSON.parse(JSON.stringify(this._animLookup[id]));
-	this.save();
+	//this.save();
 	return newId;
 }
 
 BattleAnimationBuilder.prototype.deleteDef = function(id){
 	delete this._animLookup[id];
-	this.save();
+	//this.save();
 }
 
 BattleAnimationBuilder.prototype.updateName = function(id, value){
 	this._animLookup[id].name = value;
-	this.save();
+	//this.save();
 }
 
 BattleAnimationBuilder.prototype.processDefinitions = function(data){

@@ -194,6 +194,67 @@
 	width: 65px;
 }
 
+#srw_editor .param_label {
+	display: inline-block;
+	width: 100px;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
 #srw_editor .command_row {
 	padding: 4px;
+}
+
+#srw_editor .target_select {
+	display: inline-block;
+	margin-left: 4px;
+}
+
+#srw_editor #timeline_section {
+	height: calc(100vh - 200px);
+	padding-right: 0px;
+}
+
+#srw_editor .command_param {
+	display: flex;
+    align-items: center;
+	margin-top: 4px;
+	padding: 2px;
+	border: 1px solid #FFFFFF;
+	border-radius: 999px;
+	margin-left: 4px;
+}
+
+#srw_editor .param_values {
+	display: flex;
+}
+
+#srw_editor .param_value {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+#srw_editor .param_coord {
+	width: 40px;
+}
+
+#srw_editor .commands_scroll {
+	overflow: auto;
+	height: calc(100% - 30px);
+}
+
+#srw_editor .commands_scroll input {
+	background-color: #2f3754;
+    color: white;
+    border: 0;
+    border-radius: 99px;
+    padding-left: 5px;
+}
+
+#srw_editor .commands_scroll select {
+	background-color: #2f3754;
+    color: white;
+    border: 0;
+    border-radius: 99px;
+    padding-left: 5px;
 }

@@ -164,7 +164,10 @@ var $battleSceneManager = new BattleSceneManager();
 		}		
 		return false;
 	};
-
+	
+	TouchInput._onWheel = function(event) {
+		
+	}
 	
 	Graphics._createAllElements = function() {
 		this._createErrorPrinter();

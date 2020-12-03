@@ -1009,7 +1009,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(_this.isOKHeld){
 				fadeTime/=2;
 			}
-			_this.fadeToWhite(fadeTime, params.speed || "fast").then(function(){
+			_this.fadeToWhite(fadeTime, params.speedIn || "fast").then(function(){
 				//_this._actorSprite.sprite.isVisible = true;
 				//_this._enemySprite.sprite.isVisible = true;
 				_this.fadeFromWhite(params.speedOut || "fast");
