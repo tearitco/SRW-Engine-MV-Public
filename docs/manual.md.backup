@@ -757,6 +757,9 @@ Deploys all allies according the current deploy info. If toAnimationQueue is set
 
 * deployAllLocked toAnimationQueue
 Deploys all allies that are in a locked slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
+
+* deployActor actor\_id event\_id toAnimationQueue
+Deploys the specified actor to the specified event. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
  
 * deploySlot slot toAnimationQueue
 Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to true the this.processUnitAppearQueue() command will need to be called to show the unit.
@@ -820,7 +823,7 @@ Split the actor with the specified id. The unit for the actor should be a combin
 
 * preventActorDeathQuote actor\_id 
 
-Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. 
+Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. Only applicable in the beforeDestruction event.
 
 
 ## Script commands
