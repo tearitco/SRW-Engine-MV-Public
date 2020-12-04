@@ -344,6 +344,9 @@ SRWEditor.prototype.init = function(){
 	
 	_this._paramDisplayHandlers = {
 		position: function(value){
+			if(!value){
+				value = {};
+			}
 			var result = "";
 			result+="<div class='param_values'>";
 			result+="x: <input data-dataid='x' class='param_value param_coord' value='"+(value.x || 0)+"'></input>";
@@ -361,6 +364,9 @@ SRWEditor.prototype.init = function(){
 			return result;
 		},
 		rotation: function(value){
+			if(!value){
+				value = {};
+			}
 			var result = "";
 			result+="<div class='param_values'>";
 			result+="x: <input data-dataid='x' class='param_value param_coord' value='"+(value.x || 0)+"'></input>";
@@ -450,10 +456,12 @@ SRWEditor.prototype.init = function(){
 		},
 		commands: function(value){
 			var content = "<div class='inner_commands'>";
+			content+="<button class='tick_add_command'>New</button>";
 			if(value){			
+				var ctr = 0;
 				value.forEach(function(command){
-					content+="<div data-cmdid='"+command.type+"' class='cmd_block'>";
-					content+=_this.getCommandContent(command);
+					content+="<div data-cmdid='"+command.type+"' data-cmdidx='"+(ctr++)+"' class='cmd_block_inner'>";
+					content+=_this.getCommandContent(command, true);
 					content+="</div>";
 				});
 			}
@@ -518,6 +526,7 @@ SRWEditor.prototype.init = function(){
 	
 	_this._currentSequenceType = "mainAnimation";
 	_this._paramHandlers = {};
+	_this._editorScrollTop = 0;
 	_this.show();
 }
 
@@ -640,6 +649,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 		});
 		content+="</select>";
 		content+="<div class='selection_control_buttons'>";
+		content+="<button id='new_def'>New</button>";
 		content+="<button id='copy_def'>Copy</button>";
 		content+="<button id='delete_def'>Delete</button>";
 
@@ -657,11 +667,16 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 		content+="<div class='section_label'>Commands</div>";
 		content+="<div id='timeline_section' class='section_content'>";
 		
+		content+="<div class='command_tools'>";
 		content+="Sequence<select id='sequence_select'>";
 		_this._sequenceTypes.forEach(function(sequenceInfo){
 			content+="<option "+(_this._currentSequenceType == sequenceInfo.id ? "selected" : "")+" value='"+sequenceInfo.id+"'>"+sequenceInfo.name+"</option>";
 		});
 		content+="</select>";
+		
+		content+="<button id='new_tick'>New Tick</button>";
+		
+		content+="</div>";
 		
 		content+="<div class='commands_scroll'>";
 	
@@ -672,6 +687,11 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			var tickCommands = sequence[tick];
 			content+="<div data-tick='"+tick+"' class='tick_block'>";
 			content+="<input class='tick_input' value='"+tick+"'></input>";
+			content+="<button class='tick_button'>Update</button>";	
+			content+="<button class='tick_delete_button'>Delete</button>";		
+			content+="<div>"
+			content+="<button class='tick_add_command'>New</button>";		
+			content+="</div>"	
 			var ctr = 0;
 			Object.keys(tickCommands).forEach(function(tick){
 				var command = tickCommands[tick];
@@ -689,6 +709,12 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 		
 		containerNode.querySelector(".edit_controls").innerHTML = content;
 		
+		containerNode.querySelector(".commands_scroll").scrollTop = _this._editorScrollTop;		
+		
+		containerNode.querySelector(".commands_scroll").addEventListener("scroll", function(){
+			_this._editorScrollTop = this.scrollTop;
+		});
+		
 		containerNode.querySelector(".definition_select").addEventListener("change", function(){
 			_this._currentDefinition = this.value;
 			_this.showAttackEditorControls();
@@ -698,7 +724,12 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			_this._currentSequenceType = this.value;
 			_this.showAttackEditorControls();
 		});
-		
+		containerNode.querySelector("#new_def").addEventListener("click", function(){
+			var name = prompt("Please enter a name") || "New Animation";
+			var newId = _this._animationBuilder.newDef(name);
+			_this._currentDefinition = newId;
+			_this.showAttackEditorControls();
+		});
 		containerNode.querySelector("#copy_def").addEventListener("click", function(){
 			var newId = _this._animationBuilder.copyDef(_this._currentDefinition);
 			_this._currentDefinition = newId;
@@ -717,6 +748,99 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			_this.showAttackEditorControls();
 		});
 		
+		containerNode.querySelector("#new_tick").addEventListener("click", function(){
+			var newTick = prompt("Please enter the new tick value") * 1;
+			var isUsed = _this._animationBuilder.isUsedTick(_this._currentDefinition, _this._currentSequenceType, newTick);
+			if(!isUsed){
+				_this._animationBuilder.newTick(_this._currentDefinition, _this._currentSequenceType, newTick);
+				_this.showAttackEditorControls();
+			}			
+		});		
+		
+		var tickInputs = containerNode.querySelectorAll(".tick_button");
+		tickInputs.forEach(function(tickInput){
+			var isProcessing = false;
+			tickInput.addEventListener("click", function(){
+				var originalTick = this.parentNode.getAttribute("data-tick");
+				var newTick = this.parentNode.querySelector(".tick_input").value;
+				if(!isProcessing && originalTick != newTick){
+					isProcessing = true;
+					var isUsed = _this._animationBuilder.isUsedTick(_this._currentDefinition, _this._currentSequenceType, newTick);
+					var c = true;
+					if(isUsed){
+						var c = confirm("The new tick is already in use, merge the command lists?");
+					}
+					if(c){
+						_this._animationBuilder.updateTick(_this._currentDefinition, _this._currentSequenceType, originalTick, newTick);
+						_this.showAttackEditorControls();
+					}					
+					isProcessing = false;
+				}				
+			});
+		});		
+		
+		var tickInputs = containerNode.querySelectorAll(".tick_delete_button");
+		tickInputs.forEach(function(tickInput){
+			tickInput.addEventListener("click", function(){
+				var tick = this.parentNode.querySelector(".tick_input").value;
+				var c = confirm("Delete this entire tick?");
+				if(c){
+					_this._animationBuilder.deleteTick(_this._currentDefinition, _this._currentSequenceType, tick);
+					_this.showAttackEditorControls();
+				}			
+			});
+		});	
+		
+		var tickInputs = containerNode.querySelectorAll(".tick_add_command");
+		tickInputs.forEach(function(tickInput){
+			tickInput.addEventListener("click", function(){		
+				var tick = this.parentNode.closest(".tick_block").querySelector(".tick_input").value;	
+				var isCmdParam = this.closest(".inner_commands") != null;
+				if(isCmdParam){
+					var cmdIdx = this.closest(".cmd_block").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param").getAttribute("data-param");
+					_this._animationBuilder.addInnerCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type);
+				} else {
+					_this._animationBuilder.addCommand(_this._currentDefinition, _this._currentSequenceType, tick);					
+				}				
+				_this.showAttackEditorControls();	
+			});
+		});		
+
+		var inputs = containerNode.querySelectorAll(".delete_command");
+		inputs.forEach(function(input){
+			input.addEventListener("click", function(){		
+				var tick = this.closest(".tick_block").querySelector(".tick_input").value;	
+				var cmdIdx = this.closest(".cmd_block").getAttribute("data-cmdidx");
+				var isCmdParam = this.closest(".inner_commands") != null;
+				if(isCmdParam){
+					var cmdInnerIdx = this.closest(".cmd_block_inner").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param").getAttribute("data-param");
+					_this._animationBuilder.deleteInnerCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, cmdInnerIdx);
+				} else {
+					_this._animationBuilder.deleteCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx);
+				}
+				
+				_this.showAttackEditorControls();							
+			});
+		});		
+		
+		var inputs = containerNode.querySelectorAll(".command_select");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){		
+				var tick = this.closest(".tick_block").querySelector(".tick_input").value;	
+				var cmdIdx = this.closest(".cmd_block").getAttribute("data-cmdidx");
+				var isCmdParam = this.closest(".inner_commands") != null;
+				if(isCmdParam){
+					var cmdInnerIdx = this.closest(".cmd_block_inner").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param").getAttribute("data-param");
+					_this._animationBuilder.changeInnerCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, cmdInnerIdx, this.value);
+				} else {
+					_this._animationBuilder.changeCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, this.value);
+				}
+				_this.showAttackEditorControls();							
+			});
+		});		
 	});	
 }
 
@@ -734,12 +858,17 @@ SRWEditor.prototype.getCommandDisplayInfo = function(command){
 	}
 }
 
-SRWEditor.prototype.getCommandContent = function(command){
+SRWEditor.prototype.getCommandContent = function(command, isInner){
 	var _this = this;
 	var result = "";
 	var displayInfo = _this.getCommandDisplayInfo(command.type);
 	
-	result+="<div class='command_type command_row'><div class='command_label' title='"+displayInfo.desc+"'>Command:</div>"+_this.getCommandSelect(command.type)+"</div>";
+	result+="<div class='command_type command_row'>";
+	result+="<div class='command_label' title='"+displayInfo.desc+"'>Command:</div>";
+	result+=_this.getCommandSelect(command.type, isInner);
+	result+="<button class='delete_command'>Delete</button>";
+	result+="</div>";
+	
 	if(displayInfo.hasTarget){
 		result+="<div class='command_target command_row'><div class='command_label'>Target: </div><input class='target_input' value='"+command.target+"'></input>"+_this.getTargetSelect(command.target)+"</div>";
 	}
@@ -759,12 +888,14 @@ SRWEditor.prototype.getCommandContent = function(command){
 	return result;
 }
 
-SRWEditor.prototype.getCommandSelect = function(command){
+SRWEditor.prototype.getCommandSelect = function(command, isInner){
 	var _this = this;
 	var result = "";
 	result+="<select class='command_select'>";
 	Object.keys(_this._commandDisplayInfo).sort().forEach(function(type){
-		result+="<option "+(command == type ? "selected" : "")+" value='"+type+"'>"+type+"</option>";
+		if(!isInner || (type != "next_phase" && type != "dodge_pattern")){
+			result+="<option "+(command == type ? "selected" : "")+" value='"+type+"'>"+type+"</option>";
+		}		
 	});
 	result+="</select>";
 	return result;

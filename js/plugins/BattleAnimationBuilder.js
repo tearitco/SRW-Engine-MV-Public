@@ -66,6 +66,24 @@ BattleAnimationBuilder.prototype.save = function(id){
 	fs.writeFileSync('js/plugins/config/active/BattleAnimations.json', JSON.stringify(this._animLookup));
 }
 
+BattleAnimationBuilder.prototype.newDef = function(name){
+	var newId = Math.max(...Object.keys(this._animLookup)) + 1;
+	this._animLookup[newId] = {
+		name: name,
+		data: {
+			mainAnimation: [],
+			onHit: [],
+			onHitOverwrite: [],
+			onMiss: [],
+			onMissOverwrite: [],
+			onDestroy: [],
+			onDestroyOverwrite: []
+		}		
+	};
+	//this.save();
+	return newId;
+}
+
 BattleAnimationBuilder.prototype.copyDef = function(id){
 	var newId = Math.max(...Object.keys(this._animLookup)) + 1;
 	this._animLookup[newId] = JSON.parse(JSON.stringify(this._animLookup[id]));
@@ -80,6 +98,92 @@ BattleAnimationBuilder.prototype.deleteDef = function(id){
 
 BattleAnimationBuilder.prototype.updateName = function(id, value){
 	this._animLookup[id].name = value;
+	//this.save();
+}
+
+BattleAnimationBuilder.prototype.isUsedTick = function(id, sequence, tick){
+	var def = this._animLookup[id].data[sequence];	
+	if(def[tick] && def[tick].length){
+		return true;
+	}
+	return false;
+}
+
+BattleAnimationBuilder.prototype.newTick = function(id, sequence, tick){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick] = [];
+}
+
+BattleAnimationBuilder.prototype.deleteTick = function(id, sequence, tick){
+	var def = this._animLookup[id].data[sequence];	
+	delete def[tick];
+}
+
+BattleAnimationBuilder.prototype.addCommand = function(id, sequence, tick){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick].unshift({
+		type: "clear_attack_text",
+		target: "",
+		params: []
+	});
+}
+
+BattleAnimationBuilder.prototype.addInnerCommand = function(id, sequence, tick, idx, type){
+	var def = this._animLookup[id].data[sequence];
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	params[type].unshift({
+		type: "clear_attack_text",
+		target: "",
+		params: []
+	});
+}
+
+BattleAnimationBuilder.prototype.changeCommand = function(id, sequence, tick, cmdIdx, cmdId){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][cmdIdx] = {
+		type: cmdId,
+		target: "",
+		params: []
+	};
+}
+
+BattleAnimationBuilder.prototype.changeInnerCommand = function(id, sequence, tick, idx, type, innerIdx, cmdId){
+	var def = this._animLookup[id].data[sequence];
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	params[type][innerIdx] = {
+		type: cmdId,
+		target: "",
+		params: []
+	};
+}
+
+BattleAnimationBuilder.prototype.deleteCommand = function(id, sequence, tick, idx){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick].splice(idx, 1);
+}
+
+BattleAnimationBuilder.prototype.deleteInnerCommand = function(id, sequence, tick, idx, type, innerIdx){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][idx].params[type].splice(innerIdx, 1);
+}
+
+BattleAnimationBuilder.prototype.updateTick = function(id, sequence, originalTick, tick){
+	tick = tick*1;
+	originalTick = originalTick*1;
+	var def = this._animLookup[id].data[sequence];
+	if(def){
+		if(!def[tick]){
+			def[tick] = [];
+		}
+		def[tick] = def[tick].concat(def[originalTick]);
+		delete def[originalTick];
+	}
 	//this.save();
 }
 
