@@ -163,6 +163,20 @@ BattleAnimationBuilder.prototype.changeInnerCommand = function(id, sequence, tic
 	};
 }
 
+BattleAnimationBuilder.prototype.changeCommandTarget = function(id, sequence, tick, cmdIdx, target){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][cmdIdx].target = target;
+}
+
+BattleAnimationBuilder.prototype.changeInnerCommandTarget = function(id, sequence, tick, idx, type, innerIdx, target){
+	var def = this._animLookup[id].data[sequence];
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	params[type][innerIdx].target = target;
+}
+
 BattleAnimationBuilder.prototype.deleteCommand = function(id, sequence, tick, idx){
 	var def = this._animLookup[id].data[sequence];	
 	def[tick].splice(idx, 1);

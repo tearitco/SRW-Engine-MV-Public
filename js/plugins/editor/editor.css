@@ -289,7 +289,7 @@
 
 #srw_editor .commands_scroll {
 	overflow: auto;
-	height: calc(100% - 30px);
+	height: calc(100% - 40px);
 }
 
 #srw_editor .commands_scroll input {

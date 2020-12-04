@@ -841,6 +841,33 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				_this.showAttackEditorControls();							
 			});
 		});		
+		
+		var inputs = containerNode.querySelectorAll(".target_input");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){		
+				var tick = this.closest(".tick_block").querySelector(".tick_input").value;	
+				var cmdIdx = this.closest(".cmd_block").getAttribute("data-cmdidx");
+				var isCmdParam = this.closest(".inner_commands") != null;
+				if(isCmdParam){
+					var cmdInnerIdx = this.closest(".cmd_block_inner").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param").getAttribute("data-param");
+					_this._animationBuilder.changeInnerCommandTarget(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, cmdInnerIdx, this.value);
+				} else {
+					_this._animationBuilder.changeCommandTarget(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, this.value);
+				}
+				_this.showAttackEditorControls();							
+			});
+		});
+		
+		var inputs = containerNode.querySelectorAll(".target_select");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){		
+				var targetInput = this.closest(".command_target").querySelector(".target_input");
+				targetInput.value = this.value;
+				var event = new Event('change');
+				targetInput.dispatchEvent(event);		
+			});
+		});
 	});	
 }
 
