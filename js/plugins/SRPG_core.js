@@ -5387,6 +5387,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					this.setFrame(sx, sy, pw, ph);
 				}				
 			}		
+			this.setFrame(sx, sy, pw, ph);
 			//this.visible = false;
 			if ($gameSystem.isSRPGMode() == true && this._character.isEvent() == true) {
 				var battlerArray = $gameSystem.EventToUnit(this._character.eventId());
@@ -5439,6 +5440,29 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
             this.addChild(this._turnEndSprite);
         }
     };	
+	
+	
+	Sprite_Animation.prototype.updatePosition = function() {
+		if (this._animation.position === 3) {
+			this.x = this.parent.width / 2;
+			this.y = this.parent.height / 2;
+		} else {
+			var parent = this._target.parent;
+			var grandparent = parent ? parent.parent : null;
+			this.x = this._target.x;
+			this.y = this._target.y;
+			if (this.parent === grandparent) {
+				this.x += parent.x;
+				this.y += parent.y;
+			}
+			if (this._animation.position === 0) {
+				this.y -= this._target.height;
+			} else if (this._animation.position === 1) {
+				this.y -= this._target.height / 2 - 0;
+			}
+		}
+	};
+
 
 
 //====================================================================
