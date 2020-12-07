@@ -4914,11 +4914,18 @@ Game_Interpreter.prototype.prepareBattleSceneSupportEnemy = function(params) {
 Game_Interpreter.prototype.prepareBattleSceneAction = function(params) {
 	var unit = params.unit;
 	
+	var weapon;
+	if(typeof params.weapon == "object"){
+		weapon = params.weapon;
+	} else {
+		weapon = $statCalc.getActorMechWeapon(unit, params.weapon)
+	}
+	
 	var action;
 	if(params.action == "attack"){		
 		action = {
 			type: "attack",
-			attack: $statCalc.getActorMechWeapon(unit, params.weapon),
+			attack: weapon,
 			target: 0
 		}
 	}

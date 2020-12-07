@@ -48,6 +48,18 @@
 	height: 100%;
 }
 
+#srw_editor #info_section {
+	position: relative;
+}
+
+#srw_editor #save_def {
+	position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 100px;
+    font-size: 25px;
+}
+
 #srw_editor #attack_editor .edit_controls {
 	width: 30%;
 	height: 100%;
@@ -340,3 +352,4 @@
 #srw_editor .tick_add_command {
 	margin-top: 2px;
 }
+

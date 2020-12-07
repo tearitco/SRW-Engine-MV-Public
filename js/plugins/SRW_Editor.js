@@ -391,7 +391,7 @@ SRWEditor.prototype.init = function(){
 		},
 		easingFunction: function(value){
 			var result = "";			
-			result+="<select class='easing_select'>";
+			result+="<select class='easing_select param_select'>";
 			result+="<option  value=''></option>";
 			Object.keys(_this._easingFunctions).sort().forEach(function(type){
 				result+="<option "+(value == type ? "selected" : "")+" value='"+type+"'>"+type+"</option>";
@@ -401,7 +401,7 @@ SRWEditor.prototype.init = function(){
 		},
 		easingMode: function(value){
 			var result = "";			
-			result+="<select class='easing_mode_select'>";
+			result+="<select class='easing_mode_select param_select'>";
 			result+="<option value=''></option>";
 			Object.keys(_this._easingModes).sort().forEach(function(type){
 				result+="<option "+(value == type ? "selected" : "")+" value='"+type+"'>"+_this._easingModes[type]+"</option>";
@@ -410,7 +410,12 @@ SRWEditor.prototype.init = function(){
 			return result;
 		},
 		hide: function(value){
-			
+			var result = "";			
+			result+="<select class='hide_select param_select'>";
+			result+="<option value='0' "+(!value ? "selected" : "")+">0</option>";
+			result+="<option value='1' "+(value ? "selected" : "")+">1</option>";			
+			result+="</select>";
+			return result;
 		},
 		catmullRom: function(value){
 		
@@ -609,7 +614,11 @@ SRWEditor.prototype.showAttackEditor = function(){
 	_this._battleSceneFadeLayer.style.width = "";
 	_this._battleSceneFadeLayer.style.height = "";
 	$battleSceneManager.init();	
+	
 	this._animationBuilder = $battleSceneManager.getAnimationBuilder();
+	_this._animationBuilder.isLoaded().then(function(){
+		_this._animationBuilder.saveBackup();	
+	});
 	
 	this.showAttackEditorControls();
 
@@ -656,7 +665,8 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 		content+="</div>";
 		content+="</div>";
 		
-		content+="<div class='section'>";
+		content+="<div id='info_section' class='section'>";
+		content+="<button id='save_def'>Save</button>";
 		content+="<div class='section_label'>Info</div>";
 		content+="<div class='section_content'>";
 		content+="Name<input id='def_name' value='"+definitions[_this._currentDefinition].name+"'></input>";
@@ -682,12 +692,15 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 	
 		var commands = definitions[_this._currentDefinition].data;
 		var sequence = commands[_this._currentSequenceType];
+		if(!sequence){
+			sequence = {};
+		}
 		
 		Object.keys(sequence).forEach(function(tick){
 			var tickCommands = sequence[tick];
 			content+="<div data-tick='"+tick+"' class='tick_block'>";
 			content+="<input class='tick_input' value='"+tick+"'></input>";
-			content+="<button class='tick_button'>Update</button>";	
+			//content+="<button class='tick_button'>Update</button>";	
 			content+="<button class='tick_delete_button'>Delete</button>";		
 			content+="<div>"
 			content+="<button class='tick_add_command'>New</button>";		
@@ -695,7 +708,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			var ctr = 0;
 			Object.keys(tickCommands).forEach(function(tick){
 				var command = tickCommands[tick];
-				content+="<div data-cmdid='"+command.type+"' data-cmdidx='"+(ctr++)+"' class='cmd_block'>";
+				content+="<div data-cmdid='"+command.type+"' data-cmdidx='"+(ctr++)+"' class='cmd_block cmd_block_outer'>";
 				content+=_this.getCommandContent(command);
 				content+="</div>";
 			});
@@ -724,27 +737,38 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			_this._currentSequenceType = this.value;
 			_this.showAttackEditorControls();
 		});
+		
+		containerNode.querySelector("#save_def").addEventListener("click", function(){
+			_this._animationBuilder.save();
+			_this._modified = false;
+			_this.showAttackEditorControls();
+		});
+		
 		containerNode.querySelector("#new_def").addEventListener("click", function(){
 			var name = prompt("Please enter a name") || "New Animation";
 			var newId = _this._animationBuilder.newDef(name);
 			_this._currentDefinition = newId;
+			_this._modified = true;
 			_this.showAttackEditorControls();
 		});
 		containerNode.querySelector("#copy_def").addEventListener("click", function(){
 			var newId = _this._animationBuilder.copyDef(_this._currentDefinition);
 			_this._currentDefinition = newId;
+			_this._modified = true;
 			_this.showAttackEditorControls();
 		});
 		containerNode.querySelector("#delete_def").addEventListener("click", function(){
 			if(confirm("Delete the current definition?")){
 				_this._animationBuilder.deleteDef(_this._currentDefinition);
 				_this._currentDefinition = 0;
+				_this._modified = true;
 				_this.showAttackEditorControls();
 			}			
 		});
 		
 		containerNode.querySelector("#def_name").addEventListener("blur", function(){
 			_this._animationBuilder.updateName(_this._currentDefinition, this.value);
+			_this._modified = true;
 			_this.showAttackEditorControls();
 		});
 		
@@ -753,16 +777,17 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			var isUsed = _this._animationBuilder.isUsedTick(_this._currentDefinition, _this._currentSequenceType, newTick);
 			if(!isUsed){
 				_this._animationBuilder.newTick(_this._currentDefinition, _this._currentSequenceType, newTick);
+				_this._modified = true;
 				_this.showAttackEditorControls();
 			}			
 		});		
 		
-		var tickInputs = containerNode.querySelectorAll(".tick_button");
+		var tickInputs = containerNode.querySelectorAll(".tick_input");
 		tickInputs.forEach(function(tickInput){
 			var isProcessing = false;
-			tickInput.addEventListener("click", function(){
+			tickInput.addEventListener("change", function(){
 				var originalTick = this.parentNode.getAttribute("data-tick");
-				var newTick = this.parentNode.querySelector(".tick_input").value;
+				var newTick = this.value;
 				if(!isProcessing && originalTick != newTick){
 					isProcessing = true;
 					var isUsed = _this._animationBuilder.isUsedTick(_this._currentDefinition, _this._currentSequenceType, newTick);
@@ -772,6 +797,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 					}
 					if(c){
 						_this._animationBuilder.updateTick(_this._currentDefinition, _this._currentSequenceType, originalTick, newTick);
+						_this._modified = true;
 						_this.showAttackEditorControls();
 					}					
 					isProcessing = false;
@@ -786,6 +812,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				var c = confirm("Delete this entire tick?");
 				if(c){
 					_this._animationBuilder.deleteTick(_this._currentDefinition, _this._currentSequenceType, tick);
+					_this._modified = true;
 					_this.showAttackEditorControls();
 				}			
 			});
@@ -803,6 +830,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				} else {
 					_this._animationBuilder.addCommand(_this._currentDefinition, _this._currentSequenceType, tick);					
 				}				
+				_this._modified = true;
 				_this.showAttackEditorControls();	
 			});
 		});		
@@ -820,7 +848,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				} else {
 					_this._animationBuilder.deleteCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx);
 				}
-				
+				_this._modified = true;
 				_this.showAttackEditorControls();							
 			});
 		});		
@@ -838,6 +866,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				} else {
 					_this._animationBuilder.changeCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, this.value);
 				}
+				_this._modified = true;
 				_this.showAttackEditorControls();							
 			});
 		});		
@@ -855,7 +884,50 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				} else {
 					_this._animationBuilder.changeCommandTarget(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, this.value);
 				}
+				_this._modified = true;
 				_this.showAttackEditorControls();							
+			});
+		});
+		
+		var inputs = containerNode.querySelectorAll(".command_param input");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){		
+				var tick = this.closest(".tick_block").querySelector(".tick_input").value;	
+				var cmdIdx = this.closest(".cmd_block_outer").getAttribute("data-cmdidx");
+				var isCmdParam = this.closest(".inner_commands") != null;
+				var param = this.closest(".command_param").getAttribute("data-param");
+				if(isCmdParam){
+					var value = _this.processParamInput(this);
+					var cmdInnerIdx = this.closest(".cmd_block_inner").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param_outer").getAttribute("data-param");
+					_this._animationBuilder.changeInnerParamValue(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, cmdInnerIdx, param, value);
+				} else {
+					var value = _this.processParamInput(this);
+					_this._animationBuilder.changeParamValue(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, param, value);
+				}
+				_this._modified = true;
+				_this.showAttackEditorControls();			
+			});
+		});
+		
+		var inputs = containerNode.querySelectorAll(".command_param .param_select");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){		
+				var tick = this.closest(".tick_block").querySelector(".tick_input").value;	
+				var cmdIdx = this.closest(".cmd_block_outer").getAttribute("data-cmdidx");
+				var isCmdParam = this.closest(".inner_commands") != null;
+				var param = this.closest(".command_param").getAttribute("data-param");
+				if(isCmdParam){
+					var value = _this.processParamInput(this);
+					var cmdInnerIdx = this.closest(".cmd_block_inner").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param_outer").getAttribute("data-param");
+					_this._animationBuilder.changeInnerParamValue(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, cmdInnerIdx, param, value);
+				} else {
+					var value = _this.processParamInput(this);
+					_this._animationBuilder.changeParamValue(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, param, value);
+				}
+				_this._modified = true;
+				_this.showAttackEditorControls();			
 			});
 		});
 		
@@ -865,10 +937,67 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				var targetInput = this.closest(".command_target").querySelector(".target_input");
 				targetInput.value = this.value;
 				var event = new Event('change');
-				targetInput.dispatchEvent(event);		
+				targetInput.dispatchEvent(event);	
 			});
 		});
+		
+		var inputs = containerNode.querySelectorAll(".command_param .position_select")
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){	
+				var container = input.parentNode;
+				var defaultPositions = $battleSceneManager.getDefaultPositions();
+				var pos = defaultPositions[this.value];
+				
+				var xInput = container.querySelector("input[data-dataid='x']");				
+				xInput.value = pos.x;
+				container.querySelector("input[data-dataid='y']").value = pos.y;
+				container.querySelector("input[data-dataid='z']").value = pos.z;				
+				
+				var event = new Event('change');
+				xInput.dispatchEvent(event);	
+			});
+		});
+		
+		window.addEventListener("beforeunload", function(event){
+			if(_this._modified){
+				event.returnValue = "You have unsaved changes, exit anyway?";
+			}
+		});		
 	});	
+}
+
+SRWEditor.prototype.processParamInput = function(input){
+	var param = input.closest(".command_param").getAttribute("data-param");
+	var paramHandlers = {
+		position: function(input){
+			var container = input.parentNode;
+			var x = container.querySelector("input[data-dataid='x']").value;
+			var y = container.querySelector("input[data-dataid='y']").value;
+			var z = container.querySelector("input[data-dataid='z']").value;
+			return {x: x, y: y, z: z};
+		},
+		startPosition: function(input){
+			return this.position(input);
+		},
+		rotation: function(input){
+			var container = input.parentNode;
+			var x = container.querySelector("input[data-dataid='x']").value;
+			var y = container.querySelector("input[data-dataid='y']").value;
+			var z = container.querySelector("input[data-dataid='z']").value;
+			return {x: x, y: y, z: z};
+		},
+		startRotation: function(input){
+			return this.position(input);
+		},
+		duration: function(input){
+			return input.value*1;
+		}
+	};
+	if(paramHandlers[param]){
+		return paramHandlers[param](input);
+	} else {
+		return input.value;
+	}
 }
 
 SRWEditor.prototype.getCommandDisplayInfo = function(command){
@@ -905,7 +1034,7 @@ SRWEditor.prototype.getCommandContent = function(command, isInner){
 		var params = command.params;
 		displayInfo.params.forEach(function(param){
 			var value = params[param];
-			result+="<div data-param='"+param+"' class='command_param'>";
+			result+="<div data-param='"+param+"' class='command_param "+(isInner ? "" : "command_param_outer")+"'>";
 			result+="<div title='"+(_this._paramTooltips[param] || "")+"' class='param_label'>"+param+": </div>";
 			result+=_this.getParamContent(param, value);
 			result+="</div>";
@@ -968,13 +1097,38 @@ SRWEditor.prototype.playBattleScene = function(){
 	if($gameSystem.isSubBattlePhase() == "after_battle"){
 		$gameSystem.setSubBattlePhase("halt");
 		
+		var weapon = {
+			id: 0,
+			name: "Test",
+			type: "M",
+			postMoveEnabled: 0,
+			power: 0,
+			minRange: 0,
+			range:0,
+			hitMod: 0,
+			critMod: 0,
+			totalAmmo: 0,
+			currentAmmo: 0,
+			ENCost: 50,
+			willRequired: 0,
+			terrain: {air: "C", land: "C", water: "C", space: "C"},
+			effects: [],
+			particleType: "", //missile, funnel, beam, gravity, physical or "".
+			animId:_this._currentDefinition,
+			isMap: 0, 
+			mapId: -1,
+			isCombination: 0,
+			combinationWeapons: null,
+			combinationType: null
+		}			
+		
 		$gameMap._interpreter.playBattleScene({
 			enemyFirst: _this._enemySideAttack, // if 0 the actor will move first, if 1 the enemy will move first. This also affects the supports. If 0, the actor support will be attacking otherwise defending. If 1, the enemy support will be attacking otherwise defending.
 			songId: "Battle1", // the id of the song that should be played during the battle scene
 			actor: {
 				id: 1, // the id of the actor pilot
 				action: _this._enemySideAttack ? "defend" : "attack", // the action the actor will take: "attack", "defend", "evade". 
-				weapon: 1, // the id of the attack the actor will use. Only used if the action is "attack".
+				weapon: weapon, // the id of the attack the actor will use. Only used if the action is "attack".
 				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 				startHP: 100, // the start HP of the actor in percent
 				targetEndHP: _this._previewAttackDestroys ? 0 : 50, // the end HP of the target in percent
@@ -990,7 +1144,7 @@ SRWEditor.prototype.playBattleScene = function(){
 			enemy: {
 				id: 1, // the id of the enemy pilot
 				mechId: 10, // the id of the enemy mech
-				weapon: 6, // the id of the attack the actor will use. Only used if the action is "attack".
+				weapon: weapon, // the id of the attack the actor will use. Only used if the action is "attack".
 				action: _this._enemySideAttack ? "attack" : "defend", // the action the enemy will take: "attack", "defend", "evade". 
 				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 				startHP: 100, // the start HP of the enemy in percent

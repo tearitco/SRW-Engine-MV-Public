@@ -1281,7 +1281,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			
 			_this._animationSpritesInfo.push(spriteInfo);
 			_this._animationList[startTick + 26] = [
-				{target: target, type: "hide_sprite", params: {}}
+				{target: target, type: "hide_sprite", params: {}},
+				{target: target, type: "play_se", params: {seId: "Explosion2"}}
 			];			
 		},
 		show_damage: function(target, params){	
@@ -1914,7 +1915,9 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				_this._UIcontainer.style.display = "";
 				_this.fadeFromBlack(1000).then(function(){
 					$gameSystem.setSubBattlePhase('after_battle');
-					SceneManager.resume();
+					if(!$gameTemp.editMode){
+						SceneManager.resume();
+					}
 				});			
 			});		
 		}, 1000);
