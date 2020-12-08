@@ -596,7 +596,7 @@ var $battleSceneManager = new BattleSceneManager();
 			AudioManager.playSe(se);
 		}
 		
-		if (command === 'preventActorDeathQuote') {srpg
+		if (command === 'preventActorDeathQuote') {
 			if(!$gameTemp.preventedDeathQuotes){
 				$gameTemp.preventedDeathQuotes = {};
 			}
@@ -7496,7 +7496,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._endTurnConfirmWindow.close();
 		this.addWindow(this._endTurnConfirmWindow);
 		this._endTurnConfirmWindow.registerCallback("selected", function(result){
-			$gameTemp.AHeld = true;
+			$gameTemp.OKHeld = true;
 			$gameSystem.setSubBattlePhase("normal");
 			if(result){
 				$gameTemp.setTurnEndFlag(true);
@@ -8081,6 +8081,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}		
         _SRPG_SceneMap_update.call(this);
 		
+		if($gameTemp.OKHeld && !Input.isTriggered("ok")){
+			$gameTemp.OKHeld = false;
+		}
 				
 		//console.log($gameSystem.isSubBattlePhase());
 		if($gameTemp.enemyAppearQueueIsProcessing){
@@ -8526,13 +8529,18 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				_this._summaryWindow.hide();
 				
 				if(Input.isTriggered('ok')){
-					if(!$gameTemp.AHeld){
+					//if(!$gameTemp.OKHeld){
 						_this.showPauseMenu();
 						$gameSystem.setSubBattlePhase('pause_menu');
-					}									
+					//}									
 				} else {
-					$gameTemp.AHeld = false;
+					$gameTemp.OKHeld = false;
 				}
+				
+				/*if(Input.isTriggered('cancel')){
+					_this.showPauseMenu();
+					$gameSystem.setSubBattlePhase('pause_menu');
+				}*/
 			}		
 		
 			var terrainDetails = $gameMap.getTilePropertiesAsObject({x: currentPosition.x, y: currentPosition.y});		
@@ -8621,7 +8629,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}
 		
 		if ($gameSystem.isSubBattlePhase() === 'actor_map_target') {
-			if(Input.isTriggered("ok")){
+			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld
 				var targets = $statCalc.activeUnitsInTileRange($gameTemp.currentMapTargetTiles || []);
 				if(targets.length){
 					$gameTemp.currentMapTargets = targets;
@@ -9604,6 +9612,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$gameTemp.mapTargetDirection = this.getBestMapAttackTargets(event, weapon, type).direction;			
 			$statCalc.setCurrentAttack(battler, weapon);
 			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+			$gameTemp.OKHeld = true;
 			$gameSystem.setSubBattlePhase('actor_map_target');
 		} else {
 			var range = $statCalc.getRealWeaponRange(battler, weapon.range);
@@ -11307,4 +11316,24 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		Window_Base.prototype.open.call(this);
 	};
 	
+	Input.update = function() {
+		this._pollGamepads();
+		//console.log(this._latestButton);
+		if (this._currentState[this._latestButton]) {
+			this._pressedTime++;
+		} else {
+			this._latestButton = null;
+		}
+		for (var name in this._currentState) {
+			if (this._currentState[name] && !this._previousState[name]) {
+				this._latestButton = name;
+				this._pressedTime = 0;
+				this._date = Date.now();
+			}
+			this._previousState[name] = this._currentState[name];
+		}
+		this._updateDirection();
+	};
+	
 })();
+

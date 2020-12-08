@@ -28,10 +28,17 @@ Window_UnitSummary.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){			
-		
-	}		
-	this.refresh();
+		this.refresh();
+	}			
 };
+
+Window_UnitSummary.prototype.refresh = function() {
+	if(this._redrawRequested){
+		this._redrawRequested = false;
+		this.redraw();		
+	}
+	this.getWindowNode().style.display = this._visibility;
+}
 
 Window_UnitSummary.prototype.redraw = function() {	
 	var _this = this;

@@ -63,8 +63,8 @@ Window_ConfirmEndTurn.prototype.update = function() {
 				this._callbacks.selected(false);
 			}
 		}
-	}		
-	this.refresh();
+		this.refresh();
+	}			
 };
 
 Window_ConfirmEndTurn.prototype.redraw = function() {	

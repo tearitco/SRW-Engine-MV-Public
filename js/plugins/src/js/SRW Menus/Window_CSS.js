@@ -61,6 +61,10 @@ Window_CSS.prototype.refresh = function() {
 		this.redraw();		
 	}
 	this.getWindowNode().style.display = this._visibility;
+	
+	//consume input
+	Input.update();
+	TouchInput.update();
 }
 
 Window_CSS.prototype.createComponents = function() {

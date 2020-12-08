@@ -270,7 +270,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			weaponPower-=500;
 		}		
 		var attackerWill = $statCalc.getCurrentWill(attackerInfo.actor);
-		var initialAttack = weaponPower * weaponTerrainRating + (attackerPilotOffense + attackerWill) / 200;
+		var initialAttack = weaponPower * weaponTerrainRating * (attackerPilotOffense + attackerWill) / 200;
 		//initial defense
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
 		
@@ -768,7 +768,7 @@ BattleCalc.prototype.generateMapBattleResult = function(){
 	var targets = $gameTemp.currentMapTargets;
 	targets.forEach(function(target){
 		var defender = {actor: target, action: {type: "none"}};
-		_this.prepareBattleCache(defender);
+		_this.prepareBattleCache(defender, "defender");
 		var dCache = $gameTemp.battleEffectCache[defender.actor._cacheReference];
 		dCache.isAttacked = true;
 		dCache.attackedBy = aCache;
