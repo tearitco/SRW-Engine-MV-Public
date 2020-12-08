@@ -10201,6 +10201,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			return $statCalc.isFreeSpace(pos) || (pos.x == $gameTemp.activeEvent().posX() && pos.y == $gameTemp.activeEvent().posY());
 		}
 		
+		if(targetCoords.x == battler.event.posX() && targetCoords.y == battler.event.posY()){
+			return [targetCoords.x, targetCoords.y];
+		}
+		
         if ($gameTemp.isSrpgBestSearchRoute()[0] && 
             !(battler.battleMode() === 'absRegionUp' || battler.battleMode() === 'absRegionDown')) {
             var route = $gameTemp.isSrpgBestSearchRoute()[1].slice(1, battler.srpgMove() + 1);
@@ -10240,7 +10244,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         var list = $gameTemp.moveList();
 		list.push([$gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY(), false]);
 		
-		var occupiedPositions = $statCalc.getOccupiedPositionsLookup();
+		var occupiedPositions = $statCalc.getOccupiedPositionsLookup(battler.isActor() ? "enemy" :  "actor");
 	
 		
 		var pathfindingGrid = [];
@@ -10271,12 +10275,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			if(pathNodeLookup[list[i][0]] && pathNodeLookup[list[i][0]][list[i][1]] != null){
 				pathIdx = pathNodeLookup[list[i][0]][list[i][1]];
 			}
-			if(pathIdx > bestIdx){
+			if(isValidSpace({x: list[i][0], y: list[i][1]}) && pathIdx > bestIdx){
 				bestIdx = pathIdx;
 			}
 		}
 		
-		var candidatePos = [[path[bestIdx].x, path[bestIdx].y]];
+		var candidatePos = [];
+		if(bestIdx != -1){
+			candidatePos.push([path[bestIdx].x, path[bestIdx].y]);
+		}
 		/*var distanceSortedPositions = [];
 		
 		for(var i = 0; i < list.length; i++){
