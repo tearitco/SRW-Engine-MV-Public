@@ -7024,6 +7024,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					if($gameSystem.getPersuadeOption(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_persuade, 'persuade');
 					}
+					if($statCalc.applyStatModsToValue(_this._actor, 0, ["heal"])){
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_repair, 'heal');
+					}
 					_this.addWaitCommand();
 				}
 				
@@ -8103,6 +8106,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var menuStack = $gameTemp.menuStack;
 		if($gameTemp.popMenu){
 			//console.log("Pop Menu " + $gameTemp.menuStack[menuStack.length-1]);
+			
+			//Input.update is called twice to prevent inputs that triggered the closing of a window to also trigger something in the new state
+			Input.update();
+			Input.update();
 			if(menuStack.length){
 				var menu = menuStack.pop();
 				if(menu){
@@ -11315,25 +11322,5 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		this.refresh();
 		Window_Base.prototype.open.call(this);
 	};
-	
-	Input.update = function() {
-		this._pollGamepads();
-		//console.log(this._latestButton);
-		if (this._currentState[this._latestButton]) {
-			this._pressedTime++;
-		} else {
-			this._latestButton = null;
-		}
-		for (var name in this._currentState) {
-			if (this._currentState[name] && !this._previousState[name]) {
-				this._latestButton = name;
-				this._pressedTime = 0;
-				this._date = Date.now();
-			}
-			this._previousState[name] = this._currentState[name];
-		}
-		this._updateDirection();
-	};
-	
 })();
 

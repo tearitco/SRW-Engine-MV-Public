@@ -161,7 +161,7 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		finalHit-=evadeMod;
 		
 		if(defenderInfo.action.type == "evade"){
-			finalHit-=50;
+			finalHit/=2;
 		}
 		if($statCalc.getActiveSpirits(attackerInfo.actor).focus) {
 			finalHit+=30;
@@ -255,9 +255,9 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
 		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
 		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
-		if(weaponInfo.particleType == "beam" && $statCalc.getCurrentTerrain(defenderInfo.actor) == "water"){
+		/*if(weaponInfo.particleType == "beam" && $statCalc.getCurrentTerrain(defenderInfo.actor) == "water"){
 			weaponTerrainRating = this._weaponTerrainValues["D"];
-		}
+		}*/
 			
 		if(weaponInfo.type == "M"){ //melee
 			attackerPilotOffense = attackerPilotStats.melee;
