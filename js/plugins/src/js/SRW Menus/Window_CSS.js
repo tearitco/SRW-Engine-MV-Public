@@ -62,7 +62,7 @@ Window_CSS.prototype.refresh = function() {
 	}
 	this.getWindowNode().style.display = this._visibility;
 }
-
+	
 Window_CSS.prototype.createComponents = function() {
 	var windowNode = this.getWindowNode();
 	windowNode.innerHTML = "";	

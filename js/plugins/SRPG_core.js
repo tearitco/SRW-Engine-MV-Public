@@ -10240,9 +10240,44 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         var list = $gameTemp.moveList();
 		list.push([$gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY(), false]);
 		
+		var occupiedPositions = $statCalc.getOccupiedPositionsLookup();
+	
 		
-		var candidatePos = [];
-		var distanceSortedPositions = [];
+		var pathfindingGrid = [];
+		for(var i = 0; i < $gameMap.width(); i++){
+			pathfindingGrid[i] = [];
+			for(var j = 0; j < $gameMap.height(); j++){
+				pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || !$statCalc.canStandOnTile(battler, {x: i, y: j})) ? 0 : 1;
+			}
+		}
+		var graph = new Graph(pathfindingGrid);
+		var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
+		var endNode = graph.grid[targetCoords.x][targetCoords.y];
+		
+		var path = astar.search(graph, startNode, endNode, {closest: true});
+		
+		var pathNodeLookup = {};
+		var ctr = 0;
+		path.forEach(function(node){
+			if(!pathNodeLookup[node.x]){
+				pathNodeLookup[node.x] = {};
+			}
+			pathNodeLookup[node.x][node.y] = ctr++;
+		});
+		
+		var bestIdx = -1;
+		for(var i = 0; i < list.length; i++){
+			var pathIdx = -1;
+			if(pathNodeLookup[list[i][0]] && pathNodeLookup[list[i][0]][list[i][1]] != null){
+				pathIdx = pathNodeLookup[list[i][0]][list[i][1]];
+			}
+			if(pathIdx > bestIdx){
+				bestIdx = pathIdx;
+			}
+		}
+		
+		var candidatePos = [[path[bestIdx].x, path[bestIdx].y]];
+		/*var distanceSortedPositions = [];
 		
 		for(var i = 0; i < list.length; i++){
 			var deltaX = Math.abs(targetCoords.x - list[i][0]);
@@ -10269,13 +10304,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				candidatePos.push([distanceSortedPositions[ctr].x, distanceSortedPositions[ctr].y]);
 			}			
 			ctr++;
-		}
+		} 
+		*/
+		
 		
 		for(var i = 0; i < candidatePos.length; i++){
 			if(candidatePos[i][0] == targetCoords.x && candidatePos[i][1] == targetCoords.y){
 				return candidatePos[i];
 			}
-		}
+		} 
 		var resultPos = candidatePos[0];
 		var ctr = 1;
 		while(ctr < candidatePos.length && !isValidSpace({x: resultPos[0], y: resultPos[1]})){
