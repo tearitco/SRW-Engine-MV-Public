@@ -14,10 +14,10 @@ function BattleCalc(){
 		"D": 0.6,
 	};
 	this._mechSizeValues = {
-		"S": 1.1,
+		"S": 0.8,
 		"M": 1.0,
-		"1L": 0.9,
-		"2L": 0.8
+		"1L": 1.2,
+		"2L": 1.4
 	};
 	this._sizeEvadeMod = {
 		"S": 0.8,
@@ -281,16 +281,18 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		armor = $statCalc.applyStatModsToValue(defenderInfo.actor, armor, ["armor"]);			
 		
 		var defenderTerrainRating = this._mechTerrainValues[defenderMechStats.terrain[$statCalc.getCurrentTerrain(defenderInfo.actor)]];
-		var initialDefend = armor * defenderTerrainRating * (defenderPilotStats.defense + $statCalc.getCurrentWill(defenderInfo.actor)) / 200;
+		
 		//final damage
 		var terrainDefenseFactor = $statCalc.getCurrentTerrainMods(defenderInfo.actor).defense || 0; 
-		var sizeFactor = 1 + this._mechSizeValues[attackerMechStats.size] - this._mechSizeValues[defenderMechStats.size];
+		var sizeFactor = 1 + this._mechSizeValues[defenderMechStats.size] - this._mechSizeValues[attackerMechStats.size];
 		var attackerHasIgnoreSize = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["ignore_size"]);
-		if(attackerHasIgnoreSize && sizeFactor < 1){
+		if(attackerHasIgnoreSize && sizeFactor > 1){
 			sizeFactor = 1;
 		}
 		
-		var finalDamage = (initialAttack - initialDefend) * (1 - terrainDefenseFactor/100) * sizeFactor;
+		var initialDefend = armor * defenderTerrainRating * (defenderPilotStats.defense + $statCalc.getCurrentWill(defenderInfo.actor)) / 200 * sizeFactor;
+		
+		var finalDamage = (initialAttack - initialDefend) * (1 - terrainDefenseFactor/100);
 		var isCritical = false;
 		if(Math.random() < this.performCritCalculation(attackerInfo, defenderInfo)){
 			isCritical = true;
