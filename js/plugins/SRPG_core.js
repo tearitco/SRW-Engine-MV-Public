@@ -6981,7 +6981,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					}
 					_this.addCommand(APPSTRINGS.MAPMENU.cmd_spirit, 'spirit');
 					if($statCalc.applyStatModsToValue(_this._actor, 0, ["heal"])){
-						_this.addCommand(APPSTRINGS.MAPMENU.cmd_heal, 'heal');
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_repair, 'heal');
 					}
 					if($statCalc.applyStatModsToValue(_this._actor, 0, ["resupply"])){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_resupply, 'resupply');
