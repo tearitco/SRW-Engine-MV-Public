@@ -8636,17 +8636,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}
 		
 		if ($gameSystem.isSubBattlePhase() === 'actor_map_target') {
-			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld
-				var targets = $statCalc.activeUnitsInTileRange($gameTemp.currentMapTargetTiles || []);
+			var attack = $gameTemp.actorAction.attack;
+			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld				
+				var targets = $statCalc.activeUnitsInTileRange($gameTemp.currentMapTargetTiles || [], attack.ignoresFriendlies ? "enemy" : null);
 				if(targets.length){
 					$gameTemp.currentMapTargets = targets;
 					$gameTemp.clearMoveTable();	
 					$gameTemp.setResetMoveList(true);
 					_this.mapAttackStart();
 				}
-			} else {	
-				
-				var attack = $gameTemp.actorAction.attack;
+			} else {				
 				var tileCoordinates = $mapAttackManager.getDefinition(attack.mapId).shape;
 			
 				if(Input.isTriggered("up")){
@@ -9857,7 +9856,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			});
 		}
 		if(bestMapAttack){
-			$gameTemp.currentMapTargets = _this.getMapAttackTargets(event, bestMapAttack.attack, "", bestMapAttack.direction);
+			var type = "";
+			if(bestMapAttack.attack.ignoresFriendlies){
+				type = "actor";
+			}
+			$gameTemp.currentMapTargets = _this.getMapAttackTargets(event, bestMapAttack.attack, type, bestMapAttack.direction);
 			$gameTemp.mapTargetDirection = bestMapAttack.direction;
 			$gameTemp.currentBattleEnemy = enemy;
 			$gameTemp.enemyAction = {

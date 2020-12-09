@@ -289,7 +289,8 @@ Weapons can have up to two special effects.
 \<weaponEffect1:1\><br>
 
 
-\<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.
+\<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.<br>
+\<weaponIgnoresFriendlies:1\> If set to 1 the map weapon will not damage friendly units. If set to 0, or if the property is omitted, it will.
 
 ## Combinations Attacks
 

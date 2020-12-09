@@ -289,7 +289,8 @@ Weapons can have up to two special effects.
 \<weaponEffect1:1\><br>
 
 
-\<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.
+\<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.<br>
+\<weaponIgnoresFriendlies:1\> If set to 1 the map weapon will not damage friendly units, if set to 0 or if the pit will.
 
 ## Combinations Attacks
 
@@ -627,6 +628,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 	Generally only called by the init or intermission map to start a new stage.
 	
 * Intermission start|end
+
 	This command starts or end the intermission. Only called on the intermission map.
 
 * UnlockUnit class_id
@@ -801,40 +803,40 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 * setFactionAggro faction\_id targets
 
-Set the aggro for the specified faction. Targets should be in the following format, ex.: 
+	Set the aggro for the specified faction. Targets should be in the following format, ex.: 
 ["player",0,2]. This example will make members of the specified faction aggressive towards player units and units of faction 0(default enemies) and faction 2.
 
 * clearFactionAggro faction\_id
 
-Clears all current faction aggro settings for the specified faction.
+	Clears all current faction aggro settings for the specified faction.
 
 * transformEvent event\_id
 
-Transforms the event with the specified id. The unit for the event should be able to transform!
+	Transforms the event with the specified id. The unit for the event should be able to transform!
 
 * combineEvent event\_id
 
-Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
+	Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
 
 * splitEvent event\_id 
 
-Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+	Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
 * transformActor actor\_id
 
-Transforms the actor with the specified id. The unit for the actor should be able to transform!
+	Transforms the actor with the specified id. The unit for the actor should be able to transform!
 
 * combineActor actor\_id
 
-Combine the actor with the specified id. The unit for the actor should be able to combine and the other members of the combination should be deployed for best results.
+	Combine the actor with the specified id. The unit for the actor should be able to combine and the other members of the combination should be deployed for best results.
 
 * splitActor actor\_id 
 
-Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+	Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
 * preventActorDeathQuote actor\_id 
 
-Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. Only applicable in the beforeDestruction event.
+	Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. Only applicable in the beforeDestruction event.
 
 
 ## Script commands

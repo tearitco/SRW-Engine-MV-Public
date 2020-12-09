@@ -154,9 +154,11 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 			}
 			var isMap = false;
 			var mapId;
+			var ignoresFriendlies = false;
 			if(weaponProperties.weaponMapId){
 				isMap = true;
 				mapId = JSON.parse(weaponProperties.weaponMapId);
+				ignoresFriendlies = weaponProperties.weaponIgnoresFriendlies*1;
 			}
 			
 			var isCombination = false;
@@ -189,6 +191,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 				animId: parseInt(weaponProperties.weaponAnimId) || -1,
 				isMap: isMap, 
 				mapId: mapId,
+				ignoresFriendlies: ignoresFriendlies,
 				isCombination: isCombination,
 				combinationWeapons: combinationWeapons,
 				combinationType: combinationType
