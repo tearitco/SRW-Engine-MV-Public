@@ -1211,6 +1211,75 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.playAnimation(params.index, params.index, false, 100);
 			}
 		},
+		set_sprite_animation: function(target, params){
+			var targetObj = getTargetObject(target);
+			var action = _this._currentAnimatedAction;
+			var targetAction = _this._currentAnimatedAction.attacked;
+			if(targetObj){
+				var sampleMode;
+				if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
+					sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
+				} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
+					sampleMode = BABYLON.Texture.NEAREST_SAMPLINGMODE
+				}
+				
+				var battleEffect;
+				if(target == "active_main" || target == "active_support_attacker"){
+					battleEffect = action;
+				} else if(target == "active_target" || target == "active_support_defender"){
+					battleEffect = targetAction;
+				}
+				
+				
+				var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+				
+				targetObj.material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+params.name+".png", _this._scene, false, true, sampleMode);
+				targetObj.material.diffuseTexture.hasAlpha = true;
+				targetObj.material.useAlphaFromDiffuseTexture  = true;
+				
+				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
+				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
+			}
+		},
+		set_sprite_frame: function(target, params){
+			var targetObj = getTargetObject(target);
+			var action = _this._currentAnimatedAction;
+			var targetAction = _this._currentAnimatedAction.attacked;
+			if(targetObj){
+				var sampleMode;
+				if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
+					sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
+				} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
+					sampleMode = BABYLON.Texture.NEAREST_SAMPLINGMODE
+				}
+				
+				var flipX;
+				var battleEffect;
+				if(target == "active_main" || target == "active_support_attacker"){
+					battleEffect = action;
+					flipX = false;
+				} else if(target == "active_target" || target == "active_support_defender"){
+					battleEffect = targetAction;
+					flipX = true;
+				}
+				
+				
+				var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+				
+				targetObj.material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+params.name+".png", _this._scene, false, true, sampleMode);
+				targetObj.material.diffuseTexture.hasAlpha = true;
+				targetObj.material.useAlphaFromDiffuseTexture  = true;
+				
+				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
+				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
+				
+				if(flipX){
+					targetObj.material.diffuseTexture.uScale = -1; 
+				}
+			}
+		},
 		hide_sprite: function(target, params){
 			var targetObj = getTargetObject(target);
 			if(targetObj){
@@ -1256,15 +1325,22 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 			
 			
-			_this._animationList[startTick + params.duration] = [
-				{type: "set_sprite_index", target: target, params:{index: 0}},
+			_this._animationList[startTick + params.duration] = [				
 				{type: "show_damage", target: "", params:{}},
 				
 			];
+			
+			
 			var action = _this._currentAnimatedAction.attacked;			
 			if(!action.isDestroyed && action.isHit){
 				_this._animationList[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
+				
 			}
+			if(!action.isDestroyed){
+				_this._animationList[startTick + params.duration + 50] = [
+					{type: "set_sprite_frame", target: target, params:{name: "main"}},
+				];
+			}			
 		},
 		destroy: function(target, params){
 			var targetObj = getTargetObject(target);
@@ -1751,11 +1827,28 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 			Object.keys(animationList).forEach(function(animType){
 				animationList[animType].forEach(function(batch){
 					batch.forEach(function(animCommand){
+						var target = animCommand.target;
 						var params = animCommand.params;
 						if(animCommand.type == "create_bg"){
 							var bg = _this.createSceneBg(animCommand.target+"_preload", params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
 							_this._animationBackgroundsInfo.push(bg);
 						}	
+						if(animCommand.type == "set_sprite_animation" || animCommand.type == "set_sprite_frame"){
+							var action = nextAction;
+							var targetAction = nextAction;
+							
+							var battleEffect;
+							if(target == "active_main" || target == "active_support_attacker"){
+								battleEffect = action;
+							} else if(target == "active_target" || target == "active_support_defender"){
+								battleEffect = targetAction;
+							}								
+							
+							var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+							var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+							_this._animationBackgroundsInfo.push(bg);
+							
+						}
 						if(animCommand.type == "create_sky_box"){
 							var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
 							var skyboxMaterial = new BABYLON.StandardMaterial(animCommand.target+"_material", _this._scene);

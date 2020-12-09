@@ -240,6 +240,16 @@ SRWEditor.prototype.init = function(){
 			params: ["index"],
 			desc: "Set the frame of a sprite."
 		},
+		set_sprite_animation: {
+			hasTarget: true,
+			params: ["name", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
+			desc: "Set the source of a sprite and specify animation details."
+		},
+		set_sprite_frame: {
+			hasTarget: true,
+			params: ["name"],
+			desc: "Set the source frame of a sprite(in, out, dodge, hurt, main)."
+		},
 		hide_sprite: {
 			hasTarget: true,
 			params: [],
@@ -483,6 +493,9 @@ SRWEditor.prototype.init = function(){
 		
 		},
 		path: function(value){
+		
+		},
+		name: function(value){
 		
 		},
 		size: function(value){
@@ -1143,7 +1156,7 @@ SRWEditor.prototype.playBattleScene = function(){
 			},*/
 			enemy: {
 				id: 1, // the id of the enemy pilot
-				mechId: 10, // the id of the enemy mech
+				mechId: 1, // the id of the enemy mech
 				weapon: weapon, // the id of the attack the actor will use. Only used if the action is "attack".
 				action: _this._enemySideAttack ? "attack" : "defend", // the action the enemy will take: "attack", "defend", "evade". 
 				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
