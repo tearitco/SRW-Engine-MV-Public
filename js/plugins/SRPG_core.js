@@ -1454,7 +1454,7 @@ var $battleSceneManager = new BattleSceneManager();
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 		$statCalc.initSRWStats(actor_unit);
 		actor_unit.SRPGActionTimesSet($statCalc.applyStatModsToValue(actor_unit, 1, ["extra_action"]));
-		actor_unit.setSrpgTurnEnd(false);	
+		//actor_unit.setSrpgTurnEnd(false);	
 
 		var position = $statCalc.getAdjacentFreeSpace({x: event.posX(), y: event.posY()}, null, event.eventId());
 		event.locate(position.x, position.y);
