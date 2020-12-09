@@ -187,7 +187,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 				willRequired: parseInt(weaponProperties.weaponWill),
 				terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
 				effects: effects,
-				particleType: weaponProperties.weaponCategory || "", //missile, funnel, beam, gravity, physical or "".
+				particleType: (weaponProperties.weaponCategory || "").trim(), //missile, funnel, beam, gravity, physical or "".
 				animId: parseInt(weaponProperties.weaponAnimId) || -1,
 				isMap: isMap, 
 				mapId: mapId,
@@ -786,7 +786,18 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		result.stats.base.accuracy = parseInt(mechProperties.mechAccuracy);
 		result.stats.base.terrain = this.parseTerrainString(mechProperties.mechTerrain);
 		result.stats.base.move = parseInt(mechProperties.mechMove);
-		result.stats.base.size = mechProperties.mechSize;	
+		var sizeString = mechProperties.mechSize.trim();	
+		if(sizeString == "LL"){
+			sizeString = "2L";
+		}
+		if(sizeString == "L"){
+			sizeString = "1L";
+		}
+		if(sizeString == "1S"){
+			sizeString = "S";
+		}
+		result.stats.base.size = sizeString;
+		
 
 		result.stats.upgradeCostTypes.maxHP = parseInt(mechProperties.mechUpgradeHPCost);
 		//result.currentHP = mechProperties.mechHP;
