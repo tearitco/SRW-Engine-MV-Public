@@ -4485,6 +4485,7 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 		enemy_unit.squadId = squadId;	
 		enemy_unit.targetRegion = targetRegion;	
 		enemy_unit.factionId = factionId;	
+		enemy_unit.targetId = targetId;
 		if (enemy_unit) {
 			enemy_unit.event = event;
 			if (mode) {
@@ -10124,9 +10125,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var bestDamage = 0;
 		var attacker = $gameSystem.EventToUnit(activeEvent.eventId())[1];
 		var targetsByHit = [];
+		var priorityTargetId = attacker.targetId;
+		var priorityTargetEvent = -1;
+		
 		canAttackTargets.forEach(function(event) {
-			if(!event.isErased()){			
+			if(!event.isErased()){					
 				var defender = $gameSystem.EventToUnit(event.eventId())[1];
+				if(defender.isActor() && defender.actorId() == priorityTargetId){
+					priorityTargetEvent = event;
+				}
 				var hitRate = $battleCalc.performHitCalculation(
 					{actor: attacker, action: {type: "attack", attack: {hitMod: 0}}},
 					{actor: defender, action: {type: "none"}},
@@ -10138,6 +10145,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				});
 			}
 		});
+		if(priorityTargetEvent != -1){
+			var defender = $gameSystem.EventToUnit(priorityTargetEvent.eventId())[1];
+			targetsByHit = [{
+				hit: 0,
+				target: defender,
+				event: priorityTargetEvent
+			}];
+		}
 		targetsByHit.sort(function(a, b){
 			return b.hit - a.hit;
 		});
