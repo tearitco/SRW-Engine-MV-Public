@@ -616,14 +616,15 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 							if(animation.loop){
 								animation.currentFrame = animation.startFrame;
 								animation.startTick = _this._currentAnimationTick;
+							} else if(animation.holdFrame){
+								delete _this._bgAnimations[animationId];
 							} else {
 								targetObj.dispose();
 								delete _this._bgAnimations[animationId];
-							}
-							
+							}							
 						}					
 						
-						if( _this._bgAnimations[animationId]){
+						if(_this._bgAnimations[animationId]){
 							var col = animation.currentFrame % animation.columnCount;
 							var row = Math.floor(animation.currentFrame / animation.columnCount);
 							//console.log("col: " + col + ", " + "row:" + row);
@@ -743,7 +744,7 @@ BattleSceneManager.prototype.registerShakeAnimation = function(targetObj, magnit
 	};
 }
 
-BattleSceneManager.prototype.registerBgAnimation = function(targetObj, startTick, frameSize, lineCount, columnCount, startFrame, endFrame, loop, delay){	
+BattleSceneManager.prototype.registerBgAnimation = function(targetObj, startTick, frameSize, lineCount, columnCount, startFrame, endFrame, loop, delay, holdFrame){	
 	this._bgAnimations[this._bgAnimationCounter++] = {		
 		targetObj: targetObj,
 		startTick: startTick,
@@ -755,7 +756,8 @@ BattleSceneManager.prototype.registerBgAnimation = function(targetObj, startTick
 		loop: loop,
 		delay: delay,
 		lineCount: lineCount,
-		columnCount: columnCount
+		columnCount: columnCount,
+		holdFrame: holdFrame
 	};
 }
 
@@ -1240,6 +1242,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
 				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
 				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
+				if(params.animationFrames){
+					_this.registerBgAnimation(targetObj, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames, params.animationLoop*1, params.animationDelay, params.holdFrame*1);
+				}
 			}
 		},
 		set_sprite_frame: function(target, params){

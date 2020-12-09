@@ -242,7 +242,7 @@ SRWEditor.prototype.init = function(){
 		},
 		set_sprite_animation: {
 			hasTarget: true,
-			params: ["name", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
+			params: ["name", "animationFrames", "holdFrame", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
 			desc: "Set the source of a sprite and specify animation details."
 		},
 		set_sprite_frame: {
@@ -333,6 +333,7 @@ SRWEditor.prototype.init = function(){
 		cleanUpCommands: "A list of commands to be run to clean up objects before the next phase.",
 		commands: "A list of commands to be run to during the phase transition to set up the next phase.",
 		animationFrames: "The number of animation frames in the spritesheet.",
+		holdFrame: "If 1 the sprite will hold the final frame of the animation, ignored if animation looping is enabled.",
 		animationLoop: "If 1 the animation will loop.",
 		animationDelay: "The time between animation frames in milliseconds.",
 		path: "The file path of the asset.",
@@ -489,6 +490,9 @@ SRWEditor.prototype.init = function(){
 		animationLoop: function(value){
 		
 		},
+		holdFrame: function(value){
+		
+		}, 
 		animationDelay: function(value){
 		
 		},
