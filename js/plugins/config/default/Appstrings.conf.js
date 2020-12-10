@@ -79,7 +79,8 @@ APPSTRINGS.MECHSTATS = {
 	resupply: "Resupply",
 	shield: "Shield",
 	barrier: "Barrier",
-	weapon: "Weapon"
+	weapon: "Weapon",
+	size: "Size",
 }	
 
 APPSTRINGS.PILOTSTATS = {
