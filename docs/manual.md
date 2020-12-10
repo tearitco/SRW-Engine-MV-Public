@@ -320,7 +320,9 @@ this.addDefinition(
 		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user(a tile is 48x48)
 		duration: 50,//the duration of the attack animation
 		se: "SRWExplosion"//the sound effect to play with the animation
-	}
+	},
+	false, //if true the player will not be able to rotate the map attack
+	{faceName: "Actor3", faceIdx: 7, text: "Marsha\nGet a load of this!"} // specifies a text box to show before the map attack animation plays. 
 );
 ```
 

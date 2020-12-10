@@ -281,7 +281,7 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponWill:-1\>Will requirement for the weapon, -1 if there is no requirement<br>
 \<weaponTerrain:AABA\><br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
-\<weaponCategory: "missile"\><br> The particle type of the weapon. Missile, funnel, beam, gravity, physical or  "".	
+\<weaponCategory:missile\><br> The particle type of the weapon. Missile, funnel, beam, gravity, physical or  "".	
  
 Weapons can have up to two special effects.
 
@@ -320,7 +320,9 @@ this.addDefinition(
 		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user(a tile is 48x48)
 		duration: 50,//the duration of the attack animation
 		se: "SRWExplosion"//the sound effect to play with the animation
-	}
+	},
+	false, //if true the player will not be able to rotate the map attack
+	{faceName: "Actor3", faceIdx: 7, text: "Marsha\nGet a load of this!"} // specifies a text box to show before the map attack animation plays.
 );
 ```
 
