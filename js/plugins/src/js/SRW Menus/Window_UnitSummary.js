@@ -97,6 +97,22 @@ Window_UnitSummary.prototype.redraw = function() {
 		
 		content+="</div>";
 		
+		if($gameTemp.isMapTarget(actor.event.eventId())){
+			var hitRate = $battleCalc.performHitCalculation(
+				{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
+				{actor: actor, action: {type: "defend"}}
+			);
+			content+="<div class='hit_display scaled_text'>";
+			content+=APPSTRINGS.GENERAL.label_hit+": ";
+			if(hitRate == -1){
+				content+="---";	
+			} else {
+				content+=Math.floor(hitRate * 100)+"%";	
+			}
+			content+="</div>";				
+		}
+		
+		
 		var hpPercent = Math.floor(calculatedStats.currentHP / calculatedStats.maxHP * 100);
 		content+="<div class='hp_bar'><div style='width: "+hpPercent+"%;' class='hp_bar_fill'></div></div>";
 		

@@ -38,7 +38,8 @@ APPSTRINGS.GENERAL = {
 	label_yes: "YES",
 	label_no: "NO",
 	label_ask_end_turn_single: "unit can still take an action, end your turn?",
-	label_ask_end_turn_multi: "units can still take an action, end your turn?"
+	label_ask_end_turn_multi: "units can still take an action, end your turn?",
+	label_hit: "Hit"
 }
 
 APPSTRINGS.MAPMENU = {

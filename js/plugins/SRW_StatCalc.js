@@ -2105,9 +2105,17 @@ StatCalc.prototype.activeUnitsInTileRange = function(tiles, type){
 			lookup[coord[0]][coord[1]] = true;
 		}
 	}
-	this.iterateAllActors(type, function(actor, event){			
-		if(!event.isErased() && lookup[event.posX()]  && lookup[event.posX()][event.posY()]){
-			result.push(actor);
+	this.iterateAllActors(null, function(actor, event){			
+		if(!event.isErased() && lookup[event.posX()]  && lookup[event.posX()][event.posY()]){3
+			if(type == "enemy"){
+				if($gameSystem.isEnemy(actor)){
+					result.push(actor);
+				}				
+			} else {
+				if(!$gameSystem.isEnemy(actor)){
+					result.push(actor);
+				}	
+			}			
 		}		
 	});
 	return result;
