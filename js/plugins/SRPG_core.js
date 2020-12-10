@@ -5285,7 +5285,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if (this._character.isEvent() == true) {
 			var battlerArray = $gameSystem.EventToUnit(this._character.eventId());
 			if (battlerArray) {
-				if ($gameSystem.isEnemy(battlerArray[1])) {
+				if ($gameSystem.isEnemy(battlerArray[1]) && !ENGINE_SETTINGS.KEEP_ENEMY_SPRITE_ORIENTATION) {
 					this.scale.x = -1;			
 					if(this._upperBody && this._lowerBody){	
 						this._upperBody.scale.x = -1;
