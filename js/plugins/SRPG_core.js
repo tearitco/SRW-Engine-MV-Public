@@ -9102,7 +9102,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if(battleEffect.type == "support attack"){
 					$statCalc.incrementSupportAttackCounter(battleEffect.ref);
 				}
-				if(battleEffect.type == "support defend"){
+				if(battleEffect.type == "support defend" && battleEffect.hasActed){
 					$statCalc.incrementSupportDefendCounter(battleEffect.ref);
 				}
 				if($statCalc.getCalculatedMechStats(battleEffect.ref).currentHP <= 100000){
@@ -10376,36 +10376,36 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var candidatePos = [];
 		if(bestIdx != -1){
 			candidatePos.push([path[bestIdx].x, path[bestIdx].y]);
+		} else {		
+			var distanceSortedPositions = [];
+			
+			for(var i = 0; i < list.length; i++){
+				var deltaX = Math.abs(targetCoords.x - list[i][0]);
+				var deltaY = Math.abs(targetCoords.y - list[i][1]);
+				var distance = Math.hypot(deltaX, deltaY);
+				if((range == -1 || (deltaX + deltaY <= range) && deltaX + deltaY >= minRange) && isValidSpace({x: list[i][0], y: list[i][1]})){
+					distanceSortedPositions.push({
+						x: list[i][0],
+						y: list[i][1],
+						distance: distance
+					});
+				}
+			}		
+			distanceSortedPositions = distanceSortedPositions.sort(function(a, b){
+				return a.distance - b.distance;
+			});
+			
+			var optimalDistance = distanceSortedPositions[0].distance;
+			var ctr = 0;
+			var currentDistance = distanceSortedPositions[0].distance;
+			while(currentDistance == optimalDistance && ctr < distanceSortedPositions.length){
+				currentDistance = distanceSortedPositions[ctr].distance;
+				if(currentDistance == optimalDistance){
+					candidatePos.push([distanceSortedPositions[ctr].x, distanceSortedPositions[ctr].y]);
+				}			
+				ctr++;
+			} 
 		}
-		/*var distanceSortedPositions = [];
-		
-		for(var i = 0; i < list.length; i++){
-			var deltaX = Math.abs(targetCoords.x - list[i][0]);
-			var deltaY = Math.abs(targetCoords.y - list[i][1]);
-			var distance = deltaX + deltaY;
-			if((range == -1 || (deltaX + deltaY <= range) && deltaX + deltaY >= minRange) && isValidSpace({x: list[i][0], y: list[i][1]})){
-				distanceSortedPositions.push({
-					x: list[i][0],
-					y: list[i][1],
-					distance: distance
-				});
-			}
-		}		
-		distanceSortedPositions = distanceSortedPositions.sort(function(a, b){
-			return a.distance - b.distance;
-		});
-		
-		var optimalDistance = distanceSortedPositions[0].distance;
-		var ctr = 0;
-		var currentDistance = distanceSortedPositions[0].distance;
-		while(currentDistance == optimalDistance && ctr < distanceSortedPositions.length){
-			currentDistance = distanceSortedPositions[ctr].distance;
-			if(currentDistance == optimalDistance){
-				candidatePos.push([distanceSortedPositions[ctr].x, distanceSortedPositions[ctr].y]);
-			}			
-			ctr++;
-		} 
-		*/
 		
 		
 		for(var i = 0; i < candidatePos.length; i++){
@@ -10418,6 +10418,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		while(ctr < candidatePos.length && !isValidSpace({x: resultPos[0], y: resultPos[1]})){
 			resultPos = candidatePos[ctr++];
 		}
+		if(!resultPos){
+			return [targetCoords.x, targetCoords.y];
+		}
+		
 		if(!isValidSpace({x: resultPos[0], y: resultPos[1]})){
 			return [targetCoords.x, targetCoords.y];
 		} else {
