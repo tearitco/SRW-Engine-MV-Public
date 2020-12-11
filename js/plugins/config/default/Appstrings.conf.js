@@ -47,7 +47,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_move: "Move", 
 	cmd_item: "Item",
 	cmd_spirit: "Spirit",
-	cmd_repair: "Heal",
+	cmd_repair: "Repair",
 	cmd_resupply: "Resupply", 
 	cmd_land: "Land",
 	cmd_fly: "Fly",
