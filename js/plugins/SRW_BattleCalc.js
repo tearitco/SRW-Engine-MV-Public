@@ -892,45 +892,50 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 				true,
 				true
 			);
-			if(optimizeCost){
-				var currentWeaponCanShootDown = false;
-				if(damageResult.damage >= defenderHP){
-					canShootDown = true;
-					currentWeaponCanShootDown = true;
-				}
-				if(canShootDown){
-					if(currentWeaponCanShootDown){
-						var currentENCost = weapon.ENCost;
-						var currentTotalAmmo = weapon.totalAmmo;
-						if(currentTotalAmmo != -1){//ammo using weapon
-							if(maxTotalAmmo == -2 || currentTotalAmmo > maxTotalAmmo){
-								if(minENCost == -2 || minENCost > 100/currentTotalAmmo){
-									bestDamage = damageResult.damage;
-									bestWeapon = weapon;
-									currentTotalAmmo = maxTotalAmmo;
+			var isReachable;
+			var range = $statCalc.getRealWeaponRange(attackerInfo.actor, weapon.range);
+			isReachable = $statCalc.isReachable(defenderInfo.actor, attackerInfo.actor, range, weapon.minRange);
+			
+			if(isReachable){				
+				if(optimizeCost){
+					var currentWeaponCanShootDown = false;
+					if(damageResult.damage >= defenderHP){
+						canShootDown = true;
+						currentWeaponCanShootDown = true;
+					}
+					if(canShootDown){
+						if(currentWeaponCanShootDown){
+							var currentENCost = weapon.ENCost;
+							var currentTotalAmmo = weapon.totalAmmo;
+							if(currentTotalAmmo != -1){//ammo using weapon
+								if(maxTotalAmmo == -2 || currentTotalAmmo > maxTotalAmmo){
+									if(minENCost == -2 || minENCost > 100/currentTotalAmmo){
+										bestDamage = damageResult.damage;
+										bestWeapon = weapon;
+										currentTotalAmmo = maxTotalAmmo;
+									}
 								}
-							}
-						} else {
-							if(minENCost == -2 || minENCost > currentENCost){
-								if(maxTotalAmmo == -2 || 100/currentTotalAmmo > currentENCost){
-									bestDamage = damageResult.damage;
-									bestWeapon = weapon;
-									minENCost = currentENCost;
+							} else {
+								if(minENCost == -2 || minENCost > currentENCost){
+									if(maxTotalAmmo == -2 || 100/currentTotalAmmo > currentENCost){
+										bestDamage = damageResult.damage;
+										bestWeapon = weapon;
+										minENCost = currentENCost;
+									}
 								}
 							}
 						}
+					} else if(damageResult.damage > bestDamage){
+						bestDamage = damageResult.damage;
+						bestWeapon = weapon;
 					}
-				} else if(damageResult.damage > bestDamage){
-					bestDamage = damageResult.damage;
-					bestWeapon = weapon;
-				}
-			} else {
-				if(damageResult.damage > bestDamage){
-					bestDamage = damageResult.damage;
-					bestWeapon = weapon;
+				} else {
+					if(damageResult.damage > bestDamage){
+						bestDamage = damageResult.damage;
+						bestWeapon = weapon;
+					}
 				}
 			}
-			
 		}
 	});		
 	return {weapon: bestWeapon, damage: bestDamage};

@@ -1960,6 +1960,31 @@ StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 	return {range: currentRange, minRange: currentMinRange};
 }
 
+StatCalc.prototype.isReachable = function(target, user, range, minRange){
+	var _this = this;	
+	var hasEmptyTiles = false;
+	var userIsInRange = false;
+	var offsetX = target.event.posX();
+	var offsetY = target.event.posY();
+	for(var i = 0; i < $gameMap.width(); i++){
+		for(var j = 0; j < $gameMap.height(); j++){
+			var deltaX = Math.abs(offsetX - i);
+			var deltaY = Math.abs(offsetY - j);
+			var totalDelta = deltaX + deltaY;
+			if(totalDelta <= range && totalDelta >= minRange){
+				var unit = this.activeUnitAtPosition({x: i, y: j});
+				if(unit){
+					if(unit.event.eventId() == user.event.eventId()){
+						userIsInRange = true;
+					}
+				} else {
+					hasEmptyTiles = true;
+				}
+			}
+		}
+	}
+	return hasEmptyTiles || userIsInRange;
+}
 
 StatCalc.prototype.getAllInRange = function(factionConfig, pos, range, minRange){
 	var _this = this;

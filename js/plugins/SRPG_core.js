@@ -10197,7 +10197,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		var bestTarget;
 		var bestWeapon;
-		var bestDamage = 0;
+		var bestScore = -1;
 		var attacker = $gameSystem.EventToUnit(activeEvent.eventId())[1];
 		var targetsByHit = [];
 		var priorityTargetId = attacker.targetId;
@@ -10228,60 +10228,64 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				event: priorityTargetEvent
 			}];
 		}
-		targetsByHit.sort(function(a, b){
+		/*targetsByHit.sort(function(a, b){
 			return b.hit - a.hit;
-		});
+		});*/
 		var maxHitRate = targetsByHit[0].hit;
 		var ctr = 0;
 		var currentHitRate = targetsByHit[0].hit;
-		while(ctr < targetsByHit.length && currentHitRate == maxHitRate){
+		while(ctr < targetsByHit.length){
 			var currentHitRate = targetsByHit[ctr].hit;
-			if(currentHitRate == maxHitRate){			
-				var defender = targetsByHit[ctr].target;
-				var weaponResult = {};
-				var weaponResultCurrentPos = $battleCalc.getBestWeaponAndDamage(
-					{actor: attacker, pos: {x: activeEvent.posX(), y:  activeEvent.posY()}},
-					{actor: defender, pos: {x: targetsByHit[ctr].event.posX(), y: targetsByHit[ctr].event.posY()}},
-					false,
-					false, 
-					false
-				);
+						
+			var defender = targetsByHit[ctr].target;
+			var weaponResult = {};
+			var weaponResultCurrentPos = $battleCalc.getBestWeaponAndDamage(
+				{actor: attacker, pos: {x: activeEvent.posX(), y:  activeEvent.posY()}},
+				{actor: defender, pos: {x: targetsByHit[ctr].event.posX(), y: targetsByHit[ctr].event.posY()}},
+				false,
+				false, 
+				false
+			);
+			
 				
-					
-				var weaponResultAnyPosPostMove = $battleCalc.getBestWeaponAndDamage(
+			var weaponResultAnyPosPostMove = $battleCalc.getBestWeaponAndDamage(
+				{actor: attacker, pos: {x: activeEvent.posX(), y:  activeEvent.posY()}},
+				{actor: defender, pos: {x: targetsByHit[ctr].event.posX(), y: targetsByHit[ctr].event.posY()}},
+				false,
+				true, 
+				true
+			);
+			
+			if(weaponResultCurrentPos.weapon && weaponResultAnyPosPostMove.weapon){
+				if(weaponResultCurrentPos.damage > weaponResultAnyPosPostMove.damage){
+					weaponResult = weaponResultCurrentPos;
+				} else {
+					weaponResult = weaponResultAnyPosPostMove;
+				}
+			} else if(weaponResultCurrentPos.weapon){
+				weaponResult = weaponResultCurrentPos;
+			} else if(weaponResultAnyPosPostMove.weapon){
+				weaponResult = weaponResultAnyPosPostMove;
+			} else {
+				weaponResult = $battleCalc.getBestWeaponAndDamage(
 					{actor: attacker, pos: {x: activeEvent.posX(), y:  activeEvent.posY()}},
 					{actor: defender, pos: {x: targetsByHit[ctr].event.posX(), y: targetsByHit[ctr].event.posY()}},
 					false,
 					true, 
-					true
+					false
 				);
-				
-				if(weaponResultCurrentPos.weapon && weaponResultAnyPosPostMove.weapon){
-					if(weaponResultCurrentPos.damage > weaponResultAnyPosPostMove.damage){
-						weaponResult = weaponResultCurrentPos;
-					} else {
-						weaponResult = weaponResultAnyPosPostMove;
-					}
-				} else if(weaponResultCurrentPos.weapon){
-					weaponResult = weaponResultCurrentPos;
-				} else if(weaponResultAnyPosPostMove.weapon){
-					weaponResult = weaponResultAnyPosPostMove;
-				} else {
-					weaponResult = $battleCalc.getBestWeaponAndDamage(
-						{actor: attacker, pos: {x: activeEvent.posX(), y:  activeEvent.posY()}},
-						{actor: defender, pos: {x: targetsByHit[ctr].event.posX(), y: targetsByHit[ctr].event.posY()}},
-						false,
-						true, 
-						false
-					);
-				}
-				
-				if(weaponResult.damage > bestDamage){
-					bestDamage = weaponResult.damage;
-					bestTarget = targetsByHit[ctr].event;
-					bestWeapon = weaponResult.weapon
-				}
 			}
+			var damage = weaponResult.damage;
+			var hitrate = currentHitRate;
+			var formula = ENGINE_SETTINGS.ENEMY_TARGETING_FORMULA || "Math.min(hitrate, 1) * damage";
+			var score = eval(formula);
+			
+			if(score > bestScore){
+				bestScore = score;
+				bestTarget = targetsByHit[ctr].event;
+				bestWeapon = weaponResult.weapon
+			}
+			
 			ctr++;
 		}
 		
@@ -10338,7 +10342,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		list.push([$gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY(), false]);
 		
 		var occupiedPositions = $statCalc.getOccupiedPositionsLookup(battler.isActor() ? "enemy" :  "actor");
-	
+		var allOccupiedPosition = $statCalc.getOccupiedPositionsLookup();
 		
 		var pathfindingGrid = [];
 		for(var i = 0; i < $gameMap.width(); i++){
@@ -10347,14 +10351,47 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || !$statCalc.canStandOnTile(battler, {x: i, y: j})) ? 0 : 1;
 			}
 		}
-		var graph = new Graph(pathfindingGrid);
-		var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
-		var endNode = graph.grid[targetCoords.x][targetCoords.y];
 		
-		var path = astar.search(graph, startNode, endNode, {closest: true});
+		
+		var currentBestDist = -1;
+		var improves = true;
+		var path;
+		
+		while(currentBestDist != 1 && improves){
+			var graph = new Graph(pathfindingGrid);
+			var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
+			var endNode = graph.grid[targetCoords.x][targetCoords.y];
+			
+			path = astar.search(graph, startNode, endNode, {closest: true});
+			if(path.length){		
+				var closestValidNode = null;
+				var ctr = path.length-1;
+				while(ctr >= 0 && !closestValidNode){
+					var node = path[ctr];
+					if(isValidSpace({x: node.x, y: node.y})){
+						closestValidNode = node;
+					} else {
+						pathfindingGrid[node.x][node.y] = 0;
+					}
+					ctr--;
+				}			
+				
+				var deltaX = Math.abs(targetCoords.x - node.x);
+				var deltaY = Math.abs(targetCoords.y - node.y);
+				var dist = Math.hypot(deltaX, deltaY);
+				
+				if(currentBestDist != -1 && currentBestDist <= dist){
+					improves = false;				
+				}
+				currentBestDist = dist;
+			} else {
+				improves = false;
+			}
+		}		
 		
 		var pathNodeLookup = {};
 		var ctr = 0;
+
 		path.forEach(function(node){
 			if(!pathNodeLookup[node.x]){
 				pathNodeLookup[node.x] = {};
