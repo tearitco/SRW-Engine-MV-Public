@@ -4868,6 +4868,10 @@ Sample:
 Game_Interpreter.prototype.prepareBattleSceneActor = function(params) {
 	var actor = new Game_Actor(params.id, 0, 0);
 	$statCalc.initSRWStats(actor);
+	if(params.mechId){
+		actor._mechClass = params.mechId;	
+		$statCalc.initSRWStats(actor);
+	}
 	params.unit = actor;
 	actor.event = {
 		eventId: function(){return 1;}
@@ -4879,6 +4883,10 @@ Game_Interpreter.prototype.prepareBattleSceneActor = function(params) {
 Game_Interpreter.prototype.prepareBattleSceneSupportActor = function(params) {
 	var actor = new Game_Actor(params.id, 0, 0);
 	$statCalc.initSRWStats(actor);
+	if(params.mechId){
+		actor._mechClass = params.mechId;	
+		$statCalc.initSRWStats(actor);
+	}
 	params.unit = actor;
 	actor.event = {
 		eventId: function(){return 3;}

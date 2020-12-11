@@ -74,6 +74,9 @@ export default function BattleSceneManager(){
 	};
 	
 	this._battleTextManager = new SRWBattleTextManager();
+	
+	//editor control
+	this._maxAnimationTick = -1;
 }
 
 BattleSceneManager.prototype.initContainer = function(){
@@ -112,6 +115,14 @@ BattleSceneManager.prototype.init = function(){
 		this.initScene();
 		this._UILayerManager.redraw();
 	}
+}
+
+BattleSceneManager.prototype.setMaxAnimationTick = function(tick){
+	this._maxAnimationTick = tick;
+}
+
+BattleSceneManager.prototype.resetMaxAnimationTick = function(tick){
+	this._maxAnimationTick = -1;
 }
 
 BattleSceneManager.prototype.getAnimationBuilder = function(){
@@ -437,7 +448,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		//console.log("processing animation @"+frameTime);
 		var deltaTime = frameTime - _this._lastAnimationTickTime;
 		var ticksSinceLastUpdate = Math.floor(deltaTime / _this._animationTickDuration);	
-		if(_this._animsPaused){
+		if(_this._animsPaused || (_this._maxAnimationTick != -1 && _this._currentAnimationTick >= _this._maxAnimationTick)){
 			return;
 		}	
 		if(_this._runningAnimation){
@@ -486,7 +497,8 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					}					
 				} 
 			}
-		}	
+		}			
+		
 	
 		Object.keys(_this._matrixAnimations).forEach(function(animationId){			
 			var animation = _this._matrixAnimations[animationId];

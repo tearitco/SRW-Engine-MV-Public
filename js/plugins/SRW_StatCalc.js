@@ -677,7 +677,11 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 	var mech;
 	var isForActor;
 	if(actor.isActor()){
-		mech = actor.currentClass();
+		if(actor._mechClass){//should only be the case when the editor is used
+			mech = $dataClasses[actor._mechClass];
+		} else {
+			mech = actor.currentClass();			
+		}		
 		isForActor = true;
 	} else {
 		mech = $dataClasses[actor._mechClass];

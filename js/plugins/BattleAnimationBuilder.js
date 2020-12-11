@@ -128,26 +128,48 @@ BattleAnimationBuilder.prototype.deleteTick = function(id, sequence, tick){
 	delete def[tick];
 }
 
-BattleAnimationBuilder.prototype.addCommand = function(id, sequence, tick){
+BattleAnimationBuilder.prototype.addCommand = function(id, sequence, tick, command){
 	var def = this._animLookup[id].data[sequence];	
-	def[tick].unshift({
-		type: "clear_attack_text",
-		target: "",
-		params: {}
-	});
+	if(command){
+		def[tick].unshift(JSON.parse(JSON.stringify(command)));
+	} else {
+		def[tick].unshift({
+			type: "clear_attack_text",
+			target: "",
+			params: {}
+		});
+	}	
 }
 
-BattleAnimationBuilder.prototype.addInnerCommand = function(id, sequence, tick, idx, type){
+BattleAnimationBuilder.prototype.addInnerCommand = function(id, sequence, tick, idx, type, command){
 	var def = this._animLookup[id].data[sequence];
 	var params = def[tick][idx].params;
 	if(!params[type]){
-		params[type] = {};
+		params[type] = [];
 	}
-	params[type].unshift({
-		type: "clear_attack_text",
-		target: "",
-		params: {}
-	});
+	if(command){
+		params[type].unshift(JSON.parse(JSON.stringify(command)));
+	} else {
+		params[type].unshift({
+			type: "clear_attack_text",
+			target: "",
+			params: {}
+		});
+	}	
+}
+
+BattleAnimationBuilder.prototype.getCommandCopy = function(id, sequence, tick, cmdIdx){
+	var def = this._animLookup[id].data[sequence];	
+	return JSON.parse(JSON.stringify(def[tick][cmdIdx]));
+}
+
+BattleAnimationBuilder.prototype.getInnerCommandCopy = function(id, sequence, tick, idx, type, innerIdx){
+	var def = this._animLookup[id].data[sequence];	
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	return JSON.parse(JSON.stringify(params[type][innerIdx]));
 }
 
 BattleAnimationBuilder.prototype.changeCommand = function(id, sequence, tick, cmdIdx, cmdId){
@@ -163,7 +185,7 @@ BattleAnimationBuilder.prototype.changeInnerCommand = function(id, sequence, tic
 	var def = this._animLookup[id].data[sequence];
 	var params = def[tick][idx].params;
 	if(!params[type]){
-		params[type] = {};
+		params[type] = [];
 	}
 	params[type][innerIdx] = {
 		type: cmdId,

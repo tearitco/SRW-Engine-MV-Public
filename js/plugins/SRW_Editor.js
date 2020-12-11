@@ -473,6 +473,9 @@ SRWEditor.prototype.init = function(){
 		commands: function(value){
 			var content = "<div class='inner_commands'>";
 			content+="<button class='tick_add_command'>New</button>";
+			if(_this._clipboardCommand){
+				content+="<button class='tick_paste_command'>Paste</button>";
+			}			
 			if(value){			
 				var ctr = 0;
 				value.forEach(function(command){
@@ -549,6 +552,11 @@ SRWEditor.prototype.init = function(){
 	_this._currentSequenceType = "mainAnimation";
 	_this._paramHandlers = {};
 	_this._editorScrollTop = 0;
+	
+	_this._currentActor = 1;
+	_this._currentActorMech = 1;
+	_this._currentEnemy = 1;
+	_this._currentEnemyMech = 1;
 	_this.show();
 }
 
@@ -607,6 +615,59 @@ SRWEditor.prototype.showAttackEditor = function(){
 	content+="</div>";	
 	
 	content+="</div>";
+	
+	content+="<div class='preview_extra_controls'>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Actor</div>";
+	content+="<select id='actor_select'>";
+	for(var i = 1; i < $dataActors.length; i++){
+		if($dataActors[i].name){
+			var id = $dataActors[i].id;
+			content+="<option "+(id == _this._currentActor ? "selected" : "")+" value='"+id+"'>"+$dataActors[i].name+"</option>";
+		}
+	}
+	content+="</select>";
+	content+="</div>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Actor Mech</div>";
+	content+="<select id='actor_mech_select'>";
+	for(var i = 1; i < $dataClasses.length; i++){
+		if($dataClasses[i].name){
+			var id = $dataClasses[i].id;
+			content+="<option "+(id == _this._currentActorMech ? "selected" : "")+" value='"+id+"'>"+$dataClasses[i].name+"</option>";
+		}
+	}
+	content+="</select>";
+	content+="</div>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Enemy</div>";
+	content+="<select id='enemy_select'>";
+	for(var i = 1; i < $dataEnemies.length; i++){
+		if($dataEnemies[i].name){
+			var id = $dataEnemies[i].id;
+			content+="<option "+(id == _this._currentEnemy ? "selected" : "")+" value='"+id+"'>"+$dataEnemies[i].name+"</option>";
+		}
+	}
+	content+="</select>";
+	content+="</div>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Enemy Mech</div>";
+	content+="<select id='enemy_mech_select'>";
+	for(var i = 1; i < $dataClasses.length; i++){
+		if($dataClasses[i].name){
+			var id = $dataClasses[i].id;
+			content+="<option "+(id == _this._currentEnemyMech ? "selected" : "")+" value='"+id+"'>"+$dataClasses[i].name+"</option>";
+		}
+	}
+	content+="</select>";
+	content+="</div>";
+	
+	content+="</div>";
+	
 	content+="</div>";
 	
 	content+="</div>";
@@ -638,10 +699,29 @@ SRWEditor.prototype.showAttackEditor = function(){
 	});
 	
 	this.showAttackEditorControls();
+	
+	document.querySelector("#actor_select").addEventListener("click", function(){
+		_this._currentActor = this.value;
+	});
+	
+	document.querySelector("#actor_mech_select").addEventListener("click", function(){
+		_this._currentActorMech = this.value;
+	});
+	
+	document.querySelector("#enemy_select").addEventListener("click", function(){
+		_this._currentEnemy = this.value;
+	});
+	
+	document.querySelector("#enemy_mech_select").addEventListener("click", function(){
+		_this._currentEnemyMech = this.value;
+	});
 
 	document.querySelector("#play_button").addEventListener("click", function(){
+		$battleSceneManager.resetMaxAnimationTick();
 		_this.playBattleScene();
 	});
+	
+	
 	
 	document.querySelector("#stop_button").addEventListener("click", function(){
 		$battleSceneManager.endScene();
@@ -718,9 +798,14 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			content+="<div data-tick='"+tick+"' class='tick_block'>";
 			content+="<input class='tick_input' value='"+tick+"'></input>";
 			//content+="<button class='tick_button'>Update</button>";	
-			content+="<button class='tick_delete_button'>Delete</button>";		
+			content+="<button class='tick_delete_button'>Delete</button>";	
+			content+="<button class='tick_play_button'>Play</button>";				
 			content+="<div>"
 			content+="<button class='tick_add_command'>New</button>";		
+			if(_this._clipboardCommand){
+				content+="<button class='tick_paste_command'>Paste</button>";
+			}		
+						
 			content+="</div>"	
 			var ctr = 0;
 			Object.keys(tickCommands).forEach(function(tick){
@@ -850,7 +935,26 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				_this._modified = true;
 				_this.showAttackEditorControls();	
 			});
-		});		
+		});	
+
+		var tickInputs = containerNode.querySelectorAll(".tick_paste_command");
+		tickInputs.forEach(function(tickInput){
+			tickInput.addEventListener("click", function(){		
+				if(_this._clipboardCommand){
+					var tick = this.parentNode.closest(".tick_block").querySelector(".tick_input").value;	
+					var isCmdParam = this.closest(".inner_commands") != null;
+					if(isCmdParam){
+						var cmdIdx = this.closest(".cmd_block").getAttribute("data-cmdidx");
+						var type = this.closest(".command_param").getAttribute("data-param");
+						_this._animationBuilder.addInnerCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, _this._clipboardCommand);
+					} else {
+						_this._animationBuilder.addCommand(_this._currentDefinition, _this._currentSequenceType, tick, _this._clipboardCommand);					
+					}				
+					_this._modified = true;
+					_this.showAttackEditorControls();	
+				}				
+			});
+		});			
 
 		var inputs = containerNode.querySelectorAll(".delete_command");
 		inputs.forEach(function(input){
@@ -866,6 +970,24 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 					_this._animationBuilder.deleteCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx);
 				}
 				_this._modified = true;
+				_this.showAttackEditorControls();							
+			});
+		});
+
+		var inputs = containerNode.querySelectorAll(".copy_command");
+		inputs.forEach(function(input){
+			input.addEventListener("click", function(){		
+				var tick = this.closest(".tick_block").querySelector(".tick_input").value;	
+				var cmdIdx = this.closest(".cmd_block").getAttribute("data-cmdidx");
+				var isCmdParam = this.closest(".inner_commands") != null;
+				if(isCmdParam){
+					var cmdInnerIdx = this.closest(".cmd_block_inner").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param").getAttribute("data-param");
+					_this._clipboardCommand = _this._animationBuilder.getInnerCommandCopy(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, cmdInnerIdx);
+				} else {
+					_this._clipboardCommand = _this._animationBuilder.getCommandCopy(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx);
+				}
+				
 				_this.showAttackEditorControls();							
 			});
 		});		
@@ -973,6 +1095,15 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				var event = new Event('change');
 				xInput.dispatchEvent(event);	
 			});
+		});	
+	
+		var inputs = containerNode.querySelectorAll(".tick_play_button")
+		inputs.forEach(function(input){
+			input.addEventListener("click", function(){	
+				var tick = this.parentNode.querySelector(".tick_input").value;
+				$battleSceneManager.setMaxAnimationTick(tick);
+				_this.playBattleScene();
+			});
 		});
 		
 		window.addEventListener("beforeunload", function(event){
@@ -1039,7 +1170,8 @@ SRWEditor.prototype.getCommandContent = function(command, isInner){
 	result+="<div class='command_type command_row'>";
 	result+="<div class='command_label' title='"+displayInfo.desc+"'>Command:</div>";
 	result+=_this.getCommandSelect(command.type, isInner);
-	result+="<button class='delete_command'>Delete</button>";
+	result+="<button class='copy_command'>Copy</button>";
+	result+="<button class='delete_command'>Delete</button>";	
 	result+="</div>";
 	
 	if(displayInfo.hasTarget){
@@ -1143,7 +1275,8 @@ SRWEditor.prototype.playBattleScene = function(){
 			enemyFirst: _this._enemySideAttack, // if 0 the actor will move first, if 1 the enemy will move first. This also affects the supports. If 0, the actor support will be attacking otherwise defending. If 1, the enemy support will be attacking otherwise defending.
 			songId: "Battle1", // the id of the song that should be played during the battle scene
 			actor: {
-				id: 1, // the id of the actor pilot
+				id: _this._currentActor, // the id of the actor pilot
+				mechId: _this._currentActorMech, // the id of the actor mech
 				action: _this._enemySideAttack ? "defend" : "attack", // the action the actor will take: "attack", "defend", "evade". 
 				weapon: weapon, // the id of the attack the actor will use. Only used if the action is "attack".
 				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
@@ -1159,8 +1292,8 @@ SRWEditor.prototype.playBattleScene = function(){
 				targetEndHP: 0, // the end HP of the target in percent
 			},*/
 			enemy: {
-				id: 1, // the id of the enemy pilot
-				mechId: 1, // the id of the enemy mech
+				id: _this._currentEnemy, // the id of the enemy pilot
+				mechId: _this._currentEnemyMech, // the id of the enemy mech
 				weapon: weapon, // the id of the attack the actor will use. Only used if the action is "attack".
 				action: _this._enemySideAttack ? "attack" : "defend", // the action the enemy will take: "attack", "defend", "evade". 
 				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
