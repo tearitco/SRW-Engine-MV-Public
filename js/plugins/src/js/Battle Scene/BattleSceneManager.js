@@ -16,8 +16,8 @@ export default function BattleSceneManager(){
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
 		"ally_main_idle": new BABYLON.Vector3(2, 0, 1),
 		"enemy_main_idle": new BABYLON.Vector3(-2, 0, 1),
-		"camera_main_idle": new BABYLON.Vector3(0, -0.35, -5),
-		"camera_main_intro": new BABYLON.Vector3(-11, -6, -10),
+		"camera_main_idle": new BABYLON.Vector3(0, -0.35, -6.5),
+		"camera_main_intro": new BABYLON.Vector3(-6, 0, -11),
 		"ally_support_idle": new BABYLON.Vector3(6, 1, 1),
 		"enemy_support_idle": new BABYLON.Vector3(-6, 1, 1),
 	}
@@ -103,7 +103,7 @@ BattleSceneManager.prototype.initContainer = function(){
 	document.body.appendChild(this._UIcontainer);	
 }
 
-BattleSceneManager.prototype.init = function(){	
+BattleSceneManager.prototype.init = function(attachControl){	
 	if(!this._initialized){
 		this._initialized = true;
 		this._UILayerManager = new BattleSceneUILayer("battle_scene_ui_layer");	
@@ -112,7 +112,7 @@ BattleSceneManager.prototype.init = function(){
 		this._engine = new BABYLON.Engine(this._canvas, true, {preserveDrawingBuffer: true, stencil: true}); // Generate the BABYLON 3D engine	
 		this._effksContext = effekseer.createContext();
 		this._effksContext.init(this._glContext);
-		this.initScene();
+		this.initScene(attachControl);
 		this._UILayerManager.redraw();
 	}
 }
@@ -137,7 +137,7 @@ BattleSceneManager.prototype.getDefaultRotations = function(){
 	return this._defaultRotations;
 }	
 
-BattleSceneManager.prototype.initScene = function(){
+BattleSceneManager.prototype.initScene = function(attachControl){
 	var _this = this;
 	 // Create the scene space
 	var scene = new BABYLON.Scene(this._engine);
@@ -148,7 +148,19 @@ BattleSceneManager.prototype.initScene = function(){
 	// Add a camera to the scene and attach it to the canvas
 	//var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, new BABYLON.Vector3(0,0,5), scene);
 	this._camera = new BABYLON.FreeCamera("FreeCamera", this._defaultPositions.camera_main_idle, scene);
-	this._camera.attachControl(this._canvas, true);
+	if(attachControl){
+		this._camera.attachControl(this._canvas, true);
+		//hack to add up down controls to the camera
+		document.addEventListener("keydown", function(e){
+			if(e.key == "PageUp"){
+				_this._camera.position.y+=1;
+			}
+			if(e.key == "PageDown"){
+				_this._camera.position.y-=1;
+			}
+		});
+	}
+	
 
 	// Add lights to the scene
 	var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
@@ -170,6 +182,7 @@ BattleSceneManager.prototype.initScene = function(){
 	
 	this._bgs = [];
 	this._skyBgs = [];
+	this._floors = [];
 	
 	this._bgMode = "land";
 	
@@ -184,7 +197,7 @@ BattleSceneManager.prototype.initScene = function(){
 	});
 }
 
-BattleSceneManager.prototype.createBg = function(name, img, position, size, alpha){
+BattleSceneManager.prototype.createBg = function(name, img, position, size, alpha, rotation){
 	var width;
 	var height;
 	if(typeof size != "undefined"){
@@ -206,12 +219,14 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 		
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattlebacks/"+img+".png", this._scene, false, true, BABYLON.Texture.NEAREST_SAMPLINGMODE);
 	material.diffuseTexture.hasAlpha = true;
-	material.useAlphaFromDiffuseTexture  = true;
+	//material.useAlphaFromDiffuseTexture  = true;
+	
+	material.opacityTexture = material.diffuseTexture;
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
 	material.ambientColor = new BABYLON.Color3(0, 0, 0);
-	if(typeof alpha != "undefined"){
+	if(typeof alpha != "undefined" && alpha != -1){
 		material.alpha = alpha;
 	}	
 
@@ -219,6 +234,10 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 	
 	bg.setPositionWithLocalVector(position);
 	bg.originPosition = new BABYLON.Vector3(position.x, position.y, position.z);
+	if(rotation){
+		bg.rotation = rotation;
+	}
+	
 	return bg;
 }
 
@@ -244,7 +263,7 @@ BattleSceneManager.prototype.createSceneBg = function(name, path, position, size
 		
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, BABYLON.Texture.NEAREST_SAMPLINGMODE);
 	material.diffuseTexture.hasAlpha = true;
-	material.useAlphaFromDiffuseTexture  = true;
+	//material.useAlphaFromDiffuseTexture  = true;
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -283,7 +302,7 @@ BattleSceneManager.prototype.createDynamicBg = function(name, position, size, al
 	var texture = new BABYLON.DynamicTexture("dyn_texture_"+name, {width: 1920, height: 1080}, this._scene, false);//, BABYLON.Texture.NEAREST_SAMPLINGMODE
 	material.diffuseTexture = texture;
 	material.diffuseTexture.hasAlpha = true;
-	material.useAlphaFromDiffuseTexture  = true;
+	//material.useAlphaFromDiffuseTexture  = true;
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -371,7 +390,7 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 		height = 3;
 	}
 	var bg = BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height, updatable: true}, this._scene);
-	bg.billboardMode = 7;
+	//bg.billboardMode = 7;
 	
 	var material = new BABYLON.StandardMaterial(name, this._scene);
 	var sampleMode;
@@ -382,7 +401,8 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	}
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, sampleMode);
 	material.diffuseTexture.hasAlpha = true;
-	material.useAlphaFromDiffuseTexture  = true;
+	//material.useAlphaFromDiffuseTexture  = true;
+	
 	if(flipX){
 		material.diffuseTexture.uScale = -1;
 	}	
@@ -437,6 +457,9 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 			scrollBg(bg, animRatio);
 		});
 		_this._skyBgs.forEach(function(bg){
+			scrollBg(bg, animRatio);
+		});
+		_this._floors.forEach(function(bg){
 			scrollBg(bg, animRatio);
 		});
 		Input.update();
@@ -1249,7 +1272,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				
 				targetObj.material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+params.name+".png", _this._scene, false, true, sampleMode);
 				targetObj.material.diffuseTexture.hasAlpha = true;
-				targetObj.material.useAlphaFromDiffuseTexture  = true;
+				//targetObj.material.useAlphaFromDiffuseTexture  = true;
 				
 				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
 				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -1286,7 +1309,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				
 				targetObj.material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+params.name+".png", _this._scene, false, true, sampleMode);
 				targetObj.material.diffuseTexture.hasAlpha = true;
-				targetObj.material.useAlphaFromDiffuseTexture  = true;
+				//targetObj.material.useAlphaFromDiffuseTexture  = true;
 				
 				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
 				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -1317,6 +1340,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._skyBgs.forEach(function(bg){
 				bg.isVisible = false;
 			});
+			_this._floors.forEach(function(bg){
+				bg.isVisible = false;
+			});
 		},
 		show_bgs: function(target, params){
 			_this._bgsHidden = false;
@@ -1326,6 +1352,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				});	
 			} else {
 				_this._bgs.forEach(function(bg){
+					bg.isVisible = true;
+				});
+				_this._floors.forEach(function(bg){
 					bg.isVisible = true;
 				});
 			}		
@@ -1773,6 +1802,14 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 			} else {
 				bg.isVisible = false;
 			} 
+		});	
+
+		_this._floors.forEach(function(bg){
+			if(_this._bgMode == "land"){
+				bg.isVisible = true;
+			} else {
+				bg.isVisible = false;
+			} 
 		});			
 	}	
 }
@@ -1800,15 +1837,39 @@ BattleSceneManager.prototype.resetScene = function() {
 	});
 	
 	_this._bgs = [];
+	
+	var floorOffset = 1.5;
+	var bgOffsetY = 12.5 - floorOffset - 1;
+	
+	var bgSize = {width: 50, height: 25};
+	var bg2Size = {width: 50, height: 25};
+	
 
-	_this._bgs.push(this.createBg("bg1_1", $gameSystem.battleBg, new BABYLON.Vector3(25, 0, 20)));
-	_this._bgs.push(this.createBg("bg1_2", $gameSystem.battleBg, new BABYLON.Vector3(-25, 0, 20)));
-	_this._bgs.push(this.createBg("bg1_3", $gameSystem.battleBg, new BABYLON.Vector3(75, 0, 20)));
-	_this._bgs.push(this.createBg("bg1_4", $gameSystem.battleBg, new BABYLON.Vector3(-75, 0, 20)));
-	_this._bgs.push(this.createBg("bg2_1", $gameSystem.battleParallax1, new BABYLON.Vector3(25, 0, 14)));
-	_this._bgs.push(this.createBg("bg2_2", $gameSystem.battleParallax1, new BABYLON.Vector3(-25, 0, 14)));
-	_this._bgs.push(this.createBg("bg2_3", $gameSystem.battleParallax1, new BABYLON.Vector3(75, 0, 14)));
-	_this._bgs.push(this.createBg("bg2_4", $gameSystem.battleParallax1, new BABYLON.Vector3(-75, 0, 14)));
+	_this._bgs.push(this.createBg("bg1_1", $gameSystem.battleBg, new BABYLON.Vector3(25, bgOffsetY, 50)));
+	_this._bgs.push(this.createBg("bg1_2", $gameSystem.battleBg, new BABYLON.Vector3(-25, bgOffsetY, 50)));
+	_this._bgs.push(this.createBg("bg1_3", $gameSystem.battleBg, new BABYLON.Vector3(75, bgOffsetY, 50)));
+	_this._bgs.push(this.createBg("bg1_4", $gameSystem.battleBg, new BABYLON.Vector3(-75, bgOffsetY, 50)));
+	
+	if($gameSystem.battleParallax1){
+		_this._bgs.push(this.createBg("bg2_1", $gameSystem.battleParallax1, new BABYLON.Vector3(25, bgOffsetY, 20)));
+		_this._bgs.push(this.createBg("bg2_2", $gameSystem.battleParallax1, new BABYLON.Vector3(-25, bgOffsetY, 20)));
+		_this._bgs.push(this.createBg("bg2_3", $gameSystem.battleParallax1, new BABYLON.Vector3(75, bgOffsetY, 20)));
+		_this._bgs.push(this.createBg("bg2_4", $gameSystem.battleParallax1, new BABYLON.Vector3(-75, bgOffsetY, 20)));
+	}
+	
+	if($gameSystem.battleParallax2){
+		_this._bgs.push(this.createBg("bg3_1", $gameSystem.battleParallax2, new BABYLON.Vector3(25, bgOffsetY, 30)));
+		_this._bgs.push(this.createBg("bg3_2", $gameSystem.battleParallax2, new BABYLON.Vector3(-25, bgOffsetY, 30)));
+		_this._bgs.push(this.createBg("bg3_3", $gameSystem.battleParallax2, new BABYLON.Vector3(75, bgOffsetY, 30)));
+		_this._bgs.push(this.createBg("bg3_4", $gameSystem.battleParallax2, new BABYLON.Vector3(-75, bgOffsetY, 30)));
+	}
+	
+	if($gameSystem.battleParallax3){
+		_this._bgs.push(this.createBg("bg4_1", $gameSystem.battleParallax3, new BABYLON.Vector3(25, bgOffsetY, 40)));
+		_this._bgs.push(this.createBg("bg4_2", $gameSystem.battleParallax3, new BABYLON.Vector3(-25, bgOffsetY, 40)));
+		_this._bgs.push(this.createBg("bg4_3", $gameSystem.battleParallax3, new BABYLON.Vector3(75, bgOffsetY, 40)));
+		_this._bgs.push(this.createBg("bg4_4", $gameSystem.battleParallax3, new BABYLON.Vector3(-75, bgOffsetY, 40)));
+	}
 	
 	_this._skyBgs.forEach(function(bg){
 		bg.dispose();
@@ -1816,14 +1877,25 @@ BattleSceneManager.prototype.resetScene = function() {
 	
 	_this._skyBgs = [];
 
-	_this._skyBgs.push(this.createBg("sky_bg1_1", $gameSystem.skyBattleBg, new BABYLON.Vector3(25, 0, 20)));
-	_this._skyBgs.push(this.createBg("sky_bg1_2", $gameSystem.skyBattleBg, new BABYLON.Vector3(-25, 0, 20)));
-	_this._skyBgs.push(this.createBg("sky_bg1_3", $gameSystem.skyBattleBg, new BABYLON.Vector3(75, 0, 20)));
-	_this._skyBgs.push(this.createBg("sky_bg1_4", $gameSystem.skyBattleBg, new BABYLON.Vector3(-75, 0, 20)));
-	_this._skyBgs.push(this.createBg("sky_bg2_1", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(25, 0, 14)));
-	_this._skyBgs.push(this.createBg("sky_bg2_2", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-25, 0, 14)));
-	_this._skyBgs.push(this.createBg("sky_bg2_3", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(75, 0, 14)));
-	_this._skyBgs.push(this.createBg("sky_bg2_4", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-75, 0, 14)));
+	_this._skyBgs.push(this.createBg("sky_bg1_1", $gameSystem.skyBattleBg, new BABYLON.Vector3(25, 10, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg1_2", $gameSystem.skyBattleBg, new BABYLON.Vector3(-25, 10, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg1_3", $gameSystem.skyBattleBg, new BABYLON.Vector3(75, 10, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg1_4", $gameSystem.skyBattleBg, new BABYLON.Vector3(-75, 10, 20)));
+	_this._skyBgs.push(this.createBg("sky_bg2_1", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(25, 10, 14)));
+	_this._skyBgs.push(this.createBg("sky_bg2_2", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-25, 10, 14)));
+	_this._skyBgs.push(this.createBg("sky_bg2_3", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(75, 10, 14)));
+	_this._skyBgs.push(this.createBg("sky_bg2_4", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-75, 10, 14)));
+	
+	_this._floors.forEach(function(bg){
+		bg.dispose();
+	});
+	
+	_this._floors = [];
+	
+	_this._floors.push(this.createBg("floor_1", "floor1", new BABYLON.Vector3(25, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+	_this._floors.push(this.createBg("floor_2", "floor1", new BABYLON.Vector3(-25, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+	_this._floors.push(this.createBg("floor_3", "floor1", new BABYLON.Vector3(75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+	_this._floors.push(this.createBg("floor_4", "floor1", new BABYLON.Vector3(-75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
 }
 
 BattleSceneManager.prototype.fadeAndShowScene = function(){

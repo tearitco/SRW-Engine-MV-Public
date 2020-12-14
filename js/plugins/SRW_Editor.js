@@ -16,8 +16,12 @@ SRWEditor.prototype.init = function(){
 	_this._contentDiv.id = "srw_editor";
 	document.body.appendChild(_this._contentDiv);
 	
-	$gameSystem.battleBg = "Grassland";
-	$gameSystem.battleParallax1 = "Empty";
+	$gameSystem.battleBg = "mountains2";
+	//$gameSystem.battleParallax1 = "Empty";
+	
+	$gameSystem.battleParallax1 = "trees1";
+	$gameSystem.battleParallax2 = "trees2";
+	$gameSystem.battleParallax3 = "mountains1";
 	
 	$gameSystem.skyBattleBg = "Sky";
 	$gameSystem.skyBattleParallax1 = "Empty";
@@ -691,7 +695,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	_this._battleSceneFadeLayer = document.querySelector("#attack_editor #fade_container");
 	_this._battleSceneFadeLayer.style.width = "";
 	_this._battleSceneFadeLayer.style.height = "";
-	$battleSceneManager.init();	
+	$battleSceneManager.init(true);	
 	
 	this._animationBuilder = $battleSceneManager.getAnimationBuilder();
 	_this._animationBuilder.isLoaded().then(function(){

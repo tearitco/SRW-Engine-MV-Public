@@ -3,5 +3,8 @@ null,
 {"id":1,"expanded":true,"name":"demo1","order":3,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857},
 {"id":2,"expanded":true,"name":"Intermission","order":1,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857},
 {"id":3,"expanded":true,"name":"Init","order":2,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857},
-{"id":4,"expanded":true,"name":"demo2","order":4,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857}
+{"id":4,"expanded":true,"name":"demo2","order":4,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857},
+{"id":5,"expanded":true,"name":"Ground","order":6,"parentId":6,"scrollX":1952.5714285714284,"scrollY":1085.142857142857},
+{"id":6,"expanded":true,"name":"Bgs","order":5,"parentId":0,"scrollX":0,"scrollY":0},
+{"id":7,"expanded":true,"name":"bg2","order":7,"parentId":6,"scrollX":1139,"scrollY":633}
 ]
