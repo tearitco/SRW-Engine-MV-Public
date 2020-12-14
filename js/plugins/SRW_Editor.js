@@ -23,6 +23,8 @@ SRWEditor.prototype.init = function(){
 	$gameSystem.battleParallax2 = "trees2";
 	$gameSystem.battleParallax3 = "mountains1";
 	
+	$gameSystem.battleSkyBox = "dusk";
+	
 	$gameSystem.skyBattleBg = "Sky";
 	$gameSystem.skyBattleParallax1 = "Empty";
 	
@@ -1123,9 +1125,9 @@ SRWEditor.prototype.processParamInput = function(input){
 	var paramHandlers = {
 		position: function(input){
 			var container = input.parentNode;
-			var x = container.querySelector("input[data-dataid='x']").value;
-			var y = container.querySelector("input[data-dataid='y']").value;
-			var z = container.querySelector("input[data-dataid='z']").value;
+			var x = container.querySelector("input[data-dataid='x']").value*1;
+			var y = container.querySelector("input[data-dataid='y']").value*1;
+			var z = container.querySelector("input[data-dataid='z']").value*1;
 			return {x: x, y: y, z: z};
 		},
 		startPosition: function(input){
@@ -1133,9 +1135,9 @@ SRWEditor.prototype.processParamInput = function(input){
 		},
 		rotation: function(input){
 			var container = input.parentNode;
-			var x = container.querySelector("input[data-dataid='x']").value;
-			var y = container.querySelector("input[data-dataid='y']").value;
-			var z = container.querySelector("input[data-dataid='z']").value;
+			var x = container.querySelector("input[data-dataid='x']").value*1;
+			var y = container.querySelector("input[data-dataid='y']").value*1;
+			var z = container.querySelector("input[data-dataid='z']").value*1;
 			return {x: x, y: y, z: z};
 		},
 		startRotation: function(input){

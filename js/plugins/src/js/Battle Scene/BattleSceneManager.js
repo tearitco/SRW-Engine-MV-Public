@@ -217,11 +217,17 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 	
 	var material = new BABYLON.StandardMaterial(name, this._scene);
 		
-	material.diffuseTexture = new BABYLON.Texture("img/SRWBattlebacks/"+img+".png", this._scene, false, true, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+	material.diffuseTexture = new BABYLON.Texture("img/SRWBattlebacks/"+img+".png", this._scene, false, true, BABYLON.Texture.NEAREST_NEAREST);
 	material.diffuseTexture.hasAlpha = true;
-	//material.useAlphaFromDiffuseTexture  = true;
+	material.useAlphaFromDiffuseTexture  = true;
 	
-	material.opacityTexture = material.diffuseTexture;
+	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+    material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+	
+	/*material.needDepthPrePass = true;
+	material.backFaceCulling = false;*/
+	
+	//material.opacityTexture = material.diffuseTexture;
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -261,7 +267,7 @@ BattleSceneManager.prototype.createSceneBg = function(name, path, position, size
 	
 	var material = new BABYLON.StandardMaterial(name, this._scene);
 		
-	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, BABYLON.Texture.NEAREST_NEAREST);
 	material.diffuseTexture.hasAlpha = true;
 	//material.useAlphaFromDiffuseTexture  = true;
 	
@@ -299,7 +305,7 @@ BattleSceneManager.prototype.createDynamicBg = function(name, position, size, al
 	
 	var material = new BABYLON.StandardMaterial(name, this._scene);
 		
-	var texture = new BABYLON.DynamicTexture("dyn_texture_"+name, {width: 1920, height: 1080}, this._scene, false);//, BABYLON.Texture.NEAREST_SAMPLINGMODE
+	var texture = new BABYLON.DynamicTexture("dyn_texture_"+name, {width: 1920, height: 1080}, this._scene, false);//, BABYLON.Texture.NEAREST_NEAREST
 	material.diffuseTexture = texture;
 	material.diffuseTexture.hasAlpha = true;
 	//material.useAlphaFromDiffuseTexture  = true;
@@ -317,6 +323,14 @@ BattleSceneManager.prototype.createDynamicBg = function(name, position, size, al
 	bg.originPosition = new BABYLON.Vector3(position.x, position.y, position.z);
 	return {background: bg, texture: texture};
 }
+		
+BattleSceneManager.prototype.createShadow = function(parent, id){
+	var shadow = this.createPlanarSprite(id, "shadow", new BABYLON.Vector3(0, 0, 0), 64);
+	shadow.sprite.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
+	shadow.sprite.position = new BABYLON.Vector3(0, -1.49, 0);
+	shadow.sprite.parent = parent.sprite;
+	parent.sprite.shadowSprite = shadow.sprite;
+}
 
 BattleSceneManager.prototype.updateMainSprite = function(type, name, path, position, frameSize, flipX){
 	var spriteInfo;
@@ -326,6 +340,12 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 			spriteInfo.sprite.dispose();
 		}
 		this._actorSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
+		
+		//this._actorShadow = this.createBg(name, "shadow", position, 3, 0.5, new BABYLON.Vector3(Math.PI/2, 0, 0));
+		//this._actorShadow.parent = this._actorSprite.sprite;
+		//this._actorShadow.position = new BABYLON.Vector3(0, -1.5, 0);
+		this._actorShadow = this.createShadow(this._actorSprite, "actorShadow");
+		
 	} 
 	if(type == "enemy"){
 		spriteInfo = this._enemySprite;
@@ -333,6 +353,7 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 			spriteInfo.sprite.dispose();
 		}
 		this._enemySprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
+		this._enemyShadow = this.createShadow(this._enemySprite, "enemyShadow");
 	}	
 	if(type == "actor_supporter"){
 		spriteInfo = this._actorSupporterSprite;
@@ -340,6 +361,7 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 			spriteInfo.sprite.dispose();
 		}
 		this._actorSupporterSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
+		this._actorSupporterShadow = this.createShadow(this._actorSupporterSprite, "actorSupporterShadow");
 	} 
 	if(type == "enemy_supporter"){
 		spriteInfo = this._enemySupporterSprite;
@@ -347,6 +369,7 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 			spriteInfo.sprite.dispose();
 		}
 		this._enemySupporterSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
+		this._enemySupporterShadow = this.createShadow(this._enemySupporterSprite, "enemySupporterShadow");
 	}
 }
 
@@ -397,15 +420,22 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
 		sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
 	} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
-		sampleMode = BABYLON.Texture.NEAREST_SAMPLINGMODE
+		sampleMode = BABYLON.Texture.NEAREST_NEAREST
 	}
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, sampleMode);
 	material.diffuseTexture.hasAlpha = true;
-	//material.useAlphaFromDiffuseTexture  = true;
+	//material.useAlphaFromDiffuseTexture  = true;	
 	
+	/*material.needDepthPrePass = true;
+	material.backFaceCulling = false;*/
+	
+	//material.opacityTexture = material.diffuseTexture;
 	if(flipX){
 		material.diffuseTexture.uScale = -1;
 	}	
+	
+	//material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+   // material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -462,6 +492,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		_this._floors.forEach(function(bg){
 			scrollBg(bg, animRatio);
 		});
+		
 		Input.update();
 		_this.isOKHeld = Input.isPressed("ok") || Input.isLongPressed("ok");
 		/*if(Input.isPressed("cancel") && _this._sceneCanEnd && !_this._sceneIsEnding){
@@ -1002,10 +1033,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var currentHP;
 			if(action.side == "actor"){
 				currentHP = _this._participantInfo.actor_supporter.tempHP;
-				_this._actorSprite.sprite.isVisible = false;
+				_this._actorSprite.sprite.setEnabled(false);
 			} else {
 				currentHP = _this._participantInfo.enemy_supporter.tempHP;
-				_this._enemySprite.sprite.isVisible = false;
+				_this._enemySprite.sprite.setEnabled(false);
 			}
 			_this._UILayerManager.setStat(action, "HP");
 			_this._UILayerManager.setStat(action, "EN");
@@ -1024,10 +1055,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var currentHP;
 			if(action.side == "actor"){
 				currentHP = _this._participantInfo.actor.tempHP;
-				_this._actorSprite.sprite.isVisible = true;
+				_this._actorSprite.sprite.setEnabled(true);
 			} else {
 				currentHP = _this._participantInfo.enemy.tempHP;
-				_this._enemySprite.sprite.isVisible = true;
+				_this._enemySprite.sprite.setEnabled(true);
 			}
 			_this._UILayerManager.setStat(action, "HP");
 			_this._UILayerManager.setStat(action, "EN");
@@ -1044,8 +1075,6 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				swipeTime/=2;
 			}
 			_this.fadeToBlack(swipeTime).then(function(){
-				//_this._actorSprite.sprite.isVisible = true;
-				//_this._enemySprite.sprite.isVisible = true;
 				_this.fadeFromBlack();
 			});	
 		},
@@ -1055,8 +1084,6 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				fadeTime/=2;
 			}
 			_this.fadeToWhite(fadeTime, params.speedIn || "fast").then(function(){
-				//_this._actorSprite.sprite.isVisible = true;
-				//_this._enemySprite.sprite.isVisible = true;
 				_this.fadeFromWhite(params.speedOut || "fast");
 			});	
 		},		
@@ -1257,7 +1284,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
 					sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
 				} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
-					sampleMode = BABYLON.Texture.NEAREST_SAMPLINGMODE
+					sampleMode = BABYLON.Texture.NEAREST_NEAREST
 				}
 				
 				var battleEffect;
@@ -1291,7 +1318,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
 					sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
 				} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
-					sampleMode = BABYLON.Texture.NEAREST_SAMPLINGMODE
+					sampleMode = BABYLON.Texture.NEAREST_NEAREST
 				}
 				
 				var flipX;
@@ -1323,13 +1350,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		hide_sprite: function(target, params){
 			var targetObj = getTargetObject(target);
 			if(targetObj){
-				targetObj.isVisible = false;
+				targetObj.setEnabled(false); 
 			}
 		},
 		show_sprite: function(target, params){
 			var targetObj = getTargetObject(target);
 			if(targetObj){
-				targetObj.isVisible = true;
+				targetObj.setEnabled(true);				
 			}
 		},
 		hide_bgs: function(target, params){
@@ -1839,7 +1866,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._bgs = [];
 	
 	var floorOffset = 1.5;
-	var bgOffsetY = 12.5 - floorOffset - 1;
+	var bgOffsetY = 12.5 - floorOffset - 2;
 	
 	var bgSize = {width: 50, height: 25};
 	var bg2Size = {width: 50, height: 25};
@@ -1896,6 +1923,19 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._floors.push(this.createBg("floor_2", "floor1", new BABYLON.Vector3(-25, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
 	_this._floors.push(this.createBg("floor_3", "floor1", new BABYLON.Vector3(75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
 	_this._floors.push(this.createBg("floor_4", "floor1", new BABYLON.Vector3(-75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+
+	if($gameSystem.battleSkyBox){
+		var skybox = BABYLON.MeshBuilder.CreateBox("skybox", {size:1000.0}, _this._scene);			
+		var skyboxMaterial = new BABYLON.StandardMaterial("skybox_material", _this._scene);
+		skyboxMaterial.backFaceCulling = false;
+		//skyboxMaterial.needDepthPrePass = true;
+		skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("img/skyboxes/"+$gameSystem.battleSkyBox, _this._scene);
+		skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+		skyboxMaterial.reflectionTexture.updateSamplingMode(BABYLON.Texture.NEAREST_NEAREST);
+		skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+		skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+		skybox.material = skyboxMaterial;	
+	}
 }
 
 BattleSceneManager.prototype.fadeAndShowScene = function(){
@@ -2023,36 +2063,36 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 		_this._supportDefenderActive = false;
 		_this._supportAttackerActive = false;
 		_this._doubleImageActive = false;
-		_this._actorSupporterSprite.sprite.isVisible = false;
-		_this._enemySupporterSprite.sprite.isVisible = false;
+		_this._actorSupporterSprite.sprite.setEnabled(false);
+		_this._enemySupporterSprite.sprite.setEnabled(false);
 		if(action.side == "actor"){
 			_this._animationDirection = 1;
 			_this._bgScrollDirection = 1;
-			_this._enemySprite.sprite.isVisible = false;
+			_this._enemySprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;
 				_this._supportAttackerActive = true;
-				_this._actorSprite.sprite.isVisible = false;
-				_this._actorSupporterSprite.sprite.isVisible = true;
+				_this._actorSprite.sprite.setEnabled(false);
+				_this._actorSupporterSprite.sprite.setEnabled(true);
 				_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_main_idle;
 			} else {		
 				_this._lastActionWasSupportAttack = false;
-				_this._actorSprite.sprite.isVisible = true;			
+				_this._actorSprite.sprite.setEnabled(true);		
 				_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_support_idle;
 			}			
 		} else {
 			_this._animationDirection = -1;
 			_this._bgScrollDirection = -1;		
-			_this._actorSprite.sprite.isVisible = false;
+			_this._actorSprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;
 				_this._supportAttackerActive = true;
-				_this._enemySprite.sprite.isVisible = false;
-				_this._enemySupporterSprite.sprite.isVisible = true;
+				_this._enemySprite.sprite.setEnabled(false);
+				_this._enemySupporterSprite.sprite.setEnabled(true);
 				_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_main_idle;
 			} else {			
 				_this._lastActionWasSupportAttack = false;
-				_this._enemySprite.sprite.isVisible = true;			
+				_this._enemySprite.sprite.setEnabled(true);	
 				_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_support_idle;
 			}
 		}
