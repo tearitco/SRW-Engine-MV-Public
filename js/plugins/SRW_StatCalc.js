@@ -158,7 +158,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 			if(weaponProperties.weaponMapId){
 				isMap = true;
 				mapId = JSON.parse(weaponProperties.weaponMapId);
-				ignoresFriendlies = weaponProperties.weaponIgnoresFriendlies*1;
+				ignoresFriendlies = weaponProperties.weaponIgnoresFriendlies*1 || 0;
 			}
 			
 			var isCombination = false;
@@ -2136,10 +2136,12 @@ StatCalc.prototype.activeUnitsInTileRange = function(tiles, type){
 				if($gameSystem.isEnemy(actor)){
 					result.push(actor);
 				}				
-			} else {
+			} else if(type == "actor"){
 				if(!$gameSystem.isEnemy(actor)){
 					result.push(actor);
 				}	
+			} else {
+				result.push(actor);
 			}			
 		}		
 	});
