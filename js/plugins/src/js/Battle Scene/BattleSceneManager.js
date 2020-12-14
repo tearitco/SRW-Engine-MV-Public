@@ -330,6 +330,7 @@ BattleSceneManager.prototype.createShadow = function(parent, id){
 	shadow.sprite.position = new BABYLON.Vector3(0, -1.49, 0);
 	shadow.sprite.parent = parent.sprite;
 	parent.sprite.shadowSprite = shadow.sprite;
+	return shadow.sprite;
 }
 
 BattleSceneManager.prototype.updateMainSprite = function(type, name, path, position, frameSize, flipX){
@@ -1825,19 +1826,41 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 		});		
 		_this._bgs.forEach(function(bg){
 			if(_this._bgMode == "land"){
-				bg.isVisible = true;
+				//bg.isVisible = true;
+				if(bg.originalPos){
+					bg.position.y = bg.originalPos.y;
+				}
 			} else {
-				bg.isVisible = false;
+				//bg.isVisible = false;
+				bg.position.originalPos = new BABYLON.Vector3(bg.position);
+				bg.position.y-=($gameSystem.skyBattleOffset || 0);
 			} 
 		});	
 
 		_this._floors.forEach(function(bg){
 			if(_this._bgMode == "land"){
-				bg.isVisible = true;
+				//bg.isVisible = true;
+				if(bg.originalPos){
+					bg.position.y = bg.originalPos.y;
+				}
 			} else {
-				bg.isVisible = false;
+				//bg.isVisible = false;
+				bg.position.originalPos = new BABYLON.Vector3(bg.position);
+				bg.position.y-=($gameSystem.skyBattleOffset || 0);
 			} 
 		});			
+	}
+
+	if(_this._bgMode == "sky"){
+		_this._actorShadow.isVisible = false;
+		_this._enemyShadow.isVisible = false;
+		_this._actorSupporterShadow.isVisible = false;
+		_this._enemySupporterShadow.isVisible = false;
+	} else {
+		_this._actorShadow.isVisible = true;
+		_this._enemyShadow.isVisible = true;
+		_this._actorSupporterShadow.isVisible = true;
+		_this._enemySupporterShadow.isVisible = true;
 	}	
 }
 
@@ -1898,7 +1921,7 @@ BattleSceneManager.prototype.resetScene = function() {
 		_this._bgs.push(this.createBg("bg4_4", $gameSystem.battleParallax3, new BABYLON.Vector3(-75, bgOffsetY, 40)));
 	}
 	
-	_this._skyBgs.forEach(function(bg){
+	/*_this._skyBgs.forEach(function(bg){
 		bg.dispose();
 	});
 	
@@ -1912,7 +1935,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._skyBgs.push(this.createBg("sky_bg2_2", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-25, 10, 14)));
 	_this._skyBgs.push(this.createBg("sky_bg2_3", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(75, 10, 14)));
 	_this._skyBgs.push(this.createBg("sky_bg2_4", $gameSystem.skyBattleParallax1, new BABYLON.Vector3(-75, 10, 14)));
-	
+	*/
 	_this._floors.forEach(function(bg){
 		bg.dispose();
 	});

@@ -16,6 +16,8 @@ SRWEditor.prototype.init = function(){
 	_this._contentDiv.id = "srw_editor";
 	document.body.appendChild(_this._contentDiv);
 	
+	$gameSystem.skyBattleOffset = 5;
+	
 	$gameSystem.battleBg = "mountains2";
 	//$gameSystem.battleParallax1 = "Empty";
 	
