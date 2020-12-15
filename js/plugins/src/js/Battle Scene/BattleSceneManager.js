@@ -11,6 +11,7 @@ export default function BattleSceneManager(){
 	this._frameAccumulator = 0;
 	this._bgWidth = 50;	
 	this._defaultSpriteSize = 128;
+	this._defaultShadowSize = 3;
 
 	this._defaultPositions = {
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
@@ -18,8 +19,8 @@ export default function BattleSceneManager(){
 		"enemy_main_idle": new BABYLON.Vector3(-2, 0, 1),
 		"camera_main_idle": new BABYLON.Vector3(0, 1.15, -6.5), //1.15
 		"camera_main_intro": new BABYLON.Vector3(-6, 0, -11),
-		"ally_support_idle": new BABYLON.Vector3(6, 1, 1),
-		"enemy_support_idle": new BABYLON.Vector3(-6, 1, 1),
+		"ally_support_idle": new BABYLON.Vector3(10, 1, 1),
+		"enemy_support_idle": new BABYLON.Vector3(-10, 1, 1),
 	}
 	this._defaultRotations = {
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
@@ -328,10 +329,11 @@ BattleSceneManager.prototype.createDynamicBg = function(name, position, size, al
 	return {background: bg, texture: texture};
 }
 		
-BattleSceneManager.prototype.configureSprite = function(parent, id){
+BattleSceneManager.prototype.configureSprite = function(parent, id, shadowInfo){
 	parent.sprite.setPivotMatrix(BABYLON.Matrix.Translation(-0, parent.size.height/2, -0), false);
 	
-	var shadow = this.createBg(id, "shadow", new BABYLON.Vector3(0, 0.01, 0), 3, 1, new BABYLON.Vector3(Math.PI/2, 0, 0), true);
+	var shadow = this.createBg(id, "shadow", new BABYLON.Vector3(0, 0.01, 0), shadowInfo.size, 1, new BABYLON.Vector3(Math.PI/2, 0, 0), true);
+	shadow.shadowInfo = shadowInfo;
 	//shadow.sprite.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
 	//shadow.sprite.position = new BABYLON.Vector3(0, 0.01, 0);
 	//shadow.sprite.parent = parent.sprite;
@@ -339,18 +341,20 @@ BattleSceneManager.prototype.configureSprite = function(parent, id){
 	return shadow;
 }
 
-BattleSceneManager.prototype.updateMainSprite = function(type, name, path, position, frameSize, flipX){
+BattleSceneManager.prototype.updateMainSprite = function(type, name, path, position, frameSize, flipX, shadowInfo){
 	var spriteInfo;
 	if(type == "actor"){
+		shadowInfo.type = "actor";
 		spriteInfo = this._actorSprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
 			spriteInfo.sprite.shadowSprite.dispose();
 		}
 		this._actorSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);		
-		this._actorShadow = this.configureSprite(this._actorSprite, "actorShadow");		
+		this._actorShadow = this.configureSprite(this._actorSprite, "actorShadow", shadowInfo);		
 	} 
 	if(type == "enemy"){
+		shadowInfo.type = "enemy";
 		spriteInfo = this._enemySprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
@@ -358,9 +362,10 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 		}
 		this._enemySprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
 		this._enemySprite.sprite.setPivotPoint(new BABYLON.Vector3(0, -1.5, 0));
-		this._enemyShadow = this.configureSprite(this._enemySprite, "enemyShadow");
+		this._enemyShadow = this.configureSprite(this._enemySprite, "enemyShadow", shadowInfo);
 	}	
 	if(type == "actor_supporter"){
+		shadowInfo.type = "actor";
 		spriteInfo = this._actorSupporterSprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
@@ -368,9 +373,10 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 		}
 		this._actorSupporterSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
 		this._actorSupporterSprite.sprite.setPivotPoint(new BABYLON.Vector3(0, -1.5, 0));
-		this._actorSupporterShadow = this.configureSprite(this._actorSupporterSprite, "actorSupporterShadow");
+		this._actorSupporterShadow = this.configureSprite(this._actorSupporterSprite, "actorSupporterShadow", shadowInfo);
 	} 
 	if(type == "enemy_supporter"){
+		shadowInfo.type = "enemy";
 		spriteInfo = this._enemySupporterSprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
@@ -378,7 +384,7 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 		}
 		this._enemySupporterSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
 		this._enemySupporterSprite.sprite.setPivotPoint(new BABYLON.Vector3(0, -1.5, 0));
-		this._enemySupporterShadow = this.configureSprite(this._enemySupporterSprite, "enemySupporterShadow");
+		this._enemySupporterShadow = this.configureSprite(this._enemySupporterSprite, "enemySupporterShadow", shadowInfo);
 	}
 }
 
@@ -493,10 +499,11 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 	
 	function updateShadow(spriteInfo){
 		if(spriteInfo){
-			spriteInfo.sprite.shadowSprite.position.x = spriteInfo.sprite.position.x;
-			spriteInfo.sprite.shadowSprite.position.z = spriteInfo.sprite.position.z;
+			var shadowSprite = spriteInfo.sprite.shadowSprite;
+			shadowSprite.position.x = spriteInfo.sprite.position.x + ((shadowSprite.shadowInfo.offsetX || 0) * (shadowSprite.shadowInfo.type == "enemy" ? -1 : 1));
+			shadowSprite.position.z = spriteInfo.sprite.position.z + (shadowSprite.shadowInfo.offsetZ || 0);
 			
-			spriteInfo.sprite.shadowSprite.setEnabled(spriteInfo.sprite.isEnabled());
+			shadowSprite.setEnabled(spriteInfo.sprite.isEnabled());
 			/*if(spriteInfo.sprite.isEnabled()){
 				console.log(spriteInfo.sprite.position.x+", "+spriteInfo.sprite.position.z);
 			}*/
@@ -554,10 +561,10 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					if(_this._supportDefenderActive){
 						_this._supportDefenderActive = false;
 						_this._animationList[_this._currentAnimationTick  + 50] = [
-							{type: "translate", target: "active_support_defender", params: {startPosition: _this._defaultPositions.enemy_main_idle, position: new BABYLON.Vector3(-6, 0, 1), duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
+							{type: "translate", target: "active_support_defender", params: {startPosition: _this._defaultPositions.enemy_main_idle, position: new BABYLON.Vector3(-10, 0, 1), duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 						];	
 						_this._animationList[_this._currentAnimationTick  + 60] = [
-							{type: "translate", target: "active_target", params: {startPosition: new BABYLON.Vector3(-6, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
+							{type: "translate", target: "active_target", params: {startPosition: new BABYLON.Vector3(-10, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 							{type: "disable_support_defender", target: "", params: {}},
 						];
 						_this._animationList[_this._currentAnimationTick  + 100] = []; //padding
@@ -565,7 +572,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 						_this._doubleImageActive = false;
 						_this._animationList[_this._currentAnimationTick  + 50] = [
 							{type: "show_sprite", target: "active_target"},
-							{type: "translate", target: "active_target", params: {startPosition: new BABYLON.Vector3(-6, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
+							{type: "translate", target: "active_target", params: {startPosition: new BABYLON.Vector3(-10, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 						];	
 						_this._animationList[_this._currentAnimationTick  + 100] = []; //padding
 					} else {
@@ -1141,11 +1148,11 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					{type: "teleport", target: "Camera", params: {position: _this._defaultPositions.camera_main_idle}},
 					{type: "rotate_to", target: "Camera", params: {rotation: _this._defaultRotations.camera_main_idle}},
 					{type: "show_sprite", target: "active_target", params: {}},
-					{type: "translate", target: "active_target", params: {startPosition: _this._defaultPositions.enemy_main_idle, position: new BABYLON.Vector3(-6, 0, 1), duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
+					{type: "translate", target: "active_target", params: {startPosition: _this._defaultPositions.enemy_main_idle, position: new BABYLON.Vector3(-10, 0, 1), duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 				];	
 				_this._animationList[startTick + 60] = [
 					{type: "show_sprite", target: "active_support_defender", params: {}},
-					{type: "translate", target: "active_support_defender", params: {startPosition: new BABYLON.Vector3(-6, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
+					{type: "translate", target: "active_support_defender", params: {startPosition: new BABYLON.Vector3(-10, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 					{type: "show_support_defender_text"},					
 				];
 				_this._animationList[startTick + 100] = [
@@ -1354,13 +1361,16 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				var flipX;
 				var battleEffect;
 				if(target == "active_main" || target == "active_support_attacker"){
-					battleEffect = action;
-					flipX = false;
+					battleEffect = action;					
 				} else if(target == "active_target" || target == "active_support_defender"){
-					battleEffect = targetAction;
-					flipX = true;
+					battleEffect = targetAction;					
 				}
 				
+				if(battleEffect.isActor){
+					flipX = false;
+				} else {
+					flipX = true;
+				}
 				
 				var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
 				
@@ -1736,13 +1746,14 @@ BattleSceneManager.prototype.readBattleCache = function() {
 		battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP;
 		var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
 		var imgSize = $statCalc.getBattleSceneImageSize(battleEffect.ref) || _this._defaultSpriteSize;
+		var shadowInfo = $statCalc.getBattleSceneShadowInfo(battleEffect.ref);
 		var mechStats = $statCalc.getCalculatedMechStats(battleEffect.ref);
 		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.actor.participating = true;
 				_this._participantInfo.actor.effect = battleEffect;				
 				_this._participantInfo.actor.img = imgPath;
-				_this.updateMainSprite("actor", "ally_main", imgPath+"/main", _this._defaultPositions.ally_main_idle, imgSize, false);
+				_this.updateMainSprite("actor", "ally_main", imgPath+"/main", _this._defaultPositions.ally_main_idle, imgSize, false, shadowInfo);
 				_this._participantInfo.actor.tempHP = mechStats.currentHP;
 				_this._participantInfo.actor.animatedHP = mechStats.currentHP;
 			}
@@ -1750,7 +1761,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.actor_supporter.participating = true;
 				_this._participantInfo.actor_supporter.effect = battleEffect;
 				_this._participantInfo.actor_supporter.img = imgPath;
-				_this.updateMainSprite("actor_supporter", "ally_support", imgPath+"/main", _this._defaultPositions.ally_support_idle, imgSize, false);	
+				_this.updateMainSprite("actor_supporter", "ally_support", imgPath+"/main", _this._defaultPositions.ally_support_idle, imgSize, false, shadowInfo);	
 				_this._participantInfo.actor_supporter.tempHP = mechStats.currentHP;
 				_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP;
 			}
@@ -1759,7 +1770,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.enemy.participating = true;
 				_this._participantInfo.enemy.effect = battleEffect;
 				_this._participantInfo.enemy.img = imgPath;
-				_this.updateMainSprite("enemy", "enemy_main", imgPath+"/main", _this._defaultPositions.enemy_main_idle, imgSize, true);	
+				_this.updateMainSprite("enemy", "enemy_main", imgPath+"/main", _this._defaultPositions.enemy_main_idle, imgSize, true, shadowInfo);	
 				_this._participantInfo.enemy.tempHP = mechStats.currentHP;
 				_this._participantInfo.enemy.animatedHP = mechStats.currentHP;
 			}
@@ -1767,7 +1778,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.enemy_supporter.participating = true;
 				_this._participantInfo.enemy_supporter.effect = battleEffect;
 				_this._participantInfo.enemy_supporter.img = imgPath;
-				_this.updateMainSprite("enemy_supporter", "enemy_support", imgPath+"/main", _this._defaultPositions.enemy_support_idle, imgSize, true);	
+				_this.updateMainSprite("enemy_supporter", "enemy_support", imgPath+"/main", _this._defaultPositions.enemy_support_idle, imgSize, true, shadowInfo);	
 				_this._participantInfo.enemy_supporter.tempHP = mechStats.currentHP;
 				_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP;
 			}
@@ -1775,10 +1786,10 @@ BattleSceneManager.prototype.readBattleCache = function() {
 			
 	});
 	if(!_this._actorSupporterSprite){
-		_this.updateMainSprite("actor_supporter", "ally_support", "", _this._defaultPositions.ally_support_idle, _this._defaultSpriteSize, false);	
+		_this.updateMainSprite("actor_supporter", "ally_support", "", _this._defaultPositions.ally_support_idle, _this._defaultSpriteSize, false, {});	
 	}
 	if(!_this._enemySupporterSprite){
-		_this.updateMainSprite("enemy_supporter", "enemy_support", "", _this._defaultPositions.enemy_support_idle, _this._defaultSpriteSize, false);	
+		_this.updateMainSprite("enemy_supporter", "enemy_support", "", _this._defaultPositions.enemy_support_idle, _this._defaultSpriteSize, false, {});	
 	}
 }
 
@@ -1974,12 +1985,12 @@ BattleSceneManager.prototype.resetScene = function() {
 	});
 	
 	_this._floors = [];
-	
-	_this._floors.push(this.createBg("floor_1", "floor1", new BABYLON.Vector3(25, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
-	_this._floors.push(this.createBg("floor_2", "floor1", new BABYLON.Vector3(-25, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
-	_this._floors.push(this.createBg("floor_3", "floor1", new BABYLON.Vector3(75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
-	_this._floors.push(this.createBg("floor_4", "floor1", new BABYLON.Vector3(-75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
-
+	if($gameSystem.battleFloor){
+		_this._floors.push(this.createBg("floor_1", $gameSystem.battleFloor, new BABYLON.Vector3(25, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+		_this._floors.push(this.createBg("floor_2", $gameSystem.battleFloor, new BABYLON.Vector3(-25, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+		_this._floors.push(this.createBg("floor_3", $gameSystem.battleFloor, new BABYLON.Vector3(75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+		_this._floors.push(this.createBg("floor_4", $gameSystem.battleFloor, new BABYLON.Vector3(-75, floorOffset * -1, 0), {width: 50, height: 25}, -1, new BABYLON.Vector3(Math.PI/2, 0, 0)));
+	}
 	if($gameSystem.battleSkyBox){
 		var skybox = BABYLON.MeshBuilder.CreateBox("skybox", {size:1000.0}, _this._scene);			
 		var skyboxMaterial = new BABYLON.StandardMaterial("skybox_material", _this._scene);
@@ -2007,53 +2018,57 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 		var nextAction = _this._actionQueue[i];
 		var attack = nextAction.action.attack;
 		
+		var animId;
 		if(attack && typeof attack.animId != "undefined" && attack.animId != -1){
-			var animationList = _this._animationBuilder.buildAnimation(attack.animId, _this);
-			Object.keys(animationList).forEach(function(animType){
-				animationList[animType].forEach(function(batch){
-					batch.forEach(function(animCommand){
-						var target = animCommand.target;
-						var params = animCommand.params;
-						if(animCommand.type == "create_bg"){
-							var bg = _this.createSceneBg(animCommand.target+"_preload", params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-							_this._animationBackgroundsInfo.push(bg);
-						}	
-						if(animCommand.type == "set_sprite_animation" || animCommand.type == "set_sprite_frame"){
-							var action = nextAction;
-							var targetAction = nextAction;
-							
-							var battleEffect;
-							if(target == "active_main" || target == "active_support_attacker"){
-								battleEffect = action;
-							} else if(target == "active_target" || target == "active_support_defender"){
-								battleEffect = targetAction;
-							}								
-							
-							var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
-							var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-							_this._animationBackgroundsInfo.push(bg);
-							
-						}
-						if(animCommand.type == "create_sky_box"){
-							var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
-							var skyboxMaterial = new BABYLON.StandardMaterial(animCommand.target+"_material", _this._scene);
-							skyboxMaterial.backFaceCulling = false;
-							skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("img/skyboxes/"+params.path, _this._scene);
-							skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-							skyboxMaterial.diffuseColor = params.color || new BABYLON.Color3(0, 0, 0);
-							skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-							skybox.material = skyboxMaterial;
-							skybox.isVisible = false;
-						}	
-						if(animCommand.type == "create_layer"){
-							var bg = new BABYLON.Layer(animCommand.target+"_preload", "img/SRWBattleScene/"+params.path+".png", _this._scene, params.isBackground);							
-							//_this._animationBackgroundsInfo.push(bg);
-							bg.dispose();														
-						}					
-					});
-				});				
-			});
+			animId = attack.animId;
+		} else {
+			animId = 0;//default
 		}
+		var animationList = _this._animationBuilder.buildAnimation(animId, _this);
+		Object.keys(animationList).forEach(function(animType){
+			animationList[animType].forEach(function(batch){
+				batch.forEach(function(animCommand){
+					var target = animCommand.target;
+					var params = animCommand.params;
+					if(animCommand.type == "create_bg"){
+						var bg = _this.createSceneBg(animCommand.target+"_preload", params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+						_this._animationBackgroundsInfo.push(bg);
+					}	
+					if(animCommand.type == "set_sprite_animation" || animCommand.type == "set_sprite_frame"){
+						var action = nextAction;
+						var targetAction = nextAction.attacked;
+						
+						var battleEffect;
+						if(target == "active_main" || target == "active_support_attacker"){
+							battleEffect = action;
+						} else if(target == "active_target" || target == "active_support_defender"){
+							battleEffect = targetAction;
+						}								
+						
+						var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+						var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+						_this._animationBackgroundsInfo.push(bg);
+						
+					}
+					if(animCommand.type == "create_sky_box"){
+						var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
+						var skyboxMaterial = new BABYLON.StandardMaterial(animCommand.target+"_material", _this._scene);
+						skyboxMaterial.backFaceCulling = false;
+						skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("img/skyboxes/"+params.path, _this._scene);
+						skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+						skyboxMaterial.diffuseColor = params.color || new BABYLON.Color3(0, 0, 0);
+						skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+						skybox.material = skyboxMaterial;
+						skybox.isVisible = false;
+					}	
+					if(animCommand.type == "create_layer"){
+						var bg = new BABYLON.Layer(animCommand.target+"_preload", "img/SRWBattleScene/"+params.path+".png", _this._scene, params.isBackground);							
+						//_this._animationBackgroundsInfo.push(bg);
+						bg.dispose();														
+					}					
+				});
+			});				
+		});		
 	}
 }
 

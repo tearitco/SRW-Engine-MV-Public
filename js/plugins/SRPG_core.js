@@ -365,6 +365,26 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.battleParallax1 = args[0];
 		}
 		
+		if (command === 'setSRWBattleParallax2') {
+			$gameSystem.battleParallax2 = args[0];
+		}
+		
+		if (command === 'setSRWBattleParallax3') {
+			$gameSystem.battleParallax3 = args[0];
+		}
+		
+		if (command === 'setSRWBattleParallax3') {
+			$gameSystem.battleParallax3 = args[0];
+		}
+		
+		if (command === 'setSRWBattleFloor') {
+			$gameSystem.battleFloor = args[0];
+		}
+		
+		if (command === 'setSRWBattleSkybox') {
+			$gameSystem.battleSkyBox = args[0];
+		}
+		
 		if (command === 'setSRWSkyBattleBg') {
 			$gameSystem.skyBattleBg = args[0];
 		}

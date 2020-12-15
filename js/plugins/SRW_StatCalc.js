@@ -776,7 +776,22 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		result.fundYield = parseInt(mechProperties.mechFundYield);
 		result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
-		result.battleSceneSpriteSize = mechProperties.mechBattleSceneSpriteSize || 0;
+		
+		result.battleSceneShadowInfo = {
+			size: 3,
+			offsetZ: 0,
+			offsetX: 0
+		};
+		
+		if(mechProperties.mechBattleSceneShadowSize){
+			result.battleSceneShadowInfo.size = mechProperties.mechBattleSceneShadowSize*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetZ){
+			result.battleSceneShadowInfo.offsetZ = mechProperties.mechBattleSceneShadowOffsetZ*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetX){
+			result.battleSceneShadowInfo.offsetX = mechProperties.mechBattleSceneShadowOffsetX*1;
+		}
 		
 		result.stats.base.maxHP = parseInt(mechProperties.mechHP);
 		//result.currentHP = mechProperties.mechHP;
@@ -1177,6 +1192,14 @@ StatCalc.prototype.getBattleSceneImage = function(actor){
 StatCalc.prototype.getBattleSceneImageSize = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		return actor.SRWStats.mech.battleSceneSpriteSize;	
+	} else {
+		return 0;
+	}
+}
+
+StatCalc.prototype.getBattleSceneShadowInfo = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return JSON.parse(JSON.stringify(actor.SRWStats.mech.battleSceneShadowInfo));	
 	} else {
 		return 0;
 	}
