@@ -602,6 +602,10 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 			$gameTemp.preventedDeathQuotes[args[0]] = true;
 		}
+		
+		if (command === 'setSaveDisplayName') {			
+			$gameSystem.saveDisplayName = (args[0] || "").replace(/\_/ig, " ");
+		}		
     };		
 //====================================================================
 // ●Game_Temp
@@ -11546,5 +11550,17 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		this.refresh();
 		Window_Base.prototype.open.call(this);
 	};
+	
+	DataManager.makeSavefileInfo = function() {
+		var info = {};
+		info.globalId   = this._globalId;
+		info.title      = $gameSystem.saveDisplayName || $dataSystem.gameTitle;
+		info.characters = $gameParty.charactersForSavefile();
+		info.faces      = $gameParty.facesForSavefile();
+		info.playtime   = $gameSystem.playtimeText();
+		info.timestamp  = Date.now();
+		return info;
+	};
+		
 })();
 

@@ -322,7 +322,7 @@ this.addDefinition(
 		se: "SRWExplosion"//the sound effect to play with the animation
 	},
 	false, //if true the player will not be able to rotate the map attack
-	{faceName: "Actor3", faceIdx: 7, text: "Marsha\nGet a load of this!"} // specifies a text box to show before the map attack animation plays.
+	{faceName: "Actor3", faceIdx: 7, text: "Marsha\nGet a load of this!"} // specifies a text box to show before the map attack animation plays. 
 );
 ```
 
@@ -841,6 +841,10 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 	Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. Only applicable in the beforeDestruction event.
 
 
+* setSaveDisplayName name
+
+	Set the name that will show up in the save file list for newly saved files. Spaces should be replaced by underscores in the command, ex.: "Debug\_Stage\_1" becomes "Debug Stage 1"
+
 ## Script commands
 
 These added commands can be used in Script commands while making event scripts.<br>
@@ -924,6 +928,7 @@ They can also be used as conditionals in IF statements.
 		* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
 		<br>
 		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
+
 		<br>
 		* targetRegion: the id of the region that the enemy should move towards<br>	
 		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
