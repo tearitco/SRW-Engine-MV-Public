@@ -10006,12 +10006,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					}				
 				}				
 			} else {
+				var fullRange = $statCalc.getFullWeaponRange(enemy, true);
 				$gameSystem.srpgMakeMoveTable(event);
 				var targetInfo;
 				var optimalPos;
 				if(enemy._currentTarget && !enemy._currentTarget.isErased()){
 					targetInfo = {target: enemy._currentTarget};
-					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, -1, 0);
+					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
 				} else if(enemy.targetRegion != -1){
 					var candidatePositions = $gameMap.getRegionTiles(enemy.targetRegion);
 					var currentBestDist = -1;
@@ -10036,13 +10037,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					optimalPos = this.srpgSearchOptimalPos(optimalPos, enemy, type, -1, 0);
 				} 
 				
+				
 				//check for targets in movement range
 				if(!optimalPos){
 					var canAttackTargets = this.srpgMakeCanAttackTargetsWithMove(enemy, targetType);
 					if(canAttackTargets && canAttackTargets.length){
 						targetInfo = this.srpgDecideTarget(canAttackTargets, event, targetType); //ターゲットの設定
-						enemy._currentTarget = targetInfo.target;
-						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, -1, 0);
+						enemy._currentTarget = targetInfo.target;						
+						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
 					}
 				}
 				
@@ -10050,7 +10052,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if(!optimalPos){
 					targetInfo = this.srpgDecideTarget($statCalc.getAllActorEvents("actor"), event, targetType); //ターゲットの設定
 					enemy._currentTarget = targetInfo.target;
-					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, -1, 0);
+					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
 				}
 				
 				
@@ -10380,12 +10382,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}
 		}
 		
-		
+		var targetDist = minRange || 1;
 		var currentBestDist = -1;
 		var improves = true;
 		var path;
 		
-		while(currentBestDist != 1 && improves){
+		while(currentBestDist != targetDist && improves){
 			var graph = new Graph(pathfindingGrid);
 			var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
 			var endNode = graph.grid[targetCoords.x][targetCoords.y];
@@ -10396,7 +10398,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				var ctr = path.length-1;
 				while(ctr >= 0 && !closestValidNode){
 					var node = path[ctr];
-					if(isValidSpace({x: node.x, y: node.y})){
+					var deltaX = Math.abs(targetCoords.x - node.x);
+					var deltaY = Math.abs(targetCoords.y - node.y);
+					var dist = Math.hypot(deltaX, deltaY);			
+					
+					if(dist >= targetDist && isValidSpace({x: node.x, y: node.y})){
 						closestValidNode = node;
 					} else {
 						pathfindingGrid[node.x][node.y] = 0;
@@ -10408,7 +10414,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				var deltaY = Math.abs(targetCoords.y - node.y);
 				var dist = Math.hypot(deltaX, deltaY);
 				
-				if(currentBestDist != -1 && currentBestDist <= dist){
+				if(currentBestDist != -1 && currentBestDist >= targetDist && currentBestDist <= dist){
 					improves = false;				
 				}
 				currentBestDist = dist;
@@ -10419,6 +10425,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		var pathNodeLookup = {};
 		var ctr = 0;
+		
+		var tmp = [];
+		path.forEach(function(node){
+			var deltaX = Math.abs(targetCoords.x - node.x);
+			var deltaY = Math.abs(targetCoords.y - node.y);
+			var dist = Math.hypot(deltaX, deltaY);
+			if(dist >= minRange){
+				tmp.push(node);
+			}
+		});
+		path = tmp;
 
 		path.forEach(function(node){
 			if(!pathNodeLookup[node.x]){
@@ -10448,7 +10465,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				var deltaX = Math.abs(targetCoords.x - list[i][0]);
 				var deltaY = Math.abs(targetCoords.y - list[i][1]);
 				var distance = Math.hypot(deltaX, deltaY);
-				if((range == -1 || (deltaX + deltaY <= range) && deltaX + deltaY >= minRange) && isValidSpace({x: list[i][0], y: list[i][1]})){
+				if((range == -1 || (deltaX + deltaY <= range && deltaX + deltaY >= minRange)) && isValidSpace({x: list[i][0], y: list[i][1]})){
 					distanceSortedPositions.push({
 						x: list[i][0],
 						y: list[i][1],
