@@ -16,7 +16,7 @@ export default function BattleSceneManager(){
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
 		"ally_main_idle": new BABYLON.Vector3(2, 0, 1),
 		"enemy_main_idle": new BABYLON.Vector3(-2, 0, 1),
-		"camera_main_idle": new BABYLON.Vector3(0, -0.35, -6.5),
+		"camera_main_idle": new BABYLON.Vector3(0, 1.15, -6.5), //1.15
 		"camera_main_intro": new BABYLON.Vector3(-6, 0, -11),
 		"ally_support_idle": new BABYLON.Vector3(6, 1, 1),
 		"enemy_support_idle": new BABYLON.Vector3(-6, 1, 1),
@@ -197,7 +197,7 @@ BattleSceneManager.prototype.initScene = function(attachControl){
 	});
 }
 
-BattleSceneManager.prototype.createBg = function(name, img, position, size, alpha, rotation){
+BattleSceneManager.prototype.createBg = function(name, img, position, size, alpha, rotation, useDiffuseAlpha){
 	var width;
 	var height;
 	if(typeof size != "undefined"){
@@ -219,7 +219,11 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 		
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattlebacks/"+img+".png", this._scene, false, true, BABYLON.Texture.NEAREST_NEAREST);
 	material.diffuseTexture.hasAlpha = true;
-	material.useAlphaFromDiffuseTexture  = true;
+	if(useDiffuseAlpha){
+		material.useAlphaFromDiffuseTexture  = true;
+	}	
+	
+	//material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATESTANDBLEND;
 	
 	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
     material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
@@ -324,13 +328,15 @@ BattleSceneManager.prototype.createDynamicBg = function(name, position, size, al
 	return {background: bg, texture: texture};
 }
 		
-BattleSceneManager.prototype.createShadow = function(parent, id){
-	var shadow = this.createPlanarSprite(id, "shadow", new BABYLON.Vector3(0, 0, 0), 64);
-	shadow.sprite.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
-	shadow.sprite.position = new BABYLON.Vector3(0, -1.49, 0);
-	shadow.sprite.parent = parent.sprite;
-	parent.sprite.shadowSprite = shadow.sprite;
-	return shadow.sprite;
+BattleSceneManager.prototype.configureSprite = function(parent, id){
+	parent.sprite.setPivotMatrix(BABYLON.Matrix.Translation(-0, parent.size.height/2, -0), false);
+	
+	var shadow = this.createBg(id, "shadow", new BABYLON.Vector3(0, 0.01, 0), 3, 1, new BABYLON.Vector3(Math.PI/2, 0, 0), true);
+	//shadow.sprite.rotation = new BABYLON.Vector3(Math.PI/2, 0, 0);
+	//shadow.sprite.position = new BABYLON.Vector3(0, 0.01, 0);
+	//shadow.sprite.parent = parent.sprite;
+	parent.sprite.shadowSprite = shadow;
+	return shadow;
 }
 
 BattleSceneManager.prototype.updateMainSprite = function(type, name, path, position, frameSize, flipX){
@@ -339,38 +345,40 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, path, posit
 		spriteInfo = this._actorSprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
 		}
-		this._actorSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
-		
-		//this._actorShadow = this.createBg(name, "shadow", position, 3, 0.5, new BABYLON.Vector3(Math.PI/2, 0, 0));
-		//this._actorShadow.parent = this._actorSprite.sprite;
-		//this._actorShadow.position = new BABYLON.Vector3(0, -1.5, 0);
-		this._actorShadow = this.createShadow(this._actorSprite, "actorShadow");
-		
+		this._actorSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);		
+		this._actorShadow = this.configureSprite(this._actorSprite, "actorShadow");		
 	} 
 	if(type == "enemy"){
 		spriteInfo = this._enemySprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
 		}
 		this._enemySprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
-		this._enemyShadow = this.createShadow(this._enemySprite, "enemyShadow");
+		this._enemySprite.sprite.setPivotPoint(new BABYLON.Vector3(0, -1.5, 0));
+		this._enemyShadow = this.configureSprite(this._enemySprite, "enemyShadow");
 	}	
 	if(type == "actor_supporter"){
 		spriteInfo = this._actorSupporterSprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
 		}
 		this._actorSupporterSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
-		this._actorSupporterShadow = this.createShadow(this._actorSupporterSprite, "actorSupporterShadow");
+		this._actorSupporterSprite.sprite.setPivotPoint(new BABYLON.Vector3(0, -1.5, 0));
+		this._actorSupporterShadow = this.configureSprite(this._actorSupporterSprite, "actorSupporterShadow");
 	} 
 	if(type == "enemy_supporter"){
 		spriteInfo = this._enemySupporterSprite;
 			if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
 		}
 		this._enemySupporterSprite = this.createPlanarSprite(name, path, position, frameSize, flipX);
-		this._enemySupporterShadow = this.createShadow(this._enemySupporterSprite, "enemySupporterShadow");
+		this._enemySupporterSprite.sprite.setPivotPoint(new BABYLON.Vector3(0, -1.5, 0));
+		this._enemySupporterShadow = this.configureSprite(this._enemySupporterSprite, "enemySupporterShadow");
 	}
 }
 
@@ -433,10 +441,11 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	//material.opacityTexture = material.diffuseTexture;
 	if(flipX){
 		material.diffuseTexture.uScale = -1;
+		material.diffuseTexture.uOffset = 1;
 	}	
 	
-	//material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-   // material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+	material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -449,7 +458,7 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	
 	bg.setPositionWithLocalVector(position);
 	bg.originPosition = new BABYLON.Vector3(position.x, position.y, position.z);
-	return {sprite: bg};
+	return {sprite: bg, size: {width: width, height: height}};
 }
 
 BattleSceneManager.prototype.applyAnimationDirection = function(position){
@@ -481,6 +490,19 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 			bg.position = bg.originPosition;
 		}
 	}
+	
+	function updateShadow(spriteInfo){
+		if(spriteInfo){
+			spriteInfo.sprite.shadowSprite.position.x = spriteInfo.sprite.position.x;
+			spriteInfo.sprite.shadowSprite.position.z = spriteInfo.sprite.position.z;
+			
+			spriteInfo.sprite.shadowSprite.setEnabled(spriteInfo.sprite.isEnabled());
+			/*if(spriteInfo.sprite.isEnabled()){
+				console.log(spriteInfo.sprite.position.x+", "+spriteInfo.sprite.position.z);
+			}*/
+		}		
+	}
+	
 	_this._scene.registerBeforeRender(function() {
 		
 		var animRatio =  _this._scene.getAnimationRatio();
@@ -493,6 +515,8 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		_this._floors.forEach(function(bg){
 			scrollBg(bg, animRatio);
 		});
+		
+		
 		
 		Input.update();
 		_this.isOKHeld = Input.isPressed("ok") || Input.isLongPressed("ok");
@@ -703,6 +727,11 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 				}	
 			}
 		});	
+		
+		updateShadow(_this._actorSprite);
+		updateShadow(_this._enemySprite);	
+		updateShadow(_this._actorSupporterSprite);	
+		updateShadow(_this._enemySupporterSprite);
 	});
 }
 
@@ -1339,12 +1368,16 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.material.diffuseTexture.hasAlpha = true;
 				//targetObj.material.useAlphaFromDiffuseTexture  = true;
 				
+				targetObj.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+				targetObj.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+				
 				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
 				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
 				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
 				
 				if(flipX){
 					targetObj.material.diffuseTexture.uScale = -1; 
+					targetObj.material.diffuseTexture.uOffset = 1; 
 				}
 			}
 		},
@@ -1888,7 +1921,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	
 	_this._bgs = [];
 	
-	var floorOffset = 1.5;
+	var floorOffset = 0;
 	var bgOffsetY = 12.5 - floorOffset - 2;
 	
 	var bgSize = {width: 50, height: 25};
