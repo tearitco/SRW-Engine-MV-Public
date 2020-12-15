@@ -35,6 +35,11 @@ APPSTRINGS.GENERAL = {
 	label_mastery_completed_message: "Mastery Condition completed!",
 	label_enemy_phase: "Enemy Phase",
 	label_ally_phase: "Ally Phase",
+	label_yes: "YES",
+	label_no: "NO",
+	label_ask_end_turn_single: "unit can still take an action, end your turn?",
+	label_ask_end_turn_multi: "units can still take an action, end your turn?",
+	label_hit: "Hit"
 }
 
 APPSTRINGS.MAPMENU = {
@@ -42,7 +47,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_move: "Move", 
 	cmd_item: "Item",
 	cmd_spirit: "Spirit",
-	cmd_repair: "Heal",
+	cmd_repair: "Repair",
 	cmd_resupply: "Resupply", 
 	cmd_land: "Land",
 	cmd_fly: "Fly",
@@ -74,7 +79,8 @@ APPSTRINGS.MECHSTATS = {
 	resupply: "Resupply",
 	shield: "Shield",
 	barrier: "Barrier",
-	weapon: "Weapon"
+	weapon: "Weapon",
+	size: "Size",
 }	
 
 APPSTRINGS.PILOTSTATS = {

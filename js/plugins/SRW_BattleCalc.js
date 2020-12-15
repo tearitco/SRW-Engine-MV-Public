@@ -14,10 +14,10 @@ function BattleCalc(){
 		"D": 0.6,
 	};
 	this._mechSizeValues = {
-		"S": 1.1,
+		"S": 0.8,
 		"M": 1.0,
-		"1L": 0.9,
-		"2L": 0.8
+		"1L": 1.2,
+		"2L": 1.4
 	};
 	this._sizeEvadeMod = {
 		"S": 0.8,
@@ -161,7 +161,7 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		finalHit-=evadeMod;
 		
 		if(defenderInfo.action.type == "evade"){
-			finalHit-=50;
+			finalHit/=2;
 		}
 		if($statCalc.getActiveSpirits(attackerInfo.actor).focus) {
 			finalHit+=30;
@@ -255,9 +255,9 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
 		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
 		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
-		if(weaponInfo.particleType == "beam" && $statCalc.getCurrentTerrain(defenderInfo.actor) == "water"){
+		/*if(weaponInfo.particleType == "beam" && $statCalc.getCurrentTerrain(defenderInfo.actor) == "water"){
 			weaponTerrainRating = this._weaponTerrainValues["D"];
-		}
+		}*/
 			
 		if(weaponInfo.type == "M"){ //melee
 			attackerPilotOffense = attackerPilotStats.melee;
@@ -270,7 +270,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			weaponPower-=500;
 		}		
 		var attackerWill = $statCalc.getCurrentWill(attackerInfo.actor);
-		var initialAttack = weaponPower * weaponTerrainRating + (attackerPilotOffense + attackerWill) / 200;
+		var initialAttack = weaponPower * weaponTerrainRating * (attackerPilotOffense + attackerWill) / 200;
 		//initial defense
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
 		
@@ -281,16 +281,18 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		armor = $statCalc.applyStatModsToValue(defenderInfo.actor, armor, ["armor"]);			
 		
 		var defenderTerrainRating = this._mechTerrainValues[defenderMechStats.terrain[$statCalc.getCurrentTerrain(defenderInfo.actor)]];
-		var initialDefend = armor * defenderTerrainRating * (defenderPilotStats.defense + $statCalc.getCurrentWill(defenderInfo.actor)) / 200;
+		
 		//final damage
 		var terrainDefenseFactor = $statCalc.getCurrentTerrainMods(defenderInfo.actor).defense || 0; 
-		var sizeFactor = 1 + this._mechSizeValues[attackerMechStats.size] - this._mechSizeValues[defenderMechStats.size];
+		var sizeFactor = 1 + this._mechSizeValues[defenderMechStats.size] - this._mechSizeValues[attackerMechStats.size];
 		var attackerHasIgnoreSize = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["ignore_size"]);
-		if(attackerHasIgnoreSize && sizeFactor < 1){
+		if(attackerHasIgnoreSize && sizeFactor > 1){
 			sizeFactor = 1;
 		}
 		
-		var finalDamage = (initialAttack - initialDefend) * (1 - terrainDefenseFactor/100) * sizeFactor;
+		var initialDefend = armor * defenderTerrainRating * (defenderPilotStats.defense + $statCalc.getCurrentWill(defenderInfo.actor)) / 200 * sizeFactor;
+		
+		var finalDamage = (initialAttack - initialDefend) * (1 - terrainDefenseFactor/100);
 		var isCritical = false;
 		if(Math.random() < this.performCritCalculation(attackerInfo, defenderInfo)){
 			isCritical = true;
@@ -645,9 +647,19 @@ BattleCalc.prototype.generateBattleResult = function(){
 			activeDefenderCache.barrierBroken = damageResult.thresholdBarrierBroken;
 			
 			if(this._side == "actor"){
-				activeDefenderCache.side = "enemy";
+				if(dCache){
+					dCache.side = "enemy";
+				}
+				if(sCache){
+					sCache.side = "enemy";
+				}
 			} else {
-				activeDefenderCache.side = "actor";
+				if(dCache){
+					dCache.side = "actor";
+				}
+				if(sCache){
+					sCache.side = "actor";
+				}
 			}
 			
 			aCache.damageInflicted = damageResult.damage;
@@ -768,7 +780,7 @@ BattleCalc.prototype.generateMapBattleResult = function(){
 	var targets = $gameTemp.currentMapTargets;
 	targets.forEach(function(target){
 		var defender = {actor: target, action: {type: "none"}};
-		_this.prepareBattleCache(defender);
+		_this.prepareBattleCache(defender, "defender");
 		var dCache = $gameTemp.battleEffectCache[defender.actor._cacheReference];
 		dCache.isAttacked = true;
 		dCache.attackedBy = aCache;
@@ -880,45 +892,50 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 				true,
 				true
 			);
-			if(optimizeCost){
-				var currentWeaponCanShootDown = false;
-				if(damageResult.damage >= defenderHP){
-					canShootDown = true;
-					currentWeaponCanShootDown = true;
-				}
-				if(canShootDown){
-					if(currentWeaponCanShootDown){
-						var currentENCost = weapon.ENCost;
-						var currentTotalAmmo = weapon.totalAmmo;
-						if(currentTotalAmmo != -1){//ammo using weapon
-							if(maxTotalAmmo == -2 || currentTotalAmmo > maxTotalAmmo){
-								if(minENCost == -2 || minENCost > 100/currentTotalAmmo){
-									bestDamage = damageResult.damage;
-									bestWeapon = weapon;
-									currentTotalAmmo = maxTotalAmmo;
+			var isReachable;
+			var range = $statCalc.getRealWeaponRange(attackerInfo.actor, weapon.range);
+			isReachable = $statCalc.isReachable(defenderInfo.actor, attackerInfo.actor, range, weapon.minRange);
+			
+			if(isReachable){				
+				if(optimizeCost){
+					var currentWeaponCanShootDown = false;
+					if(damageResult.damage >= defenderHP){
+						canShootDown = true;
+						currentWeaponCanShootDown = true;
+					}
+					if(canShootDown){
+						if(currentWeaponCanShootDown){
+							var currentENCost = weapon.ENCost;
+							var currentTotalAmmo = weapon.totalAmmo;
+							if(currentTotalAmmo != -1){//ammo using weapon
+								if(maxTotalAmmo == -2 || currentTotalAmmo > maxTotalAmmo){
+									if(minENCost == -2 || minENCost > 100/currentTotalAmmo){
+										bestDamage = damageResult.damage;
+										bestWeapon = weapon;
+										currentTotalAmmo = maxTotalAmmo;
+									}
 								}
-							}
-						} else {
-							if(minENCost == -2 || minENCost > currentENCost){
-								if(maxTotalAmmo == -2 || 100/currentTotalAmmo > currentENCost){
-									bestDamage = damageResult.damage;
-									bestWeapon = weapon;
-									minENCost = currentENCost;
+							} else {
+								if(minENCost == -2 || minENCost > currentENCost){
+									if(maxTotalAmmo == -2 || 100/currentTotalAmmo > currentENCost){
+										bestDamage = damageResult.damage;
+										bestWeapon = weapon;
+										minENCost = currentENCost;
+									}
 								}
 							}
 						}
+					} else if(damageResult.damage > bestDamage){
+						bestDamage = damageResult.damage;
+						bestWeapon = weapon;
 					}
-				} else if(damageResult.damage > bestDamage){
-					bestDamage = damageResult.damage;
-					bestWeapon = weapon;
-				}
-			} else {
-				if(damageResult.damage > bestDamage){
-					bestDamage = damageResult.damage;
-					bestWeapon = weapon;
+				} else {
+					if(damageResult.damage > bestDamage){
+						bestDamage = damageResult.damage;
+						bestWeapon = weapon;
+					}
 				}
 			}
-			
 		}
 	});		
 	return {weapon: bestWeapon, damage: bestDamage};

@@ -26,6 +26,12 @@ SRWSongManager.prototype.playSong = function(songId){
 }
 
 SRWSongManager.prototype.getUnitSongInfo = function(actor){
+	if(!actor){
+		return {
+			id: -1,
+			priority: -1
+		}
+	}
 	if(actor.isActor()){
 		return {
 			id: this._actorSongMapping[actor.actorId()],

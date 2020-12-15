@@ -135,7 +135,7 @@
     width: 93%;
     height: 100%;
     margin-left: 8%;
-    margin-top: -20%;
+    margin-top: -22%;
 }
 
 #unit_summary .mech_hp_en_container .hp_bar{
@@ -202,4 +202,12 @@
 
 #unit_summary .faction_color.faction_2 {
 	background-color: rgba(172, 172, 38, 0.9);
+}
+
+#unit_summary .hit_display {
+	position: absolute;
+	left: 26%;
+	top: 48%;
+	font-size: 2px;
+	color: #FFFFFF;
 }

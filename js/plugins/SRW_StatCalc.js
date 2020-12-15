@@ -154,9 +154,11 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 			}
 			var isMap = false;
 			var mapId;
+			var ignoresFriendlies = false;
 			if(weaponProperties.weaponMapId){
 				isMap = true;
 				mapId = JSON.parse(weaponProperties.weaponMapId);
+				ignoresFriendlies = weaponProperties.weaponIgnoresFriendlies*1 || 0;
 			}
 			
 			var isCombination = false;
@@ -185,10 +187,11 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 				willRequired: parseInt(weaponProperties.weaponWill),
 				terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
 				effects: effects,
-				particleType: weaponProperties.weaponCategory || "", //missile, funnel, beam, gravity, physical or "".
+				particleType: (weaponProperties.weaponCategory || "").trim(), //missile, funnel, beam, gravity, physical or "".
 				animId: parseInt(weaponProperties.weaponAnimId) || -1,
 				isMap: isMap, 
 				mapId: mapId,
+				ignoresFriendlies: ignoresFriendlies,
 				isCombination: isCombination,
 				combinationWeapons: combinationWeapons,
 				combinationType: combinationType
@@ -802,7 +805,18 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		result.stats.base.accuracy = parseInt(mechProperties.mechAccuracy);
 		result.stats.base.terrain = this.parseTerrainString(mechProperties.mechTerrain);
 		result.stats.base.move = parseInt(mechProperties.mechMove);
-		result.stats.base.size = mechProperties.mechSize;	
+		var sizeString = mechProperties.mechSize.trim();	
+		if(sizeString == "LL"){
+			sizeString = "2L";
+		}
+		if(sizeString == "L"){
+			sizeString = "1L";
+		}
+		if(sizeString == "1S"){
+			sizeString = "S";
+		}
+		result.stats.base.size = sizeString;
+		
 
 		result.stats.upgradeCostTypes.maxHP = parseInt(mechProperties.mechUpgradeHPCost);
 		//result.currentHP = mechProperties.mechHP;
@@ -1973,6 +1987,31 @@ StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 	return {range: currentRange, minRange: currentMinRange};
 }
 
+StatCalc.prototype.isReachable = function(target, user, range, minRange){
+	var _this = this;	
+	var hasEmptyTiles = false;
+	var userIsInRange = false;
+	var offsetX = target.event.posX();
+	var offsetY = target.event.posY();
+	for(var i = 0; i < $gameMap.width(); i++){
+		for(var j = 0; j < $gameMap.height(); j++){
+			var deltaX = Math.abs(offsetX - i);
+			var deltaY = Math.abs(offsetY - j);
+			var totalDelta = deltaX + deltaY;
+			if(totalDelta <= range && totalDelta >= minRange){
+				var unit = this.activeUnitAtPosition({x: i, y: j});
+				if(unit){
+					if(unit.event.eventId() == user.event.eventId()){
+						userIsInRange = true;
+					}
+				} else {
+					hasEmptyTiles = true;
+				}
+			}
+		}
+	}
+	return hasEmptyTiles || userIsInRange;
+}
 
 StatCalc.prototype.getAllInRange = function(factionConfig, pos, range, minRange){
 	var _this = this;
@@ -2072,10 +2111,10 @@ StatCalc.prototype.isFreeSpace = function(position, type){
 	return isFree;
 }
 
-StatCalc.prototype.getAdjacentFreeSpace = function(position, type){
+StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId){
 	var occupiedCoordLookup = {};
 	this.iterateAllActors(type, function(actor, event){			
-		if(!event.isErased()){
+		if(!event.isErased() && event.eventId() != eventId){
 			if(!occupiedCoordLookup[event.posX()]){
 				occupiedCoordLookup[event.posX()] = {};
 			}
@@ -2118,9 +2157,19 @@ StatCalc.prototype.activeUnitsInTileRange = function(tiles, type){
 			lookup[coord[0]][coord[1]] = true;
 		}
 	}
-	this.iterateAllActors(type, function(actor, event){			
-		if(!event.isErased() && lookup[event.posX()]  && lookup[event.posX()][event.posY()]){
-			result.push(actor);
+	this.iterateAllActors(null, function(actor, event){			
+		if(!event.isErased() && lookup[event.posX()]  && lookup[event.posX()][event.posY()]){3
+			if(type == "enemy"){
+				if($gameSystem.isEnemy(actor)){
+					result.push(actor);
+				}				
+			} else if(type == "actor"){
+				if(!$gameSystem.isEnemy(actor)){
+					result.push(actor);
+				}	
+			} else {
+				result.push(actor);
+			}			
 		}		
 	});
 	return result;

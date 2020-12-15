@@ -60,6 +60,7 @@ Window_MechList.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
+		
 		if(Input.isTriggered('down') || Input.isRepeated('down')){
 			SoundManager.playCursor();
 			this.requestRedraw();

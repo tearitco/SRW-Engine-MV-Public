@@ -11,7 +11,9 @@ $SRWConfig.mapAttacks = function(){
 			offset: {x: 96, y: 0},
 			duration: 50,
 			se: "SRWExplosion"
-		}
+		},
+		false,
+		{faceName: "Actor3", faceIdx: 7, text: "Marsha\nGet a load of this!"}
 	);	
 	
 	this.addDefinition(

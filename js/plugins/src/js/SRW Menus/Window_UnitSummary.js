@@ -28,10 +28,17 @@ Window_UnitSummary.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){			
-		
-	}		
-	this.refresh();
+		this.refresh();
+	}			
 };
+
+Window_UnitSummary.prototype.refresh = function() {
+	if(this._redrawRequested){
+		this._redrawRequested = false;
+		this.redraw();		
+	}
+	this.getWindowNode().style.display = this._visibility;
+}
 
 Window_UnitSummary.prototype.redraw = function() {	
 	var _this = this;
@@ -89,6 +96,22 @@ Window_UnitSummary.prototype.redraw = function() {
 		content+="<div class='max_en scaled_text'>"+$statCalc.getCurrentMaxENDisplay(actor)+"</div>";
 		
 		content+="</div>";
+		
+		if($gameTemp.isMapTarget(actor.event.eventId())){
+			var hitRate = $battleCalc.performHitCalculation(
+				{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
+				{actor: actor, action: {type: "defend"}}
+			);
+			content+="<div class='hit_display scaled_text'>";
+			content+=APPSTRINGS.GENERAL.label_hit+": ";
+			if(hitRate == -1){
+				content+="---";	
+			} else {
+				content+=Math.floor(hitRate * 100)+"%";	
+			}
+			content+="</div>";				
+		}
+		
 		
 		var hpPercent = Math.floor(calculatedStats.currentHP / calculatedStats.maxHP * 100);
 		content+="<div class='hp_bar'><div style='width: "+hpPercent+"%;' class='hp_bar_fill'></div></div>";

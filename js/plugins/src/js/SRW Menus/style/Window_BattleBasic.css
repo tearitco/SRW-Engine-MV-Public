@@ -253,6 +253,11 @@
 	top: var(--supporting-offset-vert);
 }
 
+#battle_basic_actor_supporter.no_damage {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
 #battle_basic_actor_supporter.hp_bar {
 	left: var(--supporting-offset-horz); 
 	top: var(--supporting-offset-vert);
@@ -299,6 +304,11 @@
 }
 
 #battle_basic_enemy_supporter.damage {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter.no_damage {
 	right: var(--supporting-offset-horz); 
 	top: var(--supporting-offset-vert);
 }
@@ -663,8 +673,8 @@
 }
 
 @keyframes no_damage {
-	0% { transform: translate(0,0); }
-	100% { transform: translate(0,0); }
+	0% {  }
+	100% {  }
 }
 
 .no_damage {
