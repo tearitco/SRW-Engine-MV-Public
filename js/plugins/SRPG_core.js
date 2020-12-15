@@ -10476,17 +10476,18 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			distanceSortedPositions = distanceSortedPositions.sort(function(a, b){
 				return a.distance - b.distance;
 			});
-			
-			var optimalDistance = distanceSortedPositions[0].distance;
-			var ctr = 0;
-			var currentDistance = distanceSortedPositions[0].distance;
-			while(currentDistance == optimalDistance && ctr < distanceSortedPositions.length){
-				currentDistance = distanceSortedPositions[ctr].distance;
-				if(currentDistance == optimalDistance){
-					candidatePos.push([distanceSortedPositions[ctr].x, distanceSortedPositions[ctr].y]);
-				}			
-				ctr++;
-			} 
+			if(distanceSortedPositions.length){
+				var optimalDistance = distanceSortedPositions[0].distance;
+				var ctr = 0;
+				var currentDistance = distanceSortedPositions[0].distance;
+				while(currentDistance == optimalDistance && ctr < distanceSortedPositions.length){
+					currentDistance = distanceSortedPositions[ctr].distance;
+					if(currentDistance == optimalDistance){
+						candidatePos.push([distanceSortedPositions[ctr].x, distanceSortedPositions[ctr].y]);
+					}			
+					ctr++;
+				} 
+			}			
 		}
 		
 		
