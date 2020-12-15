@@ -4,5 +4,6 @@ var ENGINE_SETTINGS = {
 		SPRITES_FILTER_MODE: "NEAREST", // NEAREST or TRILINEAR
 	},
 	KEEP_ENEMY_SPRITE_ORIENTATION: false,
-	ENEMY_TARGETING_FORMULA: "Math.min(hitrate + 0.01, 1) * damage" 
+	ENEMY_TARGETING_FORMULA: "Math.min(hitrate + 0.01, 1) * damage",
+	DEBUG_SAVING: false
 }

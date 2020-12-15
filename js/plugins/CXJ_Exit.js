@@ -192,6 +192,9 @@ Imported.CXJ_Exit = "1.0.1";
     
     TextManager.cxjExit = parameters['Text - Exit'];
     TextManager.cxjToDesktop = parameters['Text - To Desktop'];
+	
+	TextManager.loadGame = "Load Game";
+	TextManager.loadContinueSave = "Continue";
     
     /*----------------*
      *- Title screen -*
@@ -202,6 +205,7 @@ Imported.CXJ_Exit = "1.0.1";
         Scene_Title.prototype.createCommandWindow = function() {
           oldCreateCommandWindow.apply(this, arguments);
           this._commandWindow.setHandler('exit',  this.commandExit.bind(this));
+		  this._commandWindow.setHandler('loadContinueSave',  this.commandLoadContinueSave.bind(this));
         }
         
         Scene_Title.prototype.commandExit = function() {
@@ -209,12 +213,56 @@ Imported.CXJ_Exit = "1.0.1";
           this.fadeOutAll();
           SceneManager.exit();
         }
-        
-        var oldMakeCommandList = Window_TitleCommand.prototype.makeCommandList;
-        Window_TitleCommand.prototype.makeCommandList = function() {
-          oldMakeCommandList.apply(this, arguments);
-          this.addCommand(TextManager.cxjExit, 'exit');
+		
+		Scene_Title.prototype.commandLoadContinueSave = function() {
+			DataManager.loadContinueSlot();
         }
+		
+		Window_TitleCommand.prototype.makeCommandList = function() {
+			this.addCommand(TextManager.newGame,   'newGame');
+			this.addCommand(TextManager.loadGame, 'continue', this.isContinueEnabled());
+			this.addCommand(TextManager.loadContinueSave, 'loadContinueSave', this.continueSaveSlotIsPopulated());
+			this.addCommand(TextManager.cxjExit, 'exit');
+			this.addCommand(TextManager.options,   'options');
+		};
+		
+		Window_TitleCommand.prototype.continueSaveSlotIsPopulated = function() {
+			try {
+				JsonEx.parse(StorageManager.load("continue"));
+				return true;
+			} catch(e){
+				return false;
+			}
+		};
+		
+		Window_TitleCommand.prototype.selectLast = function() {
+			if (Window_TitleCommand._lastCommandSymbol) {
+				this.selectSymbol(Window_TitleCommand._lastCommandSymbol);
+			} else {
+				var continueDate = -1;
+				var lastSaveDate = -1;
+				if (this.continueSaveSlotIsPopulated()) {
+					continueDate = JsonEx.parse(StorageManager.load("continue")).date;
+				} 
+				if (this.isContinueEnabled()) {
+					lastSaveDate = DataManager.latestSavefileDate()
+				}
+				
+				if(continueDate != -1 || lastSaveDate != -1){
+					if(continueDate == -1){
+						this.selectSymbol('continue');
+					} else if(lastSaveDate == -1){
+						this.selectSymbol('loadContinueSave');
+					} else {
+						if(lastSaveDate > continueDate){
+							this.selectSymbol('continue');
+						} else if(continueDate >= lastSaveDate){
+							this.selectSymbol('loadContinueSave');
+						}
+					}					
+				}
+			}
+		};        
       }();
     }
     

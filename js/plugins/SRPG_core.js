@@ -7441,8 +7441,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	};
 	
 	Scene_Map.prototype.commandSave = function() {
-		$gameSystem.setSubBattlePhase('normal');
-		SceneManager.push(Scene_Save);
+		if(ENGINE_SETTINGS.DEBUG_SAVING){
+			$gameSystem.setSubBattlePhase('normal');
+			SceneManager.push(Scene_Save);
+			DataManager.saveContinueSlot();	
+		} else {
+			this.closePauseMenu();
+			DataManager.saveContinueSlot();	
+		}			
 	};
 	
 	Scene_Map.prototype.commandTurnEnd = function() {
@@ -11551,6 +11557,9 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		Window_Base.prototype.open.call(this);
 	};
 	
+//====================================================================
+// Save Management
+//====================================================================	
 	DataManager.makeSavefileInfo = function() {
 		var info = {};
 		info.globalId   = this._globalId;
@@ -11560,6 +11569,43 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		info.playtime   = $gameSystem.playtimeText();
 		info.timestamp  = Date.now();
 		return info;
+	};
+	
+	DataManager.saveContinueSlot = function() {
+		var savefileId = "continue";
+		var json = JsonEx.stringify({date: Date.now(), content: this.makeSaveContents()});		
+		StorageManager.save(savefileId, json);
+		return true;
+	};
+	
+	DataManager.loadContinueSlot = function() {
+		try{
+			var savefileId = "continue";
+			var globalInfo = this.loadGlobalInfo();		
+			var json = StorageManager.load(savefileId);
+			this.createGameObjects();
+			this.extractSaveContents(JsonEx.parse(json).content);
+			SceneManager._scene.fadeOutAll()
+			SceneManager.goto(Scene_Map);
+		} catch(e){
+			console.log("Attempted to load non existant continue save!");
+		}		
+		return true;		
+	};
+	
+	DataManager.latestSavefileDate = function() {
+		var globalInfo = this.loadGlobalInfo();
+		var savefileId = 1;
+		var timestamp = 0;
+		if (globalInfo) {
+			for (var i = 1; i < globalInfo.length; i++) {
+				if (this.isThisGameFile(i) && globalInfo[i].timestamp > timestamp) {
+					timestamp = globalInfo[i].timestamp;
+					savefileId = i;
+				}
+			}
+		}
+		return timestamp;
 	};
 		
 })();
