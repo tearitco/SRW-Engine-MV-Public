@@ -1389,7 +1389,7 @@ var $battleSceneManager = new BattleSceneManager();
 		var result = [];
 		$gameMap.events().forEach(function(event) {
 			var battlerArray = _this.EventToUnit(event.eventId());
-			if(battlerArray){
+			if(!event.isErased() && battlerArray){
 				var actor = battlerArray[1];
 				if(actor.isActor() && !actor.srpgTurnEnd()){
 					result.push(actor);
@@ -10036,6 +10036,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					optimalPos = this.srpgSearchOptimalPos(optimalPos, enemy, type, -1, 0);
 				} 
 				
+				//check for targets in movement range
+				if(!optimalPos){
+					var canAttackTargets = this.srpgMakeCanAttackTargetsWithMove(enemy, targetType);
+					if(canAttackTargets && canAttackTargets.length){
+						targetInfo = this.srpgDecideTarget(canAttackTargets, event, targetType); //ターゲットの設定
+						enemy._currentTarget = targetInfo.target;
+						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, -1, 0);
+					}
+				}
+				
+				//check for targets on map
 				if(!optimalPos){
 					targetInfo = this.srpgDecideTarget($statCalc.getAllActorEvents("actor"), event, targetType); //ターゲットの設定
 					enemy._currentTarget = targetInfo.target;
@@ -10110,6 +10121,21 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			y: $gameTemp.activeEvent().posY()
 		};
 		var fullRange = $statCalc.getFullWeaponRange(battler, $gameTemp.isPostMove);
+        return $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
+		
+    };
+	
+	Scene_Map.prototype.srpgMakeCanAttackTargetsWithMove = function(battler, targetType) {
+        var moveRangeList = $gameTemp.moveList();
+        var targetList = [];	
+		//var type = battler.isActor() ? "enemy" : "actor";
+		var pos = {
+			x: $gameTemp.activeEvent().posX(),
+			y: $gameTemp.activeEvent().posY()
+		};
+		var fullRange = $statCalc.getFullWeaponRange(battler, true);
+		var moveRange = $statCalc.getCurrentMoveRange(battler);
+		fullRange.range+=moveRange;
         return $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
 		
     };
