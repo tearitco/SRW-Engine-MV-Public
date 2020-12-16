@@ -3,6 +3,7 @@ import * as Materials from 'babylonjs-materials';
 import * as Loaders from 'babylonjs-loaders';
 
 import BattleSceneUILayer from "./BattleSceneUILayer.js";
+import SpriterManager from "./SpriterManager.js";
 //import BattleAnimationBuilder from "./BattleAnimationBuilder.js";
 
 
@@ -78,6 +79,8 @@ export default function BattleSceneManager(){
 	
 	//editor control
 	this._maxAnimationTick = -1;
+	
+	this._spriterManager = new SpriterManager();
 }
 
 BattleSceneManager.prototype.initContainer = function(){
@@ -102,6 +105,7 @@ BattleSceneManager.prototype.initContainer = function(){
 	this._UIcontainer.id = "battle_scene_ui_layer";	
 	
 	document.body.appendChild(this._UIcontainer);	
+	this._spriterManager.initContainer(this);
 }
 
 BattleSceneManager.prototype.init = function(attachControl){	
@@ -115,7 +119,12 @@ BattleSceneManager.prototype.init = function(attachControl){
 		this._effksContext.init(this._glContext);
 		this.initScene(attachControl);
 		this._UILayerManager.redraw();
+		this._spriterManager.init();
 	}
+}
+
+BattleSceneManager.prototype.getContainer = function(tick){
+	return this._container;
 }
 
 BattleSceneManager.prototype.setMaxAnimationTick = function(tick){
@@ -290,7 +299,7 @@ BattleSceneManager.prototype.createSceneBg = function(name, path, position, size
 	return bg;
 }
 
-BattleSceneManager.prototype.createDynamicBg = function(name, position, size, alpha, billboardMode){
+BattleSceneManager.prototype.createSpriterBg = function(name, position, size, alpha, billboardMode, flipX){
 	var width;
 	var height;
 	if(typeof size != "undefined"){
@@ -307,13 +316,21 @@ BattleSceneManager.prototype.createDynamicBg = function(name, position, size, al
 	}
 	var bg = BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height, updatable: true}, this._scene);
 	bg.billboardMode = billboardMode || 0;
-	
+	bg.renderingGroupId = 1;
 	var material = new BABYLON.StandardMaterial(name, this._scene);
 		
-	var texture = new BABYLON.DynamicTexture("dyn_texture_"+name, {width: 1920, height: 1080}, this._scene, false);//, BABYLON.Texture.NEAREST_NEAREST
+	var texture = new BABYLON.DynamicTexture("dyn_texture_"+name, {width: 1000, height: 1000}, this._scene, false);//, BABYLON.Texture.NEAREST_NEAREST
 	material.diffuseTexture = texture;
 	material.diffuseTexture.hasAlpha = true;
 	//material.useAlphaFromDiffuseTexture  = true;
+	
+	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+    material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+	
+	if(flipX){
+		material.diffuseTexture.uScale = -1;
+		material.diffuseTexture.uOffset = 1;
+	}
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
@@ -786,6 +803,8 @@ BattleSceneManager.prototype.startScene = function(){
 		_this._effksContext.setProjectionMatrix(_this._camera.getProjectionMatrix().m);
 		_this._effksContext.setCameraMatrix(BABYLON.Matrix.Invert(_this._camera.getWorldMatrix()).m);
 		_this._effksContext.draw();
+		
+		_this._spriterManager.update(_this._engine.getDeltaTime());	
 	});
 	this._engine.resize()
 }
@@ -2358,4 +2377,11 @@ BattleSceneManager.prototype.pauseAnimations = function() {
 
 BattleSceneManager.prototype.startAnimations = function() {
 	this._animsPaused = false;
+}
+
+BattleSceneManager.prototype.testSpriterAnim = function(){
+	var dynamicBgInfo = this.createSpriterBg("test_spriter", new BABYLON.Vector3(0,0,0), 10, 1, 0, true);
+	this._spriterManager.startAnimation(dynamicBgInfo.texture);
+	
+	//dynamicBgInfo.texture.drawText("TEST", 0, 0, "", "red", "white", false, true);
 }

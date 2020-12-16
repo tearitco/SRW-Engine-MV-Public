@@ -624,11 +624,6 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 ## Plugin commands
 
-* SRPGBattle start|end
-
-	This command starts or ends the SRPG mode of the engine.<br>
-	Generally only called by the init or intermission map to start a new stage.
-	
 * Intermission start|end
 
 	This command starts or end the intermission. Only called on the intermission map.
@@ -924,6 +919,7 @@ They can also be used as conditionals in IF statements.
 		* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
 		<br>
 		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
+
 		<br>
 		* targetRegion: the id of the region that the enemy should move towards<br>	
 		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	

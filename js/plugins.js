@@ -41,5 +41,10 @@ var $plugins =
 {"name":"ChangeWindowTouchPolicy","status":false,"description":"Change Window Touch Policy","parameters":{"ActionOutsideFrame":"cancel"}},
 {"name":"astar","status":true,"description":"","parameters":{}},
 {"name":"BindPicturesToMap","status":true,"description":"1.0.7 Plugin Commands for binding pictures to the map and/or changing what layer they're drawn on.","parameters":{}},
-{"name":"effekseer_asmjs","status":true,"description":"","parameters":{}}
+{"name":"effekseer_asmjs","status":true,"description":"","parameters":{}},
+{"name":"goog","status":true,"description":"","parameters":{}},
+{"name":"atlas","status":true,"description":"","parameters":{}},
+{"name":"render-ctx2d","status":true,"description":"","parameters":{}},
+{"name":"render-webgl","status":true,"description":"","parameters":{}},
+{"name":"spriter","status":true,"description":"","parameters":{}}
 ];

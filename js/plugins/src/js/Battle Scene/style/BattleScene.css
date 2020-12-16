@@ -21,6 +21,9 @@
 	width: 100%;
 	height: 100%;
 	touch-action: none;
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 
 #fade_container {
@@ -100,4 +103,25 @@
 	height: 20px;
 	z-index: 60;
 	display: none;
+}
+
+#spriter_layer {
+	position: fixed;
+	width: 0px;
+	height: 0px;	
+	top: 0;
+	left: 0;
+	z-index: 52;
+	margin: auto;
+	font-family: GameFont;
+	overflow: hidden;
+	display: none;
+}
+
+#spriter_layer_canvas {
+	touch-action: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
 }
