@@ -1,28 +1,43 @@
 //Derived from the JS API for Spriter demo
 
 export default function SpriterManager(){
+	this._spriter_data = null;
+	this._spriter_pose = null;
+	this._spriter_pose_next = null;
+	this._atlas_data = null;
+	this._anim_time = 0;
 	
+	this._anim_length = 0;
+	this._anim_length_next = 0;
+	this._anim_rate = 1;
+	this._anim_repeat = 2;
+
+	this._file_index = 0;
+	this._entity_index = 0;
+	this._anim_index = 0;
+	this._anim_blend = 0.0;
+	this._alpha = 1.0;
+
+	this._loading = false;
+
+	this._render_webgl;
+	this._render_ctx2d;
+
+
+	this._camera_x = 0;
+	this._camera_y = 0;
+	this._camera_zoom = 1;
+
+	this._enable_render_debug_pose = false;
 }
 
 SpriterManager.prototype.initContainer = function(battleSceneManager){
-	this._container = battleSceneManager.getContainer();
-
-	this._canvas = document.createElement("canvas");
-	this._canvas.id = "spriter_layer_canvas";
-	this._canvas.setAttribute("width", "1000px");
-	this._canvas.setAttribute("height", "1000px");
-	this._container.appendChild(this._canvas);
+		
 }
 
 SpriterManager.prototype.init = function(attachControl){	
 	if(!this._initialized){
 		this._initialized = true;
-		//this._ctx = this._canvas.getContext("2d");
-		//this._ctx.fillStyle = ("green");
-		//this._ctx.fillRect(0, 0, 300, 200);
-		//this._glContext = this._canvas.getContext("webgl");		
-		//this.loadDefFile();
-		//this.started = true;
 	}
 }
 
@@ -30,58 +45,27 @@ SpriterManager.prototype.getGlContext = function(attachControl){
 	return this._glContext;
 }
 
-SpriterManager.prototype.startAnimation = function(targetTexture){	
+SpriterManager.prototype.startAnimation = function(animationContext){	
 	//this._glContext = this._canvas.getContext("webgl");	
-	this._targetTexture = targetTexture;
-	this._ctx = targetTexture.getContext();
+	this._animationContext = animationContext;
+	this._ctx = animationContext.texture.getContext();
 	this.loadDefFile();
 	this.started = true;
 }
 
-var spriter_data = null;
-var spriter_pose = null;
-var spriter_pose_next = null;
-var atlas_data = null;
-
-var anim_time = 0;
-var anim_length = 0;
-var anim_length_next = 0;
-var anim_rate = 1;
-var anim_repeat = 2;
-
-var file_index = 0;
-var entity_index = 0;
-var anim_index = 0;
-var anim_blend = 0.0;
-var alpha = 1.0;
-
-var loading = false;
-
-var render_webgl;
-var render_ctx2d;
-
-var enable_render_webgl = false;
-var enable_render_ctx2d = true;
-
-var camera_x = 0;
-var camera_y = 0;
-var camera_zoom = 1;
-
-var enable_render_debug_pose = false;
-
 SpriterManager.prototype.loadDefFile = function(){
 	var _this = this;
-	render_webgl = new RenderWebGL(_this._glContext);
-	render_ctx2d = new RenderCtx2D(_this._ctx);
+	_this._render_webgl = new RenderWebGL(_this._glContext);
+	_this._render_ctx2d = new RenderCtx2D(_this._ctx);
 
 	
 	var loadFile = function(file, callback) {
 		
-		render_webgl.dropData(spriter_data, atlas_data);
-
-		spriter_pose = null;
-		spriter_pose_next = null;
-		atlas_data = null;
+		_this._render_webgl.dropData(_this._spriter_data, _this._atlas_data);
+		_this._render_ctx2d.dropData(_this._spriter_data, _this._atlas_data);
+		_this._spriter_pose = null;
+		_this._spriter_pose_next = null;
+		_this._atlas_data = null;
 
 		var file_path = file.path;
 		var file_spriter_url = file_path + file.spriter_url;
@@ -104,13 +88,13 @@ SpriterManager.prototype.loadDefFile = function(){
 				json_text = json_text.replace(/"@(.*)":/g, "\"$1\":");
 				var json = JSON.parse(json_text);
 				var spriter_json = json.spriter_data;
-				spriter_data = new spriter.Data().load(spriter_json);
+				_this._spriter_data = new spriter.Data().load(spriter_json);
 			} else {
-				spriter_data = new spriter.Data().load(JSON.parse(text));
+				_this._spriter_data = new spriter.Data().load(JSON.parse(text));
 			}
 
-			spriter_pose = new spriter.Pose(spriter_data);
-			spriter_pose_next = new spriter.Pose(spriter_data);
+			_this._spriter_pose = new spriter.Pose(_this._spriter_data);
+			_this._spriter_pose_next = new spriter.Pose(_this._spriter_data);
 
 			loadText(file_atlas_url, function(err, atlas_text) {
 				var images = {};
@@ -121,8 +105,8 @@ SpriterManager.prototype.loadDefFile = function(){
 				}
 				var counter_dec = function() {
 					if (--counter === 0) {
-						render_ctx2d.loadData(spriter_data, atlas_data, images);
-						render_webgl.loadData(spriter_data, atlas_data, images);
+						_this._render_ctx2d.loadData(_this._spriter_data, _this._atlas_data, images);
+						_this._render_webgl.loadData(_this._spriter_data, _this._atlas_data, images);
 						callback();
 					}
 				}
@@ -130,11 +114,11 @@ SpriterManager.prototype.loadDefFile = function(){
 				counter_inc();
 
 				if (!err && atlas_text) {
-					atlas_data = new atlas.Data().importTpsText(atlas_text);
+					_this._atlas_data = new atlas.Data().importTpsText(atlas_text);
 
 					// load atlas page images
 					var dir_path = file_atlas_url.slice(0, file_atlas_url.lastIndexOf('/'));
-					atlas_data.pages.forEach(function(page) {
+					_this._atlas_data.pages.forEach(function(page) {
 						var image_key = page.name;
 						var image_url = dir_path + "/" + image_key;
 						counter_inc();
@@ -150,7 +134,7 @@ SpriterManager.prototype.loadDefFile = function(){
 						})(page));
 					});
 				} else {
-					spriter_data.folder_array.forEach(function(folder) {
+					_this._spriter_data.folder_array.forEach(function(folder) {
 						folder.file_array.forEach(function(file) {
 							switch (file.type) {
 								case 'image':
@@ -176,7 +160,7 @@ SpriterManager.prototype.loadDefFile = function(){
 				}
 
 				// with an atlas, still need to load the sound files
-				spriter_data.folder_array.forEach(function(folder) {
+				_this._spriter_data.folder_array.forEach(function(folder) {
 					folder.file_array.forEach(function(file) {
 						switch (file.type) {
 							case 'sound':
@@ -227,29 +211,29 @@ SpriterManager.prototype.loadDefFile = function(){
 
 	
 
-	var file = files[file_index];
+	var file = files[_this._file_index];
 	//messages.innerHTML = "loading";
-	loading = true;
+	_this._loading = true;
 	loadFile(file, function() {
-		loading = false;
-		var entity_keys = spriter_data.getEntityKeys();
-		var entity_key = entity_keys[entity_index = 0];
-		spriter_pose.setEntity(entity_key);
-		spriter_pose_next.setEntity(entity_key);
-		//var entity = spriter_pose.curEntity();
+		_this._loading = false;
+		var entity_keys = _this._spriter_data.getEntityKeys();
+		var entity_key = entity_keys[_this._entity_index = 0];
+		_this._spriter_pose.setEntity(entity_key);
+		_this._spriter_pose_next.setEntity(entity_key);
+		//var entity = _this._spriter_pose.curEntity();
 		//console.log(entity.character_map_keys);
-		//spriter_pose.character_map_key_array = entity.character_map_keys;
-		//spriter_pose.character_map_key_array = [ 'glasses', 'blue gloves', 'black gloves', 'look ma no hands' ];
-		//spriter_pose.character_map_key_array = [ 'glasses', 'blue gloves' ];
-		var anim_keys = spriter_data.getAnimKeys(entity_key);
-		var anim_key = anim_keys[anim_index = 0];
-		spriter_pose.setAnim(anim_key);
-		var anim_key_next = anim_keys[(anim_index + 1) % anim_keys.length];
-		spriter_pose_next.setAnim(anim_key_next);
-		spriter_pose.setTime(anim_time = 0);
-		spriter_pose_next.setTime(anim_time);
-		anim_length = spriter_pose.curAnimLength() || 1000;
-		anim_length_next = spriter_pose_next.curAnimLength() || 1000;
+		//_this._spriter_pose.character_map_key_array = entity.character_map_keys;
+		//_this._spriter_pose.character_map_key_array = [ 'glasses', 'blue gloves', 'black gloves', 'look ma no hands' ];
+		//_this._spriter_pose.character_map_key_array = [ 'glasses', 'blue gloves' ];
+		var anim_keys = _this._spriter_data.getAnimKeys(entity_key);
+		var anim_key = anim_keys[_this._anim_index = 0];
+		_this._spriter_pose.setAnim(anim_key);
+		var anim_key_next = anim_keys[(_this._anim_index + 1) % anim_keys.length];
+		_this._spriter_pose_next.setAnim(anim_key_next);
+		_this._spriter_pose.setTime(_this._anim_time = 0);
+		_this._spriter_pose_next.setTime(_this._anim_time);
+		_this._anim_length = _this._spriter_pose.curAnimLength() || 1000;
+		_this._anim_length_next = _this._spriter_pose_next.curAnimLength() || 1000;
 	});
 	
 	function loadText(url, callback) {
@@ -335,85 +319,85 @@ SpriterManager.prototype.update = function(dt) {
     var anim_key;
     var anim_key_next;
 
-    if (!loading) {
-        spriter_pose.update(dt * anim_rate);
-        var anim_rate_next = anim_rate * anim_length_next / anim_length;
-        spriter_pose_next.update(dt * anim_rate_next);
+    if (!_this._loading) {
+        _this._spriter_pose.update(dt * _this._anim_rate);
+        var anim_rate_next = _this._anim_rate * _this._anim_length_next / _this._anim_length;
+        _this._spriter_pose_next.update(dt * anim_rate_next);
 
-        anim_time += dt * anim_rate;
+        _this._anim_time += dt * _this._anim_rate;
 
-       /* if (anim_time >= (anim_length * anim_repeat)) {
-            entity_keys = spriter_data.getEntityKeys();
-            entity_key = entity_keys[entity_index];
-            anim_keys = spriter_data.getAnimKeys(entity_key);
-            if (++anim_index >= anim_keys.length) {
-                anim_index = 0;
-                if (++entity_index >= entity_keys.length) {
-                    entity_index = 0;
+       /* if (_this._anim_time >= (_this._anim_length * _this._anim_repeat)) {
+            entity_keys = _this._spriter_data.getEntityKeys();
+            entity_key = entity_keys[_this._entity_index];
+            anim_keys = _this._spriter_data.getAnimKeys(entity_key);
+            if (++_this._anim_index >= anim_keys.length) {
+                _this._anim_index = 0;
+                if (++_this._entity_index >= entity_keys.length) {
+                    _this._entity_index = 0;
                     if (files.length > 1) {
-                        if (++file_index >= files.length) {
-                            file_index = 0;
+                        if (++_this._file_index >= files.length) {
+                            _this._file_index = 0;
                         }
-                        file = files[file_index];
-                        //messages.innerHTML = "loading";
-                        loading = true;
+                        file = files[_this._file_index];
+                        //messages.innerHTML = "_this._loading";
+                        _this._loading = true;
                         loadFile(file, function() {
-                            loading = false;
-                            entity_keys = spriter_data.getEntityKeys();
-                            entity_key = entity_keys[entity_index = 0];
-                            spriter_pose.setEntity(entity_key);
-                            spriter_pose_next.setEntity(entity_key);
-                            anim_keys = spriter_data.getAnimKeys(entity_key);
-                            anim_key = anim_keys[anim_index = 0];
-                            spriter_pose.setAnim(anim_key);
-                            anim_key_next = anim_keys[(anim_index + 1) % anim_keys.length];
-                            spriter_pose_next.setAnim(anim_key_next);
-                            spriter_pose.setTime(anim_time = 0);
-                            spriter_pose_next.setTime(anim_time);
-                            anim_length = spriter_pose.curAnimLength() || 1000;
-                            anim_length_next = spriter_pose_next.curAnimLength() || 1000;
+                            _this._loading = false;
+                            entity_keys = _this._spriter_data.getEntityKeys();
+                            entity_key = entity_keys[_this._entity_index = 0];
+                            _this._spriter_pose.setEntity(entity_key);
+                            _this._spriter_pose_next.setEntity(entity_key);
+                            anim_keys = _this._spriter_data.getAnimKeys(entity_key);
+                            anim_key = anim_keys[_this._anim_index = 0];
+                            _this._spriter_pose.setAnim(anim_key);
+                            anim_key_next = anim_keys[(_this._anim_index + 1) % anim_keys.length];
+                            _this._spriter_pose_next.setAnim(anim_key_next);
+                            _this._spriter_pose.setTime(_this._anim_time = 0);
+                            _this._spriter_pose_next.setTime(_this._anim_time);
+                            _this._anim_length = _this._spriter_pose.curAnimLength() || 1000;
+                            _this._anim_length_next = _this._spriter_pose_next.curAnimLength() || 1000;
                         });
                         return;
                     }
                 }
-                entity_keys = spriter_data.getEntityKeys();
-                entity_key = entity_keys[entity_index];
-                spriter_pose.setEntity(entity_key);
-                spriter_pose_next.setEntity(entity_key);
+                entity_keys = _this._spriter_data.getEntityKeys();
+                entity_key = entity_keys[_this._entity_index];
+                _this._spriter_pose.setEntity(entity_key);
+                _this._spriter_pose_next.setEntity(entity_key);
             }
-            entity_keys = spriter_data.getEntityKeys();
-            entity_key = entity_keys[entity_index];
-            anim_keys = spriter_data.getAnimKeys(entity_key);
-            anim_key = anim_keys[anim_index];
-            spriter_pose.setAnim(anim_key);
-            anim_key_next = anim_keys[(anim_index + 1) % anim_keys.length];
-            spriter_pose_next.setAnim(anim_key_next);
-            spriter_pose.setTime(anim_time = 0);
-            spriter_pose_next.setTime(anim_time);
-            anim_length = spriter_pose.curAnimLength() || 1000;
-            anim_length_next = spriter_pose_next.curAnimLength() || 1000;
+            entity_keys = _this._spriter_data.getEntityKeys();
+            entity_key = entity_keys[_this._entity_index];
+            anim_keys = _this._spriter_data.getAnimKeys(entity_key);
+            anim_key = anim_keys[_this._anim_index];
+            _this._spriter_pose.setAnim(anim_key);
+            anim_key_next = anim_keys[(_this._anim_index + 1) % anim_keys.length];
+            _this._spriter_pose_next.setAnim(anim_key_next);
+            _this._spriter_pose.setTime(_this._anim_time = 0);
+            _this._spriter_pose_next.setTime(_this._anim_time);
+            _this._anim_length = _this._spriter_pose.curAnimLength() || 1000;
+            _this._anim_length_next = _this._spriter_pose_next.curAnimLength() || 1000;
         }*/
 
-        entity_keys = spriter_data.getEntityKeys();
-        entity_key = entity_keys[entity_index];
-        anim_keys = spriter_data.getAnimKeys(entity_key);
-        anim_key = anim_keys[anim_index];
-        anim_key_next = anim_keys[(anim_index + 1) % anim_keys.length];
+        entity_keys = _this._spriter_data.getEntityKeys();
+        entity_key = entity_keys[_this._entity_index];
+        anim_keys = _this._spriter_data.getAnimKeys(entity_key);
+        anim_key = anim_keys[_this._anim_index];
+        anim_key_next = anim_keys[(_this._anim_index + 1) % anim_keys.length];
        /* messages.innerHTML = "entity: " + entity_key + ", anim: " + anim_key + ", next anim: " + anim_key_next + "<br>" + file.path + file.spriter_url;
-        if (spriter_pose.event_array.length > 0) {
-            messages.innerHTML += "<br>events: " + spriter_pose.event_array;
+        if (_this._spriter_pose.event_array.length > 0) {
+            messages.innerHTML += "<br>events: " + _this._spriter_pose.event_array;
         }
-        if (spriter_pose.sound_array.length > 0) {
-            messages.innerHTML += "<br>sounds: " + spriter_pose.sound_array;
+        if (_this._spriter_pose.sound_array.length > 0) {
+            messages.innerHTML += "<br>sounds: " + _this._spriter_pose.sound_array;
         }
-        if (spriter_pose.tag_array.length > 0) {
-            messages.innerHTML += "<br>tags: " + spriter_pose.tag_array;
+        if (_this._spriter_pose.tag_array.length > 0) {
+            messages.innerHTML += "<br>tags: " + _this._spriter_pose.tag_array;
         }
-        var var_map_keys = Object.keys(spriter_pose.var_map);
+        var var_map_keys = Object.keys(_this._spriter_pose.var_map);
         if (var_map_keys.length > 0) {
             messages.innerHTML += "<br>vars: ";
             var_map_keys.forEach(function(key) {
-                messages.innerHTML += "<br>" + key + " : " + spriter_pose.var_map[key];
+                messages.innerHTML += "<br>" + key + " : " + _this._spriter_pose.var_map[key];
             });
         }*/
     }
@@ -429,14 +413,14 @@ SpriterManager.prototype.update = function(dt) {
         gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
-    if (loading) {
+    if (_this._loading) {
         return;
     }
 
-    spriter_pose.strike();
-    spriter_pose_next.strike();
+    _this._spriter_pose.strike();
+    _this._spriter_pose_next.strike();
 
-    spriter_pose.sound_array.forEach(function(sound) {
+    _this._spriter_pose.sound_array.forEach(function(sound) {
         if (!player_web.mute) {
             if (player_web.ctx) {
                 var source = player_web.ctx.createBufferSource();
@@ -458,51 +442,51 @@ SpriterManager.prototype.update = function(dt) {
     var spin = 1;
 
     // blend next pose bone into pose bone
-    spriter_pose.bone_array.forEach(function(bone, bone_index) {
-        var bone_next = spriter_pose_next.bone_array[bone_index];
+    _this._spriter_pose.bone_array.forEach(function(bone, bone_index) {
+        var bone_next = _this._spriter_pose_next.bone_array[bone_index];
         if (!bone_next) {
             return;
         }
-        spriter.Space.tween(bone.local_space, bone_next.local_space, anim_blend, spin, bone.local_space);
+        spriter.Space.tween(bone.local_space, bone_next.local_space, _this._anim_blend, spin, bone.local_space);
     });
 
     // blend next pose object into pose object
-    spriter_pose.object_array.forEach(function(object, object_index) {
-        var object_next = spriter_pose_next.object_array[object_index];
+    _this._spriter_pose.object_array.forEach(function(object, object_index) {
+        var object_next = _this._spriter_pose_next.object_array[object_index];
         if (object_next) {
             return;
         }
         switch (object.type) {
             case 'sprite':
-                spriter.Space.tween(object.local_space, object_next.local_space, anim_blend, spin, object.local_space);
-                if (anim_blend >= 0.5) {
+                spriter.Space.tween(object.local_space, object_next.local_space, _this._anim_blend, spin, object.local_space);
+                if (_this._anim_blend >= 0.5) {
                     object.folder_index = object_next.folder_index;
                     object.file_index = object_next.file_index;
                     object.pivot.copy(object_next.pivot);
                 }
-                object.alpha = spriter.tween(object.alpha, object_next.alpha, anim_blend);
+                object.alpha = spriter.tween(object.alpha, object_next.alpha, _this._anim_blend);
                 break;
             case 'bone':
-                spriter.Space.tween(object.local_space, object_next.local_space, anim_blend, spin, object.local_space);
+                spriter.Space.tween(object.local_space, object_next.local_space, _this._anim_blend, spin, object.local_space);
                 break;
             case 'box':
-                spriter.Space.tween(object.local_space, object_next.local_space, anim_blend, spin, object.local_space);
-                if (anim_blend >= 0.5) {
+                spriter.Space.tween(object.local_space, object_next.local_space, _this._anim_blend, spin, object.local_space);
+                if (_this._anim_blend >= 0.5) {
                     object.pivot.copy(object_next.pivot);
                 }
                 break;
             case 'point':
-                spriter.Space.tween(object.local_space, object_next.local_space, anim_blend, spin, object.local_space);
+                spriter.Space.tween(object.local_space, object_next.local_space, _this._anim_blend, spin, object.local_space);
                 break;
             case 'sound':
-                if (anim_blend >= 0.5) {
+                if (_this._anim_blend >= 0.5) {
                     object.name = object_next.name;
                 }
-                object.volume = spriter.tween(object.volume, object_next.volume, anim_blend);
-                object.panning = spriter.tween(object.panning, object_next.panning, anim_blend);
+                object.volume = spriter.tween(object.volume, object_next.volume, _this._anim_blend);
+                object.panning = spriter.tween(object.panning, object_next.panning, _this._anim_blend);
                 break;
             case 'entity':
-                spriter.Space.tween(object.local_space, object_next.local_space, anim_blend, spin, object.local_space);
+                spriter.Space.tween(object.local_space, object_next.local_space, _this._anim_blend, spin, object.local_space);
                 break;
             case 'variable':
                 break;
@@ -512,8 +496,8 @@ SpriterManager.prototype.update = function(dt) {
     });
 
     // compute bone world space
-    spriter_pose.bone_array.forEach(function(bone) {
-        var parent_bone = spriter_pose.bone_array[bone.parent_index];
+    _this._spriter_pose.bone_array.forEach(function(bone) {
+        var parent_bone = _this._spriter_pose.bone_array[bone.parent_index];
         if (parent_bone) {
             spriter.Space.combine(parent_bone.world_space, bone.local_space, bone.world_space);
         } else {
@@ -522,16 +506,16 @@ SpriterManager.prototype.update = function(dt) {
     });
 
     // compute object world space
-    spriter_pose.object_array.forEach(function(object) {
+    _this._spriter_pose.object_array.forEach(function(object) {
         switch (object.type) {
             case 'sprite':
-                var bone = spriter_pose.bone_array[object.parent_index];
+                var bone = _this._spriter_pose.bone_array[object.parent_index];
                 if (bone) {
                     spriter.Space.combine(bone.world_space, object.local_space, object.world_space);
                 } else {
                     object.world_space.copy(object.local_space);
                 }
-                var folder = spriter_data.folder_array[object.folder_index];
+                var folder = _this._spriter_data.folder_array[object.folder_index];
                 var file = folder && folder.file_array[object.file_index];
                 if (file) {
                     var offset_x = (0.5 - object.pivot.x) * file.width;
@@ -540,7 +524,7 @@ SpriterManager.prototype.update = function(dt) {
                 }
                 break;
             case 'bone':
-                var bone = spriter_pose.bone_array[object.parent_index];
+                var bone = _this._spriter_pose.bone_array[object.parent_index];
                 if (bone) {
                     spriter.Space.combine(bone.world_space, object.local_space, object.world_space);
                 } else {
@@ -548,13 +532,13 @@ SpriterManager.prototype.update = function(dt) {
                 }
                 break;
             case 'box':
-                var bone = spriter_pose.bone_array[object.parent_index];
+                var bone = _this._spriter_pose.bone_array[object.parent_index];
                 if (bone) {
                     spriter.Space.combine(bone.world_space, object.local_space, object.world_space);
                 } else {
                     object.world_space.copy(object.local_space);
                 }
-                var entity = spriter_pose.curEntity();
+                var entity = _this._spriter_pose.curEntity();
                 var box_info = entity.obj_info_map[object.name];
                 if (box_info) {
                     var offset_x = (0.5 - object.pivot.x) * box_info.w;
@@ -563,7 +547,7 @@ SpriterManager.prototype.update = function(dt) {
                 }
                 break;
             case 'point':
-                var bone = spriter_pose.bone_array[object.parent_index];
+                var bone = _this._spriter_pose.bone_array[object.parent_index];
                 if (bone) {
                     spriter.Space.combine(bone.world_space, object.local_space, object.world_space);
                 } else {
@@ -573,7 +557,7 @@ SpriterManager.prototype.update = function(dt) {
             case 'sound':
                 break;
             case 'entity':
-                var bone = spriter_pose.bone_array[object.parent_index];
+                var bone = _this._spriter_pose.bone_array[object.parent_index];
                 if (bone) {
                     spriter.Space.combine(bone.world_space, object.local_space, object.world_space);
                 } else {
@@ -588,50 +572,50 @@ SpriterManager.prototype.update = function(dt) {
     });
 
     if (ctx) {
-        ctx.globalAlpha = alpha;
+        ctx.globalAlpha = _this._alpha;
 
         // origin at center, x right, y up
         ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
-        ctx.scale(1, -1);
+        ctx.scale(-1, -1);
 
 
-        ctx.translate(-camera_x, -camera_y);
-        ctx.scale(camera_zoom, camera_zoom);
-        ctx.lineWidth = 1 / camera_zoom;
+        ctx.translate(-_this._camera_x, -_this._camera_y);
+        ctx.scale(_this._camera_zoom, _this._camera_zoom);
+        ctx.lineWidth = 1 / _this._camera_zoom;
 
        
-		render_ctx2d.drawPose(spriter_pose, atlas_data);
+		_this._render_ctx2d.drawPose(_this._spriter_pose, _this._atlas_data);
 		//ctx.translate(0, -10);
-		//render_ctx2d.drawPose(spriter_pose_next, atlas_data);
+		//_this._render_ctx2d.drawPose(_this._spriter_pose_next, _this._atlas_data);
         
 
-        if (enable_render_debug_pose) {
-            render_ctx2d.drawDebugPose(spriter_pose, atlas_data);
+        if (_this._enable_render_debug_pose) {
+            _this._render_ctx2d.drawDebugPose(_this._spriter_pose, _this._atlas_data);
             //ctx.translate(0, -10);
-            //render_ctx2d.drawDebugPose(spriter_pose_next, atlas_data);
+            //_this._render_ctx2d.drawDebugPose(_this._spriter_pose_next, _this._atlas_data);
         }
     }
 
     if (gl) {
-        var gl_color = render_webgl.gl_color;
-        gl_color[3] = alpha;
+        var gl_color = _this._render_webgl.gl_color;
+        gl_color[3] = _this._alpha;
 
-        var gl_projection = render_webgl.gl_projection;
+        var gl_projection = _this._render_webgl.gl_projection;
         mat4x4Identity(gl_projection);
         mat4x4Ortho(gl_projection, -gl.canvas.width / 2, gl.canvas.width / 2, -gl.canvas.height / 2, gl.canvas.height / 2, -1, 1);
 
-        mat4x4Translate(gl_projection, -camera_x, -camera_y, 0);
-        mat4x4Scale(gl_projection, camera_zoom, camera_zoom, camera_zoom);
+        mat4x4Translate(gl_projection, -_this._camera_x, -_this._camera_y, 0);
+        mat4x4Scale(gl_projection, _this._camera_zoom, _this._camera_zoom, _this._camera_zoom);
 
        
-		render_webgl.drawPose(spriter_pose, atlas_data);
+		_this._render_webgl.drawPose(_this._spriter_pose, _this._atlas_data);
 		//mat4x4Translate(gl_projection, 0, -10, 0);
-		//render_webgl.drawPose(spriter_pose_next, atlas_data);
+		//_this._render_webgl.drawPose(_this._spriter_pose_next, _this._atlas_data);
         
     }
 	
 	/*var targetContext = _this._targetTexture.getContext();
 	targetContext.fillStyle = ("green");
 	targetContext.fillRect(0, 0, 300, 200);*/
-	_this._targetTexture.update();
+	this._animationContext.texture.update();
 }

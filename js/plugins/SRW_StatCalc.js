@@ -780,11 +780,16 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
 		
+		result.battleSceneSpriteSize = parseInt(mechProperties.mechBattleSceneSpriteSize);
+		
+		result.useSpriter = parseInt(mechProperties.mechBattleSceneUseSpriter);
+		
 		result.battleSceneShadowInfo = {
 			size: 3,
 			offsetZ: 0,
 			offsetX: 0
 		};
+
 		
 		if(mechProperties.mechBattleSceneShadowSize){
 			result.battleSceneShadowInfo.size = mechProperties.mechBattleSceneShadowSize*1;
@@ -1198,6 +1203,18 @@ StatCalc.prototype.addBoardedUnit = function(actor, ship){
 StatCalc.prototype.getBattleSceneImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		return actor.SRWStats.mech.battleSceneSpriteName;	
+	} else {
+		return "";
+	}
+}
+
+StatCalc.prototype.getBattleSceneSpriteType = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		if(actor.SRWStats.mech.useSpriter){
+			return "spriter";
+		} else {
+			return "default";
+		}
 	} else {
 		return "";
 	}
