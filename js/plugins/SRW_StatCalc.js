@@ -777,7 +777,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		result.expYield = parseInt(mechProperties.mechExpYield);
 		result.PPYield = parseInt(mechProperties.mechPPYield);
 		result.fundYield = parseInt(mechProperties.mechFundYield);
-		result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
+		/*result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
 		
 		result.battleSceneSpriteSize = parseInt(mechProperties.mechBattleSceneSpriteSize);
@@ -799,7 +799,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		}
 		if(mechProperties.mechBattleSceneShadowOffsetX){
 			result.battleSceneShadowInfo.offsetX = mechProperties.mechBattleSceneShadowOffsetX*1;
-		}
+		}*/
 		
 		result.stats.base.maxHP = parseInt(mechProperties.mechHP);
 		//result.currentHP = mechProperties.mechHP;
@@ -1200,9 +1200,40 @@ StatCalc.prototype.addBoardedUnit = function(actor, ship){
 	} 
 }
 
+StatCalc.prototype.getBattleSceneInfo = function(actor){
+	var result = {};
+	if(this.isActorSRWInitialized(actor)){
+		var mechProperties = $dataClasses[actor.SRWStats.mech.id].meta;
+		result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
+		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
+		
+		result.battleSceneSpriteSize = parseInt(mechProperties.mechBattleSceneSpriteSize);
+		
+		result.useSpriter = parseInt(mechProperties.mechBattleSceneUseSpriter);
+		
+		result.battleSceneShadowInfo = {
+			size: 3,
+			offsetZ: 0,
+			offsetX: 0
+		};
+
+		
+		if(mechProperties.mechBattleSceneShadowSize){
+			result.battleSceneShadowInfo.size = mechProperties.mechBattleSceneShadowSize*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetZ){
+			result.battleSceneShadowInfo.offsetZ = mechProperties.mechBattleSceneShadowOffsetZ*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetX){
+			result.battleSceneShadowInfo.offsetX = mechProperties.mechBattleSceneShadowOffsetX*1;
+		}
+	} 
+	return result;
+}
+
 StatCalc.prototype.getBattleSceneImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.battleSceneSpriteName;	
+		return this.getBattleSceneInfo(actor).battleSceneSpriteName;	
 	} else {
 		return "";
 	}
@@ -1210,7 +1241,7 @@ StatCalc.prototype.getBattleSceneImage = function(actor){
 
 StatCalc.prototype.getBattleSceneSpriteType = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		if(actor.SRWStats.mech.useSpriter){
+		if(this.getBattleSceneInfo(actor).useSpriter){
 			return "spriter";
 		} else {
 			return "default";
@@ -1222,7 +1253,7 @@ StatCalc.prototype.getBattleSceneSpriteType = function(actor){
 
 StatCalc.prototype.getBattleSceneImageSize = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.battleSceneSpriteSize;	
+		return this.getBattleSceneInfo(actor).battleSceneSpriteSize;	
 	} else {
 		return 0;
 	}
@@ -1230,7 +1261,7 @@ StatCalc.prototype.getBattleSceneImageSize = function(actor){
 
 StatCalc.prototype.getBattleSceneShadowInfo = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return JSON.parse(JSON.stringify(actor.SRWStats.mech.battleSceneShadowInfo));	
+		return JSON.parse(JSON.stringify(this.getBattleSceneInfo(actor).battleSceneShadowInfo));	
 	} else {
 		return 0;
 	}
@@ -1238,7 +1269,7 @@ StatCalc.prototype.getBattleSceneShadowInfo = function(actor){
 
 StatCalc.prototype.getBasicBattleImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.basicBattleSpriteName;	
+		return this.getBattleSceneInfo(actor).basicBattleSpriteName;	
 	} else {
 		return "";
 	}
@@ -1246,7 +1277,7 @@ StatCalc.prototype.getBasicBattleImage = function(actor){
 
 StatCalc.prototype.getBattleIdleImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.battleSceneSpriteName;	
+		return this.getBattleSceneInfo(actor).battleSceneSpriteName;	
 	} else {
 		return "";
 	}

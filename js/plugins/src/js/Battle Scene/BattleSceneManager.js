@@ -59,6 +59,7 @@ export default function BattleSceneManager(){
 	this._animationSpritesInfo = [];
 	this._animationBackgroundsInfo = [];
 	this._spritersBackgroundsInfo = [];
+	this._spriterMainSpritesInfo = [];
 	this._effekseerInfo = [];
 
 	this._participantInfo = {
@@ -434,7 +435,7 @@ BattleSceneManager.prototype.createSpriterSprite = function(name, path, position
 	var dynamicBgInfo = this.createSpriterBg(name+"_spriter", position, 10, 1, 0, flipX);
 	dynamicBgInfo.renderer = new SpriterManager();
 	dynamicBgInfo.renderer.startAnimation(dynamicBgInfo, "img/SRWBattleScene/"+path, "main");
-	this._spritersBackgroundsInfo.push(dynamicBgInfo);
+	this._spriterMainSpritesInfo.push(dynamicBgInfo);
 	return dynamicBgInfo;
 }
 
@@ -631,6 +632,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 						_this._runningAnimation = false;
 						_this.disposeAnimationSprites();
 						_this.disposeAnimationBackgrounds();
+						_this.disposeSpriterBackgrounds();
 						_this._animationResolve();
 					}					
 				} 
@@ -812,6 +814,13 @@ BattleSceneManager.prototype.disposeAnimationBackgrounds = function(){
 	this._animationBackgroundsInfo = [];
 }
 
+BattleSceneManager.prototype.disposeSpriterBackgrounds = function(){
+	this._spritersBackgroundsInfo.forEach(function(bg){
+		bg.sprite.dispose();
+	});
+	this._spritersBackgroundsInfo = [];
+}
+
 BattleSceneManager.prototype.startScene = function(){
 	var _this = this;
 	Input.clear();
@@ -829,10 +838,14 @@ BattleSceneManager.prototype.startScene = function(){
 		_this._effksContext.setCameraMatrix(BABYLON.Matrix.Invert(_this._camera.getWorldMatrix()).m);
 		_this._effksContext.draw();
 		
-		_this._spritersBackgroundsInfo.forEach(function(spriterBg){
-			spriterBg.renderer.update(_this._engine.getDeltaTime());	
+		var tmp = [];
+		_this._spriterMainSpritesInfo.forEach(function(spriterBg){
+			if(!spriterBg.sprite.isDisposed()){
+				spriterBg.renderer.update(_this._engine.getDeltaTime());	
+				tmp.push(spriterBg);
+			}			
 		});
-		
+		_this._spriterMainSpritesInfo = tmp;		
 	});
 	this._engine.resize()
 }
@@ -2301,6 +2314,7 @@ BattleSceneManager.prototype.endScene = function() {
 		_this._runningAnimation = false;
 		_this.disposeAnimationSprites();
 		_this.disposeAnimationBackgrounds();
+		_this.disposeSpriterBackgrounds();
 		_this._animationList = [];
 		_this._UIcontainer.style.display = "";
 		_this.fadeFromBlack(1000).then(function(){
@@ -2435,7 +2449,7 @@ BattleSceneManager.prototype.testSpriterAnim = function(){
 	var dynamicBgInfo = this.createSpriterBg("test_spriter", new BABYLON.Vector3(0,0,1 ), 10, 1, 0, true);
 	dynamicBgInfo.renderer = new SpriterManager();
 	dynamicBgInfo.renderer.startAnimation(dynamicBgInfo.texture);
-	this._spritersBackgroundsInfo.push(dynamicBgInfo);
+	this._spriterMainSpritesInfo.push(dynamicBgInfo);
 	return dynamicBgInfo;
 	//dynamicBgInfo.texture.drawText("TEST", 0, 0, "", "red", "white", false, true);
 }
