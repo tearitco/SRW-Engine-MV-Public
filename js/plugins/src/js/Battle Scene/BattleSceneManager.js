@@ -347,18 +347,23 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 		
 BattleSceneManager.prototype.configureSprite = function(parent, id, shadowInfo, type){	
 	parent.sprite.sizeInfo = parent.size;
-	var shadow = this.createBg(id, "shadow", new BABYLON.Vector3(0, 0.01, 0), shadowInfo.size, 1, new BABYLON.Vector3(Math.PI/2, 0, 0), true);
+	var shadow = this.createBg(id+"_shadow", "shadow", new BABYLON.Vector3(0, 0.01, 0), shadowInfo.size, 1, new BABYLON.Vector3(Math.PI/2, 0, 0), true);
 	shadow.shadowInfo = shadowInfo;
 	parent.sprite.shadowSprite = shadow;
 	
-	var barrier = this.createBg(id, "barrier", new BABYLON.Vector3(0, 0, 0), parent.size.height * 1.1, 1, null, true);
+	var referenceSize = 0;
+	if(parent.sprite.spriteConfig){
+		referenceSize =  parent.sprite.spriteConfig.referenceSize;
+	}
+	
+	var barrier = this.createBg(id+"_barrier", "barrier", new BABYLON.Vector3(0, 0, 0), referenceSize* 1.1, 1, null, true);
 	if(type == "enemy"){
 		barrier.material.diffuseTexture.uScale = -1;
 		barrier.material.diffuseTexture.uOffset = 1;
 	}
 	barrier.renderingGroupId = 1;
 	barrier.setEnabled(false);
-	barrier.parent = parent.sprite;
+	barrier.parent = parent.sprite.pivothelper;
 	parent.sprite.barrierSprite = barrier;
 	return shadow;
 }
@@ -376,6 +381,8 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 	
 	function getSprite(){	
 		var spriteInfo;
+		var pivothelper = _this.createBg(name+"_pivot", "", new BABYLON.Vector3(0, 0, 0), 0, 1, null, true);
+		pivothelper.isVisible = false;
 		if(!spriteConfig || spriteConfig.type == "default"){
 			spriteInfo = _this.createPlanarSprite(name, path, position, frameSize, flipX);		
 			spriteInfo.sprite.setPivotMatrix(BABYLON.Matrix.Translation(-0, spriteInfo.size.height/2, -0), false);
@@ -383,6 +390,9 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 		} else {
 			spriteInfo = _this.createSpriterSprite(name, path, position, flipX);		
 		}		
+		pivothelper.position.y+=spriteConfig.referenceSize / 2;
+		pivothelper.parent = spriteInfo.sprite;
+		spriteInfo.sprite.pivothelper = pivothelper;
 		spriteInfo.sprite.spriteInfo = spriteInfo;
 		spriteInfo.sprite.spriteConfig = spriteConfig;
 		return spriteInfo;	
@@ -1290,6 +1300,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(params.animationFrames){
 				spriteInfo.sprite.playAnimation(0, params.animationFrames, params.animationLoop, params.animationDelay);
 			}
+			spriteInfo.manager.renderingGroupId = 1;
 			_this._animationSpritesInfo.push(spriteInfo);
 		},
 		remove_sprite: function(target, params){
@@ -1536,8 +1547,11 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		destroy: function(target, params){
 			var targetObj = getTargetObject(target);
 			var flipX = (targetObj == _this._enemySprite.sprite);
-			var position = new BABYLON.Vector3(targetObj.position.x, targetObj.position.y + targetObj.sizeInfo.height / 2, targetObj.position.z - 0.1);
+			var pivot = targetObj.pivothelper;
+			var sourcePosition = pivot.getAbsolutePosition();
+			var position = new BABYLON.Vector3(sourcePosition.x, sourcePosition.y, sourcePosition.z - 0.5);
 			var spriteInfo = _this.createSceneSprite("destruction", "effects/death_explosion", position, 256, flipX);	
+			spriteInfo.manager.renderingGroupId = 1;
 			spriteInfo.sprite.playAnimation(0, 36, false, 30);
 			
 			var action = _this._currentAnimatedAction.attacked;
@@ -1832,6 +1846,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 			spriteInfo.path = imgPath+"/spriter/";
 			spriteInfo.id = "idle";
 		}
+		spriteInfo.referenceSize = $statCalc.getBattleReferenceSize(battleEffect.ref);
 		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.actor.participating = true;
@@ -1895,6 +1910,7 @@ BattleSceneManager.prototype.resetSprites = function() {
 			spriteInfo.path = imgPath+"/spriter/";
 			spriteInfo.id = "idle";
 		}
+		spriteInfo.referenceSize = $statCalc.getBattleReferenceSize(battleEffect.ref);
 		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){				
 				_this.updateMainSprite("actor", "ally_main", spriteInfo, _this._defaultPositions.ally_main_idle, imgSize, false, shadowInfo);				

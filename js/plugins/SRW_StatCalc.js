@@ -1227,6 +1227,8 @@ StatCalc.prototype.getBattleSceneInfo = function(actor){
 		if(mechProperties.mechBattleSceneShadowOffsetX){
 			result.battleSceneShadowInfo.offsetX = mechProperties.mechBattleSceneShadowOffsetX*1;
 		}
+		
+		result.battleReferenceSize = parseInt(mechProperties.mechBattleReferenceSize) || 3;
 	} 
 	return result;
 }
@@ -1278,6 +1280,14 @@ StatCalc.prototype.getBasicBattleImage = function(actor){
 StatCalc.prototype.getBattleIdleImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		return this.getBattleSceneInfo(actor).battleSceneSpriteName;	
+	} else {
+		return "";
+	}
+}
+
+StatCalc.prototype.getBattleReferenceSize = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return this.getBattleSceneInfo(actor).battleReferenceSize;	
 	} else {
 		return "";
 	}
