@@ -3106,6 +3106,15 @@ spriter.Pose.prototype.curAnimLength = function() {
   return (anim && anim.length) || 0;
 }
 
+spriter.Pose.prototype.loops = function() {
+  var pose = this;
+  var data = pose.data;
+  var entity = data && data.entity_map[pose.entity_key];
+  var anim = entity && entity.animation_map[pose.anim_key];
+  var looping = anim.looping;
+  return looping == "true";
+}
+
 /**
  * @return {string}
  */
@@ -3193,9 +3202,16 @@ spriter.Pose.prototype.strike = function() {
   var wrapped_min = false;
   var wrapped_max = false;
   if (anim) {
-    wrapped_min = (elapsed_time < 0) && (pose.time <= anim.min_time);
-    wrapped_max = (elapsed_time > 0) && (pose.time >= anim.max_time);
-    pose.time = spriter.wrap(pose.time, anim.min_time, anim.max_time);
+	if(!this.loops()){
+		var anim_length = this.curAnimLength();
+		if(pose.time >= anim_length){
+			pose.time = anim_length;
+		}
+	} else {
+		wrapped_min = (elapsed_time < 0) && (pose.time <= anim.min_time);
+		wrapped_max = (elapsed_time > 0) && (pose.time >= anim.max_time);
+		pose.time = spriter.wrap(pose.time, anim.min_time, anim.max_time);
+	}   
   }
 
   var time = pose.time;

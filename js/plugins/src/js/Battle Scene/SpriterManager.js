@@ -45,12 +45,19 @@ SpriterManager.prototype.getGlContext = function(attachControl){
 	return this._glContext;
 }
 
-SpriterManager.prototype.startAnimation = function(animationContext){	
+SpriterManager.prototype.startAnimation = function(animationContext, path, animKey){	
 	//this._glContext = this._canvas.getContext("webgl");	
+	this._spriterPath = path;
 	this._animationContext = animationContext;
 	this._ctx = animationContext.texture.getContext();
+	this._anim_key = animKey;
 	this.loadDefFile();
 	this.started = true;
+}
+
+SpriterManager.prototype.updateAnimation = function(animKey){	
+	this._anim_key = animKey;
+	this._spriter_pose.setAnim(animKey);
 }
 
 SpriterManager.prototype.loadDefFile = function(){
@@ -203,7 +210,7 @@ SpriterManager.prototype.loadDefFile = function(){
 		files.push(file);
 	}
 
-	add_file("img/SRWBattleScene/harold/spriter/", "entity.scon", "entity.tps.json");
+	add_file(_this._spriterPath, "entity.scon", "entity.json");
 	//add_file("GreyGuyPlus/", "player_006.scon", "player_006.tps.json");
 
 
@@ -226,8 +233,7 @@ SpriterManager.prototype.loadDefFile = function(){
 		//_this._spriter_pose.character_map_key_array = [ 'glasses', 'blue gloves', 'black gloves', 'look ma no hands' ];
 		//_this._spriter_pose.character_map_key_array = [ 'glasses', 'blue gloves' ];
 		var anim_keys = _this._spriter_data.getAnimKeys(entity_key);
-		var anim_key = anim_keys[_this._anim_index = 0];
-		_this._spriter_pose.setAnim(anim_key);
+		_this._spriter_pose.setAnim(_this._anim_key);
 		var anim_key_next = anim_keys[(_this._anim_index + 1) % anim_keys.length];
 		_this._spriter_pose_next.setAnim(anim_key_next);
 		_this._spriter_pose.setTime(_this._anim_time = 0);
@@ -320,6 +326,7 @@ SpriterManager.prototype.update = function(dt) {
     var anim_key_next;
 
     if (!_this._loading) {
+		if(!_this._anim_hold || _this._current_play_time <= _this._anim_length)
         _this._spriter_pose.update(dt * _this._anim_rate);
         var anim_rate_next = _this._anim_rate * _this._anim_length_next / _this._anim_length;
         _this._spriter_pose_next.update(dt * anim_rate_next);

@@ -344,7 +344,7 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 	return {sprite: bg, texture: texture, size: {width: width, height: height}};
 }
 		
-BattleSceneManager.prototype.configureSprite = function(parent, id, shadowInfo, type){
+BattleSceneManager.prototype.configureSprite = function(parent, id, shadowInfo, type){	
 	parent.sprite.sizeInfo = parent.size;
 	var shadow = this.createBg(id, "shadow", new BABYLON.Vector3(0, 0.01, 0), shadowInfo.size, 1, new BABYLON.Vector3(Math.PI/2, 0, 0), true);
 	shadow.shadowInfo = shadowInfo;
@@ -373,14 +373,18 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 		path = basePath;
 	}
 	
-	function getSprite(){		
+	function getSprite(){	
+		var spriteInfo;
 		if(!spriteConfig || spriteConfig.type == "default"){
-			var spriteInfo = _this.createPlanarSprite(name, path, position, frameSize, flipX);		
+			spriteInfo = _this.createPlanarSprite(name, path, position, frameSize, flipX);		
 			spriteInfo.sprite.setPivotMatrix(BABYLON.Matrix.Translation(-0, spriteInfo.size.height/2, -0), false);
 			return spriteInfo;
 		} else {
-			return _this.createSpriterSprite(name, path, position, flipX);		
-		}				
+			spriteInfo = _this.createSpriterSprite(name, path, position, flipX);		
+		}		
+		spriteInfo.sprite.spriteInfo = spriteInfo;
+		spriteInfo.sprite.spriteConfig = spriteConfig;
+		return spriteInfo;	
 	}
 	
 	var spriteInfo;
@@ -429,7 +433,7 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 BattleSceneManager.prototype.createSpriterSprite = function(name, path, position, flipX){
 	var dynamicBgInfo = this.createSpriterBg(name+"_spriter", position, 10, 1, 0, flipX);
 	dynamicBgInfo.renderer = new SpriterManager();
-	dynamicBgInfo.renderer.startAnimation(dynamicBgInfo);
+	dynamicBgInfo.renderer.startAnimation(dynamicBgInfo, "img/SRWBattleScene/"+path, "main");
 	this._spritersBackgroundsInfo.push(dynamicBgInfo);
 	return dynamicBgInfo;
 }
@@ -1404,44 +1408,48 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction;
 			var targetAction = _this._currentAnimatedAction.attacked;
 			if(targetObj){
-				var sampleMode;
-				if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
-					sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
-				} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
-					sampleMode = BABYLON.Texture.NEAREST_NEAREST
-				}
-				
-				var flipX;
-				var battleEffect;
-				if(target == "active_main" || target == "active_support_attacker"){
-					battleEffect = action;					
-				} else if(target == "active_target" || target == "active_support_defender"){
-					battleEffect = targetAction;					
-				}
-				
-				if(battleEffect.side == "actor"){
-					flipX = false;
+				if(targetObj.spriteConfig.type == "default"){
+					var sampleMode;
+					if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
+						sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
+					} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
+						sampleMode = BABYLON.Texture.NEAREST_NEAREST
+					}
+					
+					var flipX;
+					var battleEffect;
+					if(target == "active_main" || target == "active_support_attacker"){
+						battleEffect = action;					
+					} else if(target == "active_target" || target == "active_support_defender"){
+						battleEffect = targetAction;					
+					}
+					
+					if(battleEffect.side == "actor"){
+						flipX = false;
+					} else {
+						flipX = true;
+					}
+					
+					var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+					
+					targetObj.material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+params.name+".png", _this._scene, false, true, sampleMode);
+					targetObj.material.diffuseTexture.hasAlpha = true;
+					//targetObj.material.useAlphaFromDiffuseTexture  = true;
+					
+					targetObj.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+					targetObj.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+					
+					targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
+					targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+					targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
+					
+					if(flipX){
+						targetObj.material.diffuseTexture.uScale = -1; 
+						targetObj.material.diffuseTexture.uOffset = 1; 
+					}
 				} else {
-					flipX = true;
-				}
-				
-				var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
-				
-				targetObj.material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+params.name+".png", _this._scene, false, true, sampleMode);
-				targetObj.material.diffuseTexture.hasAlpha = true;
-				//targetObj.material.useAlphaFromDiffuseTexture  = true;
-				
-				targetObj.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
-				targetObj.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
-				
-				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
-				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
-				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
-				
-				if(flipX){
-					targetObj.material.diffuseTexture.uScale = -1; 
-					targetObj.material.diffuseTexture.uOffset = 1; 
-				}
+					targetObj.spriteInfo.renderer.updateAnimation(params.name);
+				}					
 			}
 		},
 		hide_sprite: function(target, params){
