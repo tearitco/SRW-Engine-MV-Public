@@ -10395,7 +10395,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var targetDist = minRange || 1;
 		var currentBestDist = -1;
 		var improves = true;
-		var path;
+		var path = [];
 		
 		while(currentBestDist != targetDist && improves){
 			var graph = new Graph(pathfindingGrid);
