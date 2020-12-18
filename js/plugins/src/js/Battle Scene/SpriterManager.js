@@ -55,9 +55,10 @@ SpriterManager.prototype.startAnimation = function(animationContext, path, animK
 	this.started = true;
 }
 
-SpriterManager.prototype.updateAnimation = function(animKey){	
+SpriterManager.prototype.updateAnimation = function(animKey, animKeyOut){	
 	this._anim_key = animKey;
 	this._spriter_pose.setAnim(animKey);
+	this._spriter_pose.setAnimOut(animKeyOut);
 }
 
 SpriterManager.prototype.loadDefFile = function(){

@@ -1575,7 +1575,7 @@ spriter.Keyframe.find = function(array, time) {
     return -1;
   }
   if (time < array[0].time) {
-    return -1;
+    return 0;
   }
   var last = array.length - 1;
   if (time >= array[last].time) {
@@ -3129,13 +3129,19 @@ spriter.Pose.prototype.getAnim = function() {
 spriter.Pose.prototype.setAnim = function(anim_key) {
   if (this.anim_key !== anim_key) {
     this.anim_key = anim_key;
+	this.anim_key_out = null;
     var anim = this.curAnim();
     if (anim) {
       this.time = spriter.wrap(this.time, anim.min_time, anim.max_time);
     }
+	this.time = 0;
     this.elapsed_time = 0;
     this.dirty = true;
   }
+}
+
+spriter.Pose.prototype.setAnimOut = function(anim_key) {
+	this.anim_key_out = anim_key; 
 }
 
 /**
@@ -3203,10 +3209,18 @@ spriter.Pose.prototype.strike = function() {
   var wrapped_max = false;
   if (anim) {
 	if(!this.loops()){
+		
 		var anim_length = this.curAnimLength();
 		if(pose.time >= anim_length){
-			pose.time = anim_length;
-		}
+			/*if(this.anim_key_out){
+				this.setAnim(this.anim_key_out);
+				this.dirty = true;
+				this.strike();
+				return;
+			} else {*/
+				pose.time = anim_length;
+			//}
+		}		
 	} else {
 		wrapped_min = (elapsed_time < 0) && (pose.time <= anim.min_time);
 		wrapped_max = (elapsed_time > 0) && (pose.time >= anim.max_time);
