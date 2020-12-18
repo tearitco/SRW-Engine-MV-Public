@@ -2771,6 +2771,15 @@ StatCalc.prototype.setTurnEnd = function(actor){
 	} 	
 }
 
+StatCalc.prototype.getRealENCost = function(actor, cost){
+	if(this.isActorSRWInitialized(actor)){	
+		if(cost != -1){
+			cost = this.applyStatModsToValue(actor, cost, ["EN_cost"]);
+		}		
+	} 
+	return cost;
+}
+
 StatCalc.prototype.getRealWeaponRange = function(actor, originalRange){		
 	if(this.isActorSRWInitialized(actor)){			
 		var result = originalRange;
