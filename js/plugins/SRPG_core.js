@@ -400,7 +400,7 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 		
 		if (command === 'setEnemyUpgradeLevel') {
-			$gameTemp.enemyUpgradeLevel = args[0];
+			$gameSystem.enemyUpgradeLevel = args[0];
 		}
 		
 		if (command === 'addPersuadeOption') {
@@ -644,6 +644,7 @@ var $battleSceneManager = new BattleSceneManager();
 			this._lastAccessedId = savefileId;
 			//$gameSystem.setSrpgActors();
 			//$gameSystem.setSrpgEnemys();
+			$statCalc.softRefreshUnits();
 			return true;
 		} else {
 			return false;
@@ -1214,7 +1215,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem._specialTheme = -1;
 		$gameSystem.highlightedTiles = [];
 		$gameSystem.regionHighlights = {};
-		$gameTemp.enemyUpgradeLevel = 0;
+		$gameSystem.enemyUpgradeLevel = 0;
 		$gameSystem.persuadeOptions = {};
 		$gameTemp.currentSwapSource = -1;
 		$gameTemp.enemyAppearQueue = [];
@@ -11638,6 +11639,7 @@ Scene_Gameover.prototype.gotoTitle = function() {
 			var json = StorageManager.load(savefileId);
 			this.createGameObjects();
 			this.extractSaveContents(JsonEx.parse(json).content);
+			$statCalc.softRefreshUnits();
 			SceneManager._scene.fadeOutAll()
 			SceneManager.goto(Scene_Map);
 			if($gameSystem._bgmOnSave){
