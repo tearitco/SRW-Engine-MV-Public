@@ -8144,6 +8144,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     var _SRPG_SceneMap_update = Scene_Map.prototype.update;
     Scene_Map.prototype.update = function() {
 		var _this = this;
+		
+		if($gameTemp.continueLoaded){
+			$gameTemp.continueLoaded = false;
+			$gameSystem.onAfterLoad();
+		}
+		
 		if ($gameSystem.isSubBattlePhase() == "halt"){
 			return;
 		}
@@ -11619,6 +11625,7 @@ Scene_Gameover.prototype.gotoTitle = function() {
 	
 	DataManager.saveContinueSlot = function() {
 		var savefileId = "continue";
+		$gameSystem.onBeforeSave();
 		var json = JsonEx.stringify({date: Date.now(), content: this.makeSaveContents()});		
 		StorageManager.save(savefileId, json);
 		return true;
@@ -11633,6 +11640,9 @@ Scene_Gameover.prototype.gotoTitle = function() {
 			this.extractSaveContents(JsonEx.parse(json).content);
 			SceneManager._scene.fadeOutAll()
 			SceneManager.goto(Scene_Map);
+			if($gameSystem._bgmOnSave){
+				$gameTemp.continueLoaded = true;
+			}			
 		} catch(e){
 			console.log("Attempted to load non existant continue save!");
 		}		
