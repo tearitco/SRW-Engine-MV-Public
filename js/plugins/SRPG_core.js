@@ -4566,6 +4566,15 @@ Game_Interpreter.prototype.destroyEvents = function(startId, endId) {
 
 Game_Interpreter.prototype.destroyEvent = function(eventId) {
 	$gameMap.event(eventId).isDoingDeathAnim = true;
+	var actor = $gameSystem.EventToUnit(eventId)[1];
+	if(actor.isActor()){
+		var oldValue = $gameVariables.value(_existActorVarID);
+		$gameVariables.setValue(_existActorVarID, oldValue - 1);
+	} else {
+		var oldValue = $gameVariables.value(_existEnemyVarID);
+		$gameVariables.setValue(_existEnemyVarID, oldValue - 1);
+	}
+	
 }
 
 Game_Interpreter.prototype.eraseEvents = function(startId, endId) {
@@ -4578,6 +4587,14 @@ Game_Interpreter.prototype.eraseEvent = function(eventId) {
 	var event = $gameMap.event(eventId);
 	event.erase();
 	event.manuallyErased = true;
+	var actor = $gameSystem.EventToUnit(eventId)[1];
+	if(actor.isActor()){
+		var oldValue = $gameVariables.value(_existActorVarID);
+		$gameVariables.setValue(_existActorVarID, oldValue - 1);
+	} else {
+		var oldValue = $gameVariables.value(_existEnemyVarID);
+		$gameVariables.setValue(_existEnemyVarID, oldValue - 1);
+	}
 }
 
 Game_Interpreter.prototype.updateWaitMode = function() {
@@ -9900,6 +9917,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
             }
         }
 		
+		$gameTemp.isPostMove = false;
         enemy.makeSrpgActions();
         if (_srpgStandUnitSkip === 'true' && enemy.battleMode() === 'stand') {
             var targetType = this.makeTargetType(enemy, 'enemy');
@@ -10133,8 +10151,22 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			y: $gameTemp.activeEvent().posY()
 		};
 		var fullRange = $statCalc.getFullWeaponRange(battler, $gameTemp.isPostMove);
-        return $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
-		
+        var targets = $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
+		if(!battler.isActor() && battler.targetId && battler.targetId != -1){
+			var target;
+			for(var i = 0; i < targets.length; i++){
+				var actor = $gameSystem.EventToUnit(targets[i].eventId())[1];
+				if(actor.isActor() && actor.actorId() == battler.targetId){
+					target = targets[i];
+				}
+			}
+			if(target){
+				targets = [target];
+			} else {
+				targets = [];
+			}
+		}
+		return targets;
     };
 	
 	Scene_Map.prototype.srpgMakeCanAttackTargetsWithMove = function(battler, targetType) {
@@ -10148,8 +10180,22 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var fullRange = $statCalc.getFullWeaponRange(battler, true);
 		var moveRange = $statCalc.getCurrentMoveRange(battler);
 		fullRange.range+=moveRange;
-        return $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
-		
+        var targets =  $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
+		if(!battler.isActor() && battler.targetId && battler.targetId != -1){
+			var target;
+			for(var i = 0; i < targets.length; i++){
+				var actor = $gameSystem.EventToUnit(targets[i].eventId())[1];
+				if(actor.isActor() && actor.actorId() == battler.targetId){
+					target = targets[i];
+				}
+			}
+			if(target){
+				targets = [target];
+			} else {
+				targets = [];
+			}
+		}
+		return targets;
     };
 
      //優先ターゲットの決定
