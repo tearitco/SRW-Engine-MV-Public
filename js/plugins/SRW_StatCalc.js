@@ -2896,7 +2896,8 @@ StatCalc.prototype.getPilotAbilityLevel = function(actor, abilityIdx){
 	var result = 0;
 	if(_this.isActorSRWInitialized(actor)){			
 		var abilities = actor.SRWStats.pilot.abilities;		
-		abilities.forEach(function(abilityDef){
+		Object.keys(abilities).forEach(function(idx){
+			var abilityDef = abilities[idx];
 			if(abilityDef.idx == abilityIdx){
 				result = abilityDef.level;
 			}			
