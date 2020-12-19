@@ -117,11 +117,11 @@ BattleCalc.prototype.doesEnemyCrit = function(){
 	return Math.random() < this.getEnemyFinalCrit();
 }	
 
-BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo){
+BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo, ignoreAlert){
 	var result = 0;
 	var attackerAction = attackerInfo.action;
 	if(attackerAction.type == "attack"){
-		if($statCalc.getActiveSpirits(defenderInfo.actor).alert){
+		if(!ignoreAlert && $statCalc.getActiveSpirits(defenderInfo.actor).alert){
 			return 0;
 		}
 		if($statCalc.getActiveSpirits(attackerInfo.actor).strike){

@@ -10305,6 +10305,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				var hitRate = $battleCalc.performHitCalculation(
 					{actor: attacker, action: {type: "attack", attack: {hitMod: 0}}},
 					{actor: defender, action: {type: "none"}},
+					true
 				);
 				targetsByHit.push({
 					hit: hitRate,
