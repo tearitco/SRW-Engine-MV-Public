@@ -590,6 +590,7 @@ StatCalc.prototype.softRefreshUnits = function(){
 }
 
 StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolatile){
+	var _this = this;
 	if(!level){
 		level = 1;
 	}
@@ -726,11 +727,14 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	}	
 	if(mech){
 		var previousWeapons = [];
+		var previousStats;
 		if(preserveVolatile){
-			var previousStats = actor.SRWStats.mech.stats.calculated;				
-			if(preserveVolatile){
-				previousWeapons = actor.SRWStats.mech.weapons;
-			}
+			if(actor.SRWStats.mech.stats){
+				var previousStats = actor.SRWStats.mech.stats.calculated;				
+				if(preserveVolatile){
+					previousWeapons = actor.SRWStats.mech.weapons;
+				}
+			}			
 		}
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items, previousWeapons);
 		if(!isForActor && $gameSystem.enemyUpgradeLevel){
@@ -743,7 +747,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			levels.weapons = $gameSystem.enemyUpgradeLevel;			
 		}		
 		this.calculateSRWMechStats(actor.SRWStats.mech, preserveVolatile);	
-		if(preserveVolatile){
+		if(preserveVolatile && previousStats){
 			actor.SRWStats.mech.stats.calculated.currentHP = previousStats.currentHP;
 			actor.SRWStats.mech.stats.calculated.currentEN = previousStats.currentEN;
 		}
@@ -756,6 +760,11 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	}	
 	
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
+	
+	var subPilots = this.getSubPilots(actor);
+	subPilots.forEach(function(pilotId){
+		_this.initSRWStats($gameActors.actor(pilotId), 1, [], preserveVolatile);
+	});
 }
 
 StatCalc.prototype.getMechDataById = function(id, forActor){
@@ -1184,9 +1193,9 @@ StatCalc.prototype.calculateSRWActorStats = function(actor, preserveVolatile){
 		});
 		
 		calculatedStats.SP = this.applyStatModsToValue(actor, calculatedStats.SP, ["sp"]);	
-		if(!preserveVolatile){
+		if(!preserveVolatile || calculatedStats.currentSP == null){
 			calculatedStats.currentSP = calculatedStats.SP;		
-		}		
+		}
 	}
 }
 
@@ -2740,6 +2749,7 @@ StatCalc.prototype.applyENRegen = function(type, factionId){
 			} else {
 				_this.recoverENPercent(actor, _this.applyStatModsToValue(actor, 0, ["EN_regen"]));	
 				_this.recoverENPercent(actor, _this.getCurrentTerrainMods(actor).en_regen);	
+				_this.recoverEN(actor, 5);	
 			}	
 		}	
 	});
@@ -2895,13 +2905,15 @@ StatCalc.prototype.getPilotAbilityLevel = function(actor, abilityIdx){
 	var _this = this;
 	var result = 0;
 	if(_this.isActorSRWInitialized(actor)){			
-		var abilities = actor.SRWStats.pilot.abilities;		
-		Object.keys(abilities).forEach(function(idx){
-			var abilityDef = abilities[idx];
-			if(abilityDef.idx == abilityIdx){
-				result = abilityDef.level;
-			}			
-		});	
+		var abilities = actor.SRWStats.pilot.abilities;
+		if(abilities){
+			Object.keys(abilities).forEach(function(idx){
+				var abilityDef = abilities[idx];
+				if(abilityDef.idx == abilityIdx){
+					result = abilityDef.level;
+				}			
+			});	
+		}			
 	}
 	return result;
 }
