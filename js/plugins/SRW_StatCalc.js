@@ -1121,7 +1121,7 @@ StatCalc.prototype.applyStoredActorData = function(actor, dbAbilities){
 				storedAbilities[abilityIdx] = {
 					idx: abilityIdx,
 					level: dbAbilities[abilityIdx].level,
-					requiredLevel: dbAbilities[abilityIdx].level,
+					requiredLevel: dbAbilities[abilityIdx].requiredLevel,
 					slot: slot
 				}
 			}
