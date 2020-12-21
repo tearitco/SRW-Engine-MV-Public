@@ -2008,6 +2008,12 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 					canUse = false;
 					detail.target = true;
 				}
+				var targetTerrain = this.getCurrentTerrain(rangeTarget);
+				var terrainRank = weapon.terrain[targetTerrain];
+				if(terrainRank == "-"){
+					canUse = false;
+					detail.terrain = true;
+				}
 			} else {
 				var rangeResult;
 				var type = actor.isActor() ? "enemy" : "actor";
@@ -2030,7 +2036,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 	};
 }
 
-StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly){
+StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly, defender){
 	if(this.isActorSRWInitialized(actor)){
 		if(weapon.isCombination){			
 			if(!this.getCombinationWeaponParticipants(actor, weapon).isValid){
@@ -2052,6 +2058,14 @@ StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly){
 		if(!actor.isActor() && weapon.isMap && actor.SRWStats.stageTemp.nonMapAttackCounter < actor.SRWStats.stageTemp.mapAttackCoolDown){
 			return false;
 		}
+		
+		if(defender){
+			var targetTerrain = this.getCurrentTerrain(defender)
+			var terrainRank = weapon.terrain[targetTerrain];
+			if(terrainRank == "-"){
+				return false;
+			}
+		}		
 	} else {
 		return false;
 	} 	

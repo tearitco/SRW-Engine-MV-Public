@@ -885,7 +885,7 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 	var defenderHP = defenderInfo.actor.hp;
 	var canShootDown = false;
 	allWeapons.forEach(function(weapon){
-	if(!weapon.isMap && $statCalc.canUseWeapon(attackerInfo.actor, weapon, postMoveEnabledOnly) && (ignoreRange || _this.isTargetInRange(attackerInfo.pos, defenderInfo.pos, $statCalc.getRealWeaponRange(attackerInfo.actor, weapon.range), weapon.minRange))){
+	if(!weapon.isMap && $statCalc.canUseWeapon(attackerInfo.actor, weapon, postMoveEnabledOnly, defenderInfo.actor) && (ignoreRange || _this.isTargetInRange(attackerInfo.pos, defenderInfo.pos, $statCalc.getRealWeaponRange(attackerInfo.actor, weapon.range), weapon.minRange))){
 			var damageResult = _this.performDamageCalculation(
 				{actor: attackerInfo.actor, action: {type: "attack", attack: weapon}},
 				{actor: defenderInfo.actor, action: {type: "none"}},

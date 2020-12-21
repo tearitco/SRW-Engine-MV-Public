@@ -1517,6 +1517,8 @@ var $battleSceneManager = new BattleSceneManager();
 					$gameSystem.highlightedTiles.push({x: event.posX(), y: event.posY(), color: "#00FF00"});
 				} else if(deployInfo.lockedSlots[i]){
 					$gameSystem.highlightedTiles.push({x: event.posX(), y: event.posY(), color: "yellow"});
+				} else if(deployInfo.assigned[i] && !$statCalc.canStandOnTile($gameActors.actor(deployInfo.assigned[i]), {x: event.posX(), y: event.posY()})){
+					$gameSystem.highlightedTiles.push({x: event.posX(), y: event.posY(), color: "red"});
 				} else {
 					$gameSystem.highlightedTiles.push({x: event.posX(), y: event.posY(), color: "white"});
 				}
@@ -1562,7 +1564,7 @@ var $battleSceneManager = new BattleSceneManager();
 		});
 	}
 	
-	Game_System.prototype.redeployActors = function(){                                                                                                                                                                                                                             
+	Game_System.prototype.redeployActors = function(validatePositions){                                                                                                                                                                                                                             
 		$gameVariables.setValue(_existActorVarID, 0);
 		$gameSystem.clearSrpgAllActors();
 		$gameMap.events().forEach(function(event) {
@@ -1571,10 +1573,10 @@ var $battleSceneManager = new BattleSceneManager();
 				event.isDeployed = false;
 			}
 		 });
-		 this.deployActors();
+		 this.deployActors(false, false, validatePositions);
 	}
 	
-	Game_System.prototype.deployActors = function(toAnimQueue, lockedOnly) {
+	Game_System.prototype.deployActors = function(toAnimQueue, lockedOnly, validatePositions) {
 		var _this = this;
 		var deployInfo = _this.getDeployInfo();
 		var i = 0;
@@ -1587,12 +1589,25 @@ var $battleSceneManager = new BattleSceneManager();
 						actor_unit = $gameActors.actor(actorId);
 					}
 					
+					
+					
 					if (actor_unit) {
-						_this.deployActor(actor_unit, event, toAnimQueue);
+						var validPosition;
+						if(validatePositions && !deployInfo.lockedSlots[i]){
+							validPosition = $statCalc.canStandOnTile(actor_unit, {x: event.posX(), y: event.posY()})
+						} else {
+							validPosition = true;
+						}
+						if(validPosition){
+							_this.deployActor(actor_unit, event, toAnimQueue);
+						} else {
+							event.erase();
+						}						
 					} else {
 						event.erase();
 					}
 				}	
+				
 				i++;	
             }		
         });
@@ -3179,7 +3194,7 @@ var $battleSceneManager = new BattleSceneManager();
 		}		
 
 		if(currentRegion == 3){
-			if($statCalc.canBeOnWater(actor, "water") != 2){
+			if($statCalc.canBeOnWater(actor, "water") < 2){
 				moveCost*=2;
 			}
 		} 		
@@ -3590,7 +3605,9 @@ var $battleSceneManager = new BattleSceneManager();
                                 var targetBattlerArray = $gameSystem.EventToUnit(event.eventId());
                                
 								var isInRange = $battleCalc.isTargetInRange({x: $gameTemp.activeEvent()._x, y: $gameTemp.activeEvent()._y}, {x: event.posX(), y: event.posY()}, $statCalc.getRealWeaponRange(actionBattlerArray[1], $gameTemp.actorAction.attack.range), $gameTemp.actorAction.attack.minRange);
-								if(isInRange){
+								var validTarget = $statCalc.canUseWeapon(actionBattlerArray[1], $gameTemp.actorAction.attack, false, targetBattlerArray[1]);
+								
+								if(isInRange && validTarget){
 									if(($gameSystem.isEnemy(targetBattlerArray[1]) && $gameTemp.actorAction.type === "attack") || 
 									   (targetBattlerArray[0] === 'actor' && $gameTemp.actorAction.type === "support")){
 										//$gameSystem.setSrpgBattleWindowNeedRefresh(actionBattlerArray, targetBattlerArray);
@@ -8299,35 +8316,42 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				});
 				if(event && event.isType() == "actor"){				
 					var slot = $gameSystem.getEventDeploySlot(event);
-					var deployInfo = $gameSystem.getDeployInfo();
+					var deployInfo = $gameSystem.getDeployInfo();					
 					if(!deployInfo.lockedSlots[slot]){
 						SoundManager.playOk();	
 						if($gameTemp.currentSwapSource == -1){
 							$gameTemp.currentSwapSource = slot;
+							$gameTemp.currentSwapSourcePosition = {x: event.posX(), y: event.posY()};
 							$gameSystem.highlightDeployTiles();
-						} else {
+						} else {						
 							var swapSource = $gameTemp.currentSwapSource;
 							var selection = slot;									
 							
 							var sourceActor = deployInfo.assigned[swapSource];
 							var targetActor = deployInfo.assigned[selection];
-							if(typeof sourceActor != undefined){
-								deployInfo.assigned[selection] = sourceActor;
-							} else {
-								delete deployInfo.assigned[selection];
-							}
 							
-							if(typeof targetActor != undefined){
-								deployInfo.assigned[swapSource] = targetActor;
+							var validPositions = (!sourceActor || $statCalc.canStandOnTile($gameActors.actor(sourceActor), {x: event.posX(), y: event.posY()})) && (!targetActor || $statCalc.canStandOnTile($gameActors.actor(targetActor), $gameTemp.currentSwapSourcePosition));
+							if(validPositions){
+								if(typeof sourceActor != undefined){
+									deployInfo.assigned[selection] = sourceActor;
+								} else {
+									delete deployInfo.assigned[selection];
+								}
+								
+								if(typeof targetActor != undefined){
+									deployInfo.assigned[swapSource] = targetActor;
+								} else {
+									delete deployInfo.assigned[swapSource];
+								}
+								$gameSystem.setDeployInfo(deployInfo);
+								$gameTemp.currentSwapSource = -1;
+								
+								$gameSystem.redeployActors();
+								$gameSystem.highlightDeployTiles();
+								$gameMap.setEventImages();
 							} else {
-								delete deployInfo.assigned[swapSource];
-							}
-							$gameSystem.setDeployInfo(deployInfo);
-							$gameTemp.currentSwapSource = -1;
-							
-							$gameSystem.redeployActors();
-							$gameSystem.highlightDeployTiles();
-							$gameMap.setEventImages();
+								SoundManager.playBuzzer();	
+							}							
 						}
 					} else {
 						SoundManager.playBuzzer();	
@@ -8344,7 +8368,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameTemp.doingManualDeploy = false;
 				$gameTemp.disableHighlightGlow = false;
 				$gameSystem.undeployActors();
-				$gameSystem.deployActors(true);
+				$gameSystem.deployActors(true, false, true);
 				$gameSystem.setSubBattlePhase("initialize");
 				
 				$gameMap._interpreter.setWaitMode("enemy_appear");
@@ -8358,8 +8382,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					$gameSystem.setDeployInfo($gameTemp.originalDeployInfo);
 					$gameSystem.setSubBattlePhase("deploy_selection_window");
 					$gameTemp.pushMenu = "in_stage_deploy";
-				} else {
-					$gameSystem.undeployActors();					
+					$gameSystem.undeployActors();		
+				} else {								
 					$gameTemp.currentSwapSource = -1;
 					$gameSystem.highlightDeployTiles();
 				}
@@ -8742,6 +8766,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			var attack = $gameTemp.actorAction.attack;
 			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld				
 				var targets = $statCalc.activeUnitsInTileRange($gameTemp.currentMapTargetTiles || [], attack.ignoresFriendlies ? "enemy" : null);
+				var tmp = [];
+				for(var i = 0; i < targets.length; i++){
+					var terrain = $statCalc.getCurrentTerrain(targets[i]);					
+					var terrainRank = attack.terrain[terrain];
+					if(terrainRank != "-"){
+						tmp.push(targets[i]);
+					}
+				}
+				targets = tmp;
 				if(targets.length){
 					$gameTemp.currentMapTargets = targets;
 					var targetEvent = targets[0].event;
@@ -9710,7 +9743,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			tileCoordinates[i][1]+=deltaY;
 			//$gameTemp.pushMoveList(tileCoordinates[i]);					
 		}				
-		return $statCalc.activeUnitsInTileRange(tileCoordinates || [], type)
+		var targets = $statCalc.activeUnitsInTileRange(tileCoordinates || [], type);
+		var tmp = [];
+		for(var i = 0; i < targets.length; i++){
+			var terrain = $statCalc.getCurrentTerrain(targets[i]);					
+			var terrainRank = attack.terrain[terrain];
+			if(terrainRank != "-"){
+				tmp.push(targets[i]);
+			}
+		}
+		return tmp;
 	}
 	
 	Scene_Map.prototype.getBestMapAttackTargets = function(originEvent, attack, type) {
@@ -10183,6 +10225,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		};
 		var fullRange = $statCalc.getFullWeaponRange(battler, $gameTemp.isPostMove);
         var targets = $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
+		var tmp = [];
+		for(var i = 0; i < targets.length; i++){
+			var actor = $gameSystem.EventToUnit(targets[i].eventId())[1];
+			if($battleCalc.getBestWeapon({actor: battler}, {actor: actor}, false, true, false)){
+				tmp.push(targets[i]);
+			}
+		}
+		targets = tmp;
 		if(!battler.isActor() && battler.targetId && battler.targetId != -1){
 			var target;
 			for(var i = 0; i < targets.length; i++){
@@ -10212,6 +10262,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var moveRange = $statCalc.getCurrentMoveRange(battler);
 		fullRange.range+=moveRange;
         var targets =  $statCalc.getAllInRange($gameSystem.getUnitFactionInfo(battler), pos, fullRange.range, fullRange.minRange);
+		var tmp = [];
+		for(var i = 0; i < targets.length; i++){
+			var actor = $gameSystem.EventToUnit(targets[i].eventId())[1];
+			if($battleCalc.getBestWeapon({actor: battler}, {actor: actor}, false, true, false)){
+				tmp.push(targets[i]);
+			}
+		}
+		targets = tmp;
 		if(!battler.isActor() && battler.targetId && battler.targetId != -1){
 			var target;
 			for(var i = 0; i < targets.length; i++){

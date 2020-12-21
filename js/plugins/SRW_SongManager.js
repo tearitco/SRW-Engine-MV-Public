@@ -15,7 +15,7 @@ SRWSongManager.prototype.clearSpecialTheme = function(){
 }
 
 SRWSongManager.prototype.playSong = function(songId){
-	if(songId){
+	if(songId && songId != -1){
 		var bgm = {};
 		bgm.name = songId;
 		bgm.pan = 0;
