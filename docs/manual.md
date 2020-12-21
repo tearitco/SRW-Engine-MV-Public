@@ -171,6 +171,10 @@ The rest of the Mech properties are set using metadata tags in the note field. I
 \<mechMove:4\> Determines how many tiles the mech can move by default.<br>
 \<mechSize:M> S/M/1L/2L Determines the size of the mech, which influences evasion and damage taken.<br>
 \<mechCanFly:0\> 0 for unable to fly, 1 for able to fly.<br>
+\<mechAirEnabled:0\> 0 for unable to fly, 1 for able to fly.<br> 
+\<mechLandEnabled:0\> 0 for unable to stand on land tile, 1 for able.<br>
+\<mechWaterEnabled:2\> 0 for unable to stand on water tile, 1 for able, 2 for able and no move penalty in water.<br>
+\<mechSpaceEnabled:1\> 0 for unable to stand on space tile, 1 for able.<br>
 \<mechExpYield:150\>The exp yield listed here is the exp gained if the enemy defeated and the actor were at the same level. When the level is different the exp gain gets scaled accordingly.<br>
 \<mechPPYield: 15\><br>
 \<mechFundYield: 500\><br>
@@ -194,7 +198,7 @@ And one type for weapons:
 \<mechUpgradeENCost: 1\><br>
 \<mechUpgradeArmorCost: 0\><br>
 \<mechUpgradeMobilityCost: 0\><br>
-\<mechUpgradAccuracyCost: 1\><br>
+\<mechUpgradeAccuracyCost: 1\><br>
 
 ### Sub-pilots
 
@@ -877,6 +881,7 @@ They can also be used as conditionals in IF statements.
 	Will be TRUE if the enemy with the specified id was defeated and is about to be destroyed.
 	
 * this.isEventDestructionQueued(event\_id)
+
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the event with the specified id was defeated and is about to be destroyed.	

@@ -46,7 +46,7 @@ StatCalc.prototype.isActorSRWInitialized = function(actor){
 
 StatCalc.prototype.canStandOnTile = function(actor, position){
 	if(this.isActorSRWInitialized(actor)){
-		if($gameMap.regionId(position.x, position.y) % 8 == 1){
+		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
 			if(this.canFly(actor)){
 				if(!this.isFlying(actor)){
 					this.setFlying(actor, true);
@@ -55,12 +55,60 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 				return false;
 			}			
 		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
+			if(!this.canBeOnLand(actor)){
+				if(this.canFly(actor)){
+					if(!this.isFlying(actor)){
+						this.setFlying(actor, true);
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
+			if(!this.canBeOnWater(actor)){
+				if(this.canFly(actor)){
+					if(!this.isFlying(actor)){
+						this.setFlying(actor, true);
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 4){//space
+			if(!this.canBeOnSpace(actor)){
+				return false;
+			}
+		}
 		return true;
 	} 
 	return false;	
 }
 
+StatCalc.prototype.getTileType = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		var position = {x: actor.event.posX(), y: actor.event.posY()};
+		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
+			return "air";		
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
+			return "land";	
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
+			return "water";	
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 4){//space
+			return "space";	
+		}
+	}
+}
+
 StatCalc.prototype.terrainToNumeric = function(terrainString){
+	if(terrainString == "-"){
+		return -1;
+	}
 	if(this._terrainToNumeric[terrainString]){
 		return this._terrainToNumeric[terrainString];
 	} else {
@@ -69,6 +117,9 @@ StatCalc.prototype.terrainToNumeric = function(terrainString){
 }
 
 StatCalc.prototype.numericToTerrain = function(terrainNumber){
+	if(terrainNumber == -1){
+		return "-";
+	}
 	if(this._numericToTerrain[terrainNumber]){
 		return this._numericToTerrain[terrainNumber];
 	} else {
@@ -728,12 +779,14 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	if(mech){
 		var previousWeapons = [];
 		var previousStats;
+		var previousFlightState;
 		if(preserveVolatile){
 			if(actor.SRWStats.mech.stats){
 				var previousStats = actor.SRWStats.mech.stats.calculated;				
 				if(preserveVolatile){
 					previousWeapons = actor.SRWStats.mech.weapons;
 				}
+				previousFlightState = actor.SRWStats.mech.isFlying;
 			}			
 		}
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items, previousWeapons);
@@ -747,9 +800,14 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			levels.weapons = $gameSystem.enemyUpgradeLevel;			
 		}		
 		this.calculateSRWMechStats(actor.SRWStats.mech, preserveVolatile);	
-		if(preserveVolatile && previousStats){
-			actor.SRWStats.mech.stats.calculated.currentHP = previousStats.currentHP;
-			actor.SRWStats.mech.stats.calculated.currentEN = previousStats.currentEN;
+		if(preserveVolatile){
+			if(previousStats){
+				actor.SRWStats.mech.stats.calculated.currentHP = previousStats.currentHP;
+				actor.SRWStats.mech.stats.calculated.currentEN = previousStats.currentEN;
+			}
+			if(previousFlightState){
+				actor.SRWStats.mech.isFlying = previousFlightState;
+			}
 		}
 	}
 	
@@ -759,6 +817,14 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		}		
 	}	
 	
+	if(!preserveVolatile){	
+		if(actor.event && $dataMap){ //hacky solution to the initializer being called in context where either no event has been assigned to the actor(initial load of map, intermission) or where $dataMap has not loaded yet(loading save)
+			var validPosition = this.canStandOnTile(actor, {x: actor.event.posX(), y: actor.event.posY()});
+			if(!validPosition){
+				console.log("Unit initialized on invalid terrain!");
+			}
+		}
+	}
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
 	
 	var subPilots = this.getSubPilots(actor);
@@ -825,7 +891,10 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		var mechProperties = mech.meta;
 		result.classData = mech;
 		result.isShip = mechProperties.mechIsShip;
-		result.canFly = mechProperties.mechCanFly;
+		result.canFly = mechProperties.mechCanFly || mechProperties.mechAirEnabled;
+		result.canLand = mechProperties.mechLandEnabled || 1;
+		result.canWater = mechProperties.mechWaterEnabled || 1;
+		result.canSpace = mechProperties.mechSpaceEnabled || 1;
 		result.isFlying = false;
 		result.id = mech.id;
 		result.expYield = parseInt(mechProperties.mechExpYield);
@@ -1411,6 +1480,9 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatil
 }
 
 StatCalc.prototype.incrementTerrain = function(terrain, increment){
+	if(terrain == "-"){
+		return "-";
+	}
 	var result = this._terrainToNumeric[terrain] + increment;
 	if(result > 4){
 		result = 4;
@@ -1523,10 +1595,23 @@ StatCalc.prototype.getPilotTerrain = function(actor, terrain){
 		if(typeof result != "undefined"){
 			return result;
 		} else {
-			return "C";
+			return "-";
 		}
 	} else {
-		return "C";
+		return "-";
+	}
+}
+
+StatCalc.prototype.getMechTerrain = function(actor, terrain){
+	if(this.isActorSRWInitialized(actor)){
+		var result = actor.SRWStats.mech.stats.calculated.terrain[terrain];
+		if(typeof result != "undefined"){
+			return result;
+		} else {
+			return "-";
+		}
+	} else {
+		return "-";
 	}
 }
 
@@ -1759,6 +1844,30 @@ StatCalc.prototype.getCurrentMoveRange = function(actor){
 		return totalMove;
 	} else {
 		return 1;
+	}		
+}
+
+StatCalc.prototype.canBeOnLand = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.canLand * 1 || this.applyStatModsToValue(actor, 0, ["land_enabled"]);
+	} else {
+		return false;
+	}		
+}
+
+StatCalc.prototype.canBeOnWater = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.canWater * 1 || this.applyStatModsToValue(actor, 0, ["water_enabled"]);
+	} else {
+		return false;
+	}		
+}
+
+StatCalc.prototype.canBeOnSpace = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.canSpace * 1 || this.applyStatModsToValue(actor, 0, ["space_enabled"]);
+	} else {
+		return false;
 	}		
 }
 

@@ -3151,7 +3151,16 @@ var $battleSceneManager = new BattleSceneManager();
 			if($gameTemp._MoveTable[x][y] == undefined){
 				return false;
 			}
-			if($gameMap.regionId(x, y) == 1 && !$statCalc.isFlying(actor)){
+			if($gameMap.regionId(x, y) % 8 == 1 && !$statCalc.isFlying(actor)){
+				return false;
+			}
+			if($gameMap.regionId(x, y) % 8 == 2 && !$statCalc.canBeOnLand(actor) && !$statCalc.isFlying(actor)){
+				return false;
+			}
+			if($gameMap.regionId(x, y) % 8 == 3 && !$statCalc.canBeOnWater(actor) && !$statCalc.isFlying(actor)){
+				return false;
+			}
+			if($gameMap.regionId(x, y) % 8 == 4 && !$statCalc.canBeOnSpace(actor)){
 				return false;
 			}
 			return $statCalc.isFreeSpace({x: x, y: y}, actor.isActor() ? "enemy" : "actor");
@@ -3164,9 +3173,16 @@ var $battleSceneManager = new BattleSceneManager();
 			if(taggedCost > 1){
 				if(currentRegion == 4 || !$statCalc.isFlying(actor)){
 					moveCost = taggedCost;
-				}			
+				}					
+				
 			}
-		}				
+		}		
+
+		if(currentRegion == 3){
+			if($statCalc.canBeOnWater(actor, "water") != 2){
+				moveCost*=2;
+			}
+		} 		
 		
         if (move <= 0) {
             return;
@@ -7048,7 +7064,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					}
 					if($statCalc.canFly(_this._actor) && $statCalc.getCurrentTerrain(_this._actor) != "space"){
 						if($statCalc.isFlying(_this._actor)){
-							_this.addCommand(APPSTRINGS.MAPMENU.cmd_land, 'land');
+							if(($statCalc.getTileType(_this._actor) == "land" && $statCalc.canBeOnLand(_this._actor)) || ($statCalc.getTileType(_this._actor) == "water" && $statCalc.canBeOnWater(_this._actor))){
+								_this.addCommand(APPSTRINGS.MAPMENU.cmd_land, 'land');
+							}
 						} else {
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_fly, 'fly');
 						}
@@ -10079,24 +10097,29 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					var canAttackTargets = this.srpgMakeCanAttackTargetsWithMove(enemy, targetType);
 					if(canAttackTargets && canAttackTargets.length){
 						targetInfo = this.srpgDecideTarget(canAttackTargets, event, targetType); //ターゲットの設定
-						enemy._currentTarget = targetInfo.target;						
-						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
+						if(targetInfo.target){
+							enemy._currentTarget = targetInfo.target;						
+							optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
+						}
 					}
 				}
 				
 				//check for targets on map
 				if(!optimalPos){
 					targetInfo = this.srpgDecideTarget($statCalc.getAllActorEvents("actor"), event, targetType); //ターゲットの設定
-					enemy._currentTarget = targetInfo.target;
-					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
+					if(targetInfo.target){
+						enemy._currentTarget = targetInfo.target;
+						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
+					}
 				}
 				
-				
-				$gameTemp.isPostMove = true;
-				var route = $gameTemp.MoveTable(optimalPos[0], optimalPos[1])[1];
-				$gameSystem.setSrpgWaitMoving(true);
-				event.srpgMoveToPoint({x: optimalPos[0], y: optimalPos[1]});
-				$gamePlayer.setTransparent(true);
+				if(optimalPos){
+					$gameTemp.isPostMove = true;
+					var route = $gameTemp.MoveTable(optimalPos[0], optimalPos[1])[1];
+					$gameSystem.setSrpgWaitMoving(true);
+					event.srpgMoveToPoint({x: optimalPos[0], y: optimalPos[1]});
+					$gamePlayer.setTransparent(true);
+				}
 				//$gameTemp.setAutoMoveDestinationValid(true);
 				//$gameTemp.setAutoMoveDestination(optimalPos[0], optimalPos[1]);
 			}
