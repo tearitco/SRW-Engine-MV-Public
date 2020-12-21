@@ -283,7 +283,7 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponAmmo:-1\>Total ammo for the weapon, -1 if the weapon does not use ammo<br>
 \<weaponEN:5\>EN cost for using the weapon, -1 if the weapon does not have a cost<br>
 \<weaponWill:-1\>Will requirement for the weapon, -1 if there is no requirement<br>
-\<weaponTerrain:AABA\><br>
+\<weaponTerrain:AA-A\>If a terrain value is "-" the weapon cannot be used on enemies who are currently on a tile of that terrain.<br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
 \<weaponCategory:missile\><br> The particle type of the weapon. Missile, funnel, beam, gravity, physical or  "".	
  
