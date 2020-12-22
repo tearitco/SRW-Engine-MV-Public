@@ -3791,7 +3791,11 @@ var $battleSceneManager = new BattleSceneManager();
 				$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
 				$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
-				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'				
+				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'	||
+				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
+				$gameSystem.isSubBattlePhase() === 'enemy_attack'	
+
+				
 				
 				){
                 return false;
@@ -5891,6 +5895,67 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}			
 	};	
 
+	
+//====================================================================
+// Sprite_SrpgGrid
+//====================================================================	
+	
+	function Sprite_Reticule() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_Reticule.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_Reticule.prototype.constructor = Sprite_Reticule;
+
+	Sprite_Reticule.prototype.initialize = function() {
+		Sprite_Base.prototype.initialize.call(this);
+		this.bitmap =  ImageManager.loadPicture('reticule');
+		this.anchor.x = 0.5;
+		this.anchor.y = 0.5;
+		this._duration = 10;
+		this._holdDuration = 20;
+	};
+	
+	Sprite_Reticule.prototype.start = function(info) {
+		this._time = 0;
+		this._actor = info.actor;
+		this._targetActor = info.targetActor;
+	}
+
+	Sprite_Reticule.prototype.update = function() {
+		function lerp(start, end, t){
+		//	t => 1-(--t)*t*t*t;
+			return start + (end - start) * t;
+		}
+		
+		if(this._time > this._duration){
+			if(this._time < this._duration + this._holdDuration){
+				console.log((this._time - this._duration));
+				var scaleFactor = 1.05 + (Math.sin((this._time - this._duration) / 2) / 15);
+				this.scale.x = scaleFactor;
+				this.scale.y = scaleFactor;
+			} else {
+				$gameTemp.reticuleInfo = null;
+				this._actor = null;
+				this._targetActor = null;
+				this._time = 0;
+				this.scale.x = 1;
+				this.scale.y = 1;
+			}			
+		}
+		if(this._actor && this._targetActor){	
+			if(this._time <= this._duration){
+				this.visible = true;
+				this.x = lerp(this._actor.event.screenX(), this._targetActor.event.screenX(), this._time / this._duration);
+				this.y = lerp(this._actor.event.screenY() - 24, this._targetActor.event.screenY() - 24, this._time / this._duration);				
+			}
+			this._time++;
+		} else if($gameTemp.reticuleInfo){
+			this.start($gameTemp.reticuleInfo);
+		} else {	
+			this.visible = false;
+		}		
+	};
 //====================================================================
 // Sprite_SrpgGrid
 //====================================================================	
@@ -6026,6 +6091,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}
 		this._gridSprite = new Sprite_SrpgGrid();
 		this._baseSprite.addChild(this._gridSprite);   
+		
 		this._highlightSprite = new Sprite_AreaHighlights();
 		this._baseSprite.addChild(this._highlightSprite);  		
         this._srpgMoveTile = [];
@@ -6104,7 +6170,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameMap.events().forEach(function(event) {
 			this.createExplosionSprite(event._eventId,event);
 			this.createAppearSprite(event._eventId,event);
-		}, this);	
+		}, this);			
+		
+		this._reticuleSprite = new Sprite_Reticule();
+		this._baseSprite.addChild(this._reticuleSprite);   	
 	};
 	
 	Spriteset_Map.prototype.createExplosionSprite = function(id,character) {
@@ -8095,7 +8164,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
 				$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
-				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'	
+				$gameSystem.isSubBattlePhase() === 'confirm_end_turn' ||
+				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
+				$gameSystem.isSubBattlePhase() === 'enemy_attack'	
+				
 				) {
                 this.menuCalling = false;
                 return;
@@ -8194,6 +8266,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this._terrainDetailsWindow.hide();
 		}		
         _SRPG_SceneMap_update.call(this);
+		
+		if ($gameSystem.isSubBattlePhase() == "enemy_targeting_display"){
+			if($gameTemp.targetingDisplayCounter <= 0){
+				 $gameTemp.pushMenu = "before_battle";
+				 $gameSystem.setSubBattlePhase("enemy_attack");
+			} else {
+				$gameTemp.targetingDisplayCounter--;
+			}
+			return;
+		}		
 		
 		if($gameTemp.OKHeld && !Input.isTriggered("ok")){
 			$gameTemp.OKHeld = false;
@@ -10702,8 +10784,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				return;
 			}           
         }
+		
+		
+		
         var actionArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
         var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId());
+		
+		$gameTemp.reticuleInfo = {
+			actor: actionArray[1],
+			targetActor: targetArray[1]
+		};
+		
         var skill = actionArray[1].currentAction().item();
         var range = actionArray[1].srpgSkillRange(skill);
         $gameTemp.setSrpgDistance($gameSystem.unitDistance($gameTemp.activeEvent(), $gameTemp.targetEvent()));
@@ -10789,9 +10880,23 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.supportAttackCandidates = supporterInfo;
 		$gameTemp.supportAttackSelected = supporterSelected;
 		
+		var weapon = $gameTemp.enemyWeaponSelection;
+		var range = $statCalc.getRealWeaponRange(actionArray[1], weapon.range);
+		var minRange = weapon.minRange || 0;
+		$gameTemp.clearMoveTable();
+		var event = actionArray[1].event;		
+		$gameTemp.initialRangeTable(event.posX(), event.posY(), actionArray[1].srpgMove());
+		event.makeRangeTable(event.posX(), event.posY(), range, [0], event.posX(), event.posY(), null);
+		$gameTemp.minRangeAdapt(event.posX(), event.posY(), minRange);
+		$gameTemp.pushRangeListToMoveList();
+		$gameTemp.setResetMoveList(true);
+		
+		
 		//$gameSystem.setSrpgBattleWindowNeedRefresh(targetArray, actionArray);	
 		//$gameSystem.setSrpgStatusWindowNeedRefresh(targetArray);
-        $gameTemp.pushMenu = "before_battle";
+		$gameSystem.setSubBattlePhase("enemy_targeting_display");
+		$gameTemp.targetingDisplayCounter = 60;
+       
     };
 
     //戦闘処理の実行
