@@ -770,7 +770,12 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	var mech;
 	var isForActor;
 	if(actor.isActor()){
-		mech = actor.currentClass();
+		if(preserveVolatile){
+			mech = $dataClasses[actor.SRWStats.mech.id];
+		}
+		if(!mech){
+			mech = actor.currentClass();
+		}		
 		isForActor = true;
 	} else {
 		mech = $dataClasses[actor._mechClass];
@@ -780,6 +785,8 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		var previousWeapons = [];
 		var previousStats;
 		var previousFlightState;
+		var previousCombineInfo;
+		
 		if(preserveVolatile){
 			if(actor.SRWStats.mech.stats){
 				var previousStats = actor.SRWStats.mech.stats.calculated;				
@@ -787,6 +794,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 					previousWeapons = actor.SRWStats.mech.weapons;
 				}
 				previousFlightState = actor.SRWStats.mech.isFlying;
+				previousCombineInfo = actor.SRWStats.mech.combineInfo;
 			}			
 		}
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items, previousWeapons);
@@ -807,6 +815,9 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			}
 			if(previousFlightState){
 				actor.SRWStats.mech.isFlying = previousFlightState;
+			}
+			if(previousCombineInfo){
+				actor.SRWStats.mech.combineInfo = previousCombineInfo;
 			}
 		}
 	}
@@ -1127,7 +1138,7 @@ StatCalc.prototype.canCombine = function(actor, forced){
 						candidates.push(current.actorId());
 					}
 					var adjacent;
-					if(forced){
+					if(!forced){
 						adjacent = _this.getAdjacentActors(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
 					} else {
 						adjacent = _this.getAllCandidateActors(actor.isActor() ? "actor" : "enemy");
