@@ -17,7 +17,6 @@
 // http://opensource.org/licenses/mit-license.php
 //=============================================================================
 
- 
 //disable touch support
 
 TouchInput.update = function() {}
