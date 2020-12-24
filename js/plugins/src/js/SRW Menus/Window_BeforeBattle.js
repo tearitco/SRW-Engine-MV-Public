@@ -374,6 +374,11 @@ Window_BeforeBattle.prototype.update = function() {
 			}
 		}		
 		
+		if(Input.isTriggered('menu')){
+			this.requestRedraw();
+			$gameSystem.demoSetting = !$gameSystem.demoSetting;
+		}		
+		
 		this.refresh();
 	}		
 };
