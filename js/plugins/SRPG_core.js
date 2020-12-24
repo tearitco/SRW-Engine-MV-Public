@@ -433,6 +433,10 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.deployActors(args[0], true);
 		}
 		
+		if (command === 'manualDeploy') {
+			$gameMap._interpreter.manualDeploy();
+		}		
+		
 		if (command === 'deployActor') {
 			var actor_unit = $gameActors.actor(args[0]);
 			var event = $gameMap.event(args[1]);
@@ -606,6 +610,7 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'setSaveDisplayName') {			
 			$gameSystem.saveDisplayName = (args[0] || "").replace(/\_/ig, " ");
 		}		
+		
     };		
 //====================================================================
 // ●Game_Temp
@@ -7481,6 +7486,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.createTerrainDetailsWindow();
 		this.createIntermissionWindow();
 		this.createMechListWindow();
+		this.createMechListDeployedWindow();
 		this.createUpgradeUnitSelectionWindow();
 		this.createUpgradeMechWindow();
 		this.createPilotListWindow();
@@ -7596,7 +7602,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._commandWindow.deactivate();
 		$gameTemp.deactivatePauseMenu = true;
 		//$gameSystem.setSubBattlePhase('normal');
-        $gameTemp.pushMenu = "mech_list";
+        $gameTemp.pushMenu = "mech_list_deployed";
     }
 	
 	Scene_Map.prototype.commandConditions = function() {
@@ -7640,6 +7646,25 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		});
 		this._mechListWindow.hide();
 		this.idToMenu["mech_list"] = this._mechListWindow;
+    };
+	
+	Scene_Map.prototype.createMechListDeployedWindow = function() {
+		var _this = this;
+		this._mechListDeployedWindow = new Window_MechListDeployed(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		this._mechListDeployedWindow.close();
+		this.addWindow(this._mechListDeployedWindow);
+		this._mechListDeployedWindow.registerCallback("closed", function(){
+			/*if($gameTemp.isEnemyAttack){
+				_this._mapSrpgBattleWindow.activate();
+			} else {			
+				_this._mapSrpgActorCommandWindow.activate();
+			}  */
+			if($gameTemp.mechListWindowCancelCallback){
+				$gameTemp.mechListWindowCancelCallback();
+			}
+		});
+		this._mechListDeployedWindow.hide();
+		this.idToMenu["mech_list_deployed"] = this._mechListDeployedWindow;
     };
 	
 	Scene_Map.prototype.createDeploySelectionWindow = function() {

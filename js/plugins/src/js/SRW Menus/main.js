@@ -70,6 +70,9 @@ window.Window_DeploySelection = Window_DeploySelection;
 import Window_ConfirmEndTurn from "./Window_ConfirmEndTurn.js";
 window.Window_ConfirmEndTurn = Window_ConfirmEndTurn;
 
+import Window_MechListDeployed from "./Window_MechListDeployed.js";
+window.Window_MechListDeployed = Window_MechListDeployed;
+
 
 import "./style/SRW_Menus.css";
 

@@ -1132,7 +1132,7 @@ StatCalc.prototype.canCombine = function(actor, forced){
 			var visited = {};
 			while(candidates.length < required.length && stack.length){
 				var current = stack.pop();
-				if(!visited[current.event.eventId()]){
+				if(current.event && !visited[current.event.eventId()]){
 					var currentMechId = current.SRWStats.mech.id;
 					if(!current.event.isErased() && requiredLookup[currentMechId]){
 						candidates.push(current.actorId());
