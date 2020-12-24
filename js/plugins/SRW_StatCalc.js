@@ -1212,7 +1212,7 @@ StatCalc.prototype.getBattleSceneInfo = function(actor){
 		result.useSpriter = parseInt(mechProperties.mechBattleSceneUseSpriter);
 		
 		result.battleSceneShadowInfo = {
-			size: 3,
+			size: 1,
 			offsetZ: 0,
 			offsetX: 0
 		};

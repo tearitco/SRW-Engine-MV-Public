@@ -25,7 +25,10 @@ SRWEditor.prototype.init = function(){
 	$gameSystem.battleParallax2 = "trees2";
 	$gameSystem.battleParallax3 = "mountains1";
 	
-	$gameSystem.battleFloor = "floor1";
+	$gameSystem.floorParallax1 = "dirt1";
+	$gameSystem.floorParallax2 = "dirt2";
+	
+	//$gameSystem.battleFloor = "floor1";
 	$gameSystem.battleSkyBox = "dusk";
 	
 	$gameSystem.skyBattleBg = "Sky";

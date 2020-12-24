@@ -12,14 +12,14 @@ export default function BattleSceneManager(){
 	this._frameAccumulator = 0;
 	this._bgWidth = 50;	
 	this._defaultSpriteSize = 128;
-	this._defaultShadowSize = 3;
+	this._defaultShadowSize = 1;
 
 	this._defaultPositions = {
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
 		"ally_main_idle": new BABYLON.Vector3(2, 0, 1),
 		"enemy_main_idle": new BABYLON.Vector3(-2, 0, 1),
 		"camera_main_idle": new BABYLON.Vector3(0, 1.15, -6.5), //1.15
-		"camera_main_intro": new BABYLON.Vector3(-6, 0, -11),
+		"camera_main_intro": new BABYLON.Vector3(-6, 0.75, -7),
 		"ally_support_idle": new BABYLON.Vector3(10, 1, 1),
 		"enemy_support_idle": new BABYLON.Vector3(-10, 1, 1),
 	}
@@ -206,7 +206,7 @@ BattleSceneManager.prototype.initScene = function(attachControl){
 	});
 }
 
-BattleSceneManager.prototype.createBg = function(name, img, position, size, alpha, rotation, useDiffuseAlpha){
+BattleSceneManager.prototype.createBg = function(name, img, position, size, alpha, rotation, useDiffuseAlpha, billboardMode){
 	var width;
 	var height;
 	if(typeof size != "undefined"){
@@ -221,9 +221,14 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 		width = this._bgWidth;
 		height = 25;
 	}
-	var bg = BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height, updatable: true}, this._scene);
-	//bg.billboardMode = 7;
 	
+	
+	var bg = BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height, updatable: true}, this._scene);
+	bg.billboardMode = billboardMode || 0;
+	bg.sizeInfo = {
+		width: width, 
+		height: height
+	};
 	var material = new BABYLON.StandardMaterial(name, this._scene);
 		
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattlebacks/"+img+".png", this._scene, false, true, BABYLON.Texture.NEAREST_NEAREST);
@@ -347,7 +352,7 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 		
 BattleSceneManager.prototype.configureSprite = function(parent, id, shadowInfo, type){	
 	parent.sprite.sizeInfo = parent.size;
-	var shadow = this.createBg(id+"_shadow", "shadow", new BABYLON.Vector3(0, 0.01, 0), shadowInfo.size, 1, new BABYLON.Vector3(Math.PI/2, 0, 0), true);
+	var shadow = this.createBg(id+"_shadow", "shadow", new BABYLON.Vector3(0, 0, 0), {width: 2.25 * shadowInfo.size, height: 0.5 * shadowInfo.size}, 1, new BABYLON.Vector3(0, 0, 0), true);
 	shadow.shadowInfo = shadowInfo;
 	parent.sprite.shadowSprite = shadow;
 	
@@ -552,7 +557,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		//console.log("deltaStep1: " + deltaStep1 +", deltaStep2: " + deltaStep2);
 		
 		bg.translate(new BABYLON.Vector3(1 * _this._bgScrollDirection, 0, 0), step * animRatio, BABYLON.Space.LOCAL);
-		if(Math.abs(bg.originPosition.x - bg.position.x) >= _this._bgWidth){
+		if(Math.abs(bg.originPosition.x - bg.position.x) >= (bg.sizeInfo.width || _this._bgWidth)){
 			bg.position = bg.originPosition;
 		}
 	}
@@ -2065,36 +2070,52 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._bgs = [];
 	
 	var floorOffset = 0;
-	var bgOffsetY = 12.5 - floorOffset - 2;
+	var bgOffsetY = 12.5 - floorOffset + 0.25;
+	
+	var floorBgOffsetY = bgOffsetY - 12.5;
 	
 	var bgSize = {width: 50, height: 25};
 	var bg2Size = {width: 50, height: 25};
 	
 
-	_this._bgs.push(this.createBg("bg1_1", $gameSystem.battleBg, new BABYLON.Vector3(25, bgOffsetY, 50)));
+	/*_this._bgs.push(this.createBg("bg1_1", $gameSystem.battleBg, new BABYLON.Vector3(25, bgOffsetY, 50)));
 	_this._bgs.push(this.createBg("bg1_2", $gameSystem.battleBg, new BABYLON.Vector3(-25, bgOffsetY, 50)));
 	_this._bgs.push(this.createBg("bg1_3", $gameSystem.battleBg, new BABYLON.Vector3(75, bgOffsetY, 50)));
-	_this._bgs.push(this.createBg("bg1_4", $gameSystem.battleBg, new BABYLON.Vector3(-75, bgOffsetY, 50)));
+	_this._bgs.push(this.createBg("bg1_4", $gameSystem.battleBg, new BABYLON.Vector3(-75, bgOffsetY, 50)));*/
+	
+	_this.createScrollingBg("bg1", $gameSystem.battleBg, 4, {width: 50, height: 25}, bgOffsetY, 50);
 	
 	if($gameSystem.battleParallax1){
-		_this._bgs.push(this.createBg("bg2_1", $gameSystem.battleParallax1, new BABYLON.Vector3(25, bgOffsetY, 20)));
+		/*_this._bgs.push(this.createBg("bg2_1", $gameSystem.battleParallax1, new BABYLON.Vector3(25, bgOffsetY, 20)));
 		_this._bgs.push(this.createBg("bg2_2", $gameSystem.battleParallax1, new BABYLON.Vector3(-25, bgOffsetY, 20)));
 		_this._bgs.push(this.createBg("bg2_3", $gameSystem.battleParallax1, new BABYLON.Vector3(75, bgOffsetY, 20)));
-		_this._bgs.push(this.createBg("bg2_4", $gameSystem.battleParallax1, new BABYLON.Vector3(-75, bgOffsetY, 20)));
+		_this._bgs.push(this.createBg("bg2_4", $gameSystem.battleParallax1, new BABYLON.Vector3(-75, bgOffsetY, 20)));*/
+		
+		_this.createScrollingBg("bg3", $gameSystem.battleParallax1, 4, {width: 50, height: 25}, bgOffsetY, 20);
 	}
 	
 	if($gameSystem.battleParallax2){
-		_this._bgs.push(this.createBg("bg3_1", $gameSystem.battleParallax2, new BABYLON.Vector3(25, bgOffsetY, 30)));
+		/*_this._bgs.push(this.createBg("bg3_1", $gameSystem.battleParallax2, new BABYLON.Vector3(25, bgOffsetY, 30)));
 		_this._bgs.push(this.createBg("bg3_2", $gameSystem.battleParallax2, new BABYLON.Vector3(-25, bgOffsetY, 30)));
 		_this._bgs.push(this.createBg("bg3_3", $gameSystem.battleParallax2, new BABYLON.Vector3(75, bgOffsetY, 30)));
-		_this._bgs.push(this.createBg("bg3_4", $gameSystem.battleParallax2, new BABYLON.Vector3(-75, bgOffsetY, 30)));
+		_this._bgs.push(this.createBg("bg3_4", $gameSystem.battleParallax2, new BABYLON.Vector3(-75, bgOffsetY, 30)));*/
+		_this.createScrollingBg("bg3", $gameSystem.battleParallax2, 4, {width: 50, height: 25}, bgOffsetY, 30);
 	}
 	
 	if($gameSystem.battleParallax3){
-		_this._bgs.push(this.createBg("bg4_1", $gameSystem.battleParallax3, new BABYLON.Vector3(25, bgOffsetY, 40)));
+		/*_this._bgs.push(this.createBg("bg4_1", $gameSystem.battleParallax3, new BABYLON.Vector3(25, bgOffsetY, 40)));
 		_this._bgs.push(this.createBg("bg4_2", $gameSystem.battleParallax3, new BABYLON.Vector3(-25, bgOffsetY, 40)));
 		_this._bgs.push(this.createBg("bg4_3", $gameSystem.battleParallax3, new BABYLON.Vector3(75, bgOffsetY, 40)));
-		_this._bgs.push(this.createBg("bg4_4", $gameSystem.battleParallax3, new BABYLON.Vector3(-75, bgOffsetY, 40)));
+		_this._bgs.push(this.createBg("bg4_4", $gameSystem.battleParallax3, new BABYLON.Vector3(-75, bgOffsetY, 40)));*/
+		_this.createScrollingBg("bg4", $gameSystem.battleParallax3, 4, {width: 50, height: 25}, bgOffsetY, 40);
+	}
+	
+	if($gameSystem.floorParallax1){
+		_this.createScrollingBg("bgf1", $gameSystem.floorParallax1, 64, {width: 6, height: 3}, -3, 18);
+	}
+	
+	if($gameSystem.floorParallax2){
+		_this.createScrollingBg("bgf2", $gameSystem.floorParallax2, 64, {width: 6, height: 3}, -0.5, 19);
 	}
 	
 	/*_this._skyBgs.forEach(function(bg){
@@ -2135,6 +2156,26 @@ BattleSceneManager.prototype.resetScene = function() {
 		skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 		skybox.material = skyboxMaterial;	
 	}
+}
+
+BattleSceneManager.prototype.createScrollingBg = function(id, path, amount, size, yOffset, zOffset){
+	var _this = this;
+	if(!size){
+		size = {
+			width: 50,
+			height: 25
+		};
+	}
+	
+	var startX = (size.width / 2) * (amount - 1) * -1;
+	for(var i = 0; i < amount; i++){
+		_this._bgs.push(this.createBg(id + "_" + i, path, new BABYLON.Vector3(startX + (i * size.width), yOffset, zOffset), size));
+	}
+	
+	/*_this._bgs.push(this.createBg("bgf1_1", $gameSystem.floorParallax1, new BABYLON.Vector3(25, floorBgOffsetY, 15)));
+	_this._bgs.push(this.createBg("bgf1_2", $gameSystem.floorParallax1, new BABYLON.Vector3(-25, floorBgOffsetY, 15)));
+	_this._bgs.push(this.createBg("bgf1_3", $gameSystem.floorParallax1, new BABYLON.Vector3(75, floorBgOffsetY, 15)));
+	_this._bgs.push(this.createBg("bgf1_4", $gameSystem.floorParallax1, new BABYLON.Vector3(-75, floorBgOffsetY, 15)));*/
 }
 
 BattleSceneManager.prototype.fadeAndShowScene = function(){
