@@ -11845,6 +11845,9 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		info.faces      = $gameParty.facesForSavefile();
 		info.playtime   = $gameSystem.playtimeText();
 		info.timestamp  = Date.now();
+		info.funds = $gameParty.gold();
+		info.SRCount = $SRWSaveManager.getSRCount();
+		info.turnCount =  $gameVariables.value(_turnCountVariable)
 		return info;
 	};
 	
@@ -11888,6 +11891,49 @@ Scene_Gameover.prototype.gotoTitle = function() {
 			}
 		}
 		return timestamp;
+	};
+	
+	Window_SavefileList.prototype.drawItem = function(index) {
+		var id = index + 1;
+		var valid = DataManager.isThisGameFile(id);
+		var info = DataManager.loadSavefileInfo(id);
+		var rect = this.itemRectForText(index);
+		this.resetTextColor();
+		if (this._mode === 'load') {
+			this.changePaintOpacity(valid);
+		}
+		this.drawFileId(id, rect.x, rect.y);
+		if (info) {
+			this.changePaintOpacity(valid);
+			this.drawContents(info, rect, valid);
+			this.changePaintOpacity(true);
+		}
+	};
+	
+	Window_SavefileList.prototype.drawContents = function(info, rect, valid) {
+		var bottom = rect.y + rect.height;
+		if (rect.width >= 420) {
+			this.drawGameTitle(info, rect.x + 192, rect.y, rect.width - 192);
+			if (valid) {
+				this.drawPartyCharacters(info, rect.x + 220, bottom - 4);
+			}
+		}
+		var lineHeight = this.lineHeight();
+		var y2 = bottom - lineHeight;
+		if (y2 >= lineHeight) {
+			this.drawPlaytime(info, rect.x, y2, rect.width);
+		}
+		var offSetX = 20;
+		var bottomOffset = 54;
+		if(info.funds != null){
+			this.drawText(APPSTRINGS.SAVEMENU.label_funds+": "+info.funds, offSetX + rect.x, bottom - bottomOffset, 240);
+		}
+		if(info.funds != null){
+			this.drawText(APPSTRINGS.SAVEMENU.label_SR_count+": "+info.SRCount, offSetX + rect.x + 240, bottom - bottomOffset, 240);
+		}
+		if(info.funds != null){
+			this.drawText(APPSTRINGS.SAVEMENU.label_turn_count+": "+info.turnCount, offSetX + rect.x + 480, bottom - bottomOffset, 240);
+		}		
 	};
 	
 	Window_Options.prototype.addGeneralOptions = function() {

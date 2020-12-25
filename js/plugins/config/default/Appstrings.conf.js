@@ -42,6 +42,12 @@ APPSTRINGS.GENERAL = {
 	label_hit: "Hit"
 }
 
+APPSTRINGS.SAVEMENU = {
+	label_funds: "Funds",
+	label_turn_count: "Turns",
+	label_SR_count: "SR Points"
+}
+
 APPSTRINGS.MAPMENU = {
 	cmd_wait: "Wait",
 	cmd_move: "Move", 
