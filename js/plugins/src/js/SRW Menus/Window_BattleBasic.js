@@ -369,11 +369,12 @@ Window_BattleBasic.prototype.show = function() {
 	windowNode.classList.remove("beginView");
 	windowNode.classList.remove("fadeIn");	
 	windowNode.classList.add("fadeIn");
+	
 	setTimeout(function(){
 		windowNode.classList.remove("beforeView");
 		windowNode.classList.add("beginView");
 	}, 300);
-	_this.initTimer = 48;
+	_this.initTimer = 24;
 	_this.createComponents();
 	_this.readBattleCache();
 	_this.assignFactionColorClass(_this._activeZoneContainerLeft, _this._participantInfo.enemy.ref);
@@ -427,10 +428,12 @@ Window_BattleBasic.prototype.animateDamage = function(elem, special) {
 	elem.style.display = "block";
 	elem.className = "scaled_text";	
 	elem.innerHTML = special.damage;
+	this.applyDoubleTime(elem);
+	
 	if(special.crit){
 		elem.classList.add("crit");
 	}
-	setTimeout(function(){ elem.style.display = "none" }, 600);
+	setTimeout(function(){ elem.style.display = "none" }, 600 * this.getAnimTimeRatio());
 	
 	var se = {};
 	se.name = 'SRWHit';
@@ -444,7 +447,9 @@ Window_BattleBasic.prototype.animateDestroy = function(elem, imgElem) {
 	elem.style.display = "block";
 	imgElem.className = "";	
 	imgElem.className = "destroyed_anim";	
-	setTimeout(function(){ elem.style.display = "none" }, 400);
+	this.applyDoubleTime(imgElem);
+
+	setTimeout(function(){ elem.style.display = "none" }, 400 * this.getAnimTimeRatio());
 	
 	var se = {};
 	se.name = 'SRWExplosion';
@@ -696,6 +701,23 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	this._animationQueue.push([{target: initiator, type: currentInfo.anim_mainReturn}]);
 }
 
+Window_BattleBasic.prototype.applyDoubleTime = function(el) {	
+	if(this._doubleSpeedEnabled){
+		var compStyle = window.getComputedStyle(el, null);
+		var duration = compStyle.getPropertyValue("animation-duration").replace(/s$/, "");
+		el.style["animation-duration"] = duration / 2 + "s";
+	} else {
+		el.style["animation-duration"] = "";
+	}
+}
+
+Window_BattleBasic.prototype.getAnimTimeRatio = function() {	
+	if(this._doubleSpeedEnabled){
+		return 0.5;
+	}
+	return 1;
+}
+
 Window_BattleBasic.prototype.update = function() {
 	var _this = this;
 	Window_Base.prototype.update.call(this);
@@ -705,6 +727,9 @@ Window_BattleBasic.prototype.update = function() {
 			_this.initTimer--;
 			return;
 		}
+		
+		
+		
 		if(this._finishing){
 			if(this._finishTimer <= 0 && !$gameTemp.pauseBasicBattle){
 				this._finishing = false;
@@ -722,7 +747,7 @@ Window_BattleBasic.prototype.update = function() {
 			if(nextAction && (!nextAction.hasActed || nextAction.action.type == "defend" || nextAction.action.type == "evade" || nextAction.action.type == "none")){
 				nextAction = null;
 			}
-			if(!nextAction ){
+			if(!nextAction){
 				if(!this._finishing){
 					this._finishing = true;
 					this._finishTimer = 20;
@@ -745,6 +770,9 @@ Window_BattleBasic.prototype.update = function() {
 						var nextAnimation = nextAnimations[i];
 						nextAnimation.target.className = "participant_container";
 						nextAnimation.target.classList.add(nextAnimation.type);
+						nextAnimation.target.style["animation-duration"] = "";
+						
+						_this.applyDoubleTime(nextAnimation.target);
 						nextAnimation.target.addEventListener("animationend", function(){
 							//nextAnimation.target.className = "";
 							_this._processingAnimationCount--;
@@ -764,7 +792,7 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.enemy_evade){
 								_this._enemyEvade.style.display = "block";
-								setTimeout(function(){ _this._enemyEvade.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemyEvade.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWMiss';
@@ -775,7 +803,7 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.actor_evade){
 								_this._actorEvade.style.display = "block";
-								setTimeout(function(){ _this._actorEvade.style.display = "none" }, 200);
+								setTimeout(function(){ _this._actorEvade.style.display = "none" }, 200 * _this.getAnimTimeRatio());
 
 								var se = {};
 								se.name = 'SRWMiss';
@@ -811,17 +839,17 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.enemy_counter){
 								_this._enemyCounter.style.display = "block";
-								setTimeout(function(){ _this._enemyCounter.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._enemyCounter.style.display = "none" }, 200 * _this.getAnimTimeRatio());		
 							}
 							if(nextAnimation.special.actor_counter){
 								_this._actorCounter.style.display = "block";
-								setTimeout(function(){ _this._actorCounter.style.display = "none" }, 200);		
+								setTimeout(function(){ _this._actorCounter.style.display = "none" }, 200 * _this.getAnimTimeRatio());		
 							}
 														
 							if(nextAnimation.special.enemy_double_image){
 								_this._enemyDoubleImage.style.display = "block";
 								_this._enemyDoubleImage.innerHTML = "DOUBLE IMAGE";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWDoubleImage';
@@ -833,7 +861,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_double_image){
 								_this._actorDoubleImage.style.display = "block";
 								_this._actorDoubleImage.innerHTML = "DOUBLE IMAGE";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWDoubleImage';
@@ -845,7 +873,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_support_double_image){
 								_this._enemySupportDoubleImage.style.display = "block";
 								_this._enemySupportDoubleImage.innerHTML = "DOUBLE IMAGE";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWDoubleImage';
@@ -857,7 +885,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_support_double_image){
 								_this._actorSupportDoubleImage.style.display = "block";
 								_this._actorSupportDoubleImage.innerHTML = "DOUBLE IMAGE";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWDoubleImage';
@@ -870,7 +898,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_parry){
 								_this._enemyDoubleImage.style.display = "block";
 								_this._enemyDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWParry';
@@ -882,7 +910,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_parry){
 								_this._actorDoubleImage.style.display = "block";
 								_this._actorDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWParry';
@@ -894,7 +922,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_support_parry){
 								_this._enemySupportDoubleImage.style.display = "block";
 								_this._enemySupportDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWParry';
@@ -906,7 +934,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_support_parry){
 								_this._actorSupportDoubleImage.style.display = "block";
 								_this._actorSupportDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWParry';
@@ -919,7 +947,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_jamming){
 								_this._enemyDoubleImage.style.display = "block";
 								_this._enemyDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWJamming';
@@ -931,7 +959,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_jamming){
 								_this._actorDoubleImage.style.display = "block";
 								_this._actorDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWJamming';
@@ -943,7 +971,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_support_jamming){
 								_this._enemySupportDoubleImage.style.display = "block";
 								_this._enemySupportDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWJamming';
@@ -955,7 +983,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_support_jamming){
 								_this._actorSupportDoubleImage.style.display = "block";
 								_this._actorSupportDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWJamming';
@@ -968,7 +996,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_shoot_down){
 								_this._enemyDoubleImage.style.display = "block";
 								_this._enemyDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWShootDown';
@@ -980,7 +1008,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_shoot_down){
 								_this._actorDoubleImage.style.display = "block";
 								_this._actorDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWShootDown';
@@ -992,7 +1020,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_support_shoot_down){
 								_this._enemySupportDoubleImage.style.display = "block";
 								_this._enemySupportDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWShootDown';
@@ -1004,7 +1032,7 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.actor_support_shoot_down){
 								_this._actorSupportDoubleImage.style.display = "block";
 								_this._actorSupportDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200);	
+								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWShootDown';
@@ -1016,7 +1044,7 @@ Window_BattleBasic.prototype.update = function() {
 							
 							if(nextAnimation.special.actor_barrier){
 								_this._actorBarrier.style.display = "block";
-								setTimeout(function(){ _this._actorBarrier.style.display = "none" }, 600);	
+								setTimeout(function(){ _this._actorBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWShield';
@@ -1027,7 +1055,7 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.actor_support_barrier){
 								_this._actorSupportBarrier.style.display = "block";
-								setTimeout(function(){ _this._actorSupportBarrier.style.display = "none" }, 600);	
+								setTimeout(function(){ _this._actorSupportBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());	
 								
 								var se = {};
 								se.name = 'SRWShield';
@@ -1038,7 +1066,7 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.enemy_barrier){
 								_this._enemyBarrier.style.display = "block";
-								setTimeout(function(){ _this._enemyBarrier.style.display = "none" }, 600);		
+								setTimeout(function(){ _this._enemyBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());		
 								
 								var se = {};
 								se.name = 'SRWShield';
@@ -1049,7 +1077,7 @@ Window_BattleBasic.prototype.update = function() {
 							}
 							if(nextAnimation.special.enemy_support_barrier){
 								_this._enemySupportBarrier.style.display = "block";
-								setTimeout(function(){ _this._enemySupportBarrier.style.display = "none" }, 600);
+								setTimeout(function(){ _this._enemySupportBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());
 
 								var se = {};
 								se.name = 'SRWShield';
@@ -1095,17 +1123,17 @@ Window_BattleBasic.prototype.update = function() {
 			
 		}
 		
-		if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
-			//this.requestRedraw();
-			
-		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
-			//this.requestRedraw();
-			
+		if (Input.isTriggered('ok') || Input.isPressed('ok')) {
+			this._doubleSpeedEnabled = true;
+			this.getWindowNode().classList.add("double_speed");
+		} else {
+			this._doubleSpeedEnabled = false;
+			this.getWindowNode().classList.remove("double_speed"); //debug should be remove for final!
 		}
 		
-		if(Input.isTriggered('L3')){
+		if(Input.isTriggered('pageup')){
 			//this.requestRedraw();
-			//this.readBattleCache();
+			this.readBattleCache();
 		} 	
 		
 		if(Input.isTriggered('ok')){

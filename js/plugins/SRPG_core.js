@@ -3427,6 +3427,7 @@ var $battleSceneManager = new BattleSceneManager();
 		this._floatOffset = 0;
 		this._floatAmount = 10;
 		this._floating = false;
+		this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED;
 	}
 	
 	var Game_CharacterBase_screenY = Game_CharacterBase.prototype.screenY;
@@ -3462,6 +3463,13 @@ var $battleSceneManager = new BattleSceneManager();
 // ●Game_Player
 //====================================================================
     //プレイヤーの画像を変更する
+	
+	Game_Player.prototype.initialize = function() {
+    Game_Character.prototype.initialize.call(this);
+		this.setTransparent($dataSystem.optTransparent);
+		this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED;
+	};
+	
     var _SRPG_Game_Player_refresh = Game_Player.prototype.refresh;
     Game_Player.prototype.refresh = function() {
         if ($gameSystem.isSRPGMode() == true) {
@@ -4109,7 +4117,7 @@ var $battleSceneManager = new BattleSceneManager();
 					if(followMove){
 						$gamePlayer.locate(targetPosition.x, targetPosition.y);
 					}
-					$gamePlayer.setMoveSpeed(4);
+					$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED);
 					this._targetPosition = null;
 					this._pathToCurrentTarget = null;
 					this._pendingMoveToPoint = false;
@@ -4151,7 +4159,7 @@ var $battleSceneManager = new BattleSceneManager();
 							}
 						}					
 					} else {
-						$gamePlayer.setMoveSpeed(4);
+						$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED);
 						this._targetPosition = null;
 						this._pathToCurrentTarget = null;
 						this._pendingMoveToPoint = false;
@@ -5934,7 +5942,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		if(this._time > this._duration){
 			if(this._time < this._duration + this._holdDuration){
-				console.log((this._time - this._duration));
 				var scaleFactor = 1.05 + (Math.sin((this._time - this._duration) / 2) / 15);
 				this.scale.x = scaleFactor;
 				this.scale.y = scaleFactor;
@@ -8134,12 +8141,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}
 			
 			if ($gameSystem.isSubBattlePhase() === 'rewards_display') {
-				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()) {
+				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled() || ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
 					 //this._rewardsWindow.close();
 					 $gameTemp.popMenu = true;	
 					 this._rewardsWindow.hide();
 					 this._rewardsWindow.deactivate();
 					 if($gameTemp.rewardsInfo.levelResult.hasLevelled){
+						$gameTemp.rewardsDisplayTimer = 30;
 						$gameSystem.setSubBattlePhase("level_up_display");
 						/*this._levelUpWindow.refresh();
 						this._levelUpWindow.show();
@@ -8156,9 +8164,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					}					 
 					return;
 				 }
+				 $gameTemp.rewardsDisplayTimer--;
 			}
 			if ($gameSystem.isSubBattlePhase() === 'level_up_display') {
-				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()) {
+				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()|| ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
 					$gameTemp.popMenu = true;
 					this._levelUpWindow.hide();
 					this._levelUpWindow.deactivate();
@@ -8166,6 +8175,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					this.srpgPrepareNextAction();										 
 					return;
 				 }
+				 $gameTemp.rewardsDisplayTimer--;
 			}
             if ($gameSystem.srpgWaitMoving() == true ||
                 $gameTemp.isAutoMoveDestinationValid() == true ||
@@ -9212,7 +9222,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			if($gameTemp.isEnemyAttack){
 				this.srpgAfterAction();
 			} else {
-				$gameParty.gainGold($gameTemp.rewardsInfo.fundGain);			
+				$gameParty.gainGold($gameTemp.rewardsInfo.fundGain);	
+				$gameTemp.rewardsDisplayTimer = 20;	
 				$gameSystem.setSubBattlePhase("rewards_display");				
 				$gameTemp.pushMenu = "rewards";
 			}			
@@ -9311,7 +9322,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			if(actorIsDestroyed){				
 				this.srpgPrepareNextAction();
 			} else if($gameTemp.rewardsInfo){
-				$gameParty.gainGold($gameTemp.rewardsInfo.fundGain);			
+				$gameParty.gainGold($gameTemp.rewardsInfo.fundGain);	
+				$gameTemp.rewardsDisplayTimer = 20;
 				$gameSystem.setSubBattlePhase("rewards_display");				
 				/*this._rewardsWindow.refresh();
 				//this._rewardsWindow.open();
@@ -11876,6 +11888,11 @@ Scene_Gameover.prototype.gotoTitle = function() {
 			}
 		}
 		return timestamp;
+	};
+	
+	Window_Options.prototype.addGeneralOptions = function() {
+		//this.addCommand(TextManager.alwaysDash, 'alwaysDash');
+		//this.addCommand(TextManager.commandRemember, 'commandRemember');
 	};
 		
 })();

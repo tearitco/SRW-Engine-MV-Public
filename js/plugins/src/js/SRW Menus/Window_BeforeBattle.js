@@ -35,6 +35,7 @@ Window_BeforeBattle.prototype.show = function(){
 	this._currentActionSelection = 0;
 	this._currentSupportSelection = 0;
 	this.getWindowNode().style.display = "";
+	this._longPressTimer = 20;
 }
 
 Window_BeforeBattle.prototype.getMaxMainSelection = function(){
@@ -258,9 +259,18 @@ Window_BeforeBattle.prototype.update = function() {
 		}
 		
 		if(Input.isTriggered('L3')){
-			this.requestRedraw();
-			
+			this.requestRedraw();			
 		} 	
+		
+		if(this._longPressTimer <= 0 && Input.isLongPressed('ok')){
+			if(this._currentSelection == 0){
+				if(this._callbacks["selected"]){
+					this._callbacks["selected"]();
+				}	
+				setTimeout(function(){_this.getWindowNode().style.display = "none"; _this.close()}, 1000); //hack to make sure the pre battle window is hidden after returning from the battle scene
+			}
+		}	
+		this._longPressTimer--;
 		
 		if(Input.isTriggered('ok')){	
 			//$gameTemp.popMenu = true;	
