@@ -3427,7 +3427,6 @@ var $battleSceneManager = new BattleSceneManager();
 		this._floatOffset = 0;
 		this._floatAmount = 10;
 		this._floating = false;
-		this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED;
 	}
 	
 	var Game_CharacterBase_screenY = Game_CharacterBase.prototype.screenY;
@@ -3467,7 +3466,7 @@ var $battleSceneManager = new BattleSceneManager();
 	Game_Player.prototype.initialize = function() {
     Game_Character.prototype.initialize.call(this);
 		this.setTransparent($dataSystem.optTransparent);
-		this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED;
+		this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
 	};
 	
     var _SRPG_Game_Player_refresh = Game_Player.prototype.refresh;
@@ -4117,7 +4116,7 @@ var $battleSceneManager = new BattleSceneManager();
 					if(followMove){
 						$gamePlayer.locate(targetPosition.x, targetPosition.y);
 					}
-					$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED);
+					$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED || 4);
 					this._targetPosition = null;
 					this._pathToCurrentTarget = null;
 					this._pendingMoveToPoint = false;
@@ -4159,7 +4158,7 @@ var $battleSceneManager = new BattleSceneManager();
 							}
 						}					
 					} else {
-						$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED);
+						$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED || 4);
 						this._targetPosition = null;
 						this._pathToCurrentTarget = null;
 						this._pendingMoveToPoint = false;
