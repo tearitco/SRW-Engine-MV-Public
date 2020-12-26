@@ -1223,6 +1223,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.persuadeOptions = {};
 		$gameTemp.currentSwapSource = -1;
 		$gameTemp.enemyAppearQueue = [];
+		$gameTemp.disappearQueue = [];
 		
 		$gameSystem.factionConfig = {
 			0: {
@@ -4626,15 +4627,19 @@ Game_Interpreter.prototype.destroyEvent = function(eventId) {
 	
 }
 
-Game_Interpreter.prototype.eraseEvents = function(startId, endId) {
+Game_Interpreter.prototype.eraseEvents = function(startId, endId, toQueue) {
 	for(var i = startId; i <= endId; i++){
 		this.eraseEvent(i);
 	}
 }
 
-Game_Interpreter.prototype.eraseEvent = function(eventId) {
+Game_Interpreter.prototype.eraseEvent = function(eventId, toQueue) {
 	var event = $gameMap.event(eventId);
-	event.erase();
+	if(toQueue){
+		$gameTemp.disappearQueue.push(event);
+	} else {
+		event.erase();
+	}	
 	event.manuallyErased = true;
 	var actor = $gameSystem.EventToUnit(eventId)[1];
 	if(actor.isActor()){
@@ -4836,6 +4841,12 @@ Game_Interpreter.prototype.processEnemyAppearQueue = function(){
 Game_Interpreter.prototype.processUnitAppearQueue = function(){
 	this.setWaitMode("enemy_appear");
 	$gameTemp.enemyAppearQueueIsProcessing = true;
+	$gameTemp.unitAppearTimer = 0;
+}
+
+Game_Interpreter.prototype.processDisappearQueue = function(){
+	this.setWaitMode("enemy_appear");
+	$gameTemp.disappearQueueIsProcessing = true;
 	$gameTemp.unitAppearTimer = 0;
 }
 
@@ -5849,7 +5860,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 
 	Sprite_Appear.prototype.initialize = function(character) {
 		Sprite_Base.prototype.initialize.call(this);		
-		this.bitmap =  ImageManager.loadAnimation('Recovery4');
+		this.bitmap =  ImageManager.loadAnimation('SRWAppear');
 		this._character = character;
 		this.anchor.x = 0.5;
 		this.anchor.y = 0.6;
@@ -5886,9 +5897,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				if (this._character.isDoingAppearAnim) {
 					if(this._animationFrame == 0){
 						var se = {};
-						se.name = 'Battle3';
+						se.name = 'SRWAppear';
 						se.pan = 0;
-						se.pitch = 150;
+						se.pitch = 100;
 						se.volume = 60;
 						AudioManager.playSe(se);
 					}
@@ -5906,6 +5917,75 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}			
 	};	
 
+//====================================================================
+// Sprite_Disappear
+//====================================================================	
+	
+	function Sprite_Disappear() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_Disappear.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_Disappear.prototype.constructor = Sprite_Disappear;
+
+	Sprite_Disappear.prototype.initialize = function(character) {
+		Sprite_Base.prototype.initialize.call(this);		
+		this.bitmap =  ImageManager.loadAnimation('SRWDisappear');
+		this._character = character;
+		this.anchor.x = 0.5;
+		this.anchor.y = 0.6;
+		this._animationFrame = 0;
+		this.visible = false;
+		this._frameSize = 192;
+		this._sheetHeight = 3;
+		this._sheetWidth = 5;
+		this._frames = 8;
+		this._frameCounter = 0;
+		this._animationSpeed = 2;
+		this.setFrame(0 * this._frameSize, 0 * this._frameSize, this._frameSize, this._frameSize);
+	};
+	
+	Sprite_Disappear.prototype.setCharacter = function(character){
+		this._character = character;
+	}
+
+	Sprite_Disappear.prototype.update = function() {
+		if(this._animationFrame > this._frames){
+			this.visible = false;
+			this._character.isDoingDisappearAnim = false;
+		} else {
+			if(this._animationFrame == 3){
+				this._character.erase();
+			}				
+			this.x = this._character.screenX();
+			this.y = this._character.screenY();
+			this.z = this._character.screenZ() + 1;
+			var eventId = this._character.eventId();
+			var battlerArray = $gameSystem.EventToUnit(eventId);
+			if(battlerArray && battlerArray[1]){
+				if (this._character.isDoingDisappearAnim) {
+					if(this._animationFrame == 0){
+						var se = {};
+						se.name = 'SRWDisappear';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 60;
+						AudioManager.playSe(se);
+					}
+					this.visible = true;
+					var col = this._animationFrame % this._sheetWidth;
+					var row = Math.floor(this._animationFrame / this._sheetWidth);
+					this.setFrame(col * this._frameSize, row * this._frameSize, this._frameSize, this._frameSize);
+					this._frameCounter++;
+					if(this._frameCounter >= this._animationSpeed){
+						this._animationFrame++;
+						this._frameCounter = 0;
+					}					
+				} 
+			}	
+		}			
+	};		
+	
 	
 //====================================================================
 // Sprite_SrpgGrid
@@ -6119,6 +6199,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._bshadowSprites = {};
 		this._explosionSprites = {};
 		this._appearSprites = {};
+		this._disappearSprites = {};
 		$gameMap.events().forEach(function(event) {
 			this.createBShadow(event._eventId,event);			
 		}, this);
@@ -6180,6 +6261,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameMap.events().forEach(function(event) {
 			this.createExplosionSprite(event._eventId,event);
 			this.createAppearSprite(event._eventId,event);
+			this.createDisappearSprite(event._eventId,event);
 		}, this);			
 		
 		this._reticuleSprite = new Sprite_Reticule();
@@ -6201,6 +6283,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this._appearSprites[id] = new Sprite_Appear(character);
 			this._baseSprite.addChild(this._appearSprites[id]);
 			character._appearSprite = true;
+		};
+	};
+	
+	Spriteset_Map.prototype.createDisappearSprite = function(id,character) {
+		if (!character) return;
+		if (!this._disappearSprites[id]) {
+			this._disappearSprites[id] = new Sprite_Disappear(character);
+			this._baseSprite.addChild(this._disappearSprites[id]);
+			character._disappearSprite = true;
 		};
 	};
 	
@@ -8324,6 +8415,20 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					var current = $gameTemp.enemyAppearQueue.shift();
 					$gamePlayer.locate(current.posX(), current.posY());
 					current.isDoingAppearAnim = true;
+					$gameTemp.unitAppearTimer = 15;
+				}				
+			}
+		}
+		
+		if($gameTemp.disappearQueueIsProcessing){
+			$gameTemp.unitAppearTimer--;
+			if($gameTemp.unitAppearTimer <= 0){
+				if(!$gameTemp.disappearQueue.length){
+					$gameTemp.disappearQueueIsProcessing = false;
+				} else {
+					var current = $gameTemp.disappearQueue.shift();
+					$gamePlayer.locate(current.posX(), current.posY());
+					current.isDoingDisappearAnim = true;
 					$gameTemp.unitAppearTimer = 15;
 				}				
 			}
