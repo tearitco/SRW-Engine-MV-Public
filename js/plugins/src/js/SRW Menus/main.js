@@ -88,7 +88,7 @@ Graphics.getOriginalWidth = function(){
 }
 
 Graphics.getScale = function(){
-	return this._realScale;
+	return this._realScale * (this.getOriginalWidth() / 1110);
 }
 
 
