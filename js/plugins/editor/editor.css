@@ -374,3 +374,8 @@
 #srw_editor .tick_play_button {
 	float: right;
 }
+
+#srw_editor #editor_selector {
+	margin-left: auto;
+	margin-right: 20px;
+}

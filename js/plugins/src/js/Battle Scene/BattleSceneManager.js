@@ -113,6 +113,7 @@ BattleSceneManager.prototype.init = function(attachControl){
 		this._initialized = true;
 		this._UILayerManager = new BattleSceneUILayer("battle_scene_ui_layer");	
 		this._animationBuilder = new BattleAnimationBuilder();
+		this._environmentBuilder = new BattleEnvironmentBuilder();
 		this._glContext = this._canvas.getContext("webgl");
 		this._engine = new BABYLON.Engine(this._canvas, true, {preserveDrawingBuffer: true, stencil: true}); // Generate the BABYLON 3D engine	
 		this._effksContext = effekseer.createContext();
@@ -136,6 +137,10 @@ BattleSceneManager.prototype.resetMaxAnimationTick = function(tick){
 
 BattleSceneManager.prototype.getAnimationBuilder = function(){
 	return this._animationBuilder;
+}	
+
+BattleSceneManager.prototype.getEnvironmentBuilder = function(){
+	return this._environmentBuilder;
 }	
 
 BattleSceneManager.prototype.getDefaultPositions = function(){
@@ -2057,11 +2062,18 @@ BattleSceneManager.prototype.resetScene = function() {
 	
 	_this._camera.position = _this._defaultPositions.camera_main_intro;
 	_this._camera.rotation = _this._defaultRotations.camera_main_intro;
-	_this._actorSprite.sprite.position = _this._defaultPositions.ally_main_idle;
-	_this._enemySprite.sprite.position = _this._defaultPositions.enemy_main_idle;	
-	
-	_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_support_idle;
-	_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_support_idle;	
+	if(_this._actorSprite){
+		_this._actorSprite.sprite.position = _this._defaultPositions.ally_main_idle;
+	}
+	if(_this._enemySprite){
+		_this._enemySprite.sprite.position = _this._defaultPositions.enemy_main_idle;	
+	}
+	if(_this._actorSupporterSprite){
+		_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_support_idle;
+	}
+	if(_this._enemySupporterSprite){
+		_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_support_idle;
+	}	
 	
 	_this._bgs.forEach(function(bg){
 		bg.dispose();
@@ -2491,11 +2503,32 @@ BattleSceneManager.prototype.startAnimations = function() {
 	this._animsPaused = false;
 }
 
-BattleSceneManager.prototype.testSpriterAnim = function(){
-	var dynamicBgInfo = this.createSpriterBg("test_spriter", new BABYLON.Vector3(0,0,1 ), 10, 1, 0, true);
-	dynamicBgInfo.renderer = new SpriterManager();
-	dynamicBgInfo.renderer.startAnimation(dynamicBgInfo.texture);
-	this._spriterMainSpritesInfo.push(dynamicBgInfo);
-	return dynamicBgInfo;
-	//dynamicBgInfo.texture.drawText("TEST", 0, 0, "", "red", "white", false, true);
+BattleSceneManager.prototype.showEnvironmentScene = function() {
+	var _this = this;		
+	_this._sceneCanEnd = false;
+	_this._sceneIsEnding = false;
+	_this._UIcontainer.style.display = "block";	
+	
+	_this.resetScene();
+
+
+		
+	
+	if(_this._actorSprite){
+	_this._actorSprite.sprite.setEnabled(false);
+	}
+	if(_this._enemySprite){
+		_this._enemySprite.sprite.setEnabled(false);
+	}
+	if(_this._actorSupporterSprite){
+		_this._actorSupporterSprite.sprite.setEnabled(false);
+	}
+	if(_this._enemySupporterSprite){
+		_this._enemySupporterSprite.sprite.setEnabled(false);
+	}
+	_this._UILayerManager.resetTextBox();
+	_this._camera.position = _this._defaultPositions.camera_main_idle
+	_this.startScene();		
+	_this.fadeFromBlack();		
+	
 }

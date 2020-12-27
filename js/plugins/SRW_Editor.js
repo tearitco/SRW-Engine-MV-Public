@@ -1,5 +1,10 @@
 function SRWEditor(){
-	
+	this._currentEditor = "attack_editor";
+	this._title = "SRW Engine MV Editor v0.1";
+	this._editorData = {
+		attack_editor: {title: "Attack Editor", func: this.showAttackEditor},
+		environment_editor:  {title: "Environment Editor", func: this.showEnvironmentEditor}
+	}
 }
 
 SRWEditor.prototype.init = function(){
@@ -15,6 +20,7 @@ SRWEditor.prototype.init = function(){
 	_this._contentDiv = document.createElement("div");
 	_this._contentDiv.id = "srw_editor";
 	document.body.appendChild(_this._contentDiv);
+	
 	
 	$gameSystem.skyBattleOffset = 5;
 	
@@ -576,15 +582,90 @@ SRWEditor.prototype.show = function(){
 	var _this = this;
 	var content = "";
 	
+	var currentEditorInfo = this._editorData[this._currentEditor];
 	content+="<div class='header'>";
-	content+="SRW Engine MV Editor v0.1";
+	content+=this._title + " - " + currentEditorInfo.title;
+	
+	content+="<select id='editor_selector'>";
+	content+="<option value='attack_editor' "+(this._currentEditor == "attack_editor" ? "selected" : "")+">Attack Editor</option>";
+	content+="<option value='environment_editor' "+(this._currentEditor == "environment_editor" ? "selected" : "")+">Environment Editor</option>";
+	content+="</select>";
 	content+="</div>";
 	
 	content+="<div class='content'>";
 	content+="</div>";
 	
 	_this._contentDiv.innerHTML = content;
-	_this.showAttackEditor();
+	
+	_this._contentDiv.querySelector("#editor_selector").addEventListener("change", function(){
+		_this._currentEditor = this.value;
+		_this.show();
+	});
+	
+	currentEditorInfo.func.call(this);
+}
+
+SRWEditor.prototype.prepareBattleScenePreview = function(){
+	var _this = this;
+	document.onkeydown = null;
+	
+	if(_this._battleSceneLayer){
+		document.querySelector("#attack_editor .preview_window").appendChild(_this._battleSceneLayer);
+	} else {
+		document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#battle_scene_layer"));
+	}	
+	_this._battleSceneLayer = document.querySelector("#attack_editor #battle_scene_layer");
+	_this._battleSceneLayer.style.width = "";
+	_this._battleSceneLayer.style.height = "";
+	
+	if(_this._battleSceneUILayer){
+		document.querySelector("#attack_editor .preview_window").appendChild(_this._battleSceneUILayer);
+	} else {
+		document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#battle_scene_ui_layer"));
+	}	
+	_this._battleSceneUILayer = document.querySelector("#attack_editor #battle_scene_ui_layer");
+	_this._battleSceneUILayer.style.width = "";
+	_this._battleSceneUILayer.style.height = "";
+	
+	if(_this._battleSceneFadeLayer){
+		document.querySelector("#attack_editor .preview_window").appendChild(_this._battleSceneFadeLayer);
+	} else {
+		document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#fade_container"));
+	}
+	_this._battleSceneFadeLayer = document.querySelector("#attack_editor #fade_container");
+	_this._battleSceneFadeLayer.style.width = "";
+	_this._battleSceneFadeLayer.style.height = "";
+	$battleSceneManager.init(true);	
+	$battleSceneManager._fadeContainer = _this._battleSceneFadeLayer;
+}
+
+SRWEditor.prototype.showEnvironmentEditor = function(){
+	var _this = this;
+	var containerNode = _this._contentDiv.querySelector(".content");
+	var content = "";
+	content+="<div id='attack_editor'>";
+	content+="<div class='edit_controls'>";
+	
+	content+="</div>";
+	content+="<div class='preview'>";
+	content+="<div class='preview_window_container'>";
+	content+="<div class='preview_window'>";
+	content+="</div>";
+	content+="</div>";	
+	
+	content+="</div>";
+	
+	content+="</div>";
+	
+	content+="</div>";
+	content+="</div>";
+	
+	containerNode.innerHTML = content;
+	
+	this.prepareBattleScenePreview();
+	$battleSceneManager.showEnvironmentScene();
+		
+	
 }
 
 SRWEditor.prototype.showAttackEditor = function(){
@@ -687,23 +768,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	containerNode.innerHTML = content;
 	
-	document.onkeydown = null;
-	
-	document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#battle_scene_layer"));
-	_this._battleSceneLayer = document.querySelector("#attack_editor #battle_scene_layer");
-	_this._battleSceneLayer.style.width = "";
-	_this._battleSceneLayer.style.height = "";
-	
-	document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#battle_scene_ui_layer"));
-	_this._battleSceneUILayer = document.querySelector("#attack_editor #battle_scene_ui_layer");
-	_this._battleSceneUILayer.style.width = "";
-	_this._battleSceneUILayer.style.height = "";
-	
-	document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#fade_container"));
-	_this._battleSceneFadeLayer = document.querySelector("#attack_editor #fade_container");
-	_this._battleSceneFadeLayer.style.width = "";
-	_this._battleSceneFadeLayer.style.height = "";
-	$battleSceneManager.init(true);	
+	this.prepareBattleScenePreview();
 	
 	this._animationBuilder = $battleSceneManager.getAnimationBuilder();
 	_this._animationBuilder.isLoaded().then(function(){

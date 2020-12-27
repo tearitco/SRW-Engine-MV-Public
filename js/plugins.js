@@ -14,6 +14,7 @@ var $plugins =
 {"name":"SimpleMsgSideView","status":false,"description":"at sideview battle, only display item/skill names.","parameters":{"displayAttack":"0","position":"1"}},
 {"name":"--SRW Plugins--------","status":false,"description":"----------------------------------------------------------------------","parameters":{}},
 {"name":"BattleAnimationBuilder","status":true,"description":"","parameters":{}},
+{"name":"BattleEnvironmentBuilder","status":true,"description":"","parameters":{}},
 {"name":"SRW_MapAttackManager","status":true,"description":"","parameters":{}},
 {"name":"SRW_StageInfoManager","status":true,"description":"","parameters":{}},
 {"name":"SRW_SongManager","status":true,"description":"","parameters":{}},
