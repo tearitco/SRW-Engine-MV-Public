@@ -47,6 +47,6 @@ var $plugins =
 {"name":"atlas","status":true,"description":"","parameters":{}},
 {"name":"render-ctx2d","status":true,"description":"","parameters":{}},
 {"name":"render-webgl","status":true,"description":"","parameters":{}},
-{"name":"spriter","status":true,"description":"","parameters":{}}
+{"name":"spriter","status":true,"description":"","parameters":{}},
 {"name":"RiP_UnlockedCamera","status":true,"description":"Unlock the camera from map edges keeping it centered on the player.","parameters":{"Default Camera":"true"}}
 ];
