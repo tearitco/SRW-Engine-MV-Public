@@ -583,6 +583,8 @@ SRWEditor.prototype.show = function(){
 	var _this = this;
 	var content = "";
 	
+	AudioManager.stopBgm();
+	
 	var currentEditorInfo = this._editorData[this._currentEditor];
 	content+="<div class='header'>";
 	content+=this._title + " - " + currentEditorInfo.title;
