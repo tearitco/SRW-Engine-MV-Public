@@ -404,6 +404,14 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.skyBattleEnv = args[0];
 		}
 		
+		if (command === 'setRegionBattleEnv') {
+			$gameSystem.regionBattleEnv[args[0]] = args[1];
+		}
+		
+		if (command === 'setRegionSkyBattleEnv') {
+			$gameSystem.regionSkyBattleEnv[args[0]] = args[1];
+		}
+		
 		if (command === 'addMapHighlight') {
 			if(!$gameSystem.highlightedTiles){
 				$gameSystem.highlightedTiles = [];
@@ -1267,6 +1275,8 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameTemp.enemyAppearQueue = [];
 		$gameSystem.defaultBattleEnv = null;
 		$gameSystem.skyBattleEnv = null;
+		$gameSystem.regionBattleEnv = {};
+		$gameSystem.regionSkyBattleEnv = {};
 
 		$gameTemp.disappearQueue = [];
 
@@ -2034,15 +2044,20 @@ var $battleSceneManager = new BattleSceneManager();
 		if($gameTemp.editMode){
 			return $SRWEditor.getBattleEnvironmentId();
 		} else {
+			var region = $gameMap.regionId(actor.event.posX(), actor.event.posY());
 			if($statCalc.isFlying(actor)){
+				if($gameSystem.regionSkyBattleEnv[region] != null){
+					return $gameSystem.regionSkyBattleEnv[region];
+				}
+				
 				if($gameSystem.skyBattleEnv){
 					return $gameSystem.skyBattleEnv;
-				} else {
-					return $gameSystem.defaultBattleEnv;
-				}
-			} else {
-				return $gameSystem.defaultBattleEnv;
-			}			
+				} 
+			} 
+			if($gameSystem.regionBattleEnv[region] != null){
+				return $gameSystem.regionBattleEnv[region];
+			}
+			return $gameSystem.defaultBattleEnv;						
 		}
     };
 

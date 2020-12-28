@@ -1221,7 +1221,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		updateBgMode: function(target){
 			var action;
 			if(target == "active_target"){
-				action = _this._currentAnimatedAction.attacked;
+				action = _this._currentAnimatedAction.originalTarget;
 			} else {
 				action = _this._currentAnimatedAction;
 			}
@@ -1231,8 +1231,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			
 			_this._animationList[startTick + 1] = [{type: "fade_swipe", target: "", params: {time: 700}}];	
 			
-			if(params.cleanUpCommands){
-				_this._animationList[startTick + 26] = params.cleanUpCommands;	
+			_this._animationList[startTick + 25] = [{type: "create_target_environment"}];
+			if(params.cleanUpCommands){				
+				_this._animationList[startTick + 26] = params.cleanUpCommands;						
 			}				
 			
 			//support defend animation
@@ -1455,6 +1456,16 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction;
 			var targetAction = _this._currentAnimatedAction.attacked;
 			if(targetObj){
+				if(params.name == "hurt" || params.name == "hurt_end"){
+					if(target == "active_main" || target == "active_support_attacker"){
+						battleEffect = targetAction; 					
+					} else if(target == "active_target" || target == "active_support_defender"){
+						battleEffect = action;					
+					}
+					if(battleEffect.damageInflicted == 0){
+						params.name = "main";
+					}
+				}
 				if(targetObj.spriteConfig.type == "default"){
 					if(!params.spriterOnly){					
 						var sampleMode;
@@ -1692,7 +1703,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		kill_se: function(target, params){
 			AudioManager.stopSe()
 		},
-	
+		create_target_environment: function(target, params){
+			_this.createEnvironment(_this._currentAnimatedAction.originalTarget.ref);
+		}
 	};
 	if(animationHandlers[animation.type] && _this._currentAnimatedAction){
 		animationHandlers[animation.type](animation.target, animation.params || {});
@@ -2081,7 +2094,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	}	
 }
 
-BattleSceneManager.prototype.createEnvironment = function(action){
+BattleSceneManager.prototype.createEnvironment = function(ref){
 	var _this = this;
 	
 	_this._bgs.forEach(function(bg){
@@ -2094,7 +2107,7 @@ BattleSceneManager.prototype.createEnvironment = function(action){
 	});	
 	_this._fixedBgs = [];
 	
-	var bgId = $gameSystem.getUnitSceneBgId(action.ref);
+	var bgId = $gameSystem.getUnitSceneBgId(ref);
 	
 	var environmentDef = _this._environmentBuilder.getDefinition(bgId);
 	if(environmentDef){
@@ -2233,7 +2246,7 @@ BattleSceneManager.prototype.showScene = function() {
 		}
 		
 		_this.setUpActionSceneState(firstAction);
-		_this.createEnvironment(firstAction);
+		_this.createEnvironment(firstAction.ref);
 		_this._lastActionWasSupportAttack = false;
 		_this._lastActionWasSupportDefend = false;
 		_this.fadeFromBlack();
@@ -2474,7 +2487,7 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this._camera.rotation.copyFrom(_this._defaultRotations.camera_main_idle);
 	_this.stopScene();
 	_this.startScene();		
-	_this.createEnvironment({ref: ""});
+	_this.createEnvironment();
 	_this.fadeFromBlack();		
 	
 }

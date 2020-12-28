@@ -560,6 +560,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			aCache.hasActed = true;
 			var weaponref = this._attacker.action.attack;
 			aCache.attacked = dCache;
+			aCache.originalTarget = dCache;
 			$gameTemp.sortedBattleActorCaches.push(aCache);
 			dCache.isAttacked = true;
 			var isHit = Math.random() < _this.performHitCalculation(
