@@ -2015,7 +2015,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 					x: rangeTarget.event.posX(),
 					y: rangeTarget.event.posY()
 				};
-				if(!$battleCalc.isTargetInRange(pos, targetpos, weapon.range, weapon.minRange)){
+				if(!$battleCalc.isTargetInRange(pos, targetpos, $statCalc.getRealWeaponRange(actor, weapon), weapon.minRange)){
 					canUse = false;
 					detail.target = true;
 				}
@@ -2029,7 +2029,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 				var rangeResult;
 				var type = actor.isActor() ? "enemy" : "actor";
 				
-				if(!this.getAllInRange($gameSystem.getUnitFactionInfo(actor), pos, weapon.range, weapon.minRange).length){
+				if(!this.getAllInRange($gameSystem.getUnitFactionInfo(actor), pos, $statCalc.getRealWeaponRange(actor, weapon), weapon.minRange).length){
 					canUse = false;
 					detail.target = true;
 				}
@@ -2182,7 +2182,7 @@ StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 	var currentMinRange = -1;
 	allWeapons.forEach(function(weapon){
 		if(_this.canUseWeapon(actor, weapon, postMoveEnabledOnly)){
-			var range = _this.getRealWeaponRange(actor, weapon.range);
+			var range = _this.getRealWeaponRange(actor, weapon);
 			var minRange = weapon.minRange;
 			if(range > currentRange){
 				currentRange = range;
@@ -3016,9 +3016,12 @@ StatCalc.prototype.getRealENCost = function(actor, cost){
 	return cost;
 }
 
-StatCalc.prototype.getRealWeaponRange = function(actor, originalRange){		
+StatCalc.prototype.getRealWeaponRange = function(actor, weapon){		
 	if(this.isActorSRWInitialized(actor)){			
-		var result = originalRange;
+		var result = weapon.range;
+		if(result == 1){
+			return 1;
+		}
 		if(actor.SRWStats.pilot.activeSpirits.snipe){
 			result+=2;
 		}

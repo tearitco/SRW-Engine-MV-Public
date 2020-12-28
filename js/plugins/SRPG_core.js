@@ -3633,7 +3633,7 @@ var $battleSceneManager = new BattleSceneManager();
                                 var actionBattlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
                                 var targetBattlerArray = $gameSystem.EventToUnit(event.eventId());
                                
-								var isInRange = $battleCalc.isTargetInRange({x: $gameTemp.activeEvent()._x, y: $gameTemp.activeEvent()._y}, {x: event.posX(), y: event.posY()}, $statCalc.getRealWeaponRange(actionBattlerArray[1], $gameTemp.actorAction.attack.range), $gameTemp.actorAction.attack.minRange);
+								var isInRange = $battleCalc.isTargetInRange({x: $gameTemp.activeEvent()._x, y: $gameTemp.activeEvent()._y}, {x: event.posX(), y: event.posY()}, $statCalc.getRealWeaponRange(actionBattlerArray[1], $gameTemp.actorAction.attack), $gameTemp.actorAction.attack.minRange);
 								var validTarget = $statCalc.canUseWeapon(actionBattlerArray[1], $gameTemp.actorAction.attack, false, targetBattlerArray[1]);
 								
 								if(isInRange && validTarget){
@@ -10033,7 +10033,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$gameTemp.OKHeld = true;
 			$gameSystem.setSubBattlePhase('actor_map_target');
 		} else {
-			var range = $statCalc.getRealWeaponRange(battler, weapon.range);
+			var range = $statCalc.getRealWeaponRange(battler, weapon);
 			var minRange = weapon.minRange || 0;
 			$gameTemp.clearMoveTable();
 			$gameTemp.initialRangeTable(event.posX(), event.posY(), battler.srpgMove());
@@ -10322,14 +10322,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameTemp.enemyWeaponSelection = targetInfo.weapon;
 				$gameTemp.setTargetEvent(targetInfo.target);
 				enemy._currentTarget = targetInfo.target;
-				var alreadyInRange = $battleCalc.isTargetInRange({x: event.posX(), y: event.posY()}, {x: targetInfo.target.posX(), y: targetInfo.target.posY()}, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon.range), targetInfo.weapon.minRange);
+				var alreadyInRange = $battleCalc.isTargetInRange({x: event.posX(), y: event.posY()}, {x: targetInfo.target.posX(), y: targetInfo.target.posY()}, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon), targetInfo.weapon.minRange);
 				if(!alreadyInRange){
 					$gameSystem.srpgMakeMoveTable(event);
 					if ($gameTemp.isSrpgBestSearchFlag() == true) {
 						$gameTemp.setSrpgBestSearchFlag(false);
 						$gameSystem.srpgMakeMoveTable(event);
 					}
-					var optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon.range), targetInfo.weapon.minRange);
+					var optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon), targetInfo.weapon.minRange);
 					if(optimalPos[0] != event.posX() || optimalPos[1] != event.posY()){
 						$gameTemp.isPostMove = true;
 						var route = $gameTemp.MoveTable(optimalPos[0], optimalPos[1])[1];
@@ -11038,7 +11038,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.supportAttackSelected = supporterSelected;
 		
 		var weapon = $gameTemp.enemyWeaponSelection;
-		var range = $statCalc.getRealWeaponRange(actionArray[1], weapon.range);
+		var range = $statCalc.getRealWeaponRange(actionArray[1], weapon);
 		var minRange = weapon.minRange || 0;
 		$gameTemp.clearMoveTable();
 		var event = actionArray[1].event;		

@@ -197,7 +197,7 @@ AttackList.prototype.createSummaryViewRow = function(refData, attack) {
 	if(attack.isMap){
 		listContent+="<div class='attack_list_block scaled_text'>---</div>";
 	} else {
-		listContent+="<div class='attack_list_block scaled_text'>"+(attack.minRange ? attack.minRange : "1")+"-"+attack.range+"</div>";
+		listContent+="<div class='attack_list_block scaled_text'>"+(attack.minRange ? attack.minRange : "1")+"-"+$statCalc.getRealWeaponRange($gameTemp.currentMenuUnit.actor, attack)+"</div>";
 	}
 	
 	var hitMod = attack.hitMod;
