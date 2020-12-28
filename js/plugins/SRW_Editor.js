@@ -46,6 +46,7 @@ SRWEditor.prototype.init = function(){
 	_this._previewAttackDestroys = false;
 	_this._enemySideAttack = false;
 	_this._currentDefinition = 0;
+	_this._currentEnvironmentDefinition = 0;
 	_this._sequenceTypes = [
 		{name: "Main", id: "mainAnimation"},
 		{name: "Hit", id: "onHit"},		
@@ -598,11 +599,17 @@ SRWEditor.prototype.show = function(){
 	_this._contentDiv.innerHTML = content;
 	
 	_this._contentDiv.querySelector("#editor_selector").addEventListener("change", function(){
+		_this._currentDefinition = 0;
+		_this._currentEnvironmentDefinition = 0;
 		_this._currentEditor = this.value;
 		_this.show();
 	});
 	
 	currentEditorInfo.func.call(this);
+}
+
+SRWEditor.prototype.getBattleEnvironmentId = function(){
+	return this._currentEnvironmentDefinition;
 }
 
 SRWEditor.prototype.prepareBattleScenePreview = function(){
@@ -649,9 +656,24 @@ SRWEditor.prototype.showEnvironmentEditor = function(){
 	content+="</div>";
 	content+="<div class='preview'>";
 	content+="<div class='preview_window_container'>";
+	
+	
+	
 	content+="<div class='preview_window'>";
 	content+="</div>";
+	
+	
+	
 	content+="</div>";	
+	
+	content+="<div class='preview_extra_controls'>";
+	
+	content+="<div class='extra_control'>";
+	content+="<button id='reset_view' >Reset</button>";	
+	content+="</div>";
+	
+	
+	content+="</div>";
 	
 	content+="</div>";
 	
@@ -662,10 +684,185 @@ SRWEditor.prototype.showEnvironmentEditor = function(){
 	
 	containerNode.innerHTML = content;
 	
-	this.prepareBattleScenePreview();
-	$battleSceneManager.showEnvironmentScene();
-		
+	containerNode.querySelector("#reset_view").addEventListener("click", function(){
+		_this.showEnvironmentEditorControls();
+	});
 	
+	this.prepareBattleScenePreview();
+	this._environmentBuilder = $battleSceneManager.getEnvironmentBuilder();
+	//$battleSceneManager.showEnvironmentScene();
+		
+	this.showEnvironmentEditorControls();
+}
+
+
+SRWEditor.prototype.showEnvironmentEditorControls = function(){
+	var _this = this;
+	_this._environmentBuilder.isLoaded().then(function(){
+		var containerNode = _this._contentDiv.querySelector(".content");
+		var content = "";
+		$battleSceneManager.showEnvironmentScene();	
+		
+		content+="<div class='selection_controls'>";
+		content+="<select class='definition_select'>";
+		var definitions = _this._environmentBuilder.getDefinitions();
+		Object.keys(definitions).forEach(function(id){
+			content+="<option "+(_this._currentEnvironmentDefinition == id ? "selected" : "")+" value='"+id+"'>"+id+" - "+definitions[id].name+"</option>";
+		});
+		if(!definitions[_this._currentEnvironmentDefinition]){
+			_this._currentEnvironmentDefinition = _this._environmentBuilder.newDef("Environment");
+		}
+		content+="</select>";
+		content+="<div class='selection_control_buttons'>";
+		content+="<button id='new_def'>New</button>";
+		content+="<button id='copy_def'>Copy</button>";
+		content+="<button id='delete_def'>Delete</button>";
+
+		content+="</div>";
+		content+="</div>";
+		
+		content+="<div id='info_section' class='section'>";
+		content+="<button id='save_def'>Save</button>";
+		content+="<div class='section_label'>Info</div>";
+		content+="<div class='section_content'>";
+		content+="Name<input id='def_name' value='"+definitions[_this._currentEnvironmentDefinition].name+"'></input>";
+		content+="</div>";
+		content+="</div>";
+		
+		content+="<div class='section'>";
+		content+="<div class='section_label'>Layers</div>";
+		content+="<div id='timeline_section' class='section_content'>";
+		
+		content+="<button id='new_bg'>New</button>";
+		
+		
+		content+="<div class='commands_scroll'>";
+		
+		var bgs = definitions[_this._currentEnvironmentDefinition].data.bgs;
+		bgs = bgs.sort(function(a, b){return a.zoffset - b.zoffset});
+		bgs.forEach(function(bg){
+			content+="<div data-bgid='"+bg.id+"' class='bg_block tick_block'>";
+			content+="<div class='bg_controls'>";
+			content+="<button class='bg_delete_button'>Delete</button>";	
+			
+			content+="<div class='bg_label label_visible'>Visible:</div> <input type='checkbox' data-dataid='hidden' class='param_value' "+(!bg.hidden ? "checked" : "")+"></input>";
+			content+="</div>";
+			content+="<div data-bgid='"+bg.id+"' class='cmd_block cmd_block_outer'>";
+			content+="<div class='param_values'>";	
+			content+="<div class='bg_label'>Path:</div> <input data-dataid='path' class='param_value' value='"+(bg.path || "")+"'></input>";
+			content+="<div class='bg_label'>Fixed:</div> <input type='checkbox' data-dataid='isfixed' class='param_value' "+(bg.isfixed ? "checked" : "")+"></input>";
+			content+="</div>";
+			content+="<div class='param_values'>";			
+			content+="<div class='bg_label'>Width:</div> <input data-dataid='width' class='param_value' value='"+(bg.width || 0)+"'></input>";
+			content+="<div class='bg_label'>Height: </div><input data-dataid='height' class='param_value' value='"+(bg.height || 0)+"'></input>";
+			content+="</div>";
+			content+="<div class='param_values'>";
+			content+="<div class='bg_label'>Y Offset: </div><input data-dataid='yoffset' class='param_value' value='"+(bg.yoffset || 0)+"'></input>";
+			content+="<div class='bg_label'>Z Offset: </div><input data-dataid='zoffset' class='param_value' value='"+(bg.zoffset || 0)+"'></input>";
+			content+="</div>";
+			content+="</div>";
+			content+="</div>";
+		});
+		
+		content+="</div>";
+		content+="</div>";
+		
+		content+="</div>";
+		
+		containerNode.querySelector(".edit_controls").innerHTML = content;
+		
+		containerNode.querySelector(".commands_scroll").scrollTop = _this._editorScrollTop;		
+		
+		containerNode.querySelector(".commands_scroll").addEventListener("scroll", function(){
+			_this._editorScrollTop = this.scrollTop;
+		});
+		
+		containerNode.querySelector(".definition_select").addEventListener("change", function(){
+			_this._currentEnvironmentDefinition = this.value;
+			_this.showEnvironmentEditorControls();
+		});
+		
+		containerNode.querySelector("#save_def").addEventListener("click", function(){
+			_this._environmentBuilder.save();
+			_this._modified = false;
+			_this.showEnvironmentEditorControls();
+		});
+		
+		containerNode.querySelector("#new_def").addEventListener("click", function(){
+			var name = prompt("Please enter a name") || "New Animation";
+			var newId = _this._environmentBuilder.newDef(name);
+			_this._currentEnvironmentDefinition = newId;
+			_this._modified = true;
+			_this.showEnvironmentEditorControls();
+		});
+		containerNode.querySelector("#copy_def").addEventListener("click", function(){
+			var newId = _this._environmentBuilder.copyDef(_this._currentEnvironmentDefinition);
+			_this._currentEnvironmentDefinition = newId;
+			_this._modified = true;
+			_this.showEnvironmentEditorControls();
+		});
+		containerNode.querySelector("#delete_def").addEventListener("click", function(){
+			if(confirm("Delete the current definition?")){
+				_this._environmentBuilder.deleteDef(_this._currentEnvironmentDefinition);
+				_this._currentEnvironmentDefinition = 0;
+				_this._modified = true;
+				_this.showEnvironmentEditorControls();
+			}			
+		});
+		
+		containerNode.querySelector("#def_name").addEventListener("blur", function(){
+			_this._environmentBuilder.updateName(_this._currentEnvironmentDefinition, this.value);
+			_this._modified = true;
+			_this.showEnvironmentEditorControls();
+		});
+		
+		containerNode.querySelector("#new_bg").addEventListener("click", function(){			
+			_this._environmentBuilder.newBg(_this._currentEnvironmentDefinition);
+			_this._modified = true;
+			_this.showEnvironmentEditorControls();					
+		});
+		
+		var inputs = containerNode.querySelectorAll(".bg_delete_button");
+		inputs.forEach(function(tickInput){
+			tickInput.addEventListener("click", function(){
+				var bg = this.parentNode.getAttribute("data-bgid");
+				var c = confirm("Delete this layer?");
+				if(c){
+					_this._environmentBuilder.deleteBg(_this._currentEnvironmentDefinition, bg);
+					_this._modified = true;
+					_this.showEnvironmentEditorControls();
+				}			
+			});
+		});
+		
+		var inputs = containerNode.querySelectorAll(".param_value");
+		inputs.forEach(function(tickInput){
+			tickInput.addEventListener("change", function(){
+				var bg = this.closest(".bg_block").getAttribute("data-bgid");
+				var dataId = this.getAttribute("data-dataid");
+				var value;
+				if(dataId == "isfixed"){
+					value = this.checked;
+				} else if(dataId == "hidden"){
+					value = !this.checked;
+				} else {
+					value = this.value;
+				}
+				_this._environmentBuilder.updateBg(_this._currentEnvironmentDefinition, bg, dataId, value);
+				_this._modified = true;
+				_this.showEnvironmentEditorControls();	
+				
+			});
+		});
+			
+		
+		
+		window.addEventListener("beforeunload", function(event){
+			if(_this._modified){
+				event.returnValue = "You have unsaved changes, exit anyway?";
+			}
+		});		
+	});	
 }
 
 SRWEditor.prototype.showAttackEditor = function(){

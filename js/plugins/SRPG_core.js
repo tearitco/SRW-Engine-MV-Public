@@ -393,6 +393,18 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.skyBattleParallax1 = args[0];
 		}
 		
+		if (command === 'setSRWDefaultBattleEnv') {
+			$gameSystem.defaultBattleEnv = args[0];
+		}
+		
+		if (command === 'setDefaultBattleEnv') {
+			$gameSystem.defaultBattleEnv = args[0];
+		}
+		
+		if (command === 'setSkyBattleEnv') {
+			$gameSystem.skyBattleEnv = args[0];
+		}
+		
 		if (command === 'addMapHighlight') {
 			if(!$gameSystem.highlightedTiles){
 				$gameSystem.highlightedTiles = [];
@@ -1244,6 +1256,8 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.persuadeOptions = {};
 		$gameTemp.currentSwapSource = -1;
 		$gameTemp.enemyAppearQueue = [];
+		$gameSystem.defaultBattleEnv = null;
+		$gameSystem.skyBattleEnv = null;
 		
 		$gameSystem.factionConfig = {
 			0: {
@@ -1970,6 +1984,22 @@ var $battleSceneManager = new BattleSceneManager();
 			}			
 		} 
 		return null;		
+    };
+	
+	Game_System.prototype.getUnitSceneBgId = function(actor) {
+		if($gameTemp.editMode){
+			return $SRWEditor.getBattleEnvironmentId();
+		} else {
+			if($statCalc.isFlying(actor)){
+				if($gameSystem.skyBattleEnv){
+					return $gameSystem.skyBattleEnv;
+				} else {
+					return $gameSystem.defaultBattleEnv;
+				}
+			} else {
+				return $gameSystem.defaultBattleEnv;
+			}			
+		}
     };
 
 //==================================================================
