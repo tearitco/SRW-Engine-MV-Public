@@ -171,6 +171,10 @@ The rest of the Mech properties are set using metadata tags in the note field. I
 \<mechMove:4\> Determines how many tiles the mech can move by default.<br>
 \<mechSize:M> S/M/1L/2L Determines the size of the mech, which influences evasion and damage taken.<br>
 \<mechCanFly:0\> 0 for unable to fly, 1 for able to fly.<br>
+\<mechAirEnabled:0\> 0 for unable to fly, 1 for able to fly.<br> 
+\<mechLandEnabled:0\> 0 for unable to stand on land tile, 1 for able.<br>
+\<mechWaterEnabled:2\> 0 for unable to stand on water tile, 1 for able, 2 for able and no move penalty in water.<br>
+\<mechSpaceEnabled:1\> 0 for unable to stand on space tile, 1 for able.<br>
 \<mechExpYield:150\>The exp yield listed here is the exp gained if the enemy defeated and the actor were at the same level. When the level is different the exp gain gets scaled accordingly.<br>
 \<mechPPYield: 15\><br>
 \<mechFundYield: 500\><br>
@@ -194,7 +198,7 @@ And one type for weapons:
 \<mechUpgradeENCost: 1\><br>
 \<mechUpgradeArmorCost: 0\><br>
 \<mechUpgradeMobilityCost: 0\><br>
-\<mechUpgradAccuracyCost: 1\><br>
+\<mechUpgradeAccuracyCost: 1\><br>
 
 ### Sub-pilots
 
@@ -279,7 +283,7 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponAmmo:-1\>Total ammo for the weapon, -1 if the weapon does not use ammo<br>
 \<weaponEN:5\>EN cost for using the weapon, -1 if the weapon does not have a cost<br>
 \<weaponWill:-1\>Will requirement for the weapon, -1 if there is no requirement<br>
-\<weaponTerrain:AABA\><br>
+\<weaponTerrain:AA-A\>If a terrain value is "-" the weapon cannot be used on enemies who are currently on a tile of that terrain.<br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
 \<weaponCategory:missile\><br> The particle type of the weapon. Missile, funnel, beam, gravity, physical or  "".	
  
@@ -841,6 +845,10 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 	Prevents the default death quote from being played by making isActorDestructionQueued return false for the specified actor\_id. Only applicable in the beforeDestruction event.
 
 
+* setSaveDisplayName name
+
+	Set the name that will show up in the save file list for newly saved files. Spaces should be replaced by underscores in the command, ex.: "Debug\_Stage\_1" becomes "Debug Stage 1" on the file select screen.
+
 ## Script commands
 
 These added commands can be used in Script commands while making event scripts.<br>
@@ -873,6 +881,7 @@ They can also be used as conditionals in IF statements.
 	Will be TRUE if the enemy with the specified id was defeated and is about to be destroyed.
 	
 * this.isEventDestructionQueued(event\_id)
+
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the event with the specified id was defeated and is about to be destroyed.	
@@ -924,6 +933,7 @@ They can also be used as conditionals in IF statements.
 		* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
 		<br>
 		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
+
 		<br>
 		* targetRegion: the id of the region that the enemy should move towards<br>	
 		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
@@ -947,6 +957,10 @@ A setting can be left blank by entering "" as its value.
 * this.processUnitAppearQueue()
 	Spawns all units that are currently in the queue with their spawn animation.<br>
 	Event processing will automatically wait for all units to be spawned before continuing execution.
+
+* this.processDisappearQueue()
+	Erases all units that are currently in the queue with their disappear animation.<br>
+	Event processing will automatically wait for all units to disappear before continuing execution.
 	
 * this.manualDeploy()
 	Shows the deployment selection window and lets the player select deployment positions. Event processing will automatically wait for all units to be spawned before continuing execution.
@@ -960,13 +974,13 @@ A setting can be left blank by entering "" as its value.
 	Destroy the event between startId and endId and play their death animations.<br>
 	The death animations will all play at the same time!
 
-* this.eraseEvent(event_id)
+* this.eraseEvent(event_id, toAnimationQueue)
 
-	Remove the specified event without an animation.
+	Remove the specified event without an explosion animation. If toAnimationQueue is true the this.processDisappearQueue script command will need to be called to erase the event.
 	
-* this.eraseEvents(startId, endId)
+* this.eraseEvents(startId, endId, toAnimationQueue)
 
-	Remove the events between startId and endId.
+	Remove the events between startId and endId. If toAnimationQueue is true the this.processDisappearQueue script command will need to be called to erase the event.
 	
 * this.playerMoveTo(x, y)
 

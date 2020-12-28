@@ -88,5 +88,15 @@
         _Window_MenuActor_initialize.call(this);
         this.y = this.fittingHeight(2);
     };
+	
+	
+	var oldCreateCommandWindow = Scene_Title.prototype.createCommandWindow;
+		Scene_Title.prototype.createCommandWindow = function() {
+		oldCreateCommandWindow.apply(this, arguments);
+		this._commandWindow.setHandler('exit',  this.commandExit.bind(this));
+	}
+	
+	
+	
 
 })();

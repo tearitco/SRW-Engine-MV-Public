@@ -57,17 +57,19 @@ DetailBarAttackSummary.prototype.redraw = function(){
 	detailContent+="<div class='summary_row_label scaled_text'>";
 	detailContent+=APPSTRINGS.ATTACKLIST.label_EN_cost;
 	detailContent+="</div>";
-	if(attackData.ENCost == -1){
+	
+	var realEnCost = $statCalc.getRealENCost($gameTemp.currentMenuUnit.actor, attackData.ENCost);
+	if(realEnCost == -1){
 		detailContent+="<div class='summary_row_value scaled_text disabled'>";
 		detailContent+="--- ("+calculatedStats.currentEN+")";
 		detailContent+="</div>";
-	} else if(calculatedStats.currentEN < attackData.ENCost) {
+	} else if(calculatedStats.currentEN < realEnCost) {
 		detailContent+="<div class='summary_row_value scaled_text insufficient'>";
-		detailContent+=String(attackData.ENCost).padStart(3, "0")+" ("+calculatedStats.currentEN+")";
+		detailContent+=String(realEnCost).padStart(3, "0")+" ("+calculatedStats.currentEN+")";
 		detailContent+="</div>";
 	} else {
 		detailContent+="<div class='summary_row_value scaled_text'>";
-		detailContent+=String(attackData.ENCost).padStart(3, "0")+" ("+calculatedStats.currentEN+")";
+		detailContent+=String(realEnCost).padStart(3, "0")+" ("+calculatedStats.currentEN+")";
 		detailContent+="</div>";
 	}		
 	detailContent+="</div>";
@@ -111,7 +113,9 @@ DetailBarAttackSummary.prototype.redraw = function(){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_map_counter;
 			} else if(detail.noParticipants){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_participants;
-			}  			
+			} else if(detail.terrain){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_no_terrain;
+			}    			
 		}
 	
 		detailContent+="</div>";

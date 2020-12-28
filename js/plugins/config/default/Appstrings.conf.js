@@ -42,6 +42,12 @@ APPSTRINGS.GENERAL = {
 	label_hit: "Hit"
 }
 
+APPSTRINGS.SAVEMENU = {
+	label_funds: "Funds",
+	label_turn_count: "Turns",
+	label_SR_count: "SR Points"
+}
+
 APPSTRINGS.MAPMENU = {
 	cmd_wait: "Wait",
 	cmd_move: "Move", 
@@ -233,7 +239,8 @@ APPSTRINGS.ATTACKLIST = {
 	label_no_post_move: "Can't be used after moving!",
 	label_no_target: "No target!",
 	label_no_map_counter: "Can't counter with map attack!",
-	label_no_participants: "No valid partner in range!"
+	label_no_participants: "No valid partner in range!",
+	label_no_terrain: "Can't hit the target terrain!"
 }
 
 APPSTRINGS.REWARDS = {

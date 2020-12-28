@@ -70,6 +70,9 @@ window.Window_DeploySelection = Window_DeploySelection;
 import Window_ConfirmEndTurn from "./Window_ConfirmEndTurn.js";
 window.Window_ConfirmEndTurn = Window_ConfirmEndTurn;
 
+import Window_MechListDeployed from "./Window_MechListDeployed.js";
+window.Window_MechListDeployed = Window_MechListDeployed;
+
 
 import "./style/SRW_Menus.css";
 
@@ -85,7 +88,7 @@ Graphics.getOriginalWidth = function(){
 }
 
 Graphics.getScale = function(){
-	return this._realScale;
+	return this._realScale * (this.getOriginalWidth() / 1110);
 }
 
 

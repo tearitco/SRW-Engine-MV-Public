@@ -46,7 +46,7 @@ StatCalc.prototype.isActorSRWInitialized = function(actor){
 
 StatCalc.prototype.canStandOnTile = function(actor, position){
 	if(this.isActorSRWInitialized(actor)){
-		if($gameMap.regionId(position.x, position.y) % 8 == 1){
+		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
 			if(this.canFly(actor)){
 				if(!this.isFlying(actor)){
 					this.setFlying(actor, true);
@@ -55,12 +55,60 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 				return false;
 			}			
 		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
+			if(!this.canBeOnLand(actor)){
+				if(this.canFly(actor)){
+					if(!this.isFlying(actor)){
+						this.setFlying(actor, true);
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
+			if(!this.canBeOnWater(actor)){
+				if(this.canFly(actor)){
+					if(!this.isFlying(actor)){
+						this.setFlying(actor, true);
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 4){//space
+			if(!this.canBeOnSpace(actor)){
+				return false;
+			}
+		}
 		return true;
 	} 
 	return false;	
 }
 
+StatCalc.prototype.getTileType = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		var position = {x: actor.event.posX(), y: actor.event.posY()};
+		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
+			return "air";		
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
+			return "land";	
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
+			return "water";	
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 4){//space
+			return "space";	
+		}
+	}
+}
+
 StatCalc.prototype.terrainToNumeric = function(terrainString){
+	if(terrainString == "-"){
+		return -1;
+	}
 	if(this._terrainToNumeric[terrainString]){
 		return this._terrainToNumeric[terrainString];
 	} else {
@@ -69,6 +117,9 @@ StatCalc.prototype.terrainToNumeric = function(terrainString){
 }
 
 StatCalc.prototype.numericToTerrain = function(terrainNumber){
+	if(terrainNumber == -1){
+		return "-";
+	}
 	if(this._numericToTerrain[terrainNumber]){
 		return this._numericToTerrain[terrainNumber];
 	} else {
@@ -137,8 +188,14 @@ StatCalc.prototype.parseTerrainString = function(terrainString){
 	}
 }
 
-StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
+StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeapons){
 	var result = [];
+	var currentWeaponsLookup = {};
+	if(previousWeapons){
+		previousWeapons.forEach(function(weapon){
+			currentWeaponsLookup[weapon.id] = weapon;
+		});
+	}
 	for(var i = 0; i < 20; i++) {
 		var weaponId = mechProperties["mechAttack"+i];
 		if(weaponId !== undefined){
@@ -171,6 +228,13 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 			if(weaponProperties.weaponComboType){
 				combinationType = weaponProperties.weaponComboType;
 			}
+			var currentAmmo;
+			var currentWeapon = currentWeaponsLookup[parseInt(weaponDefinition.id)];
+			if(currentWeapon){
+				currentAmmo = currentWeapon.currentAmmo;
+			} else {
+				currentAmmo = totalAmmo;
+			}
 			result.push({
 				id: parseInt(weaponDefinition.id),
 				name: weaponDefinition.name,
@@ -182,7 +246,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties){
 				hitMod: parseInt(weaponProperties.weaponHitMod),
 				critMod: parseInt(weaponProperties.weaponCritMod),
 				totalAmmo: totalAmmo,
-				currentAmmo: parseInt(weaponProperties.weaponAmmo),
+				currentAmmo: currentAmmo,
 				ENCost: parseInt(weaponProperties.weaponEN),
 				willRequired: parseInt(weaponProperties.weaponWill),
 				terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
@@ -560,7 +624,24 @@ StatCalc.prototype.refreshAllSRWStats = function(type){
 	});
 }
 
-StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
+StatCalc.prototype.softRefreshUnits = function(){
+	var _this = this;
+	this.iterateAllActors(null, function(actor, event){
+		var itemsIds = [];
+		actor.SRWStats.mech.items.forEach(function(item){
+			if(!item){
+				itemsIds.push(null);
+			} else {
+				itemsIds.push(item.idx);
+			}			
+		});
+		actor.SRWStats.pilot.abilities = null;//ensure reload
+		_this.initSRWStats(actor, _this.getCurrentLevel(actor), itemsIds, true);				
+	});
+}
+
+StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolatile){
+	var _this = this;
 	if(!level){
 		level = 1;
 	}
@@ -570,45 +651,51 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 			items.push({idx: itemIds[i]});
 		}
 	}
-	actor.SRWStats = {
-		pilot: {
-			race: "",
-			id: -1,
-			level: 0,
-			will: 100,
-			PP: 0,
-			exp: level * 500,
-			kills: 0,	
-			expYield: 0,	
-			PPYield: 0,
-			stats: {
-				base: {},
-				growthRates: {},
-				calculated: {},
-				upgrades: {
-					melee: 0,
-					ranged: 0,
-					skill: 0,
-					defense: 0,
-					evade: 0,
-					hit: 0,
-					terrain: {
-						air: 0,
-						land: 0,
-						water: 0,
-						space: 0
-					},
-				}
-			},
-			spirits: [],
-			abilities: null,
-			aceAbility: -1
-		}, mech: {}
-		
-	};
+	
+	if(!actor.SRWStats){
+		actor.SRWStats = {
+			pilot: {
+				race: "",
+				id: -1,
+				level: 0,
+				will: 100,
+				PP: 0,
+				exp: level * 500,
+				kills: 0,	
+				expYield: 0,	
+				PPYield: 0,
+				stats: {
+					base: {},
+					growthRates: {},
+					calculated: {},
+					upgrades: {
+						melee: 0,
+						ranged: 0,
+						skill: 0,
+						defense: 0,
+						evade: 0,
+						hit: 0,
+						terrain: {
+							air: 0,
+							land: 0,
+							water: 0,
+							space: 0
+						},
+					}
+				},
+				spirits: [],
+				abilities: null,
+				aceAbility: -1
+			}, mech: {}
+			
+		};
+	}
 	actor.SRWInitialized = true;
-	this.resetBattleTemp(actor);
-	this.resetStageTemp(actor);	
+	if(!preserveVolatile){
+		this.resetBattleTemp(actor);
+		this.resetStageTemp(actor);	
+	}
+	
 	var actorId;
 	var actorProperties;
 	if(actor.isActor()){
@@ -633,27 +720,29 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 	}
 	actor.SRWStats.pilot.species = actorProperties.pilotSpecies;
 	
+	if(!preserveVolatile){
+		actor.SRWStats.pilot.activeSpirits = {
+			"accel": false,
+			"alert": false,
+			"analyse": false,
+			"charge": false,
+			"disrupt": false,
+			"focus": false,
+			"fortune": false,
+			"gain": false,
+			"mercy": false,
+			"persist": false,
+			"snipe": false,
+			"soul": false,
+			"strike": false,
+			"valor": false,
+			"vigor": false,
+			"wall": false,
+			"zeal": false
+		};
 	
-	actor.SRWStats.pilot.activeSpirits = {
-		"accel": false,
-		"alert": false,
-		"analyse": false,
-		"charge": false,
-		"disrupt": false,
-		"focus": false,
-		"fortune": false,
-		"gain": false,
-		"mercy": false,
-		"persist": false,
-		"snipe": false,
-		"soul": false,
-		"strike": false,
-		"valor": false,
-		"vigor": false,
-		"wall": false,
-		"zeal": false
-	};
-	actor.SRWStats.pilot.activeEffects = {};
+		actor.SRWStats.pilot.activeEffects = {};
+	}
 	
 	actor.SRWStats.pilot.stats.base.SP = parseInt(actorProperties.pilotBaseSP);
 	actor.SRWStats.pilot.stats.base.melee = parseInt(actorProperties.pilotBaseMelee);
@@ -671,19 +760,24 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 	actor.SRWStats.pilot.stats.growthRates.defense = parseFloat(actorProperties.pilotDefenseGrowth);
 	actor.SRWStats.pilot.stats.growthRates.evade = parseFloat(actorProperties.pilotEvadeGrowth);
 	actor.SRWStats.pilot.stats.growthRates.hit = parseFloat(actorProperties.pilotHitGrowth);
-	this.applyStoredActorData(actor);
-	this.calculateSRWActorStats(actor);	
-	if(!actor.SRWStats.pilot.abilities){
-		actor.SRWStats.pilot.abilities = this.getPilotAbilityInfo(actorProperties, this.getCurrentLevel(actor));
-	}
+	
+	this.calculateSRWActorStats(actor, preserveVolatile);	
+	
+	var dbAbilities = this.getPilotAbilityInfo(actorProperties, this.getCurrentLevel(actor));	
+	
+	this.applyStoredActorData(actor, dbAbilities);
 	
 	var mech;
 	var isForActor;
 	if(actor.isActor()){
 		if(actor._mechClass){//should only be the case when the editor is used
 			mech = $dataClasses[actor._mechClass];
-		} else {
-			mech = actor.currentClass();			
+		} else if(preserveVolatile){
+			mech = $dataClasses[actor.SRWStats.mech.id];
+		}
+		if(!mech){
+			mech = actor.currentClass();
+
 		}		
 		isForActor = true;
 	} else {
@@ -691,17 +785,44 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 		isForActor = false;	
 	}	
 	if(mech){
-		actor.SRWStats.mech = this.getMechData(mech, isForActor, items);
-		if(!isForActor && $gameTemp.enemyUpgradeLevel){
+		var previousWeapons = [];
+		var previousStats;
+		var previousFlightState;
+		var previousCombineInfo;
+		
+		if(preserveVolatile){
+			if(actor.SRWStats.mech.stats){
+				var previousStats = actor.SRWStats.mech.stats.calculated;				
+				if(preserveVolatile){
+					previousWeapons = actor.SRWStats.mech.weapons;
+				}
+				previousFlightState = actor.SRWStats.mech.isFlying;
+				previousCombineInfo = actor.SRWStats.mech.combineInfo;
+			}			
+		}
+		actor.SRWStats.mech = this.getMechData(mech, isForActor, items, previousWeapons);
+		if(!isForActor && $gameSystem.enemyUpgradeLevel){
 			var levels = actor.SRWStats.mech.stats.upgradeLevels;
-			levels.maxHP = $gameTemp.enemyUpgradeLevel;
-			levels.maxEN = $gameTemp.enemyUpgradeLevel;
-			levels.armor = $gameTemp.enemyUpgradeLevel;
-			levels.mobility = $gameTemp.enemyUpgradeLevel;			
-			levels.accuracy = $gameTemp.enemyUpgradeLevel;
-			levels.weapons = $gameTemp.enemyUpgradeLevel;			
+			levels.maxHP = $gameSystem.enemyUpgradeLevel;
+			levels.maxEN = $gameSystem.enemyUpgradeLevel;
+			levels.armor = $gameSystem.enemyUpgradeLevel;
+			levels.mobility = $gameSystem.enemyUpgradeLevel;			
+			levels.accuracy = $gameSystem.enemyUpgradeLevel;
+			levels.weapons = $gameSystem.enemyUpgradeLevel;			
 		}		
-		this.calculateSRWMechStats(actor.SRWStats.mech);		
+		this.calculateSRWMechStats(actor.SRWStats.mech, preserveVolatile);	
+		if(preserveVolatile){
+			if(previousStats){
+				actor.SRWStats.mech.stats.calculated.currentHP = previousStats.currentHP;
+				actor.SRWStats.mech.stats.calculated.currentEN = previousStats.currentEN;
+			}
+			if(previousFlightState){
+				actor.SRWStats.mech.isFlying = previousFlightState;
+			}
+			if(previousCombineInfo){
+				actor.SRWStats.mech.combineInfo = previousCombineInfo;
+			}
+		}
 	}
 	
 	if(!isForActor){
@@ -710,7 +831,20 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds){
 		}		
 	}	
 	
+	if(!preserveVolatile){	
+		if(actor.event && $dataMap){ //hacky solution to the initializer being called in context where either no event has been assigned to the actor(initial load of map, intermission) or where $dataMap has not loaded yet(loading save)
+			var validPosition = this.canStandOnTile(actor, {x: actor.event.posX(), y: actor.event.posY()});
+			if(!validPosition){
+				console.log("Unit initialized on invalid terrain!");
+			}
+		}
+	}
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
+	
+	var subPilots = this.getSubPilots(actor);
+	subPilots.forEach(function(pilotId){
+		_this.initSRWStats($gameActors.actor(pilotId), 1, [], preserveVolatile);
+	});
 }
 
 StatCalc.prototype.getMechDataById = function(id, forActor){
@@ -718,7 +852,7 @@ StatCalc.prototype.getMechDataById = function(id, forActor){
 	return this.getMechData(mech, forActor);
 }	
 
-StatCalc.prototype.getMechData = function(mech, forActor, items){	
+StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons){	
 	var result = {
 		id: -1,
 		isShip: false,
@@ -771,7 +905,10 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 		var mechProperties = mech.meta;
 		result.classData = mech;
 		result.isShip = mechProperties.mechIsShip;
-		result.canFly = mechProperties.mechCanFly;
+		result.canFly = mechProperties.mechCanFly || mechProperties.mechAirEnabled;
+		result.canLand = mechProperties.mechLandEnabled || 1;
+		result.canWater = mechProperties.mechWaterEnabled || 1;
+		result.canSpace = mechProperties.mechSpaceEnabled || 1;
 		result.isFlying = false;
 		result.id = mech.id;
 		result.expYield = parseInt(mechProperties.mechExpYield);
@@ -881,7 +1018,9 @@ StatCalc.prototype.getMechData = function(mech, forActor, items){
 			SRWInitialized: true
 		}
 		
-		result.weapons = this.getMechWeapons(mechData, mechProperties);
+		
+		
+		result.weapons = this.getMechWeapons(mechData, mechProperties, previousWeapons);
 	}
 	return result;
 }
@@ -1016,13 +1155,13 @@ StatCalc.prototype.canCombine = function(actor, forced){
 			var visited = {};
 			while(candidates.length < required.length && stack.length){
 				var current = stack.pop();
-				if(!visited[current.event.eventId()]){
+				if(current.event && !visited[current.event.eventId()]){
 					var currentMechId = current.SRWStats.mech.id;
 					if(!current.event.isErased() && requiredLookup[currentMechId]){
 						candidates.push(current.actorId());
 					}
 					var adjacent;
-					if(forced){
+					if(!forced){
 						adjacent = _this.getAdjacentActors(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
 					} else {
 						adjacent = _this.getAllCandidateActors(actor.isActor() ? "actor" : "enemy");
@@ -1048,14 +1187,51 @@ StatCalc.prototype.canCombine = function(actor, forced){
 	return result;
 }
 
-StatCalc.prototype.applyStoredActorData = function(actor){
+StatCalc.prototype.applyStoredActorData = function(actor, dbAbilities){
 	if(actor.isActor()){
 		var storedData = $SRWSaveManager.getActorData(actor.actorId());
 		actor.SRWStats.pilot.PP = storedData.PP;
 		actor.SRWStats.pilot.exp = storedData.exp;
 		actor.SRWStats.pilot.kills = storedData.kills;
-		actor.SRWStats.pilot.stats.upgrades = storedData.pilotUpgrades;
-		actor.SRWStats.pilot.abilities = storedData.abilities;
+		actor.SRWStats.pilot.stats.upgrades = storedData.pilotUpgrades;	
+
+			
+		
+		var storedAbilities = storedData.abilities || {};
+		var usedSlots = {};
+		Object.keys(storedAbilities).forEach(function(abilityIdx){
+			var slot = storedAbilities[abilityIdx].slot;
+			if(slot != -1){
+				usedSlots[slot] = true;
+			}
+		});
+		function getSlot(){
+			var slot = -1;
+			var ctr = 0;
+			while(slot == -1 && ctr < 6){
+				if(!usedSlots[ctr]){
+					slot = ctr;
+				}
+				ctr++;
+			}
+			return slot;
+		}
+		
+		Object.keys(dbAbilities).forEach(function(abilityIdx){
+			if(!storedAbilities[abilityIdx]){//newly added ability for the unit in the db
+				var slot = getSlot();
+				usedSlots[slot] = true;
+				storedAbilities[abilityIdx] = {
+					idx: abilityIdx,
+					level: dbAbilities[abilityIdx].level,
+					requiredLevel: dbAbilities[abilityIdx].requiredLevel,
+					slot: slot
+				}
+			}
+		});
+		
+		actor.SRWStats.pilot.abilities = storedAbilities;
+		
 	}
 }
 
@@ -1096,7 +1272,7 @@ StatCalc.prototype.storeMechData = function(mech){
 	});	
 }
 
-StatCalc.prototype.calculateSRWActorStats = function(actor){
+StatCalc.prototype.calculateSRWActorStats = function(actor, preserveVolatile){
 	var _this = this;
 	if(this.isActorSRWInitialized(actor)){
 		var level = Math.floor(actor.SRWStats.pilot.exp / 500);
@@ -1120,7 +1296,9 @@ StatCalc.prototype.calculateSRWActorStats = function(actor){
 		});
 		
 		calculatedStats.SP = this.applyStatModsToValue(actor, calculatedStats.SP, ["sp"]);	
-		calculatedStats.currentSP = calculatedStats.SP;		
+		if(!preserveVolatile || calculatedStats.currentSP == null){
+			calculatedStats.currentSP = calculatedStats.SP;		
+		}
 	}
 }
 
@@ -1344,7 +1522,7 @@ StatCalc.prototype.getMechStatIncrease = function(type, levels){
 	}
 }
 
-StatCalc.prototype.calculateSRWMechStats = function(targetStats){
+StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatile){
 	var _this = this;
 					
 	var mechStats = targetStats.stats.base;
@@ -1389,12 +1567,17 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats){
 	}
 	calculatedStats.maxHP = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxHP, "maxHP");
 	calculatedStats.maxEN = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxEN, "maxEN");
-
-	calculatedStats.currentHP = calculatedStats.maxHP;
-	calculatedStats.currentEN = calculatedStats.maxEN;
+	
+	if(!preserveVolatile){
+		calculatedStats.currentHP = calculatedStats.maxHP;
+		calculatedStats.currentEN = calculatedStats.maxEN;
+	}	
 }
 
 StatCalc.prototype.incrementTerrain = function(terrain, increment){
+	if(terrain == "-"){
+		return "-";
+	}
 	var result = this._terrainToNumeric[terrain] + increment;
 	if(result > 4){
 		result = 4;
@@ -1507,10 +1690,23 @@ StatCalc.prototype.getPilotTerrain = function(actor, terrain){
 		if(typeof result != "undefined"){
 			return result;
 		} else {
-			return "C";
+			return "-";
 		}
 	} else {
-		return "C";
+		return "-";
+	}
+}
+
+StatCalc.prototype.getMechTerrain = function(actor, terrain){
+	if(this.isActorSRWInitialized(actor)){
+		var result = actor.SRWStats.mech.stats.calculated.terrain[terrain];
+		if(typeof result != "undefined"){
+			return result;
+		} else {
+			return "-";
+		}
+	} else {
+		return "-";
 	}
 }
 
@@ -1746,6 +1942,30 @@ StatCalc.prototype.getCurrentMoveRange = function(actor){
 	}		
 }
 
+StatCalc.prototype.canBeOnLand = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.canLand * 1 || this.applyStatModsToValue(actor, 0, ["land_enabled"]);
+	} else {
+		return false;
+	}		
+}
+
+StatCalc.prototype.canBeOnWater = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.canWater * 1 || this.applyStatModsToValue(actor, 0, ["water_enabled"]);
+	} else {
+		return false;
+	}		
+}
+
+StatCalc.prototype.canBeOnSpace = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.canSpace * 1 || this.applyStatModsToValue(actor, 0, ["space_enabled"]);
+	} else {
+		return false;
+	}		
+}
+
 StatCalc.prototype.canFly = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		return actor.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(actor, 0, ["fly"]);
@@ -1883,6 +2103,12 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 					canUse = false;
 					detail.target = true;
 				}
+				var targetTerrain = this.getCurrentTerrain(rangeTarget);
+				var terrainRank = weapon.terrain[targetTerrain];
+				if(terrainRank == "-"){
+					canUse = false;
+					detail.terrain = true;
+				}
 			} else {
 				var rangeResult;
 				var type = actor.isActor() ? "enemy" : "actor";
@@ -1905,7 +2131,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 	};
 }
 
-StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly){
+StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly, defender){
 	if(this.isActorSRWInitialized(actor)){
 		if(weapon.isCombination){			
 			if(!this.getCombinationWeaponParticipants(actor, weapon).isValid){
@@ -1927,6 +2153,14 @@ StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly){
 		if(!actor.isActor() && weapon.isMap && actor.SRWStats.stageTemp.nonMapAttackCounter < actor.SRWStats.stageTemp.mapAttackCoolDown){
 			return false;
 		}
+		
+		if(defender){
+			var targetTerrain = this.getCurrentTerrain(defender)
+			var terrainRank = weapon.terrain[targetTerrain];
+			if(terrainRank == "-"){
+				return false;
+			}
+		}		
 	} else {
 		return false;
 	} 	
@@ -2733,6 +2967,7 @@ StatCalc.prototype.applyENRegen = function(type, factionId){
 			} else {
 				_this.recoverENPercent(actor, _this.applyStatModsToValue(actor, 0, ["EN_regen"]));	
 				_this.recoverENPercent(actor, _this.getCurrentTerrainMods(actor).en_regen);	
+				_this.recoverEN(actor, 5);	
 			}	
 		}	
 	});
@@ -2856,6 +3091,15 @@ StatCalc.prototype.setTurnEnd = function(actor){
 	} 	
 }
 
+StatCalc.prototype.getRealENCost = function(actor, cost){
+	if(this.isActorSRWInitialized(actor)){	
+		if(cost != -1){
+			cost = this.applyStatModsToValue(actor, cost, ["EN_cost"]);
+		}		
+	} 
+	return cost;
+}
+
 StatCalc.prototype.getRealWeaponRange = function(actor, originalRange){		
 	if(this.isActorSRWInitialized(actor)){			
 		var result = originalRange;
@@ -2879,12 +3123,15 @@ StatCalc.prototype.getPilotAbilityLevel = function(actor, abilityIdx){
 	var _this = this;
 	var result = 0;
 	if(_this.isActorSRWInitialized(actor)){			
-		var abilities = actor.SRWStats.pilot.abilities;		
-		abilities.forEach(function(abilityDef){
-			if(abilityDef.idx == abilityIdx){
-				result = abilityDef.level;
-			}			
-		});	
+		var abilities = actor.SRWStats.pilot.abilities;
+		if(abilities){
+			Object.keys(abilities).forEach(function(idx){
+				var abilityDef = abilities[idx];
+				if(abilityDef.idx == abilityIdx){
+					result = abilityDef.level;
+				}			
+			});	
+		}			
 	}
 	return result;
 }
