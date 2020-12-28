@@ -398,9 +398,9 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 			spriteInfo = _this.createPlanarSprite(name, path, position, frameSize, flipX);		
 			spriteInfo.sprite.setPivotMatrix(BABYLON.Matrix.Translation(-0, spriteInfo.size.height/2, -0), false);
 		} else {
-			spriteInfo = _this.createSpriterSprite(name, path, position, flipX);		
-		}		
-		pivothelper.position.y+=spriteConfig.referenceSize / 2;
+			spriteInfo = _this.createSpriterSprite(name, path, position, flipX);
+			pivothelper.position.y+=spriteConfig.referenceSize / 2;			
+		}				
 		pivothelper.parent = spriteInfo.sprite;
 		spriteInfo.sprite.pivothelper = pivothelper;
 		spriteInfo.sprite.spriteInfo = spriteInfo;
@@ -1478,7 +1478,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 							flipX = true;
 						}
 						
-						var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+						var imgPath = targetObj.spriteConfig.path;
 						
 						targetObj.material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+params.name+".png", _this._scene, false, true, sampleMode);
 						targetObj.material.diffuseTexture.hasAlpha = true;

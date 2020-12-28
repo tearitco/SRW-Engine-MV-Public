@@ -22,7 +22,7 @@ SRWEditor.prototype.init = function(){
 	document.body.appendChild(_this._contentDiv);
 	
 	
-	$gameSystem.skyBattleOffset = 5;
+	$gameSystem.skyBattleOffset = 0;
 	
 	$gameSystem.battleBg = "mountains2";
 	//$gameSystem.battleParallax1 = "Empty";
