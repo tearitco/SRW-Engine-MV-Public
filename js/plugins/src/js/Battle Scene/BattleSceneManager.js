@@ -2509,13 +2509,10 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this._sceneIsEnding = false;
 	_this._UIcontainer.style.display = "block";	
 	
-	_this.resetScene();
-
-
-		
+	_this.resetScene();		
 	
 	if(_this._actorSprite){
-	_this._actorSprite.sprite.setEnabled(false);
+		_this._actorSprite.sprite.setEnabled(false);
 	}
 	if(_this._enemySprite){
 		_this._enemySprite.sprite.setEnabled(false);
