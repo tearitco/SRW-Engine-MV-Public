@@ -933,7 +933,11 @@ MechList.prototype.getCurrentSelection = function(){
 		this.requestRedraw();
 	}
 	var unit = availableUnits[idx];
-	return {mech: unit.SRWStats.mech, actor: unit};
+	if(unit){
+		return {mech: unit.SRWStats.mech, actor: unit};
+	} else {
+		return null;
+	}	
 }
 
 MechList.prototype.getCurrentPageAmount = function(){

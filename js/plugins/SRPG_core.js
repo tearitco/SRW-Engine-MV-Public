@@ -1491,6 +1491,23 @@ var $battleSceneManager = new BattleSceneManager();
 			event.appear();
 			$gameMap.setEventImages();			
 		}
+		
+		var deployInfo = $gameSystem.getDeployInfo();
+		var currentSlot = -1;
+		var currentMaxSlot = -1;
+		
+		Object.keys(deployInfo.assigned).forEach(function(slot){
+			if(slot > currentMaxSlot){
+				currentMaxSlot = slot;
+			}
+			if(deployInfo.assigned[slot] == actor_unit.actorId()){
+				currentSlot = slot;
+			}
+		});		
+		if(currentSlot == -1){
+			deployInfo.assigned[currentMaxSlot+1] = actor_unit.actorId();
+		}
+		$gameSystem.setDeployInfo(deployInfo);
 	}
 	
 	Game_System.prototype.getEventDeploySlot = function(event) {
