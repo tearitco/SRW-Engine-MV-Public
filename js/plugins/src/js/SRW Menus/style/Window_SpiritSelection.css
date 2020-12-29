@@ -44,8 +44,10 @@
 #spirit_selection #spirit_selection_SP_display {
 	font-size: 2px;
 	position: absolute;
-	left: 7%;
+	left: 6.5%;
 	bottom: 0%;
+	width: 20%;
+    text-align: center;
 }
 
 #spirit_selection .spirit_selection_row.details {
@@ -160,7 +162,7 @@
     border: 0.1vw solid #99e3ff;
 	flex-shrink: 0;
 	position: absolute;
-	left: 3%;
+	left: 4.5%;
 }
 
 #spirit_selection #previous_selection_icon {
@@ -184,7 +186,7 @@
 	flex-shrink: 0;
 	position: absolute;
 	top: 81%;
-    left: 22.5%;
+    left: 25%;
 }
 
 #spirit_selection .skills_block {
