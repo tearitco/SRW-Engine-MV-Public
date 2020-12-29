@@ -74,7 +74,7 @@ BattleCalc.prototype.performCritCalculation = function(attackerInfo, defenderInf
 		var weaponInfo = attackerAction.attack;			
 		var attackerTerrainMod = $statCalc.getTerrainMod(attackerInfo.actor);
 		
-		var baseCrit = (attackerPilotStats.skill/2) * attackerTerrainMod + (weaponInfo.critMod/2);
+		var baseCrit = (attackerPilotStats.skill/2) * attackerTerrainMod + (weaponInfo.critMod);
 		
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
 		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
@@ -82,7 +82,7 @@ BattleCalc.prototype.performCritCalculation = function(attackerInfo, defenderInf
 		
 		var baseCritEvade = (defenderPilotStats.skill/2) * defenderTerrainMod;
 		
-		var finalCrit = (baseCrit - baseCritEvade) + 6.25;
+		var finalCrit = (baseCrit - baseCritEvade);
 		
 		finalCrit = $statCalc.applyStatModsToValue(attackerInfo.actor, finalCrit, ["crit"]);
 
