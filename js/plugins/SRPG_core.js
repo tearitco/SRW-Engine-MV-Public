@@ -3504,7 +3504,11 @@ var $battleSceneManager = new BattleSceneManager();
 	Game_Player.prototype.initialize = function() {
     Game_Character.prototype.initialize.call(this);
 		this.setTransparent($dataSystem.optTransparent);
-		this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
+		this._topSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
+		this._initialSpeed = this._topSpeed - 1;
+		this._moveSpeed = this._initialSpeed;
+		this._tileCounter = 0;
+		this._speedResetCounter = 0;
 	};
 	
     var _SRPG_Game_Player_refresh = Game_Player.prototype.refresh;
@@ -3518,10 +3522,55 @@ var $battleSceneManager = new BattleSceneManager();
             _SRPG_Game_Player_refresh.call(this);
         }
     };
+	
+	
+	Game_Player.prototype.update = function(sceneActive) {
+		if(Input.isPressed('shift')){
+			this._moveSpeed = this._topSpeed + 2;
+		} else {
+			if(this._tileCounter > 1){
+				this._moveSpeed = this._topSpeed;
+			} else {
+				if(this._speedResetCounter <= 0){
+					this._moveSpeed = this._initialSpeed;
+				} else {
+					this._speedResetCounter--;
+				}				
+			}			
+		}
+		if(!this._moveSpeed){ //support for old save files
+			this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
+		}	
+		//console.log("move speed: "+this._moveSpeed);
+		
+		var lastScrolledX = this.scrolledX();
+		var lastScrolledY = this.scrolledY();
+		var wasMoving = this.isMoving();
+		this.updateDashing();
+		if (sceneActive) {
+			this.moveByInput();
+		}
+		Game_Character.prototype.update.call(this);
+		this.updateScroll(lastScrolledX, lastScrolledY);
+		this.updateVehicle();
+		if (!this.isMoving()) {
+			this.updateNonmoving(wasMoving);
+		}
+		this._followers.update();
+	};
 
     //プレイヤーの自動移動を設定する
     var _SRPG_Game_Player_moveByInput = Game_Player.prototype.moveByInput;
-    Game_Player.prototype.moveByInput = function() {
+    Game_Player.prototype.moveByInput = function() {		
+		if(!this.getInputDirection()){			
+			if(this._tileCounter > 0){				
+				this._speedResetCounter = 10;
+			}
+			this._tileCounter = 0;		
+		} else if(!this.isMoving()){
+			this._tileCounter++;
+		}
+		
         if ($gameSystem.isSRPGMode() == true && $gameTemp.isAutoMoveDestinationValid() == true &&
             !this.isMoving()) {
             var x = $gameTemp.autoMoveDestinationX() - this.x;
