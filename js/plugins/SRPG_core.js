@@ -410,10 +410,6 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.deployActors(args[0], true);
 		}
 		
-		if (command === 'manualDeploy') {
-			$gameMap._interpreter.manualDeploy();
-		}		
-		
 		if (command === 'deployActor') {
 			var actor_unit = $gameActors.actor(args[0]);
 			var event = $gameMap.event(args[1]);
@@ -474,25 +470,6 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'setEventLanded') {
 			var actor = $gameSystem.EventToUnit(args[0])[1];		
 			$statCalc.setFlying(actor, false);						
-		}
-		
-		if (command === 'awardSRPoint') {
-			var mapId = $gameMap.mapId();
-			var isNewlyAwarded = $SRWSaveManager.awardMapSRPoint(mapId);	
-			if(isNewlyAwarded){
-				var se = {};
-				se.name = 'SRWMastery';
-				se.pan = 0;
-				se.pitch = 100;
-				se.volume = 80;
-				AudioManager.playSe(se);
-				$gameMap._interpreter.showMasteryGet();
-				$gameVariables.setValue(_masteryConditionText, APPSTRINGS.GENERAL.label_mastery_completed);	
-			}						
-		}
-		
-		if (command === 'showEnemyPhase') {
-			$gameMap._interpreter.showEnemyPhaseText();
 		}
 		
 		if (command === 'enableFaction') {
@@ -1455,6 +1432,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$statCalc.initSRWStats(actor_unit);
 		actor_unit.SRPGActionTimesSet($statCalc.applyStatModsToValue(actor_unit, 1, ["extra_action"]));
 		actor_unit.setSrpgTurnEnd(false);	
+		actor_unit.setBattleMode("");
 
 		var position = $statCalc.getAdjacentFreeSpace({x: event.posX(), y: event.posY()}, null, event.eventId());
 		event.locate(position.x, position.y);
@@ -2250,8 +2228,10 @@ var $battleSceneManager = new BattleSceneManager();
     };
 
     // 行動モードの設定
-    Game_Battler.prototype.setBattleMode = function(mode) {
-        this._battleMode = mode;
+    Game_Battler.prototype.setBattleMode = function(mode, force) {
+		if(force || (this._battleMode != "fixed" && this._battleMode != "disabled")){
+			this._battleMode = mode;	
+		}        
     };
 	
 	Game_Battler.prototype.setSquadMode = function(mode) {
@@ -3467,6 +3447,7 @@ var $battleSceneManager = new BattleSceneManager();
 		this._moveSpeed = this._initialSpeed;
 		this._tileCounter = 0;
 		this._speedResetCounter = 0;
+		this._followSpeed = 0;
 	};
 	
     var _SRPG_Game_Player_refresh = Game_Player.prototype.refresh;
@@ -3481,9 +3462,18 @@ var $battleSceneManager = new BattleSceneManager();
         }
     };
 	
+	Game_Player.prototype.setFollowSpeed = function(speed) {
+		this._followSpeed = speed;
+	}
 	
-	Game_Player.prototype.update = function(sceneActive) {
-		if(Input.isPressed('shift')){
+	Game_Player.prototype.clearFollowSpeed = function() {
+		this._followSpeed = 0;
+	}
+	
+	Game_Player.prototype.update = function(sceneActive) {		
+		if(this._followSpeed){
+			this._moveSpeed = this._followSpeed;
+		}else if(Input.isPressed('shift')){
 			this._moveSpeed = this._topSpeed + 2;
 		} else {
 			if(this._tileCounter > 1){
@@ -3675,7 +3665,7 @@ var $battleSceneManager = new BattleSceneManager();
 										var enemyInfo = {actor: $gameTemp.currentBattleEnemy, pos: {x: event.posX(), y: event.posY()}};
 										var actorInfo = {actor: $gameTemp.currentBattleActor, pos: {x: $gameTemp.activeEvent()._x, y: $gameTemp.activeEvent()._y}};
 										var weapon = $battleCalc.getBestWeapon(enemyInfo, actorInfo);
-										if(weapon){
+										if($gameTemp.currentBattleEnemy.battleMode() !== 'disabled' && weapon){
 											$gameTemp.enemyAction = {
 												type: "attack",
 												attack: weapon,
@@ -4186,7 +4176,7 @@ var $battleSceneManager = new BattleSceneManager();
 					if(followMove){
 						$gamePlayer.locate(targetPosition.x, targetPosition.y);
 					}
-					$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED || 4);
+					$gamePlayer.clearFollowSpeed();
 					this._targetPosition = null;
 					this._pathToCurrentTarget = null;
 					this._pendingMoveToPoint = false;
@@ -4195,7 +4185,7 @@ var $battleSceneManager = new BattleSceneManager();
 				} else {				
 					this.setMoveSpeed(6);
 					if(followMove){
-						$gamePlayer.setMoveSpeed(6);
+						$gamePlayer.setFollowSpeed(6);
 					}
 					var nextPosition = this._pathToCurrentTarget.shift();
 					if(nextPosition && (this._x != nextPosition.x || this._y != nextPosition.y)) {
@@ -4228,7 +4218,7 @@ var $battleSceneManager = new BattleSceneManager();
 							}
 						}					
 					} else {
-						$gamePlayer.setMoveSpeed(ENGINE_SETTINGS.CURSOR_SPEED || 4);
+						$gamePlayer.clearFollowSpeed();
 						this._targetPosition = null;
 						this._pathToCurrentTarget = null;
 						this._pendingMoveToPoint = false;
@@ -4363,6 +4353,22 @@ var $battleSceneManager = new BattleSceneManager();
 // ●Game_Interpreter
 //====================================================================
 // イベントＩＤをもとに、ユニット間の距離をとる
+
+// Script
+Game_Interpreter.prototype.command355 = function() {
+    var script = this.currentCommand().parameters[0] + '\n';
+    while (this.nextEventCode() === 655) {
+        this._index++;
+        script += this.currentCommand().parameters[0] + '\n';
+    }
+    var result = eval(script);
+	if(result == null){
+		return true;
+	} else {
+		return result;
+	}
+};
+
 Game_Interpreter.prototype.EventDistance = function(variableId, eventId1, eventId2) {
     var event1 = $gameMap.event(eventId1);
     var event2 = $gameMap.event(eventId2);
@@ -4480,16 +4486,30 @@ Game_Interpreter.prototype.showEnemyPhaseText = function(){
 	return false;
 }
 
-Game_Interpreter.prototype.showMasteryGet = function(){
-	if (!$gameMessage.isBusy()) {
-		$gameMessage.setFaceImage("", "");
-		$gameMessage.setBackground(1);
-        $gameMessage.setPositionType(1);
-		$gameMessage.add("\\TA[1]\n" + APPSTRINGS.GENERAL.label_mastery_completed_message);				
-		this._index++;
-        this.setWaitMode('message');
+Game_Interpreter.prototype.awardSRPoint = function(){	
+	var mapId = $gameMap.mapId();
+	var isNewlyAwarded = $SRWSaveManager.awardMapSRPoint(mapId);	
+	if(isNewlyAwarded){
+		var se = {};
+		se.name = 'SRWMastery';
+		se.pan = 0;
+		se.pitch = 100;
+		se.volume = 80;
+		AudioManager.playSe(se);
+		$gameVariables.setValue(_masteryConditionText, APPSTRINGS.GENERAL.label_mastery_completed);	
+		
+		if (!$gameMessage.isBusy()) {
+			$gameMessage.setFaceImage("", "");
+			$gameMessage.setBackground(1);
+			$gameMessage.setPositionType(1);
+			$gameMessage.add("\\TA[1]\n" + APPSTRINGS.GENERAL.label_mastery_completed_message);				
+			this._index++;
+			this.setWaitMode('message');
+		}
+		
+		return false;
 	}
-	return false;
+	return true;
 }
 
 Game_Interpreter.prototype.showMapAttackText = function(faceName, faceIdx, text){
@@ -4962,7 +4982,7 @@ Game_Interpreter.prototype.setBattleModes = function(startId, endId, mode) {
 Game_Interpreter.prototype.setBattleMode = function(eventId, mode) {
     var battlerArray = $gameSystem.EventToUnit(eventId);
     if (battlerArray && (battlerArray[0] === 'actor' || battlerArray[0] === 'enemy')) {
-        battlerArray[1].setBattleMode(mode);			
+        battlerArray[1].setBattleMode(mode, true);			
     }
 	if(battlerArray[0] === 'enemy'){
 		if(battlerArray[1].squadId != -1){
@@ -4972,12 +4992,27 @@ Game_Interpreter.prototype.setBattleMode = function(eventId, mode) {
     return true;
 };
 
+Game_Interpreter.prototype.setTargetRegion = function(eventId, targetRegion) {
+    var battlerArray = $gameSystem.EventToUnit(eventId);
+    if (battlerArray && (battlerArray[0] === 'actor' || battlerArray[0] === 'enemy')) {
+        battlerArray[1].targetRegion = targetRegion;				
+    }
+	
+    return true;
+};
+
+// 指定したイベントの戦闘モードを設定する
+Game_Interpreter.prototype.setActorBattleMode = function(actorId, mode) {  
+    $gameActors.actor(actorId).setBattleMode(mode, true);		
+    return true;
+};
+
 Game_Interpreter.prototype.setSquadMode = function(squadId, mode) {
 	$gameMap.events().forEach(function(event) {
 		if (event.isType() === 'enemy') {
 			var enemy = $gameSystem.EventToUnit(event.eventId())[1];	
 			if(enemy.squadId == squadId){
-				enemy.setBattleMode(mode);
+				enemy.setBattleMode(mode, true);
 			}	
 		}
 	});
@@ -7301,7 +7336,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 				
 				function regularMenu(){
-					_this.addMoveCommand();
+					if(_this._actor.battleMode() != "fixed"){
+						_this.addMoveCommand();
+					}
 					if(hasTarget || hasMapWeapon){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_attack, 'attack');
 					}
@@ -7348,6 +7385,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					_this.addWaitCommand();
 				}
 				
+				function disabledMenu(){
+					_this.addWaitCommand();
+				}
+				
 				function postMoveMenu(){
 					if(hasTarget || hasMapWeapon){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_attack, 'attack');
@@ -7384,7 +7425,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					postMoveMenu();
 				} else if($gameTemp.activeShip){
 					deployMenu();
-				} else {
+				} else if(this._actor.battleMode() == "disabled"){
+					disabledMenu();
+				} else {	
 					regularMenu();
 				}				
             }
@@ -10319,7 +10362,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		$gameTemp.isPostMove = false;
         enemy.makeSrpgActions();
-        if (_srpgStandUnitSkip === 'true' && enemy.battleMode() === 'stand') {
+		if(enemy.battleMode() === 'disabled'){
+			$gameTemp.setActiveEvent(event);
+			enemy.onAllActionsEnd();
+			$gameTemp.enemyWaitTimer = 15;
+			$gamePlayer.locate(event.posX(), event.posY());		
+			this.srpgAfterAction();
+			return;
+		}
+		
+        if (_srpgStandUnitSkip === 'true' && enemy.battleMode() === 'stand' || enemy.battleMode() === 'fixed') {
             var targetType = this.makeTargetType(enemy, 'enemy');
             $gameTemp.setActiveEvent(event);
             $gameSystem.srpgMakeMoveTable(event);
