@@ -29,6 +29,8 @@ Window_SpiritSelection.prototype.resetSelection = function(){
 	this._currentSelection = 0;
 	this._currentPage = 0;
 	this._currentActor = 0;
+	this._currentBatchInfo = {};
+	this._currentBatchedSpirits = {};
 }
 
 Window_SpiritSelection.prototype.incrementSelection = function(){	
@@ -126,15 +128,62 @@ Window_SpiritSelection.prototype.update = function() {
 			var selectedIdx = this.getCurrentSelection();
 		
 			if(spiritList[selectedIdx] && spiritList[selectedIdx].level <= currentLevel && this.getSpiritEnabledState(selectedIdx) > 0){
-				var spiritInfo = JSON.parse(JSON.stringify(spiritList[selectedIdx]));
-				spiritInfo.caster = actor;
-				spiritInfo.target = $gameTemp.currentMenuUnit.actor;
+				var spirits = [];				
+				var type = $spiritManager.getSpiritDef(spiritList[selectedIdx].idx).targetType;
+				
+				if(type == "self"){
+					this._currentBatchedSpirits[spiritList[selectedIdx].idx] = {actor: actor, spiritInfo: spiritList[selectedIdx]};
+					Object.keys(this._currentBatchedSpirits).forEach(function(spiritIdx){
+						var info = _this._currentBatchedSpirits[spiritIdx];
+						var spiritInfo = JSON.parse(JSON.stringify(info.spiritInfo));
+						spiritInfo.caster = info.actor;
+						spiritInfo.target = $gameTemp.currentMenuUnit.actor;
+						spirits.push(spiritInfo);						
+					});
+					if(_this._callbacks["selectedMultiple"]){
+						_this._callbacks["selectedMultiple"](spirits);
+					}
+				} else {
+					var spiritInfo = JSON.parse(JSON.stringify(spiritList[selectedIdx]));
+					spiritInfo.caster = actor;
+					spiritInfo.target = $gameTemp.currentMenuUnit.actor;
+					if(this._callbacks["selected"]){
+						this._callbacks["selected"](spiritInfo);
+					}
+				}	
+				
 				$gameTemp.popMenu = true;	
-				if(this._callbacks["selected"]){
-					this._callbacks["selected"](spiritInfo);
-				}
+				
+				
 			}
 		}
+		
+		if(Input.isTriggered('shift')){				
+			//$gameTemp.popMenu = true;	
+			var actor = this.getAvailableActors()[this._currentActor];
+			var currentLevel = $statCalc.getCurrentLevel(actor);
+			var spiritList = $statCalc.getSpiritList(actor);
+			var selectedIdx = this.getCurrentSelection();
+			var type = $spiritManager.getSpiritDef(spiritList[selectedIdx].idx).targetType;
+			
+			if(spiritList[selectedIdx] && spiritList[selectedIdx].level <= currentLevel && type == "self"){
+				if(!this._currentBatchInfo[_this._currentActor]){
+					this._currentBatchInfo[_this._currentActor] = {};
+				}
+				if(this._currentBatchInfo[_this._currentActor][selectedIdx]){
+					delete this._currentBatchInfo[_this._currentActor][selectedIdx];
+					delete this._currentBatchedSpirits[spiritList[selectedIdx].idx];
+				} else if(this.getSpiritEnabledState(selectedIdx) > 0){
+					this._currentBatchInfo[_this._currentActor][selectedIdx] = true;
+					this._currentBatchedSpirits[spiritList[selectedIdx].idx] = {actor: actor, spiritInfo: spiritList[selectedIdx]};
+				}				
+				if(!Object.keys(this._currentBatchInfo[_this._currentActor]).length){
+					delete this._currentBatchInfo[_this._currentActor];
+				}				
+				this.requestRedraw();
+			}
+		}
+		
 		if(Input.isTriggered('cancel')){				
 			//$gameTemp.popMenu = true;	
 			$gameTemp.popMenu = true;	
@@ -153,14 +202,30 @@ Window_SpiritSelection.prototype.getSpiritEnabledState = function(listIdx){
 	var caster = this.getAvailableActors()[this._currentActor];
 	var target = $gameTemp.currentMenuUnit.actor;
 	var list = $statCalc.getSpiritList(caster);
+	
+	var pendingBatchCost = 0;
+	
+	if(this._currentBatchInfo[this._currentActor]){
+		Object.keys(this._currentBatchInfo[this._currentActor]).forEach(function(listIdx){
+			if(listIdx < list.length){
+				var selectedSpirit = list[listIdx];
+				pendingBatchCost+=selectedSpirit.cost;
+			}			
+		});
+	}
+	
 	if(listIdx < list.length){	
 		var selectedSpirit = list[listIdx];
 		var spiritDisplayInfo = $spiritManager.getSpiritDisplayInfo(selectedSpirit.idx);
 		if(!spiritDisplayInfo.enabledHandler(target)){
 			result = -1;
-		} else if(selectedSpirit.cost > $statCalc.getCalculatedPilotStats(caster).currentSP){
+		} else if(selectedSpirit.cost > $statCalc.getCalculatedPilotStats(caster).currentSP - pendingBatchCost && (this._currentBatchedSpirits[selectedSpirit.idx] == null || this._currentBatchedSpirits[selectedSpirit.idx].actor.actorId() != caster.actorId())){
 			result = -2;
-		} 
+		} else if(this._currentBatchedSpirits[selectedSpirit.idx] != null && this._currentBatchedSpirits[selectedSpirit.idx].actor.actorId() != caster.actorId()){
+			result = -1;
+		} else if(Object.keys(this._currentBatchedSpirits).length && $spiritManager.getSpiritDef(selectedSpirit.idx).targetType != "self"){
+			result = -1;
+		}
 	} else {
 		result = -1;
 	}
@@ -233,9 +298,25 @@ Window_SpiritSelection.prototype.redraw = function() {
 			displayClass = "disabled";
 		} else if(enabledState == -2){
 			displayClass = "insufficient";
+		}		
+		
+		var targetType = $spiritManager.getSpiritDef(spiritList[i].idx).targetType;
+		
+		var isBatched = false;
+		if(this._currentBatchInfo[_this._currentActor]){ 
+			if(this._currentBatchInfo[_this._currentActor][i]){
+				isBatched = true;
+				displayClass = "batched";
+			}			
 		}
 		
+		
+		
 		content+="<div class='row scaled_text "+displayClass+"'>";
+		
+		content+="<div class='multi_select_check "+(isBatched ? "enabled" : "")+" "+(targetType == "self" && isDisplayed ? "available" : "")+"'>";
+		content+="</div>";
+		
 		content+="<div class='column "+(i == _this._currentSelection ? "selected" : "")+"'>";
 		content+=displayName;
 		content+="</div>";
@@ -267,6 +348,10 @@ Window_SpiritSelection.prototype.redraw = function() {
 		this.loadActorFace(availableActors[this._currentActor+1].actorId(), actorIcon);
 	}
 	
+	var multiChecks = _this._bgFadeContainer.querySelectorAll(".multi_select_check");
+	multiChecks.forEach(function(multiCheck){
+		_this.updateScaledDiv(multiCheck);
+	});
 	Graphics._updateCanvas();
 }
 

@@ -383,3 +383,24 @@ Window_CSS.prototype.assignFactionColorClass = function(elem, ref) {
 		}
 	}
 }
+
+Window_CSS.prototype.applyDoubleTime = function(el) {	
+	if(this._doubleSpeedEnabled){
+		var compStyle = window.getComputedStyle(el, null);
+		var duration = compStyle.getPropertyValue("animation-duration").replace(/s/g, "").replace(/\s/g, "");
+		var parts = duration.split(",");
+		for(var i = 0; i < parts.length; i++){
+			parts[i] = parts[i] / 2 + "s";
+		}
+		el.style["animation-duration"] = parts.join(",");
+	} else {
+		el.style["animation-duration"] = "";
+	}
+}
+
+Window_CSS.prototype.getAnimTimeRatio = function() {	
+	if(this._doubleSpeedEnabled){
+		return 0.5;
+	}
+	return 1;
+}

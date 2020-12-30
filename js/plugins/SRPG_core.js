@@ -8055,6 +8055,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._spiritWindow.registerCallback("selected", function(spiritInfo){
 			_this.handleSpiritSelection(spiritInfo);
 		});
+		this._spiritWindow.registerCallback("selectedMultiple", function(spirits){
+			_this.handleMultipleSpiritSelection(spirits);
+		});		
 		this._spiritWindow.registerCallback("closed", function(spiritInfo){
 			_this._spiritWindow.close();
 			_this._mapSrpgActorCommandWindow.activate()
@@ -8082,6 +8085,44 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.idToMenu["before_battle"] = this._beforeBattleWindow;
     };
 	
+	
+	Scene_Map.prototype.applyAdditionalSpiritEffects = function(spiritInfo, target, caster) {
+		//Implementation of Great Wall Ace Bonus
+		if(spiritInfo.idx == 22 && $statCalc.applyStatModsToValue(target, 0, ["great_wall"])) { //Wall
+			$spiritManager.applyEffect(9, caster, [target], 0); //Drive
+		}
+	}
+	
+	Scene_Map.prototype.handleMultipleSpiritSelection = function(spirits) {
+		var _this = this;
+		var currentSpirit = spirits.pop();	
+		this._spiritWindow.close();
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		
+		function applySpirit(){
+			_this.applyAdditionalSpiritEffects(currentSpirit, currentSpirit.target, currentSpirit.caster);
+			$spiritManager.applyEffect(currentSpirit.idx, currentSpirit.caster, [currentSpirit.target], currentSpirit.cost);			
+			$gameTemp.spiritTargetActor = currentSpirit.target;
+			$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: currentSpirit.target, idx: currentSpirit.idx}}];	
+			_this._spiritAnimWindow.show(true);	
+		}
+			
+		$gameTemp.spiritWindowDoneHandler = function(){
+			if(!spirits.length){
+				$gameTemp.popMenu = true;
+				$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
+				$gameSystem.setSubBattlePhase("actor_command_window");
+			} else {
+				currentSpirit = spirits.pop();	
+				applySpirit();
+			}
+		}
+		
+		$gameSystem.setSubBattlePhase('spirit_activation');	
+		$gameTemp.pushMenu = "spirit_activation";
+		applySpirit();
+	}
+	
 	Scene_Map.prototype.handleSpiritSelection = function(spiritInfo) {
 		this._spiritWindow.close();
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
@@ -8108,20 +8149,20 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			//apply immediately
 			$spiritManager.applyEffect(spiritInfo.idx, caster, initialTargetingResult.targets, spiritInfo.cost);
 			
-			//Implementation of Great Wall Ace Bonus
-			if(spiritInfo.idx == 22 && $statCalc.applyStatModsToValue(initialTargetingResult.targets[0], 0, ["great_wall"])) { //Wall
-				$spiritManager.applyEffect(9, caster, initialTargetingResult.targets, 0); //Drive
-			}
+			this.applyAdditionalSpiritEffects(spiritInfo, target, caster);
 			if(initialTargetingResult.targets.length == 1){
 				$gameTemp.spiritTargetActor = initialTargetingResult.targets[0];
 				$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: initialTargetingResult.targets[0], idx: spiritInfo.idx}}];					
 				$gameSystem.setSubBattlePhase('spirit_activation');
 				
+				
 				$gameTemp.spiritWindowDoneHandler = function(){
 					$gameTemp.popMenu = true;
 					$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
 					$gameSystem.setSubBattlePhase("actor_command_window");
-				}	
+				}
+				
+					
 				$gameTemp.pushMenu = "spirit_activation";
 				
 							
