@@ -105,7 +105,9 @@ Window_SpiritActivation.prototype.loadRequiredImages = function(){
 				} else {
 					promises.push(_this.loadImage(_this.makeSpiritAnimationURL(spiritAnimInfo.src)));
 				}
-			}			
+			} else if(effectDef.type == "repair"){
+				promises.push(_this.loadImage(_this.makeSpiritAnimationURL(effectDef.parameters.animId)));
+			}		
 		});
 		
 		Promise.all(promises).then(function(){
@@ -324,6 +326,43 @@ Window_SpiritActivation.prototype.update = function() {
 						
 						var se = {};
 						se.name = 'SRWMiss';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 90;
+						AudioManager.playSe(se);
+					} else if(effectDef.type == "repair"){
+						this._processingAnimation = true;			
+						
+						this._spiritAnimImage.style.display = "block";
+						this._spiritAnimImage.src = this.makeSpiritAnimationURL(effectDef.parameters.animId);
+						this._spiritAnimImage.style["animation-duration"] = "";
+						this.applyDoubleTime(this._spiritAnimImage);
+											
+						setTimeout(function(){ 
+							_this._spiritAnimImage.style.display = "none" 
+							console.log("Hiding spirit image");
+							_this._processingAnimation = false;
+						}, 800 * this.getAnimTimeRatio());		
+						
+						
+						var stats = $statCalc.getCalculatedMechStats(effectDef.parameters.target);
+							
+						var startPercent = Math.floor((effectDef.parameters.startAmount / effectDef.parameters.total) * 100);
+						var endPercent = Math.floor((effectDef.parameters.endAmount / effectDef.parameters.total) * 100);
+						_this.setMessage(effectDef.parameters.endAmount - effectDef.parameters.startAmount, "#227722");
+						_this.animateHP(_this._HPBar, _this._HPBarFill, startPercent, endPercent);						
+						
+						setTimeout(function(){ 
+							_this.clearMessage();
+						}, 400 * this.getAnimTimeRatio());	
+							
+						setTimeout(function(){ 
+							_this._spiritAnimImage.style.display = "none" 
+							_this._processingAnimation = false;
+						}, 650 * this.getAnimTimeRatio());	
+						
+						var se = {};
+						se.name = 'SRWPowerUp';
 						se.pan = 0;
 						se.pitch = 100;
 						se.volume = 90;

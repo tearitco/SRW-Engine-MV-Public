@@ -3794,6 +3794,10 @@ var $battleSceneManager = new BattleSceneManager();
 								}
 								var candidateCanReceiveSupport = ($gameTemp.supportType == "heal" && $statCalc.canRecoverHP(candidate) || $gameTemp.supportType == "resupply" && ($statCalc.canRecoverEN(candidate) || $statCalc.canRecoverAmmo(candidate)));
 								if (isInrange && candidateCanReceiveSupport) {
+									
+									var stats = $statCalc.getCalculatedMechStats(candidate);
+									
+									var originalEN = stats.currentEN;
 									if($gameTemp.supportType == "heal") {
 										$statCalc.recoverHPPercent(candidate, 50);
 									} else {
@@ -3802,7 +3806,28 @@ var $battleSceneManager = new BattleSceneManager();
 										$statCalc.modifyWill(candidate, -10);
 									}							
 									$gameTemp.clearMoveTable();
-									$gameSystem.setSubBattlePhase('end_actor_turn');	            
+									
+									stats = $statCalc.getCalculatedMechStats(candidate);
+									var newEN = stats.currentEN;
+									var effect;
+	
+									if($gameTemp.supportType == "heal"){
+										effect = {type: "repair", parameters: {animId: "trust", target: candidate, startAmount: stats.HPBeforeRecovery, endAmount: stats.currentHP, total: stats.maxHP}};									
+									} else {
+										effect = {type: "repair", parameters: {animId: "resupply", target: candidate, startAmount: originalEN, endAmount: newEN, total: stats.maxEN}};		
+									}									
+									$gameTemp.queuedActorEffects = [effect];	
+
+									$gameTemp.spiritTargetActor	= candidate;						
+										
+									$gameTemp.spiritWindowDoneHandler = function(){
+										$gameTemp.popMenu = true;
+										$gameSystem.setSubBattlePhase('end_actor_turn');
+									}							
+									
+									$gameSystem.setSubBattlePhase('spirit_activation');	
+									$gameTemp.pushMenu = "spirit_activation";
+										            
 								}
 							}
 						}
