@@ -39,7 +39,10 @@ APPSTRINGS.GENERAL = {
 	label_no: "NO",
 	label_ask_end_turn_single: "unit can still take an action, end your turn?",
 	label_ask_end_turn_multi: "units can still take an action, end your turn?",
-	label_hit: "Hit"
+	label_hit: "Hit",
+	label_default_victory_condition: "Destroy all enemy units.",
+	label_default_defeat_condition: "Any ally unit defeated.",
+	label_default_mastery_condition: "???"
 }
 
 APPSTRINGS.SAVEMENU = {

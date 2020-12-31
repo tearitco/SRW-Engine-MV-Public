@@ -1189,6 +1189,12 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameTemp.enemyAppearQueue = [];
 		$gameTemp.disappearQueue = [];
 		
+		
+		$gameVariables.setValue(_masteryConditionText, APPSTRINGS.GENERAL.label_default_mastery_condition);	
+		$gameVariables.setValue(_victoryConditionText, APPSTRINGS.GENERAL.label_default_victory_condition);	
+		$gameVariables.setValue(_defeatConditionText, APPSTRINGS.GENERAL.label_default_defeat_condition);
+		
+		
 		$gameSystem.factionConfig = {
 			0: {
 				attacksPlayers:true,
