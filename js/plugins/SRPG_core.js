@@ -3452,7 +3452,7 @@ var $battleSceneManager = new BattleSceneManager();
     Game_Character.prototype.initialize.call(this);
 		this.setTransparent($dataSystem.optTransparent);
 		this._topSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
-		this._initialSpeed = this._topSpeed; //- 1;
+		this._initialSpeed = this._topSpeed;
 		this._moveSpeed = this._initialSpeed;
 		this._tileCounter = 0;
 		this._speedResetCounter = 0;
@@ -3483,7 +3483,7 @@ var $battleSceneManager = new BattleSceneManager();
 		if(this._followSpeed){
 			this._moveSpeed = this._followSpeed;
 		}else if(Input.isPressed('shift')){
-			this._moveSpeed = this._topSpeed + 2;
+			this._moveSpeed = ENGINE_SETTINGS.CURSOR_MAX_SPEED || this._topSpeed;
 		} else {
 			if(this._tileCounter > 1){
 				this._moveSpeed = this._topSpeed;
@@ -3528,52 +3528,54 @@ var $battleSceneManager = new BattleSceneManager();
 			this._tileCounter++;
 		}
 		
-        if ($gameSystem.isSRPGMode() == true && $gameTemp.isAutoMoveDestinationValid() == true &&
-            !this.isMoving()) {
-            var x = $gameTemp.autoMoveDestinationX() - this.x;
-            var y = $gameTemp.autoMoveDestinationY() - this.y;
-            if ($gameMap.isLoopHorizontal() == true) {
-    　　        var minDisX = Math.abs($gameTemp.autoMoveDestinationX() - this.x);
-                var destX = $gameTemp.autoMoveDestinationX() > this.x ? $gameTemp.autoMoveDestinationX() - $gameMap.width() : $gameTemp.autoMoveDestinationX() + $gameMap.width();
-                var disX = Math.abs(destX - this.x);
-                x = minDisX < disX ? x : x * -1;
-            }
-            if ($gameMap.isLoopVertical() == true) {
-        　　    var minDisY = Math.abs($gameTemp.autoMoveDestinationY() - this.y);
-                var destY = $gameTemp.autoMoveDestinationY() > this.y ? $gameTemp.autoMoveDestinationY() - $gameMap.height() : $gameTemp.autoMoveDestinationY() + $gameMap.height();
-                var disY = Math.abs(destY - this.y);
-                y = minDisY < disY ? y : y * -1;
-            }
-            if (x < 0) {
-                if (y < 0) {
-                    this.moveDiagonally(4, 8);
-                } else if (y == 0) {
-                    this.moveStraight(4);
-                } else if (y > 0) {
-                    this.moveDiagonally(4, 2);
-                }
-            } else if (x == 0) {
-                if (y < 0) {
-                    this.moveStraight(8);
-                } else if (y == 0) {
-                    $gameTemp.setAutoMoveDestinationValid(false);
-                    $gameTemp.setAutoMoveDestination(-1, -1);
-                } else if (y > 0) {
-                    this.moveStraight(2);
-                }
-            } else if (x > 0) {
-                if (y < 0) {
-                    this.moveDiagonally(6, 8);
-                } else if (y == 0) {
-                    this.moveStraight(6);
-                } else if (y > 0) {
-                    this.moveDiagonally(6, 2);
-                }
-            }
-        } else {
-            _SRPG_Game_Player_moveByInput.call(this);
-        }
+		
+		 if ($gameSystem.isSRPGMode() == true && $gameTemp.isAutoMoveDestinationValid() == true &&
+			!this.isMoving()) {
+			var x = $gameTemp.autoMoveDestinationX() - this.x;
+			var y = $gameTemp.autoMoveDestinationY() - this.y;
+			if ($gameMap.isLoopHorizontal() == true) {
+	　　        var minDisX = Math.abs($gameTemp.autoMoveDestinationX() - this.x);
+				var destX = $gameTemp.autoMoveDestinationX() > this.x ? $gameTemp.autoMoveDestinationX() - $gameMap.width() : $gameTemp.autoMoveDestinationX() + $gameMap.width();
+				var disX = Math.abs(destX - this.x);
+				x = minDisX < disX ? x : x * -1;
+			}
+			if ($gameMap.isLoopVertical() == true) {
+		　　    var minDisY = Math.abs($gameTemp.autoMoveDestinationY() - this.y);
+				var destY = $gameTemp.autoMoveDestinationY() > this.y ? $gameTemp.autoMoveDestinationY() - $gameMap.height() : $gameTemp.autoMoveDestinationY() + $gameMap.height();
+				var disY = Math.abs(destY - this.y);
+				y = minDisY < disY ? y : y * -1;
+			}
+			if (x < 0) {
+				if (y < 0) {
+					this.moveDiagonally(4, 8);
+				} else if (y == 0) {
+					this.moveStraight(4);
+				} else if (y > 0) {
+					this.moveDiagonally(4, 2);
+				}
+			} else if (x == 0) {
+				if (y < 0) {
+					this.moveStraight(8);
+				} else if (y == 0) {
+					$gameTemp.setAutoMoveDestinationValid(false);
+					$gameTemp.setAutoMoveDestination(-1, -1);
+				} else if (y > 0) {
+					this.moveStraight(2);
+				}
+			} else if (x > 0) {
+				if (y < 0) {
+					this.moveDiagonally(6, 8);
+				} else if (y == 0) {
+					this.moveStraight(6);
+				} else if (y > 0) {
+					this.moveDiagonally(6, 2);
+				}
+			}
+		} else {			
+			_SRPG_Game_Player_moveByInput.call(this);						
+		}      
     };
+	
 	
 	
 /* 戦闘中のイベント起動に関する処理
