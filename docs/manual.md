@@ -1048,3 +1048,11 @@ A setting can be left blank by entering "" as its value.
 * this.showEnemyPhase()
 
 	Show text declaring the start of an enemy phase. Automatically shows the correct faction color and displays "Ally Phase" instead if a faction is configured to be friendly to the player.	
+
+* this.applyEventSpirits(event\_id, spirit\_ids)
+
+	Apply spirits effects to the unit with the specified event id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.
+
+* this.applyActorSpirits(actor\_id, spirit\_ids)
+
+	Apply spirits effects to the actor unit with the specified id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.

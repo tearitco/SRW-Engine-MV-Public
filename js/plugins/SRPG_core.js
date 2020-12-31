@@ -567,12 +567,12 @@ var $battleSceneManager = new BattleSceneManager();
 		
 		if (command === 'setEventWill') {	
 			var actor = $gameSystem.EventToUnit(args[0])[1];
-			$statCalc.setWill(actor, args[1]);
+			$statCalc.setWill(actor, args[1] * 1);
 		}
 		
 		if (command === 'setActorWill') {	
 			var actor = $gameActors.actor(args[0]);
-			$statCalc.setWill(actor, args[1]);
+			$statCalc.setWill(actor, args[1] * 1);
 		}
     };		
 //====================================================================
@@ -3452,7 +3452,7 @@ var $battleSceneManager = new BattleSceneManager();
     Game_Character.prototype.initialize.call(this);
 		this.setTransparent($dataSystem.optTransparent);
 		this._topSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
-		this._initialSpeed = this._topSpeed - 1;
+		this._initialSpeed = this._topSpeed; //- 1;
 		this._moveSpeed = this._initialSpeed;
 		this._tileCounter = 0;
 		this._speedResetCounter = 0;
@@ -4794,6 +4794,9 @@ Game_Interpreter.prototype.updateWaitMode = function() {
 	case 'battle_demo':
 		waiting = $gameTemp.playingBattleDemo;
 		break;
+	case 'spirit_activation':
+		waiting = $gameTemp.playingSpiritAnimations;
+		break;		
     }
 	
     if (!waiting) {
@@ -4802,6 +4805,31 @@ Game_Interpreter.prototype.updateWaitMode = function() {
     return waiting;
 };
 
+Game_Interpreter.prototype.applyActorSpirits = function(actorId, spiritIds){
+	this.applyEventSpirits($gameActors.actor(actorId).event.eventId(), spiritIds);
+}
+
+Game_Interpreter.prototype.applyEventSpirits = function(eventId, spiritIds){
+	var spirits = [];
+	var event = $gameMap.event(eventId);
+	$gamePlayer.locate(event.posX(), event.posY());
+	var actor = $gameSystem.EventToUnit(eventId)[1];
+	spiritIds.forEach(function(spiritId){
+		spirits.push({
+			idx: spiritId,
+			level: 1,
+			cost: 0,
+			caster: actor,
+			target: actor
+		});
+	});
+	$gameTemp.playingSpiritAnimations = true;
+	this.setWaitMode("spirit_activation");
+	$gameTemp.eventSpirits = spirits;
+	$gameSystem.setSubBattlePhase("event_spirits");
+	this._index++;
+	return false;
+}
 
 Game_Interpreter.requestImages = function(list, commonList){
     if(!list) return;
@@ -8179,12 +8207,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	
 	Scene_Map.prototype.handleMultipleSpiritSelection = function(spirits) {
 		var _this = this;
+		$gameTemp.playingSpiritAnimations = true;
 		var currentSpirit = spirits.pop();	
 		this._spiritWindow.close();
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		
 		function applySpirit(){
-			_this.applyAdditionalSpiritEffects(currentSpirit, currentSpirit.target, currentSpirit.caster);
+			_this.applyAdditionalSpiritEffects(currentSpirit, currentSpirit.target, currentSpirit.caster);					
 			$spiritManager.applyEffect(currentSpirit.idx, currentSpirit.caster, [currentSpirit.target], currentSpirit.cost);			
 			$gameTemp.spiritTargetActor = currentSpirit.target;
 			$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: currentSpirit.target, idx: currentSpirit.idx}}];	
@@ -8193,9 +8222,40 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			
 		$gameTemp.spiritWindowDoneHandler = function(){
 			if(!spirits.length){
+				$gameTemp.playingSpiritAnimations = false;
 				$gameTemp.popMenu = true;
 				$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
 				$gameSystem.setSubBattlePhase("actor_command_window");
+			} else {
+				currentSpirit = spirits.pop();	
+				applySpirit();
+			}
+		}
+		
+		$gameSystem.setSubBattlePhase('spirit_activation');	
+		$gameTemp.pushMenu = "spirit_activation";
+		applySpirit();
+	}
+	
+	Scene_Map.prototype.handleEventSpirits = function(spirits) {
+		var _this = this;
+		$gameTemp.playingSpiritAnimations = true;
+		var currentSpirit = spirits.pop();	
+		this._spiritWindow.close();
+		
+		function applySpirit(){
+			_this.applyAdditionalSpiritEffects(currentSpirit, currentSpirit.target, currentSpirit.caster);					
+			$spiritManager.applyEffect(currentSpirit.idx, currentSpirit.caster, [currentSpirit.target], 0);			
+			$gameTemp.spiritTargetActor = currentSpirit.target;
+			$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: currentSpirit.target, idx: currentSpirit.idx}}];	
+			_this._spiritAnimWindow.show(true);	
+		}
+			
+		$gameTemp.spiritWindowDoneHandler = function(){
+			if(!spirits.length){
+				$gameSystem.setSubBattlePhase('normal');	
+				$gameTemp.playingSpiritAnimations = false;
+				$gameTemp.popMenu = true;
 			} else {
 				currentSpirit = spirits.pop();	
 				applySpirit();
@@ -8565,6 +8625,20 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		if($gameTemp.OKHeld && !Input.isTriggered("ok")){
 			$gameTemp.OKHeld = false;
+		}
+		
+		
+		if($gameSystem.isSubBattlePhase() == "event_spirits"){
+			$gameSystem.setSubBattlePhase("event_spirits_display");
+			_this.handleEventSpirits($gameTemp.eventSpirits);
+			return;
+		}
+		
+		if($gameSystem.isSubBattlePhase() == "event_spirits_display"){
+			if(!$gameTemp.playingSpiritAnimations){
+				$gameSystem.setSubBattlePhase("normal");
+			}
+			return;
 		}
 				
 		//console.log($gameSystem.isSubBattlePhase());
