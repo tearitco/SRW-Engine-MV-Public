@@ -842,6 +842,14 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 	Set the name that will show up in the save file list for newly saved files. Spaces should be replaced by underscores in the command, ex.: "Debug\_Stage\_1" becomes "Debug Stage 1" on the file select screen.
 
+* setEventWill event\_id amount
+	
+	Set the will of the unit for the specified event.
+
+* setActorWill actor\_id amount
+	
+	Set the will of the actor unit with the specified id.
+
 ## Script commands
 
 These added commands can be used in Script commands while making event scripts.<br>

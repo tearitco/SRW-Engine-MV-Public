@@ -565,6 +565,15 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.saveDisplayName = (args[0] || "").replace(/\_/ig, " ");
 		}		
 		
+		if (command === 'setEventWill') {	
+			var actor = $gameSystem.EventToUnit(args[0])[1];
+			$statCalc.setWill(actor, args[1]);
+		}
+		
+		if (command === 'setActorWill') {	
+			var actor = $gameActors.actor(args[0]);
+			$statCalc.setWill(actor, args[1]);
+		}
     };		
 //====================================================================
 // ●Game_Temp
