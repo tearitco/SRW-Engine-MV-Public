@@ -449,6 +449,10 @@ var $battleSceneManager = new BattleSceneManager();
 			}			
 		}
 		
+		if (command === 'redeployActor') {
+			$gameSystem.redeployActor(args[0], args[1] * 1);			
+		}
+		
 		if (command === 'moveEventToPoint') {
 			$gameMap._interpreter.setWaitMode("move_to_point");
 			$gameSystem.setSrpgWaitMoving(true);
@@ -1460,6 +1464,7 @@ var $battleSceneManager = new BattleSceneManager();
 			event.erase();
 		} else {
 			event.appear();
+			//event.refreshImage();
 			$gameMap.setEventImages();			
 		}
 		
@@ -1567,6 +1572,23 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		 });
 		 this.deployActors(false, false, validatePositions);
+	}
+	
+	Game_System.prototype.redeployActor = function(actorId, toAnimQueue){  
+		var actor = $gameActors.actor(actorId);		
+		$gameMap.events().forEach(function(event) {
+			if (event.eventId() === actor.event.eventId()) {
+				$gameSystem.clearEventToUnit(event.eventId());
+				event.isDeployed = false;
+				var oldValue = $gameVariables.value(_existActorVarID);
+				$gameVariables.setValue(_existActorVarID, oldValue - 1);
+			}
+		});
+		this.deployActor(actor, actor.event, toAnimQueue);
+		actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+		if(!toAnimQueue){
+			actor.event.refreshImage();
+		}		 
 	}
 	
 	Game_System.prototype.deployActors = function(toAnimQueue, lockedOnly, validatePositions) {
