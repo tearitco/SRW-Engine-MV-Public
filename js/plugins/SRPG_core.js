@@ -3655,6 +3655,7 @@ var $battleSceneManager = new BattleSceneManager();
 									
 									$gameSystem.setSubBattlePhase('enemy_unit_summary');
 									$gameTemp.pushMenu = "detail_pages";
+									
                                 }
                                 return;
                             } else if (event.isType() === 'enemy') {
@@ -3665,6 +3666,7 @@ var $battleSceneManager = new BattleSceneManager();
                                 $gameSystem.setSrpgStatusWindowNeedRefresh(battlerArray);
                                 $gameSystem.setSubBattlePhase('status_window');
                                 return;*/
+								/*
 								$gameTemp.detailPagesWindowCancelCallback = function(){
 									$gameTemp.detailPagesWindowCancelCallback = null;
 									$gameSystem.setSubBattlePhase('normal');
@@ -3676,7 +3678,11 @@ var $battleSceneManager = new BattleSceneManager();
 									mech: battlerArray[1].SRWStats.mech
 								};
 								$gameSystem.setSubBattlePhase('enemy_unit_summary');
-								$gameTemp.pushMenu = "detail_pages";
+								$gameTemp.pushMenu = "detail_pages";*/
+								
+								$gameSystem.srpgMakeMoveTable(event);
+								$gameSystem.setSubBattlePhase('enemy_range_display');
+								
 								return;
 								
                             } else if (event.isType() === 'playerEvent') {
@@ -3906,8 +3912,7 @@ var $battleSceneManager = new BattleSceneManager();
 				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
 				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'	||
 				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_attack'	
-
+				$gameSystem.isSubBattlePhase() === 'enemy_attack' 
 				
 				
 				){
@@ -8545,7 +8550,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
 				$gameSystem.isSubBattlePhase() === 'confirm_end_turn' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_attack'	
+				$gameSystem.isSubBattlePhase() === 'enemy_attack' ||
+				$gameSystem.isSubBattlePhase() === 'enemy_range_display'	
 				
 				) {
                 this.menuCalling = false;
@@ -8673,6 +8679,16 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}
 			return;
 		}
+		
+		if($gameSystem.isSubBattlePhase() == "enemy_range_display"){
+			if(Input.isTriggered("cancel")){
+				$gameTemp.clearMoveTable();
+				$gameSystem.setSubBattlePhase("normal");
+			}
+			return;
+		}
+		
+		
 				
 		//console.log($gameSystem.isSubBattlePhase());
 		if($gameTemp.enemyAppearQueueIsProcessing){
