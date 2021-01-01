@@ -646,6 +646,8 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * addKills actor\_id amount
 
 * addPP actor\_id amount
+
+* addExp actor\_id amount
 		
 * setStageSong song_id
 
