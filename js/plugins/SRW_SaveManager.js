@@ -121,6 +121,12 @@ SRWSaveManager.prototype.addPP = function(pilotId, amount){
 	this.storeActorData(pilotId, actorData);
 }
 
+SRWSaveManager.prototype.addExp = function(pilotId, amount){
+	var actorData = this.getActorData(pilotId);
+	actorData.exp+=amount*1;
+	this.storeActorData(pilotId, actorData);
+}
+
 SRWSaveManager.prototype.getSRCount = function(mapId){
 	if(!$gameSystem.awardedSRPoints){
 		$gameSystem.awardedSRPoints = {};

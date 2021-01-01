@@ -241,6 +241,9 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'addPP') {
             $SRWSaveManager.addPP(args[0], args[1]);
         }
+		if (command === 'addExp') {
+            $SRWSaveManager.addExp(args[0], args[1]);
+        }
 		if (command === 'setStageSong') {
             $gameSystem.currentStageSong  = args[0];
         }	
