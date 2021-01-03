@@ -1176,7 +1176,7 @@ var $battleSceneManager = new BattleSceneManager();
 		this._availableUnits = [];
         this.setSrpgActors(); //アクターデータの作成
         this.setSrpgEnemys(); //エネミーデータの作成
-		$statCalc.applyBattleStartWill();
+		
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
         this.runBattleStartEvent(); // ゲーム開始時の自動イベントを実行する
 		this.runAfterDeployEvent();
@@ -1452,6 +1452,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameVariables.setValue(_existActorVarID, oldValue + 1);
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 		$statCalc.initSRWStats(actor_unit);
+		$statCalc.applyBattleStartWill(actor_unit);
 		actor_unit.SRPGActionTimesSet($statCalc.applyStatModsToValue(actor_unit, 1, ["extra_action"]));
 		actor_unit.setSrpgTurnEnd(false);	
 		actor_unit.setBattleMode("");
@@ -4725,6 +4726,7 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 			$gameVariables.setValue(_existEnemyVarID, oldValue + 1);
 			$gameSystem.setEventToUnit(event.eventId(), 'enemy', enemy_unit);
 			$statCalc.initSRWStats(enemy_unit, level, items);
+			$statCalc.applyBattleStartWill(enemy_unit);
 			
 			event.setType('enemy');
 			/*var xy = event.makeAppearPoint(event, event.posX(), event.posY())

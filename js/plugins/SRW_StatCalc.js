@@ -571,11 +571,22 @@ StatCalc.prototype.getCurrentENDisplay = function(actor){
 	return result;
 }
 
-StatCalc.prototype.applyBattleStartWill = function(){
+
+StatCalc.prototype.applyBattleStartWill = function(actor){
 	var _this = this;
-	this.iterateAllActors(null, function(actor, event){			
-		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_will"]));				
-	});
+	if(_this.isActorSRWInitialized(actor)){
+		var topAce = this.getTopAce();
+		_this.setWill(actor, 100);	
+		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_will"]));			
+		if(actor.isActor()){
+			if(actor.actorId() == topAce.actorId()){
+				_this.modifyWill(actor, 5);	
+			}
+			if(_this.isAce(actor)){
+				_this.modifyWill(actor, 5);	
+			}			
+		}
+	}
 }
 
 StatCalc.prototype.applyTurnStartWill = function(type, factionId){
@@ -2165,7 +2176,7 @@ StatCalc.prototype.getTopAce = function(){
 	var _this = this;
 	var maxKills = -1;
 	var topAce;
-	this.iterateAllActors(null, function(actor, event){		
+	this.iterateAllActors("actor", function(actor, event){		
 		var kills = _this.getKills(actor);
 		if(kills > maxKills){
 			maxKills = kills;
