@@ -135,6 +135,10 @@ BattleSceneManager.prototype.resetMaxAnimationTick = function(tick){
 	this._maxAnimationTick = -1;
 }
 
+BattleSceneManager.prototype.getBattleTextBuilder = function(){
+	return this._battleTextManager.getTextBuilder();
+}
+
 BattleSceneManager.prototype.getAnimationBuilder = function(){
 	return this._animationBuilder;
 }	
@@ -1118,7 +1122,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			} else {
 				type = "damage";
 			}
-			var battleText = _this._battleTextManager.getText(entityType, entityId, type, _this.getBattleTextId(_this._currentAnimatedAction));
+			var battleText = _this._battleTextManager.getText(entityType, entityId, type, action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 		},
 		
@@ -1126,7 +1130,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction.attacked;
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
-			var battleText = _this._battleTextManager.getText(entityType, entityId, "evade", _this.getBattleTextId(_this._currentAnimatedAction));
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "evade", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 		},
 		
@@ -1134,7 +1138,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction.attacked;
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
-			var battleText = _this._battleTextManager.getText(entityType, entityId, "destroyed", _this.getBattleTextId(_this._currentAnimatedAction));
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 		},
 		
@@ -1152,7 +1156,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction.attacked;
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
-			var battleText = _this._battleTextManager.getText(entityType, entityId, "support_defend", _this.getBattleTextId({ref: _this._currentAnimatedAction.attacked.defended}));
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "support_defend", entityType, _this.getBattleTextId({ref: _this._currentAnimatedAction.attacked.defended}));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);			
 			_this._UILayerManager.setNotification(entityType, "Support Defend");
 		},
@@ -1282,7 +1286,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction.attacked;
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
-			var battleText = _this._battleTextManager.getText(entityType, entityId, "evade", _this.getBattleTextId(_this._currentAnimatedAction));
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "evade", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 			
 			if(action.isDoubleImage){
@@ -1601,7 +1605,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction.attacked;
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
-			var battleText = _this._battleTextManager.getText(entityType, entityId, "destroyed", _this.getBattleTextId(_this._currentAnimatedAction));
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 			
 			_this._animationSpritesInfo.push(spriteInfo);
@@ -2381,15 +2385,26 @@ BattleSceneManager.prototype.processActionQueue = function() {
 			function continueScene(){			
 				_this.setUpActionSceneState(nextAction);			
 				var textType = "";
-				if(nextAction.type == "initiator" || nextAction.type == "support attack"){
-					textType = "battle_intro";
-				}
-				if(nextAction.type == "defender"){
-					textType = "retaliate";
-				}
+				
 				var entityType = nextAction.isActor ? "actor" : "enemy";
 				var entityId = nextAction.ref.SRWStats.pilot.id;
-				var battleText = _this._battleTextManager.getText(entityType, entityId, textType, _this.getBattleTextId(nextAction.attacked));
+				
+				var battleText;
+				if(nextAction.type == "support attack"){
+					battleText = _this._battleTextManager.getText(entityType, entityId, "support_attack", nextAction.isActor ? "actor" : "enemy", _this.getBattleTextId(nextAction.attacked));
+				}
+				
+				if(!battleText || battleText.text == "..."){
+					if(nextAction.type == "initiator"){
+						textType = "battle_intro";
+					}
+					if(nextAction.type == "defender"){
+						textType = "retaliate";
+					}
+					
+					battleText = _this._battleTextManager.getText(entityType, entityId, textType, nextAction.isActor ? "enemy" : "actor", _this.getBattleTextId(nextAction.attacked));
+				}
+				
 				_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText);
 				if(nextAction.type == "support attack"){
 					_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
@@ -2490,4 +2505,10 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this.createEnvironment();
 	_this.fadeFromBlack();		
 	
+}
+
+BattleSceneManager.prototype.showText = function(entityType, entityId, name, type, subType, targetId, targetIdx) {
+	var _this = this;
+	var battleText = _this._battleTextManager.getText(entityType, entityId, type, subType, targetId, targetIdx);
+	_this._UILayerManager.setTextBox(entityType, entityId, name, battleText);
 }

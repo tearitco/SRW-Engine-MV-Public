@@ -5289,6 +5289,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		if(!aCache.isDestroyed && !dCache.isDestroyed){		
 			aCache.actionOrder = orderIdx;
 			aCache.attacked = dCache;
+			aCache.originalTarget = dCache;
 			aCache.hasActed = true;
 			dCache.hasActed = true;
 			

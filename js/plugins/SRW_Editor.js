@@ -3,7 +3,8 @@ function SRWEditor(){
 	this._title = "SRW Engine MV Editor v0.1";
 	this._editorData = {
 		attack_editor: {title: "Attack Editor", func: this.showAttackEditor},
-		environment_editor:  {title: "Environment Editor", func: this.showEnvironmentEditor}
+		environment_editor: {title: "Environment Editor", func: this.showEnvironmentEditor},
+		battle_text_editor: {title: "Battle Text", func: this.showBattleTextEditor},
 	}
 }
 
@@ -21,6 +22,7 @@ SRWEditor.prototype.init = function(){
 	_this._contentDiv.id = "srw_editor";
 	document.body.appendChild(_this._contentDiv);
 	
+	this._battleTextBuilder = $battleSceneManager.getBattleTextBuilder();
 	
 	$gameSystem.skyBattleOffset = 0;
 	
@@ -576,6 +578,13 @@ SRWEditor.prototype.init = function(){
 	_this._currentActorMech = 1;
 	_this._currentEnemy = 1;
 	_this._currentEnemyMech = 1;
+	
+	//battle text
+	_this._currentBattleTextType = "default";
+	_this._currentBattleTextActorType = "actor";
+	_this._currentBattleTextStage = -1;
+	_this._currentBattleTextEvent = -1;
+	
 	_this.show();
 }
 
@@ -592,6 +601,8 @@ SRWEditor.prototype.show = function(){
 	content+="<select id='editor_selector'>";
 	content+="<option value='attack_editor' "+(this._currentEditor == "attack_editor" ? "selected" : "")+">Attack Editor</option>";
 	content+="<option value='environment_editor' "+(this._currentEditor == "environment_editor" ? "selected" : "")+">Environment Editor</option>";
+	content+="<option value='battle_text_editor' "+(this._currentEditor == "battle_text_editor" ? "selected" : "")+">Battle Text Editor</option>";
+	
 	content+="</select>";
 	content+="</div>";
 	
@@ -601,6 +612,7 @@ SRWEditor.prototype.show = function(){
 	_this._contentDiv.innerHTML = content;
 	
 	_this._contentDiv.querySelector("#editor_selector").addEventListener("change", function(){
+		$battleSceneManager.endScene();
 		_this._currentDefinition = 0;
 		_this._currentEnvironmentDefinition = 0;
 		_this._currentEditor = this.value;
@@ -646,6 +658,416 @@ SRWEditor.prototype.prepareBattleScenePreview = function(){
 	_this._battleSceneFadeLayer.style.height = "";
 	$battleSceneManager.init(true);	
 	$battleSceneManager._fadeContainer = _this._battleSceneFadeLayer;
+}
+
+SRWEditor.prototype.showBattleTextEditor = function(){
+	var _this = this;
+	var containerNode = _this._contentDiv.querySelector(".content");
+	var content = "";
+	
+	content+="<div id='attack_editor' class='text_editor'>";
+	content+="<div class='edit_controls'>";
+	
+	content+="</div>";
+	content+="<div class='preview'>";
+	content+="<div class='preview_window_container'>";
+	
+	
+	
+	content+="<div class='preview_window'>";
+	content+="</div>";
+	
+	
+	
+	content+="</div>";	
+	
+	content+="<div class='preview_extra_controls'>";
+	
+	content+="</div>";
+	
+	content+="</div>";
+	
+	content+="</div>";
+	
+	content+="</div>";
+	content+="</div>";
+	
+	containerNode.innerHTML = content;
+	this.prepareBattleScenePreview();
+	
+	
+	this.showBattleTextEditorControls();
+}
+
+SRWEditor.prototype.showBattleTextEditorControls = function(){
+	var _this = this;
+	_this._battleTextBuilder.isLoaded().then(function(){
+		$battleSceneManager.showEnvironmentScene();	
+		var containerNode = _this._contentDiv.querySelector(".content");
+		var content = "";
+		
+		content+="<div id='info_section' class='section'>";
+		content+="<button id='save_def'>Save</button>";
+		content+="<div class='section_label'>Info</div>";
+		content+="<div class='section_content' id='text_editor_section_tools'>";
+		
+		var currentTextInfo;
+
+		var currentTypeInfo = _this._battleTextBuilder.getDefinitions()[_this._currentBattleTextType];
+		
+		
+		content+="<div class='select_label'>";
+		content+="Text type";
+		content+="</div>";
+		content+="<select id='battle_text_type_select'>";
+		content+="<option value='default' "+(_this._currentBattleTextType == "default" ? "selected" : "")+">Default</option>";
+		content+="<option value='stage' "+(_this._currentBattleTextType == "stage" ? "selected" : "")+">Stage</option>";
+		content+="<option value='event' "+(_this._currentBattleTextType == "event" ? "selected" : "")+">Event</option>";
+		content+="</select>";
+		
+		if(_this._currentBattleTextType == "stage"){
+			content+="<div class='select_label'>";
+			content+="Stage ID";
+			content+="</div>";
+			content+="<select id='battle_text_stage_select'>";
+			if(currentTypeInfo){
+				var definedStages = Object.keys(currentTypeInfo);
+				if(_this._currentBattleTextStage == -1){
+					_this._currentBattleTextStage = definedStages[0];
+				}
+				Object.keys(definedStages).forEach(function(stageId){
+					content+="<option value='"+stageId+"' "+(_this._currentBattleTextStage == stageId ? "selected" : "")+">"+stageId+"</option>";
+				});
+				
+				var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextStage];	
+				if(currentStageTextInfo){
+					currentTextInfo = currentStageTextInfo[_this._currentBattleTextActorType];
+				}
+			}
+			content+="</select>";
+		} else if(_this._currentBattleTextType == "event"){
+			content+="<div class='select_label'>";
+			content+="Event ID";
+			content+="</div>";
+			content+="<select id='battle_text_event_select'>";
+			if(currentTypeInfo){
+				var definedEvents = Object.keys(currentTypeInfo);
+				if(_this._currentBattleTextEvent == -1){
+					_this._currentBattleTextEvent = definedEvents[0];
+				}
+				Object.keys(definedEvents).forEach(function(eventId){
+					content+="<option value='"+eventId+"' "+(_this._currentBattleTextEvent == eventId ? "selected" : "")+">"+eventId+"</option>";
+				});
+				
+				var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextEvent];	
+				if(currentStageTextInfo){
+					currentTextInfo = currentStageTextInfo[_this._currentBattleTextActorType];
+				}
+			}
+			content+="</select>";
+			
+		} else {
+			if(currentTypeInfo){
+				currentTextInfo = currentTypeInfo[_this._currentBattleTextActorType];
+			}
+		}
+		
+		content+="<div class='select_label'>";
+		content+="Unit type";
+		content+="</div>";
+		content+="<select id='battle_text_actor_type_select'>";
+		content+="<option value='actor' "+(_this._currentBattleTextActorType == "actor" ? "selected" : "")+">Actor</option>";
+		content+="<option value='enemy' "+(_this._currentBattleTextActorType == "enemy" ? "selected" : "")+">Enemy</option>";
+
+		content+="</select>";
+		
+		content+="</div>";
+		content+="</div>";
+		
+		content+="<div class='commands_scroll'>";
+		
+		/*Object.keys(currentTextInfo).forEach(function(unitId){
+			var currentData = currentTextInfo[unitId];
+			content+="<div data-unitbg='"+unitId+"' class='bg_block tick_block'>";
+			content+=_this.createUnitSelect(unitId);
+			content+="</div>";
+		});*/
+		
+		var unitSet;
+		if(_this._currentBattleTextActorType == "actor"){
+			unitSet = $dataActors;
+		} else {
+			unitSet = $dataEnemies;
+		}
+		var result = "";
+		var textHooks = _this._battleTextBuilder.getAvailableTextHooks();
+		for(var i = 0; i < unitSet.length; i++){
+			var def = unitSet[i];
+			if(def && def.name){
+				content+="<div data-unitid='"+i+"' class='unit_text_block tick_block'>";
+				content+=i+". "+def.name;				
+				
+				textHooks.sort().forEach(function(textHook){
+					content+="<div data-hook='"+textHook+"' data-unitid='"+i+"' class='cmd_block cmd_block_outer text_block'>";
+					content+="<div class='hook_label'>";
+					content+=textHook;
+					content+="</div>";
+					
+					content+="<div class='text_types'>";
+					var textInfo;
+					if(textHook != "attacks"){
+						textInfo = _this.getUnitDef(i, textHook);
+					}
+					if(textInfo){
+						content+="<div class='unit_text'>";
+						content+="<div data-subtype='default' class='text_category_controls'>";
+						content+="<div class='text_label'>Default</div>";
+						content+="<button class='add_category_quote'>New</button>";
+						content+="</div>"
+						
+						var ctr = 0;
+						textInfo.default.forEach(function(quote){
+							content+=_this.createQuoteContent("default", ctr++, quote);
+						});	
+						
+						content+="</div>";
+						content+="<div class='unit_text'>";
+						content+="<div data-subtype='actor' class='text_category_controls'>";
+						content+="<div class='text_label'>Actors</div>";
+						content+="<button class='add_category_quote'>New</button>";
+						content+="</div>"	
+						
+						var ctr = 0;
+						textInfo.actor.forEach(function(unitInfo){								
+							content+=_this.createQuoteContent("actor", ctr++, unitInfo, {type: "actor", id: unitInfo.unitId});							
+						});
+
+						content+="</div>";
+						
+						content+="<div class='unit_text'>";
+						content+="<div data-subtype='enemy' class='text_category_controls'>";
+						content+="<div class='text_label'>Enemies</div>";
+						content+="<button class='add_category_quote'>New</button>";
+						content+="</div>"
+											
+						var ctr = 0;
+						textInfo.enemy.forEach(function(unitInfo){								
+							content+=_this.createQuoteContent("enemy", ctr++, unitInfo, {type: "enemy", id: unitInfo.unitId});							
+						});
+
+						content+="</div>";
+					}
+					
+					content+="</div>";
+					content+="</div>";
+				});
+				content+="</div>";
+			}
+		}
+				
+		content+="</div>";
+		
+		containerNode.querySelector(".edit_controls").innerHTML = content;
+		
+		containerNode.querySelector(".commands_scroll").scrollTop = _this._editorScrollTop;		
+		
+		containerNode.querySelector("#battle_text_type_select").addEventListener("change", function(){
+			_this._currentBattleTextType = this.value;
+			_this.showBattleTextEditorControls();
+		});
+		
+		if(_this._currentBattleTextType == "stage"){
+			containerNode.querySelector("#battle_text_stage_select").addEventListener("change", function(){
+				_this._currentBattleTextStage = this.value;
+				_this.showBattleTextEditorControls();
+			});
+		}
+		
+		if(_this._currentBattleTextType == "event"){
+			containerNode.querySelector("#battle_text_event_select").addEventListener("change", function(){
+				_this._currentBattleTextEvent = this.value;
+				_this.showBattleTextEditorControls();
+			});
+		}
+		
+		containerNode.querySelector("#battle_text_actor_type_select").addEventListener("change", function(){
+			_this._currentBattleTextActorType = this.value;
+			_this.showBattleTextEditorControls();
+		});		
+		
+		var viewButtons = containerNode.querySelectorAll(".view_text_btn");
+		viewButtons.forEach(function(button){
+			button.addEventListener("click", function(){
+				var entityType = _this._currentBattleTextActorType;
+				var entityId = this.closest(".unit_text_block").getAttribute("data-unitid");
+				var unitSet;
+				if(_this._currentBattleTextActorType == "actor"){
+					unitSet = $dataActors;
+				} else {
+					unitSet = $dataEnemies;
+				}
+				var name = unitSet[entityId].name;
+				var type = this.closest(".text_block").getAttribute("data-hook");
+				var subType = this.closest(".quote").getAttribute("data-subtype");
+				var targetId = this.closest(".quote").getAttribute("data-targetunit");
+				var targetIdx =  this.closest(".quote").getAttribute("data-idx");
+				$battleSceneManager.showText(entityType, entityId, name, type, subType, targetId, targetIdx);
+			});
+		});	
+
+		function getLocatorInfo(elem){
+			var params = {};
+			params.sceneType = _this._currentBattleTextType;
+			params.entityType = _this._currentBattleTextActorType;
+			params.entityId = elem.closest(".unit_text_block").getAttribute("data-unitid");
+			
+			params.type = elem.closest(".text_block").getAttribute("data-hook");
+			var quote = elem.closest(".quote");
+			if(quote){
+				params.subType = quote.getAttribute("data-subtype");
+				params.targetId = quote.getAttribute("data-targetunit");
+				params.targetIdx = quote.getAttribute("data-idx");
+			}			
+			return params;
+		}	
+		
+		function updateQuote(){
+			var newVal  = {
+				text: this.closest(".quote").querySelector(".quote_text").value,
+				faceName: this.closest(".quote").querySelector(".quote_face_name").value,
+				faceIndex: this.closest(".quote").querySelector(".quote_face_index").value,
+			}
+			var params = getLocatorInfo(this);
+			_this._battleTextBuilder.updateText(params, newVal);
+			_this._modified = true;
+		}
+		
+		var inputs = containerNode.querySelectorAll(".quote_text");
+		inputs.forEach(function(input){
+			input.addEventListener("change", updateQuote);
+		});	
+		
+		var inputs = containerNode.querySelectorAll(".quote_face_name");
+		inputs.forEach(function(input){
+			input.addEventListener("change", updateQuote);
+		});	
+		
+		var inputs = containerNode.querySelectorAll(".quote_face_index");
+		inputs.forEach(function(input){
+			input.addEventListener("change", updateQuote);
+		});
+		
+		var inputs = containerNode.querySelectorAll(".add_category_quote");
+		inputs.forEach(function(input){
+			input.addEventListener("click", function(){
+				var params = getLocatorInfo(this);
+				var categoryControls = this.closest(".text_category_controls");
+				params.subType = categoryControls.getAttribute("data-subtype");
+				_this._battleTextBuilder.addText(params);
+				_this._modified = true;
+				_this.showBattleTextEditorControls();
+			});
+		});		
+		
+		var inputs = containerNode.querySelectorAll(".unit_select");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){
+				var params = getLocatorInfo(this);
+				_this._battleTextBuilder.setUnitId(params, this.value);
+				_this._modified = true;
+			});
+		});	
+		
+	});
+}
+
+SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo){
+	var content = "";
+	var targetUnitId;
+	if(unitInfo){
+		targetUnitId = unitInfo.id;
+	}
+	content+="<div data-subtype='"+type+"' data-idx='"+idx+"' data-targetunit='"+(targetUnitId)+"' class='quote'>";
+	content+="<div class='quote_config'>";
+	content+="<div class='command_label '>Face name:</div>";
+	content+="<input class='quote_face_name' value='"+quote.faceName+"'></input>";
+	content+="<div class='command_label '>Face index:</div>";
+	content+="<input class='quote_face_index' value='"+quote.faceIndex+"'></input>";
+	if(unitInfo){
+		content+="<div class='command_label '>Target unit:</div>";
+		content+=this.createUnitSelect(unitInfo.id, unitInfo.type);
+	}
+	content+="<button class='view_text_btn'>View</button>"
+	content+="</div>";
+	content+="<input class='param_value quote_text' value=\""+(quote.text.replace(/\"/g, '&quot;') || "")+"\"></input>";
+	content+="</div>";
+	return content;
+}
+
+SRWEditor.prototype.getUnitDef = function(unitId, hook){
+	var _this = this;
+	var currentTextInfo;
+	var currentTypeInfo = _this._battleTextBuilder.getDefinitions()[_this._currentBattleTextType];
+	if(currentTypeInfo){	
+		if(_this._currentBattleTextType == "stage"){						
+			var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextStage];	
+			if(currentStageTextInfo){
+				currentTextInfo = currentStageTextInfo[_this._currentBattleTextActorType];
+			}
+			
+			
+		} else if(_this._currentBattleTextType == "event"){				
+			var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextEvent];	
+			if(currentStageTextInfo){
+				currentTextInfo = currentStageTextInfo[_this._currentBattleTextActorType];
+			}			
+		} else {			
+			currentTextInfo = currentTypeInfo[_this._currentBattleTextActorType];			
+		}
+	}
+	
+	if(currentTextInfo[unitId] && currentTextInfo[unitId][hook]){
+		currentTextInfo = currentTextInfo[unitId][hook];
+	}
+	
+	if(!currentTextInfo){
+		currentTextInfo = {
+			default: [],
+			actor: [],
+			enemy: []
+		}
+	}
+	
+	if(!currentTextInfo.default){
+		currentTextInfo.default = [];
+	}
+	if(!currentTextInfo.actor){
+		currentTextInfo.actor = [];
+	}
+	if(!currentTextInfo.enemy){
+		currentTextInfo.enemy = [];
+	}
+	return currentTextInfo;
+}
+
+SRWEditor.prototype.createUnitSelect = function(selected, type){
+	var unitSet;
+	if(type == "actor" || (!type && this._currentBattleTextActorType == "actor")){
+		unitSet = $dataActors;
+	} else {
+		unitSet = $dataEnemies;
+	}
+	var result = "";
+	result+="<select class='unit_select'>";
+	result+="<option value='-1'></option>";
+	for(var i = 0; i < unitSet.length; i++){
+		var def = unitSet[i];
+		if(def && def.name){
+			result+="<option value='"+i+"'  "+(i == selected ? "selected" : "")+">"+def.name+"</option>";
+		}		
+	}
+	result+="</select>";
+	return result;
 }
 
 SRWEditor.prototype.showEnvironmentEditor = function(){

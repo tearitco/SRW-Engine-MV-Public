@@ -404,3 +404,76 @@
 	width: auto;
 	margin-right: 2px;
 }
+
+#srw_editor #text_editor_section_tools {
+	display: flex;
+	align-items: center;
+}
+
+#srw_editor #text_editor_section_tools select {
+	margin-right: 4px;
+	flex-shrink: none;
+}
+
+#srw_editor #text_editor_section_tools .select_label {
+	margin-right: 4px;
+	flex-shrink: none;
+}
+
+#srw_editor .text_block {
+	padding: 5px;
+}
+
+#srw_editor .text_types {
+	padding: 5px;
+}
+
+#srw_editor .text_label {
+	font-size: 14px;
+	width: 60px;
+}
+
+#srw_editor .text_editor .param_value {
+	width: 99%;
+	margin: 1px;
+}
+
+#srw_editor .quote_config .command_label {
+	width: 80px;
+	font-size: 14px;
+}
+
+#srw_editor .quote_config input {
+	margin-right: 4px;
+	width: 60px;
+
+}
+
+#srw_editor .quote_config {
+	display: flex;
+}	
+
+#srw_editor .quote {
+	padding: 4px;
+    border-radius: 8px;
+    background-color: #b8c8f1;
+	margin-bottom: 4px;
+	margin-top: 4px;
+	
+}
+
+#srw_editor .view_text_btn {
+	margin-left: auto;
+	margin-right: 5px;
+}
+
+#srw_editor .text_category_controls {
+	display: flex;
+	align-items: center;
+	margin: 2px;
+}
+
+#srw_editor .add_category_quote {
+	margin-left: 5px;
+	margin-right: 5px;
+}

@@ -250,15 +250,15 @@ BattleSceneUILayer.prototype.resetTextBox = function(){
 	this._currentEntityType = -1;
 	this._currentIconClassId = -1;
 	this._currentName = "";
-	this._currentText = ""; 	
+	this._currentText = {}; 	
 	this.showTextBox();
 }
 
-BattleSceneUILayer.prototype.setTextBox = function(entityType, entityId, displayName, text){
+BattleSceneUILayer.prototype.setTextBox = function(entityType, entityId, displayName, textInfo){
 	this._currentEntityType = entityType;
 	this._currentIconClassId = entityId;
 	this._currentName = displayName;
-	this._currentText = text; 	
+	this._currentText = textInfo; 	
 	this.showTextBox();
 }
 
@@ -304,7 +304,7 @@ BattleSceneUILayer.prototype.showTextBox = function() {
 	textDisplayContent+=this._currentName;
 	textDisplayContent+="</div>";
 	textDisplayContent+="<div id='text_container' class='text_container scaled_text'>";	
-	textDisplayContent+="\u300C "+this._currentText+" \u300D";
+	textDisplayContent+="\u300C "+(this._currentText.text || "")+" \u300D";
 	textDisplayContent+="</div>";
 	
 	this._textDisplay.innerHTML = textDisplayContent;
@@ -315,11 +315,12 @@ BattleSceneUILayer.prototype.showTextBox = function() {
 	
 	if(this._currentIconClassId != -1 && this._currentEntityType != -1){
 		var actorIcon = this._container.querySelector("#icon_container");
-		if(this._currentEntityType == "actor"){
+		/*if(this._currentEntityType == "actor"){
 			this.loadActorFace(this._currentIconClassId, actorIcon);
 		} else {
 			this.loadEnemyFace(this._currentIconClassId, actorIcon);
-		}		
+		}*/	
+		this.loadFaceByParams(this._currentText.faceName, this._currentText.faceIndex, actorIcon);	
 	}	
 	
 	Graphics._updateCanvas();
