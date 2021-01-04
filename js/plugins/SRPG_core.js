@@ -1195,7 +1195,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameTemp.currentSwapSource = -1;
 		$gameTemp.enemyAppearQueue = [];
 		$gameTemp.disappearQueue = [];
-		
+		$gameSystem.actorRankLookup = $statCalc.getActorRankLookup();
 		
 		$gameVariables.setValue(_masteryConditionText, APPSTRINGS.GENERAL.label_default_mastery_condition);	
 		$gameVariables.setValue(_victoryConditionText, APPSTRINGS.GENERAL.label_default_victory_condition);	

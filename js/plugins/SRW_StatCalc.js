@@ -574,16 +574,18 @@ StatCalc.prototype.getCurrentENDisplay = function(actor){
 
 StatCalc.prototype.applyBattleStartWill = function(actor){
 	var _this = this;
-	if(_this.isActorSRWInitialized(actor)){
-		var topAce = this.getTopAce();
+	if(_this.isActorSRWInitialized(actor)){		
+		var rankInfo = $gameSystem.actorRankLookup;		
 		_this.setWill(actor, 100);	
 		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_will"]));			
 		if(actor.isActor()){
-			if(actor.actorId() == topAce.actorId()){
-				_this.modifyWill(actor, 5);	
-			}
+			
 			if(_this.isAce(actor)){
 				_this.modifyWill(actor, 5);	
+				
+				if(rankInfo[actor.actorId()] < 3){
+					_this.modifyWill(actor, 5);	
+				}
 			}			
 		}
 	}
@@ -2184,6 +2186,30 @@ StatCalc.prototype.getTopAce = function(){
 		}		
 	});
 	return topAce;
+}
+
+StatCalc.prototype.getActorRankLookup = function(){
+	var _this = this;
+	var result = {};
+	var rankInfo = [];
+	$gameParty.allMembers().forEach(function(actor){
+		rankInfo.push({id: actor.actorId(), score: _this.getKills(actor), name: actor.name()})
+	});
+	
+	rankInfo = rankInfo.sort(function(a, b){
+		var result;
+		if(a.score != b.score){
+			result = b.score - a.score;
+		} else {
+			result = a.name.localeCompare(b.name);
+		}
+		return result;
+	});
+	
+	for(var i = 0; i < rankInfo.length; i++){
+		result[rankInfo[i].id] = i;
+	}
+	return result;
 }
 
 StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
