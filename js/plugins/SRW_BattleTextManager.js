@@ -16,10 +16,10 @@ SRWBattleTextManager.prototype.getTextBuilder = function(){
 	return this._textBuilder;
 }
 
-SRWBattleTextManager.prototype.getText = function(target, id, type, subType, targetId, targetIdx){
+SRWBattleTextManager.prototype.getText = function(target, id, type, subType, targetId, targetIdx, attackId){
 	var _this = this;
 	var definitions;
-	if($gameTemp.scriptedBattleDemoId != null){
+	/*if($gameTemp.scriptedBattleDemoId != null){
 		if(target == "actor"){
 			definitions = _this._eventDefinitions[$gameTemp.scriptedBattleDemoId].actors;
 		}
@@ -34,7 +34,7 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 			var idx = Math.floor(Math.random() * (options.length));
 			return options[idx];
 		}
-	}
+	}*/
 	
 	if(typeof subType == "undefined") {
 		subType = "default";
@@ -47,24 +47,32 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 	if(target == "enemy"){
 		definitions = _this._definitions.enemy;
 	}
-	if(definitions[id] && definitions[id][type] && !definitions[id][type][subType]){
+	
+	definitions = definitions[id][type];
+	
+	if(type == "attacks"){
+		definitions = definitions[attackId];
+	}
+	
+	if(!definitions[subType]){
 		subType = "default";
 	}	
-	if(definitions[id] && definitions[id][type] && definitions[id][type][subType]){
+	if(definitions[subType]){
 		var options;
-		options = definitions[id][type][subType];
+		options = definitions[subType];
 		if(subType != "default"){
 			var tmp = [];
 			options.forEach(function(option){
 				if(option.unitId == targetId){
 					tmp.push(option);
 				}
-			});
-			if(tmp.length){
-				options = tmp;
-			}
+			});			
+			options = tmp;			
 		}
 		 
+		if(!options.length){
+			options = definitions.default;
+		} 
 		var idx;
 
 		if(targetIdx != null){

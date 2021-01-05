@@ -13,11 +13,11 @@ $SRWConfig.battleText = {
 				]
 			},
 			attacks: {
-				0: {
-					0: [{faceName: "Actor1", faceIndex: 0, text: "Here I come!"},]
-				},
 				1: {
-					0: [{faceName: "Actor1", faceIndex: 0, text: "Not usually my style, but!"},]
+					default: [{faceName: "Actor1", faceIndex: 0, text: "Here I come!", quoteId: 0},]
+				},
+				2: {
+					default: [{faceName: "Actor1", faceIndex: 0, text: "Not usually my style, but!", quoteId: 0},]
 				}	
 			},
 			evade: {
@@ -64,12 +64,12 @@ $SRWConfig.battleText = {
 				]				
 			},
 			attacks: {
-				0: {
-					0: [{faceName: "Actor3", faceIndex: 7, text: "Do I really have to get so close to them..."},]
-				},
 				1: {
-					0: [{faceName: "Actor3", faceIndex: 7, text: "Ranged attacks are where it's at!"},]
-				}	
+					default: [{faceName: "Actor3", faceIndex: 7, text: "Do I really have to get so close to them...", quoteId: 0},]
+				},
+				2: {
+					default: [{faceName: "Actor3", faceIndex: 7, text: "Ranged attacks are where it's at!", quoteId: 0},]
+				}
 			},
 			evade: {
 				default: [

@@ -2507,8 +2507,8 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	
 }
 
-BattleSceneManager.prototype.showText = function(entityType, entityId, name, type, subType, targetId, targetIdx) {
+BattleSceneManager.prototype.showText = function(entityType, entityId, name, type, subType, targetId, targetIdx, attackId) {
 	var _this = this;
-	var battleText = _this._battleTextManager.getText(entityType, entityId, type, subType, targetId, targetIdx);
+	var battleText = _this._battleTextManager.getText(entityType, entityId, type, subType, targetId, targetIdx, attackId);
 	_this._UILayerManager.setTextBox(entityType, entityId, name, battleText);
 }

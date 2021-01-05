@@ -88,6 +88,9 @@ BattleTextBuilder.prototype.updateText = function(params, value){
 		var def = this.getDefinitions()[params.sceneType]
 		var entityDef = def[params.entityType][params.entityId];
 		var hookDef = entityDef[params.type];
+		if(params.type == "attacks"){
+			hookDef = hookDef[params.weaponId];			
+		} 
 		var options = hookDef[params.subType];
 		options[params.targetIdx] = value;
 	} catch(e){
@@ -97,15 +100,46 @@ BattleTextBuilder.prototype.updateText = function(params, value){
 
 BattleTextBuilder.prototype.addText = function(params, value){
 	try {
-		var def = this.getDefinitions()[params.sceneType]
+		var definition = this.getDefinitions();
+		var def = definition[params.sceneType];
+		if(!def){
+			definition[params.sceneType] = {
+				actor: {},
+				enemy: {}
+			};
+			def = definition[params.sceneType];
+		}
 		var entityDef = def[params.entityType][params.entityId];
+		if(!entityDef){
+			def[params.entityType][params.entityId] = {};
+			entityDef = def[params.entityType][params.entityId];
+		}
 		var hookDef = entityDef[params.type];
+		if(params.type == "attacks"){
+			if(!hookDef){
+				entityDef[params.type] = {};
+				hookDef = entityDef[params.type];
+			}
+			hookDef = hookDef[params.weaponId];			
+		}  
+		if(!hookDef){
+			entityDef[params.type] = {
+				default: [],
+				actor: [],
+				enemy: []
+			}			
+			hookDef = entityDef[params.type];
+		}		
+		
 		var options = hookDef[params.subType];
 		var newEntry;
 		if(params.subType == "default"){
 			newEntry = {text: "", faceName: "", faceIndex: ""};
 		} else {
 			newEntry = {text: "", faceName: "", faceIndex: "", unitId: -1};
+		}
+		if(params.type == "attacks"){
+			newEntry.quoteId = 0;
 		}
 		options.push(newEntry);
 	} catch(e){
@@ -118,8 +152,54 @@ BattleTextBuilder.prototype.setUnitId = function(params, id){
 		var def = this.getDefinitions()[params.sceneType]
 		var entityDef = def[params.entityType][params.entityId];
 		var hookDef = entityDef[params.type];
+		if(params.type == "attacks"){
+			hookDef = hookDef[params.weaponId];			
+		}
 		var options = hookDef[params.subType];		
 		options[params.targetIdx].unitId = id;
+	} catch(e){
+		console.log(e.message);
+	}
+}
+
+BattleTextBuilder.prototype.deleteText = function(params){
+	try {
+		var def = this.getDefinitions()[params.sceneType]
+		var entityDef = def[params.entityType][params.entityId];
+		var hookDef = entityDef[params.type];
+		if(params.type == "attacks"){
+			hookDef = hookDef[params.weaponId];			
+		}
+		var options = hookDef[params.subType];		
+		options.splice(params.targetIdx, 1);
+	} catch(e){
+		console.log(e.message);
+	}
+}
+
+BattleTextBuilder.prototype.deleteWeaponEntry = function(params){
+	try {
+		if(params.type == "attacks"){
+			var def = this.getDefinitions()[params.sceneType]
+			var entityDef = def[params.entityType][params.entityId];
+			var hookDef = entityDef[params.type];			
+			delete hookDef[params.weaponId];						
+		}
+	} catch(e){
+		console.log(e.message);
+	}
+}
+
+BattleTextBuilder.prototype.addWeaponEntry = function(params, weaponId){
+	try {
+		if(params.type == "attacks"){
+			var def = this.getDefinitions()[params.sceneType]
+			var entityDef = def[params.entityType][params.entityId];
+			var hookDef = entityDef[params.type];			
+			hookDef[weaponId] = {
+				
+			};			
+		}
 	} catch(e){
 		console.log(e.message);
 	}

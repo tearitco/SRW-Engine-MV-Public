@@ -1,6 +1,7 @@
 :root {
 	--theme-color: #1c70d9;	
 	--light-theme-color: #e0eeff;
+	--white-filter: invert(100%) sepia(0%) saturate(7440%) hue-rotate(311deg) brightness(105%) contrast(97%);
 }
 
 #srw_editor {
@@ -406,8 +407,13 @@
 }
 
 #srw_editor #text_editor_section_tools {
+	
+}
+
+#srw_editor #text_editor_section_tools .row {
 	display: flex;
 	align-items: center;
+	padding: 2px;
 }
 
 #srw_editor #text_editor_section_tools select {
@@ -451,7 +457,23 @@
 
 #srw_editor .quote_config {
 	display: flex;
+	align-items: center;
 }	
+
+#srw_editor .quote_id_container {
+	display: flex;
+	margin-top: 2px;
+}
+
+#srw_editor .quote_id_container .command_label {
+	width: 80px;
+	font-size: 14px;
+}
+
+#srw_editor .quote_id_container input {
+	margin-right: 4px;
+	width: 60px;
+}
 
 #srw_editor .quote {
 	padding: 4px;
@@ -465,6 +487,20 @@
 #srw_editor .view_text_btn {
 	margin-left: auto;
 	margin-right: 5px;
+	cursor: pointer;
+}
+
+#srw_editor .view_text_btn img{
+	width: 16px;	
+}
+
+#srw_editor .delete_text_btn {	
+	margin-right: 5px;
+	cursor: pointer;
+}
+
+#srw_editor .delete_text_btn img{
+	width: 20px;	
 }
 
 #srw_editor .text_category_controls {
@@ -476,4 +512,42 @@
 #srw_editor .add_category_quote {
 	margin-left: 5px;
 	margin-right: 5px;
+}
+
+#srw_editor .text_scroll_default {
+	height: calc(100% - 95px);
+}
+
+#srw_editor .attack_text {
+	position: relative;
+	padding: 4px;
+	border: 1px solid #FFFFFF;
+	border-radius: 8px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+#srw_editor .attack_text .title_label {
+	width: 100%;
+}
+
+#srw_editor .delete_weapon_entry {
+	position: absolute;
+	top: 0;
+	right: 0;
+	cursor: pointer;
+	filter: var(--white-filter);
+}
+
+#srw_editor .attacks_controls {
+	display: flex;
+	align-items: center;
+}
+
+#srw_editor .attacks_controls .text_label{
+	width: 90px;
+}
+
+#srw_editor .add_attack {
+	margin-left: 5px;
 }
