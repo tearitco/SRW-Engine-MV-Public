@@ -918,6 +918,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		containerNode.querySelector("#battle_text_type_select").addEventListener("change", function(){
 			$gameTemp.scriptedBattleDemoId = null;
 			_this._currentBattleTextType = this.value;
+			_this._currentTextUnit = 0;
 			//_this._currentBattleTextActorType = "actor";
 			//_this._currentTextUnit = 0;
 			_this.showBattleTextEditorControls();
