@@ -467,6 +467,9 @@ SRWEditor.prototype.init = function(){
 		y: function(value){
 		
 		},
+		id: function(value){
+		
+		},
 		magnitude_x: function(value){
 		
 		},
@@ -748,14 +751,15 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			content+="</select>";
 		} else if(_this._currentBattleTextType == "event"){
 			content+="<div class='select_label'>";
-			content+="Event ID";
+			content+="Event";
 			content+="</div>";
 			content+="<select id='battle_text_event_select'>";
+			content+="<option value='-1'></option>";
 			if(currentTypeInfo){
 				var definedEvents = Object.keys(currentTypeInfo);
-				if(_this._currentBattleTextEvent == -1){
-					_this._currentBattleTextEvent = definedEvents[0];
-				}
+				//if(_this._currentBattleTextEvent == -1){
+				//	_this._currentBattleTextEvent = definedEvents[0];
+			//	}
 				Object.keys(definedEvents).forEach(function(eventId){
 					content+="<option value='"+eventId+"' "+(_this._currentBattleTextEvent == eventId ? "selected" : "")+">"+eventId+"</option>";
 				});
@@ -790,6 +794,20 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		content+="</div>";
 		content+="</div>";
 		content+="</div>";
+		
+		if(_this._currentBattleTextType == "event"){
+			content+="<div class='event_controls'>";
+			if(_this._currentBattleTextEvent != -1){
+				content+="<div class='command_label '>Event id:</div>";
+				content+="<input class='event_id' value='"+_this._battleTextBuilder.getDefinitions()[_this._currentBattleTextType][_this._currentBattleTextEvent].refId+"'></input>";
+			}
+			content+="<button class='event_new'>New</button>";
+			if(_this._currentBattleTextEvent != -1){
+				content+="<button class='event_copy'>Copy</button>";
+				content+="<button class='event_delete'>Delete</button>";
+			}		
+			content+="</div>";
+		}
 		
 		content+="<div class='commands_scroll text_scroll_"+_this._currentBattleTextType+"'>";
 		
@@ -883,7 +901,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 						Object.keys(textInfo).forEach(function(weaponId){
 							content+="<div data-weaponid='"+weaponId+"' class='attack_text'>";
 							content+="<div class='delete_weapon_entry'><img src='js/plugins/editor/svg/close-line.svg'></div>";
-							content+="<div class='title_label'>"+$dataWeapons[weaponId].name+"</div>";
+							content+="<div class='title_label'>"+weaponId+". "+$dataWeapons[weaponId].name+"</div>";
 							
 							var options = textInfo[weaponId];
 							if(!options.default){
@@ -917,7 +935,10 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		containerNode.querySelector(".commands_scroll").scrollTop = _this._editorScrollTop;		
 		
 		containerNode.querySelector("#battle_text_type_select").addEventListener("change", function(){
+			$gameTemp.scriptedBattleDemoId = null;
 			_this._currentBattleTextType = this.value;
+			//_this._currentBattleTextActorType = "actor";
+			//_this._currentTextUnit = 0;
 			_this.showBattleTextEditorControls();
 		});
 		
@@ -931,6 +952,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		if(_this._currentBattleTextType == "event"){
 			containerNode.querySelector("#battle_text_event_select").addEventListener("change", function(){
 				_this._currentBattleTextEvent = this.value;
+				$gameTemp.scriptedBattleDemoId =_this._battleTextBuilder.getDefinitions()[_this._currentBattleTextType][_this._currentBattleTextEvent].refId;
 				_this.showBattleTextEditorControls();
 			});
 		}
@@ -974,6 +996,8 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			var params = {};
 			params.sceneType = _this._currentBattleTextType;
 			params.entityType = _this._currentBattleTextActorType;
+			params.eventId = _this._currentBattleTextEvent;
+			params.stageId = _this._currentBattleTextStage;
 			params.entityId = elem.closest(".unit_text_block").getAttribute("data-unitid");
 			
 			params.type = elem.closest(".text_block").getAttribute("data-hook");
@@ -1034,7 +1058,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				faceIndex: this.closest(".quote").querySelector(".quote_face_index").value,
 			}
 			var params = getLocatorInfo(this);
-			if(params.subType == "attacks"){
+			if(params.type == "attacks"){
 				newVal.quoteId = this.closest(".quote").querySelector(".quote_id").value;
 			}
 			_this._battleTextBuilder.updateText(params, newVal);
@@ -1086,6 +1110,51 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			_this._editorScrollTop = this.scrollTop;
 		});
 		
+		containerNode.querySelector("#save_def").addEventListener("click", function(){
+			_this._battleTextBuilder.save();
+			_this._modified = false;
+			_this.showBattleTextEditorControls();
+		});
+		
+		var eventIdInput = containerNode.querySelector(".event_id");
+		if(eventIdInput){
+			eventIdInput.addEventListener("change", function(){
+				_this._battleTextBuilder.changeEventId(_this._currentBattleTextEvent, this.value);
+				$gameTemp.scriptedBattleDemoId = this.value;
+				_this._modified = true;
+				_this.showBattleTextEditorControls();
+			});
+		}
+		
+		var eventNewBtn = containerNode.querySelector(".event_new");
+		if(eventNewBtn){
+			eventNewBtn.addEventListener("click", function(){
+				_this._battleTextBuilder.addEvent();
+				_this._modified = true;
+				_this.showBattleTextEditorControls();
+			});
+		}
+		
+		var eventNewBtn = containerNode.querySelector(".event_copy");
+		if(eventNewBtn){
+			eventNewBtn.addEventListener("click", function(){
+				_this._battleTextBuilder.copyEvent(_this._currentBattleTextEvent);
+				_this._modified = true;
+				_this.showBattleTextEditorControls();
+			});
+		}
+
+		var eventDeleteBtn = containerNode.querySelector(".event_delete");
+		if(eventDeleteBtn){
+			eventDeleteBtn.addEventListener("click", function(){
+				if(confirm("Delete this event entry and all its quotes?")){
+					_this._battleTextBuilder.deleteEvent(_this._currentBattleTextEvent);
+					_this._currentBattleTextEvent = -1;
+					_this._modified = true;
+					_this.showBattleTextEditorControls();
+				}				
+			});
+		}		
 	});
 }
 
@@ -1127,17 +1196,24 @@ SRWEditor.prototype.getUnitDef = function(unitId, hook){
 	var _this = this;
 	var currentTextInfo;
 	var currentTypeInfo = _this._battleTextBuilder.getDefinitions()[_this._currentBattleTextType];
+
 	if(currentTypeInfo){	
 		if(_this._currentBattleTextType == "stage"){						
-			var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextStage];	
+			var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextStage].data;	
 			if(currentStageTextInfo){
+				if(!currentStageTextInfo[_this._currentBattleTextActorType]){
+					currentStageTextInfo[_this._currentBattleTextActorType] = {};
+				}
 				currentTextInfo = currentStageTextInfo[_this._currentBattleTextActorType];
 			}
 			
 			
 		} else if(_this._currentBattleTextType == "event"){				
-			var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextEvent];	
+			var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextEvent].data;	
 			if(currentStageTextInfo){
+				if(!currentStageTextInfo[_this._currentBattleTextActorType]){
+					currentStageTextInfo[_this._currentBattleTextActorType] = {};
+				}
 				currentTextInfo = currentStageTextInfo[_this._currentBattleTextActorType];
 			}			
 		} else {			
@@ -1145,9 +1221,15 @@ SRWEditor.prototype.getUnitDef = function(unitId, hook){
 		}
 	}
 	
-	if(currentTextInfo[unitId] && currentTextInfo[unitId][hook]){
-		currentTextInfo = currentTextInfo[unitId][hook];
+	if(!currentTextInfo[unitId]){
+		currentTextInfo[unitId] = {};
 	}
+	
+	if(!currentTextInfo[unitId][hook]){
+		currentTextInfo[unitId][hook] = {};
+	}	
+	
+	currentTextInfo = currentTextInfo[unitId][hook];	
 	
 	if(hook != "attacks"){
 		if(!currentTextInfo){
@@ -1457,6 +1539,12 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div class='preview_extra_controls'>";
 	
+	content+="<div title='The attack id of which to show quotes.' class='extra_control'>";
+	content+="<div class='editor_label'>Quote Set</div>";
+	content+="<input id='quote_set' value='0'></input>";
+
+	content+="</div>";
+	
 	content+="<div class='extra_control'>";
 	content+="<div class='editor_label'>Actor</div>";
 	content+="<select id='actor_select'>";
@@ -1523,19 +1611,23 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	this.showAttackEditorControls();
 	
-	document.querySelector("#actor_select").addEventListener("click", function(){
+	document.querySelector("#actor_select").addEventListener("change", function(){
 		_this._currentActor = this.value;
 	});
 	
-	document.querySelector("#actor_mech_select").addEventListener("click", function(){
+	document.querySelector("#quote_set").addEventListener("change", function(){
+		_this._currentQuoteSet = this.value;
+	});	
+	
+	document.querySelector("#actor_mech_select").addEventListener("change", function(){
 		_this._currentActorMech = this.value;
 	});
 	
-	document.querySelector("#enemy_select").addEventListener("click", function(){
+	document.querySelector("#enemy_select").addEventListener("change", function(){
 		_this._currentEnemy = this.value;
 	});
 	
-	document.querySelector("#enemy_mech_select").addEventListener("click", function(){
+	document.querySelector("#enemy_mech_select").addEventListener("change", function(){
 		_this._currentEnemyMech = this.value;
 	});
 
@@ -2070,7 +2162,7 @@ SRWEditor.prototype.playBattleScene = function(){
 		$gameSystem.setSubBattlePhase("halt");
 		
 		var weapon = {
-			id: 0,
+			id: _this._currentQuoteSet || 0,
 			name: "Test",
 			type: "M",
 			postMoveEnabled: 0,

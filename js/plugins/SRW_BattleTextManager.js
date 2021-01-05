@@ -35,17 +35,42 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 			return options[idx];
 		}
 	}*/
+	var text;
+	if($gameTemp.scriptedBattleDemoId != null){
+		var eventDefs = _this._eventDefinitions;
+		var def;
+		var ctr = 0;
+		while(!def && ctr < eventDefs.length){
+			if(eventDefs[ctr].refId == $gameTemp.scriptedBattleDemoId){
+				def = eventDefs[ctr].data;
+			}
+			ctr++;
+		}
+		if(def){
+			text = _this.getTextCandidate(def, target, id, type, subType, targetId, targetIdx, attackId);
+		}		
+	}
+	if(!text){
+		text = _this.getTextCandidate(_this._definitions, target, id, type, subType, targetId, targetIdx, attackId);
+	}
 	
+	if(!text){
+		text = "...";
+	}
+	return text;
+}
+
+SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, id, type, subType, targetId, targetIdx, attackId){	
 	if(typeof subType == "undefined") {
 		subType = "default";
 	}
-	var text = "...";
+	var text = null;
 	
 	if(target == "actor"){
-		definitions = _this._definitions.actor;
+		definitions = definitions.actor;
 	}
 	if(target == "enemy"){
-		definitions = _this._definitions.enemy;
+		definitions = definitions.enemy;
 	}
 	
 	definitions = definitions[id][type];
@@ -54,10 +79,10 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 		definitions = definitions[attackId];
 	}
 	
-	if(!definitions[subType]){
+	if(definitions && !definitions[subType]){
 		subType = "default";
 	}	
-	if(definitions[subType]){
+	if(definitions && definitions[subType]){
 		var options;
 		options = definitions[subType];
 		if(subType != "default"){

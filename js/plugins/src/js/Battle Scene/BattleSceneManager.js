@@ -1146,7 +1146,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction;
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
-			var battleText = _this._battleTextManager.getText(entityType, entityId, "attacks", params.id);
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "attacks", params.id, null, null, action.action.attack.id);
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 		},
 		clear_attack_text: function(target, params){

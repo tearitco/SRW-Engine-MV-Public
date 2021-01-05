@@ -551,3 +551,23 @@
 #srw_editor .add_attack {
 	margin-left: 5px;
 }
+
+#srw_editor .event_controls {
+	display: flex;
+	align-items: center;
+	font-size: 14px;
+	padding: 5px;
+}
+
+#srw_editor .event_controls button{
+	margin-left: 5px;
+}
+
+#event_controls .event_controls .event_id {
+	width: 80px;
+	margin-left: 5px;
+}
+
+#srw_editor .text_scroll_event {
+	height: calc(100% - 127px);
+}

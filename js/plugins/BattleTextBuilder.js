@@ -83,16 +83,21 @@ BattleTextBuilder.prototype.saveBackup = function(id){
 	fs.writeFileSync('js/plugins/config/active/'+this._dataFileName+'.bak', JSON.stringify(this._data));
 }
 
-BattleTextBuilder.prototype.updateText = function(params, value){
+BattleTextBuilder.prototype.updateText = function(params, updateValues){
 	try {
 		var def = this.getDefinitions()[params.sceneType]
+		if(params.sceneType == "event"){			
+			def = def[params.eventId].data;
+		}
 		var entityDef = def[params.entityType][params.entityId];
 		var hookDef = entityDef[params.type];
 		if(params.type == "attacks"){
 			hookDef = hookDef[params.weaponId];			
 		} 
 		var options = hookDef[params.subType];
-		options[params.targetIdx] = value;
+		Object.keys(updateValues).forEach(function(key){
+			options[params.targetIdx][key] = updateValues[key];
+		});		
 	} catch(e){
 		console.log(e.message);
 	}
@@ -102,13 +107,28 @@ BattleTextBuilder.prototype.addText = function(params, value){
 	try {
 		var definition = this.getDefinitions();
 		var def = definition[params.sceneType];
-		if(!def){
-			definition[params.sceneType] = {
-				actor: {},
-				enemy: {}
-			};
-			def = definition[params.sceneType];
+		if(params.sceneType == "event"){
+			if(!def){
+				definition[params.sceneType] = [];
+				def = definition[params.sceneType];
+			}
+			if(!def[params.eventId]){
+				def[params.eventId] = {
+					refId: "",
+					data: {}
+				}
+			}
+			def = def[params.eventId].data;
+		} else {
+			if(!def){
+				definition[params.sceneType] = {
+					actor: {},
+					enemy: {}
+				};
+				def = definition[params.sceneType];
+			}
 		}
+		
 		var entityDef = def[params.entityType][params.entityId];
 		if(!entityDef){
 			def[params.entityType][params.entityId] = {};
@@ -149,7 +169,10 @@ BattleTextBuilder.prototype.addText = function(params, value){
 
 BattleTextBuilder.prototype.setUnitId = function(params, id){
 	try {
-		var def = this.getDefinitions()[params.sceneType]
+		var def = this.getDefinitions()[params.sceneType];		
+		if(params.sceneType == "event"){			
+			def = def[params.eventId].data;
+		}		
 		var entityDef = def[params.entityType][params.entityId];
 		var hookDef = entityDef[params.type];
 		if(params.type == "attacks"){
@@ -165,6 +188,9 @@ BattleTextBuilder.prototype.setUnitId = function(params, id){
 BattleTextBuilder.prototype.deleteText = function(params){
 	try {
 		var def = this.getDefinitions()[params.sceneType]
+		if(params.sceneType == "event"){			
+			def = def[params.eventId].data;
+		}
 		var entityDef = def[params.entityType][params.entityId];
 		var hookDef = entityDef[params.type];
 		if(params.type == "attacks"){
@@ -181,6 +207,9 @@ BattleTextBuilder.prototype.deleteWeaponEntry = function(params){
 	try {
 		if(params.type == "attacks"){
 			var def = this.getDefinitions()[params.sceneType]
+			if(params.sceneType == "event"){			
+				def = def[params.eventId].data;
+			}
 			var entityDef = def[params.entityType][params.entityId];
 			var hookDef = entityDef[params.type];			
 			delete hookDef[params.weaponId];						
@@ -194,6 +223,9 @@ BattleTextBuilder.prototype.addWeaponEntry = function(params, weaponId){
 	try {
 		if(params.type == "attacks"){
 			var def = this.getDefinitions()[params.sceneType]
+			if(params.sceneType == "event"){			
+				def = def[params.eventId].data;
+			}
 			var entityDef = def[params.entityType][params.entityId];
 			var hookDef = entityDef[params.type];			
 			hookDef[weaponId] = {
@@ -204,3 +236,31 @@ BattleTextBuilder.prototype.addWeaponEntry = function(params, weaponId){
 		console.log(e.message);
 	}
 }
+
+BattleTextBuilder.prototype.addEvent = function(){
+	var definition = this.getDefinitions();
+	var def = definition.event;
+	def.push({
+		refId: "",
+		data: {}
+	});
+}
+
+BattleTextBuilder.prototype.copyEvent = function(eventId){
+	var definition = this.getDefinitions();
+	var def = definition.event;
+	def.push(JSON.parse(JSON.stringify(def[eventId])));
+}
+
+BattleTextBuilder.prototype.deleteEvent = function(eventId){
+	var definition = this.getDefinitions();
+	var def = definition.event;
+	delete def[eventId];
+}
+
+BattleTextBuilder.prototype.changeEventId = function(eventId, id){
+	var definition = this.getDefinitions();
+	var def = definition.event;
+	def[eventId].refId = id;
+}
+

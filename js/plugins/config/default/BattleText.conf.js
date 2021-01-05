@@ -222,21 +222,24 @@ $SRWConfig.battleText = {
 	}
 };
 
-$SRWConfig.eventBattleText = {
-	0: {
-		actor: {			
-			1: { //Harold
-				damage: {
-					default: [
-						{faceName: "Actor1", faceIndex: 0, text: "That director guy better pay for my armor..."}
-					]
-				},			
-				support_defend: {
-					actor: {
-						3: [{faceName: "Actor1", faceIndex: 0, text: "Marsha, don't die in the event!"}]
+$SRWConfig.eventBattleText = [
+	{
+		refId: "event_0",
+		data: {
+			actor: {			
+				1: { //Harold
+					damage: {
+						default: [
+							{faceName: "Actor1", faceIndex: 0, text: "That director guy better pay for my armor..."}
+						]
+					},			
+					support_defend: {
+						actor: [
+							{unitId: 3, faceName: "Actor1", faceIndex: 0, text: "Marsha, don't die in the event!"}
+						]
 					}
-				}
-			},
-		}
+				},
+			}
+		}		
 	}
-}
+]
