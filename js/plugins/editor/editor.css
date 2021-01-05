@@ -571,3 +571,7 @@
 #srw_editor .text_scroll_event {
 	height: calc(100% - 127px);
 }
+
+#srw_editor .reference_id_label {
+	width: 100px;
+}

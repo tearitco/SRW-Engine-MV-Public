@@ -725,31 +725,11 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		content+="</div>";
 		content+="<select id='battle_text_type_select'>";
 		content+="<option value='default' "+(_this._currentBattleTextType == "default" ? "selected" : "")+">Default</option>";
-		content+="<option value='stage' "+(_this._currentBattleTextType == "stage" ? "selected" : "")+">Stage</option>";
-		content+="<option value='event' "+(_this._currentBattleTextType == "event" ? "selected" : "")+">Event</option>";
+		//content+="<option value='stage' "+(_this._currentBattleTextType == "stage" ? "selected" : "")+">Stage</option>";
+		content+="<option value='event' "+(_this._currentBattleTextType == "event" ? "selected" : "")+">Special</option>";
 		content+="</select>";
 		
-		if(_this._currentBattleTextType == "stage"){
-			content+="<div class='select_label'>";
-			content+="Stage ID";
-			content+="</div>";
-			content+="<select id='battle_text_stage_select'>";
-			if(currentTypeInfo){
-				var definedStages = Object.keys(currentTypeInfo);
-				if(_this._currentBattleTextStage == -1){
-					_this._currentBattleTextStage = definedStages[0];
-				}
-				Object.keys(definedStages).forEach(function(stageId){
-					content+="<option value='"+stageId+"' "+(_this._currentBattleTextStage == stageId ? "selected" : "")+">"+stageId+"</option>";
-				});
-				
-				var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextStage];	
-				if(currentStageTextInfo){
-					currentTextInfo = currentStageTextInfo[_this._currentBattleTextActorType];
-				}
-			}
-			content+="</select>";
-		} else if(_this._currentBattleTextType == "event"){
+		if(_this._currentBattleTextType == "event"){
 			content+="<div class='select_label'>";
 			content+="Event";
 			content+="</div>";
@@ -761,7 +741,8 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				//	_this._currentBattleTextEvent = definedEvents[0];
 			//	}
 				Object.keys(definedEvents).forEach(function(eventId){
-					content+="<option value='"+eventId+"' "+(_this._currentBattleTextEvent == eventId ? "selected" : "")+">"+eventId+"</option>";
+					var refId = _this._battleTextBuilder.getDefinitions()[_this._currentBattleTextType][eventId].refId;
+					content+="<option value='"+eventId+"' "+(_this._currentBattleTextEvent == eventId ? "selected" : "")+">"+eventId+". "+refId+"</option>";
 				});
 				
 				var currentStageTextInfo = currentTypeInfo[_this._currentBattleTextEvent];	
@@ -798,7 +779,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		if(_this._currentBattleTextType == "event"){
 			content+="<div class='event_controls'>";
 			if(_this._currentBattleTextEvent != -1){
-				content+="<div class='command_label '>Event id:</div>";
+				content+="<div class='command_label reference_id_label'>Reference id:</div>";
 				content+="<input class='event_id' value='"+_this._battleTextBuilder.getDefinitions()[_this._currentBattleTextType][_this._currentBattleTextEvent].refId+"'></input>";
 			}
 			content+="<button class='event_new'>New</button>";

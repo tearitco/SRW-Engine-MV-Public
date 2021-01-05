@@ -658,8 +658,12 @@ var $battleSceneManager = new BattleSceneManager();
 		
 		if (command === 'setSaveDisplayName') {			
 			$gameSystem.saveDisplayName = (args[0] || "").replace(/\_/ig, " ");
-		}		
-		
+		}	
+
+		if (command === 'setStageTextId') {			
+			$gameSystem.stageTextId = args[0];
+		}	
+				
     };		
 //====================================================================
 // ●Game_Temp
@@ -1277,6 +1281,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.skyBattleEnv = null;
 		$gameSystem.regionBattleEnv = {};
 		$gameSystem.regionSkyBattleEnv = {};
+		$gameSystem.stageTextId = null;
 
 		$gameTemp.disappearQueue = [];
 
