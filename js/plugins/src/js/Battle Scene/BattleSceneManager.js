@@ -1615,6 +1615,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				{target: target, type: "play_se", params: {seId: "Explosion2"}},
 				{type: "show_portrait_noise"}
 			];		*/
+			
+			var action = _this._currentAnimatedAction.attacked;
+			var entityType = action.isActor ? "actor" : "enemy";
+			var entityId = action.ref.SRWStats.pilot.id;
+			var battleText = _this._battleTextManager.getText(entityType, entityId, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
+			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
+			
 			var animId = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_ANIM.DESTROY;
 			var animData = _this._animationBuilder.buildAnimation(animId, _this).mainAnimation;
 			_this.delayAnimationList(startTick + 1, animData.length);
