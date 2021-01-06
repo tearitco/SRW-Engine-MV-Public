@@ -1385,8 +1385,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},	
 		play_effekseer: function(target, params){					
-			var position = params.position || new BABYLON.Vector3(0,0,0);		
+			var position = _this.applyAnimationDirection(params.position || new BABYLON.Vector3(0,0,0));		
 			var scale = params.scale || 1;
+			//scale*=_this._animationDirection;
 			var speed = params.speed || 1;
 			var rotation = params.rotation || new BABYLON.Vector3(0,0,0);
 			var info;
@@ -1594,7 +1595,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		destroy: function(target, params){
 			var targetObj = getTargetObject(target);
-			var flipX = (targetObj == _this._enemySprite.sprite);
+			/*var flipX = (targetObj == _this._enemySprite.sprite);
 			var pivot = targetObj.pivothelper;
 			var sourcePosition = pivot.getAbsolutePosition();
 			var position = new BABYLON.Vector3(sourcePosition.x, sourcePosition.y, sourcePosition.z - 0.5);
@@ -1613,7 +1614,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				{target: target, type: "hide_sprite", params: {}},
 				{target: target, type: "play_se", params: {seId: "Explosion2"}},
 				{type: "show_portrait_noise"}
-			];			
+			];		*/
+			var animId = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_ANIM.DESTROY;
+			var animData = _this._animationBuilder.buildAnimation(animId, _this).mainAnimation;
+			_this.delayAnimationList(startTick + 1, animData.length);
+			Object.keys(animData).forEach(function(tick){
+				_this._animationList[startTick * 1 + tick * 1 + 1] = animData[tick];
+			});
 		},
 		show_damage: function(target, params){	
 			var originalAction = _this._currentAnimatedAction;
