@@ -2160,7 +2160,7 @@ SRWEditor.prototype.playBattleScene = function(){
 		$gameSystem.setSubBattlePhase("halt");
 		
 		var weapon = {
-			id: _this._currentQuoteSet || 0,
+			id: _this._currentQuoteSet || 1,
 			name: "Test",
 			type: "M",
 			postMoveEnabled: 0,
