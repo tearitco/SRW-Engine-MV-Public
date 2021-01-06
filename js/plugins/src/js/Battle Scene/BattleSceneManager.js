@@ -1611,7 +1611,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._animationSpritesInfo.push(spriteInfo);
 			_this._animationList[startTick + 26] = [
 				{target: target, type: "hide_sprite", params: {}},
-				{target: target, type: "play_se", params: {seId: "Explosion2"}}
+				{target: target, type: "play_se", params: {seId: "Explosion2"}},
+				{type: "show_portrait_noise"}
 			];			
 		},
 		show_damage: function(target, params){	
@@ -1709,6 +1710,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		create_target_environment: function(target, params){
 			_this.createEnvironment(_this._currentAnimatedAction.originalTarget.ref);
+		},
+		show_portrait_noise:  function(target, params){
+			_this._UILayerManager.showNoise();
+		},
+		hide_portrait_noise:  function(target, params){
+			_this._UILayerManager.hideNoise();
 		}
 	};
 	if(animationHandlers[animation.type] && _this._currentAnimatedAction){
@@ -2074,6 +2081,7 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 
 BattleSceneManager.prototype.resetScene = function() {
 	var _this = this;
+	_this._UILayerManager.hideNoise();
 	_this._animationList = [];
 	_this._matrixAnimations = {};
 	_this._sizeAnimations = {};
@@ -2085,16 +2093,20 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._camera.position = _this._defaultPositions.camera_main_intro;
 	_this._camera.rotation = _this._defaultRotations.camera_main_intro;
 	if(_this._actorSprite){
-		_this._actorSprite.sprite.position = _this._defaultPositions.ally_main_idle;
+		_this._actorSprite.sprite.position.copyFrom(_this._defaultPositions.ally_main_idle);
+		delete _this._actorSprite.sprite.realPosition;
 	}
 	if(_this._enemySprite){
-		_this._enemySprite.sprite.position = _this._defaultPositions.enemy_main_idle;	
+		_this._enemySprite.sprite.position.copyFrom(_this._defaultPositions.enemy_main_idle);	
+		delete _this._enemySprite.sprite.realPosition;
 	}
 	if(_this._actorSupporterSprite){
-		_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_support_idle;
+		_this._actorSupporterSprite.sprite.position.copyFrom(_this._defaultPositions.ally_support_idle);
+		delete _this._actorSupporterSprite.sprite.realPosition;
 	}
 	if(_this._enemySupporterSprite){
-		_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_support_idle;
+		_this._enemySupporterSprite.sprite.position.copyFrom(_this._defaultPositions.enemy_support_idle);
+		delete _this._enemySupporterSprite.sprite.realPosition;
 	}	
 }
 

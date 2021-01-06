@@ -80,13 +80,13 @@ BattleAnimationBuilder.prototype.newDef = function(name){
 	this._animLookup[newId] = {
 		name: name,
 		data: {
-			mainAnimation: [],
-			onHit: [],
-			onHitOverwrite: [],
-			onMiss: [],
-			onMissOverwrite: [],
-			onDestroy: [],
-			onDestroyOverwrite: []
+			mainAnimation: {},
+			onHit: {},
+			onHitOverwrite: {},
+			onMiss: {},
+			onMissOverwrite: {},
+			onDestroy: {},
+			onDestroyOverwrite: {}
 		}		
 	};
 	//this.save();

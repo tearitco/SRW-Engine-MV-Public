@@ -10,11 +10,57 @@
 	color: #FFFFFF;
 }
 
-#battle_scene_ui_layer #icon_container {
+#battle_scene_ui_layer #icon_and_noise_container {
 	width: 110px;
 	height: 110px;
 	background-color: rgba(255, 255, 255, 0.5);	
 	margin: 2%;
+	position: relative;
+}
+
+#battle_scene_ui_layer #icon_container {
+	width: 100%;
+	height: 100%;
+}
+
+#battle_scene_ui_layer #noise {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+    top: 0;
+	display: none;
+}
+
+#battle_scene_ui_layer #noise.active {
+	display: block;
+}
+
+#battle_scene_ui_layer #icon_container {
+	overflow: hidden;
+}
+
+#battle_scene_ui_layer #icon_container.shake .face_pic_container{
+	animation-name: shake_pilot_portrait;
+	animation-duration: 1s;
+	animation-fill-mode: forwards;
+	animation-timing-function: step-end;
+}
+
+@keyframes shake_pilot_portrait {
+	/*0% { margin-left: 5%;}
+	50% { margin-left: -5%;}
+	100% { padding-left: 0%;}*/
+}
+
+#battle_scene_ui_layer #noise.fade_in {
+	animation-name: fade_in;
+	animation-duration: 1s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes fade_in {
+	0% { opacity: 0;}
+	100% { opacity: 1;}
 }
 
 #battle_scene_ui_layer .text_container {

@@ -326,6 +326,16 @@ SRWEditor.prototype.init = function(){
 			params: [],
 			desc: "Mute all playing sound effects."
 		},
+		show_portrait_noise: {
+			hasTarget: false,
+			params: [],
+			desc: "Fade in static on character portrait."
+		},
+		hide_portrait_noise: {
+			hasTarget: false,
+			params: [],
+			desc: "Remove static on character portrait."
+		} 
 	};
 	
 	
@@ -1522,8 +1532,14 @@ SRWEditor.prototype.showAttackEditor = function(){
 	content+="<div class='preview_extra_controls'>";
 	
 	content+="<div title='The attack id of which to show quotes.' class='extra_control'>";
-	content+="<div class='editor_label'>Quote Set</div>";
-	content+="<input id='quote_set' value='0'></input>";
+	content+="<div class='editor_label'>Attack</div>";
+	content+="<select id='quote_set'>";
+	$dataWeapons.forEach(function(weapon){
+		if(weapon && weapon.name){
+			content+="<option value='"+weapon.id+"'>"+weapon.name+"</option>"
+		}
+	});
+	content+="</select>"
 
 	content+="</div>";
 	
