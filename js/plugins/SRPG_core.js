@@ -10555,7 +10555,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		
 		$gameTemp.isPostMove = false;
-        //enemy.makeSrpgActions();
 		if(enemy.battleMode() === 'disabled'){
 			$gameTemp.setActiveEvent(event);
 			enemy.onAllActionsEnd();
@@ -10581,16 +10580,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
             }
         }
 		
-        //if (enemy.action(0).item()) {			
-            $gameTemp.setActiveEvent(event);
-            $gameSystem.setSubBattlePhase('enemy_move');
-			$gameTemp.AIWaitTimer = 45;
-			$gamePlayer.locate(event.posX(), event.posY());			
-       /* } else {
-            $gameTemp.setActiveEvent(event);
-            enemy.onAllActionsEnd();
-            this.srpgAfterAction();
-        }	*/	
+        		
+		$gameTemp.setActiveEvent(event);
+		$gameSystem.setSubBattlePhase('enemy_move');
+		$gameTemp.AIWaitTimer = 45;
+		$gamePlayer.locate(event.posX(), event.posY());			
+      
     };
 	
 	Scene_Map.prototype.doEnemyMapAttack = function(event, isPostMove) {
@@ -10650,7 +10645,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         var event = $gameTemp.activeEvent();
         var type = $gameSystem.EventToUnit(event.eventId())[0];
         var enemy = $gameSystem.EventToUnit(event.eventId())[1];
-       // var targetType = this.makeTargetType(enemy, type);
 		
 		if(!this.doEnemyMapAttack(event, false)){      
 			this.srpgPriorityTarget(enemy); //優先ターゲットの設定
@@ -10675,8 +10669,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						$gameSystem.setSrpgWaitMoving(true);
 						event.srpgMoveToPoint({x: optimalPos[0], y: optimalPos[1]});
 						$gamePlayer.setTransparent(true);
-						//$gameTemp.setAutoMoveDestinationValid(true);
-						//$gameTemp.setAutoMoveDestination(optimalPos[0], optimalPos[1]);
 					}				
 				}				
 			} else {
@@ -10740,8 +10732,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					event.srpgMoveToPoint({x: optimalPos[0], y: optimalPos[1]});
 					$gamePlayer.setTransparent(true);
 				}
-				//$gameTemp.setAutoMoveDestinationValid(true);
-				//$gameTemp.setAutoMoveDestination(optimalPos[0], optimalPos[1]);
 			}
 			$gameSystem.setSubBattlePhase('enemy_action');
 		}
@@ -10886,68 +10876,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
      //ターゲットの決定
     Scene_Map.prototype.srpgDecideTarget = function(canAttackTargets, activeEvent, targetType) {
         var targetEvent = null;
-        // 攻撃対象としうる相手がいない場合　
-       /* if (canAttackTargets.length === 0) {
-            // 攻撃対象としうる相手がいない場合　遠距離の相手を探索する：優先ターゲットがいる場合、そのイベントのみ探索する
-            if (_srpgBestSearchRouteSize > 0) {
-                var battler = $gameSystem.EventToUnit(activeEvent.eventId())[1];
-                var array = [];
-                array[_srpgBestSearchRouteSize] = -1;
-                $gameTemp.setSrpgBestSearchRoute([null, array]);
-                $gameTemp.clearMoveTable();
-                $gameTemp.initialMoveTable(activeEvent.posX(), activeEvent.posY(), battler.srpgMove());
-                $gameTemp.setSrpgBestSearchFlag(true);
-                activeEvent.makeMoveTable(activeEvent.posX(), activeEvent.posY(), _srpgBestSearchRouteSize, [0], battler);
-                if ($gameTemp.isSrpgBestSearchRoute()[0]) return $gameTemp.isSrpgBestSearchRoute()[0];
-            }
-            // 攻撃対象としうる相手がいない場合　次いで最短距離にいる相手を設定する
-            var minDis = 9999;
-            var events = $gameMap.events();
-            for (var i = 0; i <  events.length; i++) {
-                var event = events[i];
-                var dis = $gameSystem.unitDistance(activeEvent, event);
-                if (event.isType() === targetType && !event.isErased() && dis < minDis &&
-                    $gameTemp.activeEvent() != event) {
-                    minDis = dis;
-                    targetEvent = event;
-                }
-            }
-            return targetEvent;
-        }
-        // HP回復スキルの場合、最もHP割合が低い相手を選ぶ
-        var user = $gameSystem.EventToUnit(activeEvent.eventId())[1];
-        if (user.currentAction().isRecover() == true) {
-            var lowerHpUnit = [];
-            var lowerHpRate = 100;
-            canAttackTargets.forEach(function(event) {
-                var battler = $gameSystem.EventToUnit(event.eventId())[1];
-                if (battler.hpRate() == lowerHpRate) {
-                    lowerHpUnit.push(event);
-                } else if (battler.hpRate() < lowerHpRate) {
-                    lowerHpUnit = [];
-                    lowerHpUnit.push(event);
-                    lowerHpRate = battler.hpRate();
-                }
-            });
-            if (lowerHpUnit.length > 0) {
-                targetEvent = lowerHpUnit[Math.randomInt(lowerHpUnit.length)];
-                return targetEvent;
-            }
-        }*/
-        // 攻撃対象としうる相手がいる場合
-        /*var sum = canAttackTargets.reduce(function(r, event) {
-            var battler = $gameSystem.EventToUnit(event.eventId())[1];
-            return r + battler.tgr;
-        }, 0);
-       // var tgrRand = Math.random() * sum;
-        canAttackTargets.forEach(function(event) {
-            //var battler = $gameSystem.EventToUnit(event.eventId())[1];
-            //tgrRand -= battler.tgr;
-            //if (tgrRand <= 0 && !targetEvent) {
-            targetEvent = event;
-            //}
-        });*/
-		
+       	
 		var bestTarget;
 		var bestWeapon;
 		var bestScore = -1;
@@ -11290,11 +11219,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			actor: actionArray[1],
 			targetActor: targetArray[1]
 		};
-		
-        
-        
-	   // $gameTemp.setAutoMoveDestinationValid(true);
-	   // $gameTemp.setAutoMoveDestination($gameTemp.targetEvent().posX(), $gameTemp.targetEvent().posY());
+	
 		$gameSystem.setSubBattlePhase('invoke_action');
 		
 		//actor default action determination
@@ -11398,9 +11323,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.pushRangeListToMoveList();
 		$gameTemp.setResetMoveList(true);
 		
-		
-		//$gameSystem.setSrpgBattleWindowNeedRefresh(targetArray, actionArray);	
-		//$gameSystem.setSrpgStatusWindowNeedRefresh(targetArray);
 		$gameSystem.setSubBattlePhase("enemy_targeting_display");
 		$gameTemp.targetingDisplayCounter = 60;
        
@@ -11460,12 +11382,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.mapAttackOccurred = true;
 		$gameTemp.mapAttackAnimationStarted = false;
 		$gameTemp.mapAttackAnimationDelay = 60;
-		$gameSystem.setSubBattlePhase('map_attack_animation');
-		//_this.srpgBattlerDeadAfterBattle();
-		
-		//this.preBattleSetDirection();
-		//this._callSrpgBattle = true;		
-		
+		$gameSystem.setSubBattlePhase('map_attack_animation');			
     };
 	
 	Scene_Map.prototype.mapAttackStart = function(actionArray, targetArray) {	
@@ -11475,12 +11392,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.clearMoveTable();		
 		$gameTemp.mapAttackOccurred = true;
 		$gameTemp.mapAttackAnimationStarted = false;
-		$gameSystem.setSubBattlePhase('map_attack_animation');
-		//_this.srpgBattlerDeadAfterBattle();
-		
-		//this.preBattleSetDirection();
-		//this._callSrpgBattle = true;		
-		
+		$gameSystem.setSubBattlePhase('map_attack_animation');		
     };
 	
 	Scene_Map.prototype.playBattleScene = function() {
