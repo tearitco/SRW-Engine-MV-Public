@@ -861,7 +861,11 @@ BattleSceneManager.prototype.startScene = function(){
 		
 		_this._engine.wipeCaches(true);
 		_this._scene.render();
-		_this._effksContext.update(_this._engine.getDeltaTime() * 60 / 1000);		
+		var ratio = 1;
+		if(_this.isOKHeld){
+			ratio = 2;
+		}
+		_this._effksContext.update(_this._engine.getDeltaTime() * 60 / 1000 * ratio);		
 		_this._effksContext.setProjectionMatrix(_this._camera.getProjectionMatrix().m);
 		_this._effksContext.setCameraMatrix(BABYLON.Matrix.Invert(_this._camera.getWorldMatrix()).m);
 		_this._effksContext.draw();
@@ -1602,7 +1606,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 			
-			var animId = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_ANIM.DESTROY;
+			var animId = $statCalc.getBattleSceneInfo(action.ref).deathAnimId;
+			if(animId == null){
+				animId = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_ANIM.DESTROY;
+			}
 			var animData = _this._animationBuilder.buildAnimation(animId, _this).mainAnimation;
 			_this.delayAnimationList(startTick + 1, animData.length);
 			Object.keys(animData).forEach(function(tick){

@@ -1407,6 +1407,8 @@ StatCalc.prototype.getBattleSceneInfo = function(actor){
 		}
 		
 		result.battleReferenceSize = parseInt(mechProperties.mechBattleReferenceSize) || 3;
+		
+		result.deathAnimId = mechProperties.mechBattleSceneDeathAnim;
 	} 
 	return result;
 }

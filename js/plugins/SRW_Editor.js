@@ -1589,7 +1589,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div class='preview_extra_controls'>";
 	
-	content+="<div title='The attack id of which to show quotes.' class='extra_control'>";
+	content+="<div title='The attack for which to show quotes.' class='extra_control'>";
 	content+="<div class='editor_label'>Attack</div>";
 	content+="<select id='quote_set'>";
 	$dataWeapons.forEach(function(weapon){
@@ -1597,6 +1597,16 @@ SRWEditor.prototype.showAttackEditor = function(){
 			content+="<option value='"+weapon.id+"'>"+weapon.name+"</option>"
 		}
 	});
+	content+="</select>"
+
+	content+="</div>";
+	
+	
+	
+	content+="<div title='The environment that will be used for the preview.' class='extra_control'>";
+	content+="<div class='editor_label'>Environment</div>";
+	content+="<select id='environment_select'>";
+	
 	content+="</select>"
 
 	content+="</div>";
@@ -1658,9 +1668,26 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	containerNode.innerHTML = content;
 	
+	
+	
 	this.prepareBattleScenePreview();
 	
 	this._animationBuilder = $battleSceneManager.getAnimationBuilder();
+	this._environmentBuilder = $battleSceneManager.getEnvironmentBuilder()
+	
+	if(_this._currentEnvironmentDefinition == null){
+		_this._currentEnvironmentDefinition = id;
+	}
+	
+	_this._environmentBuilder.isLoaded().then(function(){
+		var content = "";
+		var defs = _this._environmentBuilder.getDefinitions();	
+		Object.keys(defs).forEach(function(id){					
+			content+="<option value='"+id+"'>"+defs[id].name+"</option>";		
+		});		
+		containerNode.querySelector("#environment_select").innerHTML = content;
+	});
+	
 	_this._animationBuilder.isLoaded().then(function(){
 		_this._animationBuilder.saveBackup();	
 	});
@@ -1674,6 +1701,11 @@ SRWEditor.prototype.showAttackEditor = function(){
 	document.querySelector("#quote_set").addEventListener("change", function(){
 		_this._currentQuoteSet = this.value;
 	});	
+	
+	document.querySelector("#environment_select").addEventListener("change", function(){
+		_this._currentEnvironmentDefinition = this.value;
+	});	
+	
 	
 	document.querySelector("#actor_mech_select").addEventListener("change", function(){
 		_this._currentActorMech = this.value;
