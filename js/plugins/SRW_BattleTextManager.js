@@ -16,7 +16,7 @@ SRWBattleTextManager.prototype.getTextBuilder = function(){
 	return this._textBuilder;
 }
 
-SRWBattleTextManager.prototype.getText = function(target, id, type, subType, targetId, targetIdx, attackId){
+SRWBattleTextManager.prototype.getText = function(target, ref, type, subType, targetId, targetIdx, attackId){
 	var _this = this;
 	var definitions;
 	/*if($gameTemp.scriptedBattleDemoId != null){
@@ -35,6 +35,8 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 			return options[idx];
 		}
 	}*/
+	var id = ref.SRWStats.pilot.id;
+	var mechId = ref.SRWStats.mech.id;
 	var text;
 	if($gameTemp.scriptedBattleDemoId != null){
 		var eventDefs = _this._eventDefinitions;
@@ -47,7 +49,7 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 			ctr++;
 		}
 		if(def){
-			text = _this.getTextCandidate(def, target, id, type, subType, targetId, targetIdx, attackId);
+			text = _this.getTextCandidate(def, target, id, mechId, type, subType, targetId, targetIdx, attackId);
 		}		
 	}
 	if(!text){
@@ -62,12 +64,13 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 				ctr++;
 			}
 			if(def){
-				text = _this.getTextCandidate(def, target, id, type, subType, targetId, targetIdx, attackId);
+				text = _this.getTextCandidate(def, target, id, mechId, type, subType, targetId, targetIdx, attackId);
 			}		
 		}
 	}
+	
 	if(!text){
-		text = _this.getTextCandidate(_this._definitions, target, id, type, subType, targetId, targetIdx, attackId);
+		text = _this.getTextCandidate(_this._definitions, target, id, mechId, type, subType, targetId, targetIdx, attackId);
 	}
 	
 	if(!text){
@@ -76,7 +79,7 @@ SRWBattleTextManager.prototype.getText = function(target, id, type, subType, tar
 	return text;
 }
 
-SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, id, type, subType, targetId, targetIdx, attackId){	
+SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, id, mechId, type, subType, targetId, targetIdx, attackId){	
 	if(typeof subType == "undefined") {
 		subType = "default";
 	}
@@ -110,6 +113,17 @@ SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, 
 						}
 					});			
 					options = tmp;			
+				}
+				
+				if(!options.length){
+					options = definitions.mech || [];
+					var tmp = [];
+					options.forEach(function(option){
+						if(option.mechId == mechId){
+							tmp.push(option);
+						}
+					});			
+					options = tmp;
 				}
 				 
 				if(!options.length){

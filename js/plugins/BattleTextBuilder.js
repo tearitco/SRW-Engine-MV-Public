@@ -185,6 +185,24 @@ BattleTextBuilder.prototype.setUnitId = function(params, id){
 	}
 }
 
+BattleTextBuilder.prototype.setMechId = function(params, id){
+	try {
+		var def = this.getDefinitions()[params.sceneType];		
+		if(params.sceneType == "event"){			
+			def = def[params.eventId].data;
+		}		
+		var entityDef = def[params.entityType][params.entityId];
+		var hookDef = entityDef[params.type];
+		if(params.type == "attacks"){
+			hookDef = hookDef[params.weaponId];			
+		}
+		var options = hookDef[params.subType];		
+		options[params.targetIdx].mechId = id;
+	} catch(e){
+		console.log(e.message);
+	}
+}
+
 BattleTextBuilder.prototype.deleteText = function(params){
 	try {
 		var def = this.getDefinitions()[params.sceneType]

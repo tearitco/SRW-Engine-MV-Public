@@ -628,6 +628,11 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 ## Plugin commands
 
+* SRPGBattle start|end
+
+	This command starts or ends the SRPG mode of the engine.<br>
+	Generally only called by the init or intermission map to start a new stage.
+	
 * Intermission start|end
 
 	This command starts or end the intermission. Only called on the intermission map.
@@ -641,6 +646,8 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * addKills actor\_id amount
 
 * addPP actor\_id amount
+
+* addExp actor\_id amount
 		
 * setStageSong song_id
 
@@ -774,6 +781,10 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 	Deploys the actor in the specified slot according to the current deploy info. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
 
+* redeployActor actor\_id toAnimationQueue
+
+	Deploys the actor with the specified id again. This can be used to update the actor's unit on the map after a class change. If toAnimationQueue is set to 1 the this.processUnitAppearQueue() command will need to be called to show the unit.
+
 * moveEventToPoint event\_id x y follow
 
 	Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
@@ -786,13 +797,6 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 	Put the specified event into a grounded state.
 
-* awardSRPoint
-
-	Grants the SR point for the current stage. Does not award the point if the SR point is locked for the current stage. If the point was newly awarded it automatically displays the reward text and plays a sound effect.
-
-* showEnemyPhase
-
-	Show text declaring the start of an enemy phase. Automatically shows the correct faction color and displays "Ally Phase" instead if a faction is configured to be friendly to the player.
 
 * enableFaction faction\_id
 
@@ -843,6 +847,22 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * setSaveDisplayName name
 
 	Set the name that will show up in the save file list for newly saved files. Spaces should be replaced by underscores in the command, ex.: "Debug\_Stage\_1" becomes "Debug Stage 1" on the file select screen.
+
+* setEventWill event\_id amount
+	
+	Set the will of the unit for the specified event.
+
+* setActorWill actor\_id amount
+	
+	Set the will of the actor unit with the specified id.
+	
+* makeActorAI actor\_id
+	
+	Make the actor with the specified ID AI controlled.
+	
+* makeActorControllable actor\_id
+
+	Make the actor with the specified ID controllable by the player.	
 
 ## Script commands
 
@@ -921,7 +941,7 @@ They can also be used as conditionals in IF statements.
 		<br>
 		* level
 		<br>
-		* mode: "stand" for stationary enemies, otherwise ""
+		* mode: "stand" for stationary enemies that start moving once provoked, "fixed" for enemies that will never move but will still attack units in range, "disabled" for units that will never act or counterattack, otherwise ""
 		<br>
 		* targetId: the actor id of the actor this enemy should prioritize
 		<br>
@@ -1001,18 +1021,28 @@ A setting can be left blank by entering "" as its value.
 	
 * this.setBattleMode(event\_id, mode)
 
-	Set the battle mode for the enemy with the specified event id: "stand" or "".<br>
+	Set the battle mode for the event with the specified event id. If the event is an enemy unit the following modes are available: "stand" for stationary enemies that start moving once provoked, "fixed" for enemies that will never move but will still attack units in range, "disabled" for units that will never act or counterattack, otherwise "". If the event is an actor unit only "disabled", "fixed" and "" are available.<br>
 	If the enemy is part of a squad their squad mates will also be updated!
+
+* this.setActorBattleMode(actor\_id, mode)
+	Set the battle mode for the actor with the specified id: "disabled", "fixed" and "" are available
 	
 * this.setBattleModes(start\_id, end\_id, mode)
 
 	Set the battle mode for the enemies tied to the events with and id between start id and id.
 
-
 * this.setSquadMode(squad_id, mode)
 
 	Set the battle mode for all enemies that are part of the specified squad.<br>
 
+* this.setTargetRegion(event\_id, region\_id)
+
+	Set the target region for the enemy with the specified event id.<br>
+	
+* this.setActorTargetRegion(actor\_id, region\_id)
+
+	Set the target region for the actor with the specified id.<br>	
+	
 * this.turnEnd()
 
 	End the turn of the unit currently taking its turn.
@@ -1028,4 +1058,19 @@ A setting can be left blank by entering "" as its value.
 * this.canObtainSRPoint()
 
 	Should always be used to check if the SR point is still obtainable on the stage before awarding it. This will 	    return false if the player has previously had a Game Over on the current map.
+
+* this.awardSRPoint()
+
+	Grants the SR point for the current stage. Does not award the point if the SR point is locked for the current stage. If the point was newly awarded it automatically displays the reward text and plays a sound effect.	
 	
+* this.showEnemyPhase()
+
+	Show text declaring the start of an enemy phase. Automatically shows the correct faction color and displays "Ally Phase" instead if a faction is configured to be friendly to the player.	
+
+* this.applyEventSpirits(event\_id, spirit\_ids)
+
+	Apply spirits effects to the unit with the specified event id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.
+
+* this.applyActorSpirits(actor\_id, spirit\_ids)
+
+	Apply spirits effects to the actor unit with the specified id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.

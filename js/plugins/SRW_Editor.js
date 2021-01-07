@@ -832,6 +832,20 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			});	
 			
 			content+="</div>";
+			
+			content+="<div class='unit_text'>";
+			content+="<div data-subtype='mech' class='text_category_controls'>";
+			content+="<div class='text_label'>Mech</div>";
+			content+="<button class='add_category_quote'>New</button>";
+			content+="</div>"
+			
+			var ctr = 0;
+			textInfo.mech.forEach(function(quote){
+				content+=_this.createQuoteContent("mech", ctr++, quote, null, {id: quote.mechId});
+			});	
+			
+			content+="</div>";
+			
 			content+="<div class='unit_text'>";
 			content+="<div data-subtype='actor' class='text_category_controls'>";
 			content+="<div class='text_label'>Actors</div>";
@@ -897,6 +911,9 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 							var options = textInfo[weaponId];
 							if(!options.default){
 								options.default = [];
+							}
+							if(!options.mech){
+								options.mech = [];
 							}
 							if(!options.actor){
 								options.actor = [];
@@ -980,7 +997,22 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				if(attackText){
 					attackId = attackText.getAttribute("data-weaponid");
 				}
-				$battleSceneManager.showText(entityType, entityId, name, type, subType, targetId, targetIdx, attackId);
+				var actor = new Game_Actor(entityId, 0, 0);
+				$statCalc.initSRWStats(actor);
+				var mechId;
+				if(subType == "mech"){
+					mechId = this.closest(".quote").querySelector(".mech_select").value;
+				}
+				if(mechId){
+					actor._mechClass = mechId;	
+					$statCalc.initSRWStats(actor);
+				}
+				
+				actor.event = {
+					eventId: function(){return 1;}
+				};
+				
+				$battleSceneManager.showText(entityType, actor, name, type, subType, targetId, targetIdx, attackId);
 			});
 		});	
 
@@ -1098,6 +1130,15 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			});
 		});	
 		
+		var inputs = containerNode.querySelectorAll(".mech_select");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){
+				var params = getLocatorInfo(this);
+				_this._battleTextBuilder.setMechId(params, this.value);
+				_this._modified = true;
+			});
+		});
+		
 		containerNode.querySelector(".commands_scroll").addEventListener("scroll", function(){
 			_this._editorScrollTop = this.scrollTop;
 		});
@@ -1150,7 +1191,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 	});
 }
 
-SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo){
+SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, mechInfo){
 	var content = "";
 	var targetUnitId;
 	if(unitInfo){
@@ -1175,9 +1216,22 @@ SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo){
 	}	
 	
 	if(unitInfo){
-		content+="<div class='command_label '>Target unit:</div>";
+		content+="<div class='command_label '>Other unit:</div>";
 		content+=this.createUnitSelect(unitInfo.id, unitInfo.type);
 	}
+	
+	if(mechInfo){
+		content+="<div class='command_label '>Mech:</div>";
+		content+="<select class='mech_select'>";
+		content+="<option value='-1'></option>";
+		$dataClasses.forEach(function(classInfo){
+			if(classInfo && classInfo.name){
+				content+="<option "+(classInfo.id == mechInfo.id ? "selected" : "")+" value='"+classInfo.id+"'>"+classInfo.name+"</option>";
+			}
+		});	
+		content+="</select>";		
+	}
+	
 	content+="</div>";
 	content+="<input class='param_value quote_text' value=\""+(quote.text.replace(/\"/g, '&quot;') || "")+"\"></input>";
 	content+="</div>";
@@ -1228,12 +1282,16 @@ SRWEditor.prototype.getUnitDef = function(unitId, hook){
 			currentTextInfo = {
 				default: [],
 				actor: [],
-				enemy: []
+				enemy: [],
+				mech: []
 			}
 		}
 		
 		if(!currentTextInfo.default){
 			currentTextInfo.default = [];
+		}
+		if(!currentTextInfo.mech){
+			currentTextInfo.mech = [];
 		}
 		if(!currentTextInfo.actor){
 			currentTextInfo.actor = [];
