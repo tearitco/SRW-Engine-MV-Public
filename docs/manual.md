@@ -855,6 +855,14 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * setActorWill actor\_id amount
 	
 	Set the will of the actor unit with the specified id.
+	
+* makeActorAI actor\_id
+	
+	Make the actor with the specified ID AI controlled.
+	
+* makeActorControllable actor\_id
+
+	Make the actor with the specified ID controllable by the player.	
 
 ## Script commands
 
@@ -1029,7 +1037,11 @@ A setting can be left blank by entering "" as its value.
 
 * this.setTargetRegion(event\_id, region\_id)
 
-	Set the target region for the enemy with the specified event id<br>
+	Set the target region for the enemy with the specified event id.<br>
+	
+* this.setActorTargetRegion(actor\_id, region\_id)
+
+	Set the target region for the actor with the specified id.<br>	
 	
 * this.turnEnd()
 

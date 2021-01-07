@@ -380,7 +380,8 @@ StatCalc.prototype.resetStageTemp = function(actor){
 			isRevealed: false,
 			mapAttackCoolDown: 1,
 			nonMapAttackCounter: 1,
-			isBoarded: false
+			isBoarded: false,
+			isAI: false
 		};
 		this.resetStatus(actor);
 	}
@@ -523,6 +524,20 @@ StatCalc.prototype.isRevealed = function(actor){
 	} else {
 		return true;
 	}
+}
+
+StatCalc.prototype.isAI = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return !actor.isActor() || actor.SRWStats.stageTemp.isAI;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setIsAI = function(actor, state){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.isAI = state;
+	} 
 }
 
 StatCalc.prototype.setRevealed = function(actor){
@@ -3036,6 +3051,12 @@ StatCalc.prototype.resetAllBattleTemp = function(type, factionId){
 			_this.resetBattleTemp(actor);	
 		}		
 	});
+}
+
+StatCalc.prototype.hasEndedTurn = function(actor){		
+	if(this.isActorSRWInitialized(actor)){			
+		return actor.SRWStats.battleTemp.hasFinishedTurn;
+	} 	
 }
 
 StatCalc.prototype.setTurnEnd = function(actor){		
