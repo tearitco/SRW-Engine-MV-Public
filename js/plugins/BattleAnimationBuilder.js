@@ -258,7 +258,11 @@ BattleAnimationBuilder.prototype.processDefinition = function(data){
 	var _this = this;
 	var paramHandlers = {
 		easingFunction: function(value){
-			return new BABYLON[_this.getEasingFunctions()[value]]()
+			if(value != ""){
+				return new BABYLON[_this.getEasingFunctions()[value]]()
+			} else {
+				return "";
+			}			
 		}
 	};
 	

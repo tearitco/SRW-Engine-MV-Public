@@ -600,10 +600,10 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 			scrollBg(bg, animRatio);
 		});
 		
-		_this._fixedBgs.forEach(function(bg){
+		/*_this._fixedBgs.forEach(function(bg){
 			bg.position.x = _this._camera.position.x;
 			bg.position.y = _this._camera.position.y;
-		});
+		});*/
 		
 		
 		Input.update();
@@ -1567,12 +1567,36 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(targetObj){
 				//targetObj.playAnimation(1, 1, false, 100)
 			}
-			if(targetObj == _this._actorSprite.sprite || targetObj == _this._actorSupporterSprite.sprite){
-				_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), _this._defaultPositions.enemy_main_idle, startTick, params.duration);
-			} else if(targetObj == _this._enemySprite.sprite || targetObj == _this._enemySupporterSprite.sprite) {
-				_this.registerMatrixAnimation("translate", targetObj, targetObj.position, _this._defaultPositions.enemy_main_idle, startTick, params.duration);
+			
+			var targetOffset = _this._defaultPositions.camera_main_idle.x - _this._camera.position.x;
+			
+			_this._camera.position.x = 0;
+			
+			if(_this._actorSprite){
+				_this._actorSprite.sprite.position.x+=targetOffset;
+			}
+			if(_this._enemySprite){
+				_this._enemySprite.sprite.position.x+=targetOffset;
+			}
+			if(_this._actorSupporterSprite){
+				_this._actorSupporterSprite.sprite.position.x+=targetOffset;
+			}
+			if(_this._enemySupporterSprite){
+				_this._enemySupporterSprite.sprite.position.x+=targetOffset;
 			}
 			
+			_this._bgs.forEach(function(bg){
+				bg.position.x+=targetOffset;
+			});
+			
+			var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+			
+			/*if(targetObj == _this._actorSprite.sprite || targetObj == _this._actorSupporterSprite.sprite){
+				_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
+			} else if(targetObj == _this._enemySprite.sprite || targetObj == _this._enemySupporterSprite.sprite) {
+				_this.registerMatrixAnimation("translate", targetObj, targetObj.position, targetPostion, startTick, params.duration);
+			}*/
+			_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
 			
 			_this._animationList[startTick + params.duration] = [				
 				{type: "show_damage", target: "", params:{}},
@@ -2135,7 +2159,8 @@ BattleSceneManager.prototype.createEnvironment = function(ref){
 		bgs.forEach(function(bg){
 			if(!bg.hidden){		
 				if(bg.isfixed){			
-					_this._fixedBgs.push(_this.createBg("bg"+ctr, bg.path, new BABYLON.Vector3(0, bg.yoffset, bg.zoffset), {width: bg.width, height: bg.height}))
+					//_this._fixedBgs.push(_this.createBg("bg"+ctr, bg.path, new BABYLON.Vector3(0, bg.yoffset, bg.zoffset), {width: bg.width, height: bg.height}))
+					_this._fixedBgs.push(new BABYLON.Layer("bg"+ctr, "img/SRWBattlebacks/"+bg.path+".png", _this._scene, true));
 				} else {
 					_this.createScrollingBg("bg"+ctr, bg.path, {width: bg.width, height: bg.height}, bg.yoffset, bg.zoffset);
 				}	
