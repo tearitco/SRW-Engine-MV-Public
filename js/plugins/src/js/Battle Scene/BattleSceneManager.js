@@ -54,6 +54,7 @@ export default function BattleSceneManager(){
 	this._animationDirection = 1;
 
 	this.setBgScrollDirection(1, true);
+	this._bgScrollCooldown = 40;
 
 	this._spriteManagers = {};
 	this._animationSpritesInfo = [];
@@ -562,31 +563,19 @@ BattleSceneManager.prototype.setBgScrollDirection = function(direction, immediat
 	if(immediate){
 		_this._bgScrollTimer = 0;
 	} else {
-		_this._bgScrollTimer = 120;
+		_this._bgScrollTimer = _this._bgScrollCooldown;
 	}
 }
 
 BattleSceneManager.prototype.hookBeforeRender = function(){
 	var _this = this;
 	
-	function scrollBg(bg, animRatio){
-		
-		var step = 0.04;
+	function scrollBg(bg, animRatio, step){
 		//var deltaStep1 = (step/(1000/60)) * deltaTime;	
 		//var deltaStep2 = step * _this._scene.getAnimationRatio();
 		
-		//console.log("deltaStep1: " + deltaStep1 +", deltaStep2: " + deltaStep2);
 		
-		/*if(_this._previousBgScrollDirection != _this._bgScrollDirection){
-			if(_this._bgScrollTimer > 0){
-				step = step - (0.04 / (120 - _this._bgScrollTimer));				
-				_this._bgScrollTimer--;
-				step = 0;
-			} else {
-				_this._previousBgScrollDirection = _this._bgScrollDirection;
-			}
-		}*/ 
-		_this._previousBgScrollDirection = _this._bgScrollDirection;
+		//_this._previousBgScrollDirection = _this._bgScrollDirection;
 		var direction = _this._previousBgScrollDirection;
 		
 		bg.translate(new BABYLON.Vector3(1 * direction, 0, 0), step * animRatio, BABYLON.Space.LOCAL);
@@ -611,16 +600,30 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 	}
 	
 	_this._scene.registerBeforeRender(function() {
+		var frameTime = new Date().getTime();
+		//console.log("processing animation @"+frameTime);
+		var deltaTime = frameTime - _this._lastAnimationTickTime;
+		var ticksSinceLastUpdate = Math.floor(deltaTime / _this._animationTickDuration);	
 		
 		var animRatio =  _this._scene.getAnimationRatio();
+		var step = 0.04;
+		/*if(_this._previousBgScrollDirection != _this._bgScrollDirection){
+			if(_this._bgScrollTimer > 0){
+				step-=(step / _this._bgScrollCooldown) * (_this._bgScrollCooldown - _this._bgScrollTimer + 1);		
+				_this._bgScrollTimer-=ticksSinceLastUpdate;
+			} else {
+				_this._previousBgScrollDirection = _this._bgScrollDirection;
+			}
+		} */
+		
 		_this._bgs.forEach(function(bg){
-			scrollBg(bg, animRatio);
+			scrollBg(bg, animRatio, step);
 		});
 		_this._skyBgs.forEach(function(bg){
-			scrollBg(bg, animRatio);
+			scrollBg(bg, animRatio, step);
 		});
 		_this._floors.forEach(function(bg){
-			scrollBg(bg, animRatio);
+			scrollBg(bg, animRatio, step);
 		});
 		
 		/*_this._fixedBgs.forEach(function(bg){
@@ -634,10 +637,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		/*if(Input.isPressed("cancel") && _this._sceneCanEnd && !_this._sceneIsEnding){
 			_this.endScene();
 		}*/
-		var frameTime = new Date().getTime();
-		//console.log("processing animation @"+frameTime);
-		var deltaTime = frameTime - _this._lastAnimationTickTime;
-		var ticksSinceLastUpdate = Math.floor(deltaTime / _this._animationTickDuration);	
+		
 		if(_this._animsPaused || (_this._maxAnimationTick != -1 && _this._currentAnimationTick >= _this._maxAnimationTick)){
 			return;
 		}	
@@ -1609,17 +1609,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 			
 			_this._bgs.forEach(function(bg){
-				var width = (bg.sizeInfo.width || _this._bgWidth);
-				var offset = Math.abs(targetOffset % width);
-				var debug = bg.name + ": ";
-				debug+=bg.position.x + " => ";
+				var width = (bg.sizeInfo.width || _this._bgWidth) * 1;
+				var offset = (targetOffset % width);				
 				bg.position.x+=offset;
 				if(Math.abs(bg.position.x - bg.originPosition.x) > width){
-					//console.log("!!");
-					bg.position.x-=width;
-				}
-				debug+=bg.position.x;
-				console.log(debug);
+					bg.position.x-=width * Math.sign(offset);
+				} 			
 			});
 			
 			var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
