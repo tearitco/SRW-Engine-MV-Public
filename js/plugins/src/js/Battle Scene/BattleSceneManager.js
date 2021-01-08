@@ -53,7 +53,7 @@ export default function BattleSceneManager(){
 
 	this._animationDirection = 1;
 
-	this._bgScrollDirection = 1;
+	this.setBgScrollDirection(1, true);
 
 	this._spriteManagers = {};
 	this._animationSpritesInfo = [];
@@ -555,6 +555,17 @@ BattleSceneManager.prototype.getBattleTextId = function(action){
 	}
 }
 
+BattleSceneManager.prototype.setBgScrollDirection = function(direction, immediate){
+	var _this = this;
+	_this._previousBgScrollDirection = _this._bgScrollDirection;
+	_this._bgScrollDirection = direction;
+	if(immediate){
+		_this._bgScrollTimer = 0;
+	} else {
+		_this._bgScrollTimer = 120;
+	}
+}
+
 BattleSceneManager.prototype.hookBeforeRender = function(){
 	var _this = this;
 	
@@ -566,7 +577,19 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		
 		//console.log("deltaStep1: " + deltaStep1 +", deltaStep2: " + deltaStep2);
 		
-		bg.translate(new BABYLON.Vector3(1 * _this._bgScrollDirection, 0, 0), step * animRatio, BABYLON.Space.LOCAL);
+		/*if(_this._previousBgScrollDirection != _this._bgScrollDirection){
+			if(_this._bgScrollTimer > 0){
+				step = step - (0.04 / (120 - _this._bgScrollTimer));				
+				_this._bgScrollTimer--;
+				step = 0;
+			} else {
+				_this._previousBgScrollDirection = _this._bgScrollDirection;
+			}
+		}*/ 
+		_this._previousBgScrollDirection = _this._bgScrollDirection;
+		var direction = _this._previousBgScrollDirection;
+		
+		bg.translate(new BABYLON.Vector3(1 * direction, 0, 0), step * animRatio, BABYLON.Space.LOCAL);
 		if(Math.abs(bg.originPosition.x - bg.position.x) >= (bg.sizeInfo.width || _this._bgWidth)){
 			bg.position = bg.originPosition;
 		}
@@ -1587,8 +1610,16 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			
 			_this._bgs.forEach(function(bg){
 				var width = (bg.sizeInfo.width || _this._bgWidth);
-				var offset = (targetOffset % width);
+				var offset = Math.abs(targetOffset % width);
+				var debug = bg.name + ": ";
+				debug+=bg.position.x + " => ";
 				bg.position.x+=offset;
+				if(Math.abs(bg.position.x - bg.originPosition.x) > width){
+					//console.log("!!");
+					bg.position.x-=width;
+				}
+				debug+=bg.position.x;
+				console.log(debug);
 			});
 			
 			var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
@@ -2074,7 +2105,7 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 				}
 			} else {
 				//bg.isVisible = false;
-				bg.position.originalPos = new BABYLON.Vector3(bg.position);
+				bg.position.originalPos = new BABYLON.Vector3().copyFrom(bg.position);
 				bg.position.y-=($gameSystem.skyBattleOffset || 0);
 			} 
 		});	
@@ -2087,7 +2118,7 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 				}
 			} else {
 				//bg.isVisible = false;
-				bg.position.originalPos = new BABYLON.Vector3(bg.position);
+				bg.position.originalPos = new BABYLON.Vector3().copyFrom(bg.position);
 				bg.position.y-=($gameSystem.skyBattleOffset || 0);
 			} 
 		});			
@@ -2328,7 +2359,7 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 		_this._enemySupporterSprite.sprite.setEnabled(false);
 		if(action.side == "actor"){
 			_this._animationDirection = 1;
-			_this._bgScrollDirection = 1;
+			_this.setBgScrollDirection(1, false);
 			_this._enemySprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;
@@ -2343,7 +2374,7 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 			}			
 		} else {
 			_this._animationDirection = -1;
-			_this._bgScrollDirection = -1;		
+			_this.setBgScrollDirection(-1, false);	
 			_this._actorSprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;
@@ -2452,14 +2483,14 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				_this._currentAnimatedAction = nextAction;
 				if(nextAction.side == "actor"){
 					_this._animationDirection = 1;
-					_this._bgScrollDirection = 1;
+					//_this.setBgScrollDirection(1, false);
 					_this._active_main = _this._actorSprite.sprite;	
 					_this._active_support_attacker = _this._actorSupporterSprite.sprite;
 					_this._active_support_defender = _this._enemySupporterSprite.sprite;
 					_this._active_target = _this._enemySprite.sprite;		
 				} else {
 					_this._animationDirection = -1;
-					_this._bgScrollDirection = -1;
+					//_this.setBgScrollDirection(-1, false);
 					_this._active_main = _this._enemySprite.sprite;
 					_this._active_support_attacker = _this._enemySupporterSprite.sprite;
 					_this._active_support_defender = _this._actorSupporterSprite.sprite;
