@@ -1586,7 +1586,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 			
 			_this._bgs.forEach(function(bg){
-				bg.position.x+=targetOffset;
+				var width = (bg.sizeInfo.width || _this._bgWidth);
+				var offset = (targetOffset % width);
+				bg.position.x+=offset;
 			});
 			
 			var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
