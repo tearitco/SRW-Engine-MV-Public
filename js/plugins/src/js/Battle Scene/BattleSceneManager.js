@@ -683,7 +683,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 						_this._runningAnimation = false;
 						_this.disposeAnimationSprites();
 						_this.disposeAnimationBackgrounds();
-						_this.disposeSpriterBackgrounds();
+						//_this.disposeSpriterBackgrounds();
 						_this._animationResolve();
 					}					
 				} 
@@ -702,9 +702,21 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 						t = animation.easingFunction.ease(t);
 					}					
 					if(animation.type == "translate"){
+						var hasValidSpline = false;
 						if(animation.catmullRom){
-							targetObj.position = BABYLON.Vector3.CatmullRom(animation.catmullRom.pos1, animation.startPosition, animation.endPosition, animation.catmullRom.pos4, t);
-						} else {
+							var pos1 = animation.catmullRom.pos1;
+							var pos4 = animation.catmullRom.pos4;
+							
+							var pos1Valid = pos1 && pos1.x != "" && pos1.y != "" && pos1.z != "";
+							var pos4Valid = pos4 && pos4.x != "" && pos4.y != "" && pos4.z != "";
+							
+							if(pos1Valid && pos4Valid){
+								hasValidSpline = true;
+								targetObj.position = BABYLON.Vector3.CatmullRom(animation.catmullRom.pos1, animation.startPosition, animation.endPosition, animation.catmullRom.pos4, t);
+							}
+						} 
+
+						if(!hasValidSpline){
 							targetObj.position = BABYLON.Vector3.Lerp(animation.startPosition, animation.endPosition, t);
 						}						
 						targetObj.realPosition = new BABYLON.Vector3().copyFrom(targetObj.position);
@@ -870,6 +882,11 @@ BattleSceneManager.prototype.disposeSpriterBackgrounds = function(){
 		bg.sprite.dispose();
 	});
 	this._spritersBackgroundsInfo = [];
+	
+	this._spriterMainSpritesInfo.forEach(function(bg){
+		bg.sprite.dispose();
+	});
+	//this._spriterMainSpritesInfo = [];	
 }
 
 BattleSceneManager.prototype.startScene = function(){
@@ -1038,6 +1055,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					if(spriteInfo.sprite.name == name){
 						obj = spriteInfo.sprite;
 					}
+					ctr++;
 				}
 			}
 			if(!obj && _this._scene.layers){//check layers
@@ -1046,6 +1064,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					if(_this._scene.layers[ctr].name == name){
 						obj = _this._scene.layers[ctr];
 					}
+					ctr++;
 				}
 			}
 			if(!obj){//check effekseer handles
@@ -1587,12 +1606,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		reset_position: function(target, params){
 			var targetObj = getTargetObject(target);
-			if(targetObj){
-				//targetObj.playAnimation(1, 1, false, 100)
-			}
 			
 			var targetOffset = _this._defaultPositions.camera_main_idle.x - _this._camera.position.x;
-			
+				
 			_this._camera.position.x = 0;
 			
 			if(_this._actorSprite){
@@ -1617,37 +1633,44 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				} 			
 			});
 			
-			var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
-			
-			/*if(targetObj == _this._actorSprite.sprite || targetObj == _this._actorSupporterSprite.sprite){
+			if(targetObj){
+				//targetObj.playAnimation(1, 1, false, 100)			
+				if(!params.duration){
+					params.duration = 10;
+				}
+				
+				var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+				
+				/*if(targetObj == _this._actorSprite.sprite || targetObj == _this._actorSupporterSprite.sprite){
+					_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
+				} else if(targetObj == _this._enemySprite.sprite || targetObj == _this._enemySupporterSprite.sprite) {
+					_this.registerMatrixAnimation("translate", targetObj, targetObj.position, targetPostion, startTick, params.duration);
+				}*/
 				_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
-			} else if(targetObj == _this._enemySprite.sprite || targetObj == _this._enemySupporterSprite.sprite) {
-				_this.registerMatrixAnimation("translate", targetObj, targetObj.position, targetPostion, startTick, params.duration);
-			}*/
-			_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
-			
-			_this._animationList[startTick + params.duration] = [				
-				{type: "show_damage", target: "", params:{}},
 				
-			];
-			
-			
-			var action = _this._currentAnimatedAction.attacked;			
-			if(!action.isDestroyed && action.isHit){
-				_this._animationList[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
+				_this._animationList[startTick + params.duration] = [				
+					{type: "show_damage", target: "", params:{}},
+					
+				];
 				
+				
+				var action = _this._currentAnimatedAction.attacked;			
+				if(!action.isDestroyed && action.isHit){
+					_this._animationList[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
+					
+				}
+				if(!action.isDestroyed){
+					if(targetObj.spriteConfig.type == "spriter"){
+						_this._animationList[startTick + params.duration + 50] = [
+							{type: "set_sprite_frame", target: target, params:{name: "hurt_end"}},
+						];
+					} else {
+						_this._animationList[startTick + params.duration + 50] = [
+							{type: "set_sprite_frame", target: target, params:{name: "main"}},
+						];
+					}				
+				}			
 			}
-			if(!action.isDestroyed){
-				if(targetObj.spriteConfig.type == "spriter"){
-					_this._animationList[startTick + params.duration + 50] = [
-						{type: "set_sprite_frame", target: target, params:{name: "hurt_end"}},
-					];
-				} else {
-					_this._animationList[startTick + params.duration + 50] = [
-						{type: "set_sprite_frame", target: target, params:{name: "main"}},
-					];
-				}				
-			}			
 		},
 		destroy: function(target, params){
 			var targetObj = getTargetObject(target);
@@ -2209,7 +2232,7 @@ BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffse
 		};
 	}
 	
-	var amount = Math.floor(300 / (size.width || 300));
+	var amount = Math.floor(400 / (size.width || 400));
 	
 	var startX = (size.width / 2) * (amount - 1) * -1;
 	for(var i = 0; i < amount; i++){

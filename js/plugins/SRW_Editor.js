@@ -347,7 +347,7 @@ SRWEditor.prototype.init = function(){
 		easingFunction: "Descibes how an object moves from point a to point b. If not specified the object will move linearly.",
 		easingMode: "In, out or inout. Parameterizes easingFunction.",
 		hide: "Hide the target object after the command has finished.",
-		catmullRom: "Describes four point for a Catmull-Rom spline.",
+		catmullRom: "Describes two addtional points for a Catmull-Rom spline.",
 		startRotation: "A rotation defined by an x, y and z component. The rotations are described with radian values.",
 		startSize: "The initial size of the target object.",
 		endSize: "The final size of the target object.",
@@ -429,7 +429,7 @@ SRWEditor.prototype.init = function(){
 			return _this._paramDisplayHandlers.position(value);
 		},
 		duration: function(value){
-		
+			
 		},
 		easingFunction: function(value){
 			var result = "";			
@@ -459,8 +459,30 @@ SRWEditor.prototype.init = function(){
 			result+="</select>";
 			return result;
 		},
-		catmullRom: function(value){
-		
+		catmullRom: function(value){		
+			if(!value){
+				value = {
+					pos1: {},
+					pos4: {}
+				};
+			}
+			var result = "";
+			result+="<div data-catmullpos='pos1' class='param_values pos1'>";
+			result+="x1: <input data-dataid='x' class='param_value param_coord' value='"+(value.pos1.x || "")+"'></input>";
+			result+="y1: <input data-dataid='y' class='param_value param_coord' value='"+(value.pos1.y || "")+"'></input>";
+			result+="z1: <input data-dataid='z' class='param_value param_coord' value='"+(value.pos1.z || "")+"'></input>";	
+
+			
+			result+="</div>";
+			
+			result+="<div data-catmullpos='pos4' class='param_values pos4'>";
+			result+="x2: <input data-dataid='x' class='param_value param_coord' value='"+(value.pos4.x || "")+"'></input>";
+			result+="y2: <input data-dataid='y' class='param_value param_coord' value='"+(value.pos4.y || "")+"'></input>";
+			result+="z2: <input data-dataid='z' class='param_value param_coord' value='"+(value.pos4.z || "")+"'></input>";	
+
+			
+			result+="</div>";
+			return result;
 		},
 		startRotation: function(value){
 			return _this._paramDisplayHandlers.rotation(value);
@@ -2186,6 +2208,19 @@ SRWEditor.prototype.processParamInput = function(input){
 		},
 		duration: function(input){
 			return input.value*1;
+		},
+		catmullRom: function(input){
+			var container = input.closest(".command_param ");
+			var pos1 = {};
+			pos1.x = container.querySelector("div[data-catmullpos='pos1'] input[data-dataid='x']").value*1;
+			pos1.y = container.querySelector("div[data-catmullpos='pos1'] input[data-dataid='y']").value*1;
+			pos1.z = container.querySelector("div[data-catmullpos='pos1'] input[data-dataid='z']").value*1;
+			
+			var pos4 = {};
+			pos4.x = container.querySelector("div[data-catmullpos='pos4'] input[data-dataid='x']").value*1;
+			pos4.y = container.querySelector("div[data-catmullpos='pos4'] input[data-dataid='y']").value*1;
+			pos4.z = container.querySelector("div[data-catmullpos='pos4'] input[data-dataid='z']").value*1;
+			return {pos1: pos1, pos4: pos4};
 		}
 	};
 	if(paramHandlers[param]){
