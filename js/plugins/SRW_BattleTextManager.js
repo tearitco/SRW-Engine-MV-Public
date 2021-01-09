@@ -16,7 +16,7 @@ SRWBattleTextManager.prototype.getTextBuilder = function(){
 	return this._textBuilder;
 }
 
-SRWBattleTextManager.prototype.getText = function(target, ref, type, subType, targetId, targetIdx, attackId){
+SRWBattleTextManager.prototype.getText = function(target, ref, type, subType, targetInfo, targetIdx, attackId){
 	var _this = this;
 	var definitions;
 	/*if($gameTemp.scriptedBattleDemoId != null){
@@ -49,7 +49,7 @@ SRWBattleTextManager.prototype.getText = function(target, ref, type, subType, ta
 			ctr++;
 		}
 		if(def){
-			text = _this.getTextCandidate(def, target, id, mechId, type, subType, targetId, targetIdx, attackId);
+			text = _this.getTextCandidate(def, target, id, mechId, type, subType, targetInfo, targetIdx, attackId);
 		}		
 	}
 	if(!text){
@@ -64,13 +64,13 @@ SRWBattleTextManager.prototype.getText = function(target, ref, type, subType, ta
 				ctr++;
 			}
 			if(def){
-				text = _this.getTextCandidate(def, target, id, mechId, type, subType, targetId, targetIdx, attackId);
+				text = _this.getTextCandidate(def, target, id, mechId, type, subType, targetInfo, targetIdx, attackId);
 			}		
 		}
 	}
 	
 	if(!text){
-		text = _this.getTextCandidate(_this._definitions, target, id, mechId, type, subType, targetId, targetIdx, attackId);
+		text = _this.getTextCandidate(_this._definitions, target, id, mechId, type, subType, targetInfo, targetIdx, attackId);
 	}
 	
 	if(!text){
@@ -79,7 +79,7 @@ SRWBattleTextManager.prototype.getText = function(target, ref, type, subType, ta
 	return text;
 }
 
-SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, id, mechId, type, subType, targetId, targetIdx, attackId){	
+SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, id, mechId, type, subType, targetInfo, targetIdx, attackId){	
 	if(typeof subType == "undefined") {
 		subType = "default";
 	}
@@ -108,11 +108,21 @@ SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, 
 				if(subType != "default"){
 					var tmp = [];
 					options.forEach(function(option){
-						if(option.unitId == targetId){
+						if(option.unitId == targetInfo.id){
 							tmp.push(option);
 						}
 					});			
 					options = tmp;			
+				}
+				if(!options.length){
+					options = definitions.target_mech || [];
+					var tmp = [];
+					options.forEach(function(option){
+						if(option.mechId == targetInfo.mechId){
+							tmp.push(option);
+						}
+					});			
+					options = tmp;
 				}
 				
 				if(!options.length){

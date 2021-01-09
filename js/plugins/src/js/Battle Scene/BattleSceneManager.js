@@ -550,9 +550,9 @@ BattleSceneManager.prototype.applyAnimationDirection = function(position){
 
 BattleSceneManager.prototype.getBattleTextId = function(action){
 	if(action.ref.isActor()){
-		return action.ref.actorId();
+		return {id: action.ref.actorId(), mechId: action.ref.SRWStats.mech.id};
 	} else {
-		return action.ref.enemyId();
+		return {id: action.ref.enemyId(), mechId: action.ref.SRWStats.mech.id};
 	}
 }
 
@@ -2550,6 +2550,7 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this._UIcontainer.style.display = "block";	
 	
 	_this.resetScene();		
+	_this.setBgScrollDirection(1, true);
 	
 	if(_this._actorSprite){
 		_this._actorSprite.sprite.setEnabled(false);
@@ -2572,8 +2573,8 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this.fadeFromBlack();	
 }
 
-BattleSceneManager.prototype.showText = function(entityType, ref, name, type, subType, targetId, targetIdx, attackId) {
+BattleSceneManager.prototype.showText = function(entityType, ref, name, type, subType, target, targetIdx, attackId) {
 	var _this = this;
-	var battleText = _this._battleTextManager.getText(entityType, ref, type, subType, targetId, targetIdx, attackId);
+	var battleText = _this._battleTextManager.getText(entityType, ref, type, subType, target, targetIdx, attackId);
 	_this._UILayerManager.setTextBox(entityType, ref.actorId, name, battleText);
 }

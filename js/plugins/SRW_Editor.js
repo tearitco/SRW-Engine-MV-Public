@@ -834,6 +834,19 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			content+="</div>";
 			
 			content+="<div class='unit_text'>";
+			content+="<div data-subtype='target_mech' class='text_category_controls'>";
+			content+="<div class='text_label'>Target Mech</div>";
+			content+="<button class='add_category_quote'>New</button>";
+			content+="</div>"
+			
+			var ctr = 0;
+			textInfo.target_mech.forEach(function(quote){
+				content+=_this.createQuoteContent("target_mech", ctr++, quote, null, null, {id: quote.mechId});
+			});	
+			
+			content+="</div>";
+			
+			content+="<div class='unit_text'>";
 			content+="<div data-subtype='mech' class='text_category_controls'>";
 			content+="<div class='text_label'>Mech</div>";
 			content+="<button class='add_category_quote'>New</button>";
@@ -921,6 +934,9 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 							if(!options.enemy){
 								options.enemy = [];
 							}
+							if(!options.target_mech){
+								options.target_mech = [];
+							}
 							content+=createUnitText(options);
 							content+="</div>"
 						});						
@@ -990,7 +1006,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				var name = unitSet[entityId].name;
 				var type = this.closest(".text_block").getAttribute("data-hook");
 				var subType = this.closest(".quote").getAttribute("data-subtype");
-				var targetId = this.closest(".quote").getAttribute("data-targetunit");
+				
 				var targetIdx =  this.closest(".quote").getAttribute("data-idx");
 				var attackId;
 				var attackText = this.closest(".attack_text");
@@ -1000,6 +1016,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				var actor = new Game_Actor(entityId, 0, 0);
 				$statCalc.initSRWStats(actor);
 				var mechId;
+								
 				if(subType == "mech"){
 					mechId = this.closest(".quote").querySelector(".mech_select").value;
 				}
@@ -1008,11 +1025,13 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 					$statCalc.initSRWStats(actor);
 				}
 				
-				actor.event = {
-					eventId: function(){return 1;}
-				};
+				var targetId = this.closest(".quote").getAttribute("data-targetunit");
+				var targetMechId;
+				if(subType == "target_mech"){
+					targetMechId = this.closest(".quote").querySelector(".target_mech_select").value;
+				}							
 				
-				$battleSceneManager.showText(entityType, actor, name, type, subType, targetId, targetIdx, attackId);
+				$battleSceneManager.showText(entityType, actor, name, type, subType, {id: targetId, mechId: targetMechId}, targetIdx, attackId);
 			});
 		});	
 
@@ -1139,6 +1158,15 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			});
 		});
 		
+		var inputs = containerNode.querySelectorAll(".target_mech_select");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){
+				var params = getLocatorInfo(this);
+				_this._battleTextBuilder.setMechId(params, this.value);
+				_this._modified = true;
+			});
+		});	
+		
 		containerNode.querySelector(".commands_scroll").addEventListener("scroll", function(){
 			_this._editorScrollTop = this.scrollTop;
 		});
@@ -1191,7 +1219,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 	});
 }
 
-SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, mechInfo){
+SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, mechInfo, targetMechInfo){
 	var content = "";
 	var targetUnitId;
 	if(unitInfo){
@@ -1227,6 +1255,18 @@ SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, me
 		$dataClasses.forEach(function(classInfo){
 			if(classInfo && classInfo.name){
 				content+="<option "+(classInfo.id == mechInfo.id ? "selected" : "")+" value='"+classInfo.id+"'>"+classInfo.name+"</option>";
+			}
+		});	
+		content+="</select>";		
+	}
+	
+	if(targetMechInfo){
+		content+="<div class='command_label '>Target Mech:</div>";
+		content+="<select class='target_mech_select'>";
+		content+="<option value='-1'></option>";
+		$dataClasses.forEach(function(classInfo){
+			if(classInfo && classInfo.name){
+				content+="<option "+(classInfo.id == targetMechInfo.id ? "selected" : "")+" value='"+classInfo.id+"'>"+classInfo.name+"</option>";
 			}
 		});	
 		content+="</select>";		
@@ -1283,7 +1323,8 @@ SRWEditor.prototype.getUnitDef = function(unitId, hook){
 				default: [],
 				actor: [],
 				enemy: [],
-				mech: []
+				mech: [],
+				target_mech: []
 			}
 		}
 		
@@ -1292,6 +1333,9 @@ SRWEditor.prototype.getUnitDef = function(unitId, hook){
 		}
 		if(!currentTextInfo.mech){
 			currentTextInfo.mech = [];
+		}
+		if(!currentTextInfo.target_mech){
+			currentTextInfo.target_mech = [];
 		}
 		if(!currentTextInfo.actor){
 			currentTextInfo.actor = [];

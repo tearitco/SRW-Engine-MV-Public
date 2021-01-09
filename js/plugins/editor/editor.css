@@ -466,7 +466,7 @@
 }
 
 #srw_editor .quote_id_container .command_label {
-	width: 80px;
+	width: 85px;
 	font-size: 14px;
 }
 
@@ -574,4 +574,8 @@
 
 #srw_editor .reference_id_label {
 	width: 100px;
+}
+
+#srw_editor .text_category_controls .text_label {
+	width: 80px;
 }
