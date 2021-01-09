@@ -579,3 +579,11 @@
 #srw_editor .text_category_controls .text_label {
 	width: 80px;
 }
+
+#srw_editor .catmullrom_block {
+	width: 100%; 
+	display: block;
+}
+#srw_editor .catmullrom_block .param_values{
+	margin: 2px;
+}

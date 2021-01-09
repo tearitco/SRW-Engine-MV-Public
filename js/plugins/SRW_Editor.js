@@ -467,6 +467,7 @@ SRWEditor.prototype.init = function(){
 				};
 			}
 			var result = "";
+			result+="<div class='catmullrom_block' style=''>";
 			result+="<div data-catmullpos='pos1' class='param_values pos1'>";
 			result+="x1: <input data-dataid='x' class='param_value param_coord' value='"+(value.pos1.x || "")+"'></input>";
 			result+="y1: <input data-dataid='y' class='param_value param_coord' value='"+(value.pos1.y || "")+"'></input>";
@@ -480,7 +481,7 @@ SRWEditor.prototype.init = function(){
 			result+="y2: <input data-dataid='y' class='param_value param_coord' value='"+(value.pos4.y || "")+"'></input>";
 			result+="z2: <input data-dataid='z' class='param_value param_coord' value='"+(value.pos4.z || "")+"'></input>";	
 
-			
+			result+="</div>";
 			result+="</div>";
 			return result;
 		},

@@ -704,15 +704,18 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					if(animation.type == "translate"){
 						var hasValidSpline = false;
 						if(animation.catmullRom){
-							var pos1 = animation.catmullRom.pos1;
-							var pos4 = animation.catmullRom.pos4;
+							var pos1 = JSON.parse(JSON.stringify(animation.catmullRom.pos1));
+							var pos4 = JSON.parse(JSON.stringify(animation.catmullRom.pos4));
 							
 							var pos1Valid = pos1 && pos1.x != "" && pos1.y != "" && pos1.z != "";
 							var pos4Valid = pos4 && pos4.x != "" && pos4.y != "" && pos4.z != "";
 							
 							if(pos1Valid && pos4Valid){
+								pos1.x*=_this._animationDirection;
+								pos4.x*=_this._animationDirection;
 								hasValidSpline = true;
-								targetObj.position = BABYLON.Vector3.CatmullRom(animation.catmullRom.pos1, animation.startPosition, animation.endPosition, animation.catmullRom.pos4, t);
+								targetObj.position = BABYLON.Vector3.CatmullRom(pos1, animation.startPosition, animation.endPosition, pos4, t);
+								//console.log(targetObj.position.x);
 							}
 						} 
 
