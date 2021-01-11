@@ -3131,7 +3131,7 @@ var $battleSceneManager = new BattleSceneManager();
            ($gameTemp.isAutoMoveDestinationValid() == true || $gameTemp.isDestinationValid() == true)) {
             return 6;
         } else {
-            return _SRPG_Game_CharacterBase_realMoveSpeed.call(this);
+            return this._moveSpeed + (this.isDashing() ? 2 : 0);
         }
     };
 
@@ -3520,10 +3520,14 @@ var $battleSceneManager = new BattleSceneManager();
 		this.setTransparent($dataSystem.optTransparent);
 		this._topSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
 		this._initialSpeed = this._topSpeed;
-		this._moveSpeed = this._initialSpeed;
+		this._moveSpeed = this._initialSpeed + 1;
 		this._tileCounter = 0;
 		this._speedResetCounter = 0;
 		this._followSpeed = 0;
+	};
+	
+	Game_Player.prototype.setMoveSpeed = function(moveSpeed) {
+		this._moveSpeed = moveSpeed;
 	};
 	
     var _SRPG_Game_Player_refresh = Game_Player.prototype.refresh;
@@ -3547,7 +3551,7 @@ var $battleSceneManager = new BattleSceneManager();
 	}
 	
 	Game_Player.prototype.update = function(sceneActive) {		
-		if(this._followSpeed){
+		/*if(this._followSpeed){
 			this._moveSpeed = this._followSpeed;
 		}else if(Input.isPressed('shift')){
 			this._moveSpeed = ENGINE_SETTINGS.CURSOR_MAX_SPEED || this._topSpeed;
@@ -3561,7 +3565,7 @@ var $battleSceneManager = new BattleSceneManager();
 					this._speedResetCounter--;
 				}				
 			}			
-		}
+		}*/
 		if(!this._moveSpeed){ //support for old save files
 			this._moveSpeed = ENGINE_SETTINGS.CURSOR_SPEED || 4;
 		}	
@@ -12332,7 +12336,7 @@ Scene_Gameover.prototype.gotoTitle = function() {
 	};
 	
 	Window_Options.prototype.addGeneralOptions = function() {
-		//this.addCommand(TextManager.alwaysDash, 'alwaysDash');
+		this.addCommand(APPSTRINGS.GENERAL.label_dash_pref, 'alwaysDash');
 		//this.addCommand(TextManager.commandRemember, 'commandRemember');
 	};
 		

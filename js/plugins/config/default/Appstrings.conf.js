@@ -42,7 +42,8 @@ APPSTRINGS.GENERAL = {
 	label_hit: "Hit",
 	label_default_victory_condition: "Destroy all enemy units.",
 	label_default_defeat_condition: "All ally units are defeated.",
-	label_default_mastery_condition: "???"
+	label_default_mastery_condition: "???",
+	label_dash_pref: "Default Fast Cursor"
 }
 
 APPSTRINGS.SAVEMENU = {
