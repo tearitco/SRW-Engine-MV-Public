@@ -51,7 +51,8 @@ SRWSaveManager.prototype.getMechData = function(mechId){
 				accuracy: 0,
 				weapons: 0,
 				move: 0
-			}			
+			},
+			genericFUBAbilityIdx: -1	
 		};
 	}
 	return JSON.parse(JSON.stringify($gameSystem.mechData[mechId]));

@@ -187,6 +187,14 @@ APPSTRINGS.MECHUPGRADES = {
 	label_current_funds: "Current Funds",
 	label_cost: "Cost",
 	label_remaining_funds: "Remaining Funds",
+	label_generic_fub: "Full Upgrade Bonus",
+	label_generic_fub_HP: "HP +10%",
+	label_generic_fub_EN: "EN +10%",
+	label_generic_fub_armor: "Armor +10%",
+	label_generic_fub_mobility: "Mobility +10%",
+	label_generic_fub_accuracy: "Accuracy +10%",
+	label_generic_fub_movement: "Movement +1",
+	label_generic_fub_item_slot: "Item Slot +1",
 }
 
 APPSTRINGS.PILOTUPGRADES = {

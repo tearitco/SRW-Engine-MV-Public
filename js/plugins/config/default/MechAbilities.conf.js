@@ -407,4 +407,102 @@ $SRWConfig.mechAbilties = function(){
 			return true;
 		}
 	);
+	
+	this.addDefinition(
+		29, 
+		"GFUB Move", 
+		"", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "base_move", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		30, 
+		"GFUB HP", 
+		"", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "maxHP", modType: "addPercent", value: 0.1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		31, 
+		"GFUB EN", 
+		"", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "maxEN", modType: "addPercent", value: 0.1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		32, 
+		"GFUB Armor", 
+		"", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "base_arm", modType: "addPercent", value: 0.1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		33, 
+		"GFUB Mobility", 
+		"", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "base_mob", modType: "addPercent", value: 0.1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		34, 
+		"GFUB Accuracy", 
+		"", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "base_acc", modType: "addPercent", value: 0.1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
+	
+	this.addDefinition(
+		35, 
+		"GFUB Item Slots", 
+		"", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "item_slot", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
 };

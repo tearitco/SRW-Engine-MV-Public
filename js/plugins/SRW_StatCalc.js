@@ -997,6 +997,8 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 				requiredLevel: 0
 			}
 		}
+		
+		
 		if(mechProperties.mechCombinesFrom){
 			result.combinesFrom = JSON.parse(mechProperties.mechCombinesFrom);
 		}
@@ -1012,33 +1014,43 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
 		result.transformRestores = mechProperties.mechTransformRestores * 1 || 0;	
 
-		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || 0;		
+		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;		
 		
 		result.abilities = this.getMechAbilityInfo(mechProperties);
 		result.itemSlots = parseInt(mechProperties.mechItemSlots);		
-		
+			
 		if(forActor){
 			if(result.inheritsUpgradesFrom){
 				result.stats.upgradeLevels = this.getStoredMechData(result.inheritsUpgradesFrom).mechUpgrades;
+				result.genericFUBAbilityIdx = this.getStoredMechData(result.inheritsUpgradesFrom).genericFUBAbilityIdx;	
 			} else {
 				result.stats.upgradeLevels = this.getStoredMechData(mech.id).mechUpgrades;
+				result.genericFUBAbilityIdx = this.getStoredMechData(result.id).genericFUBAbilityIdx;
 			}			
 			result.items = this.getActorMechItems(mech.id);
 		} else {
 			result.items = items || [];
 		}
 		
+		if(typeof result.genericFUBAbilityIdx != "undefined"){
+			result.genericFullUpgradeAbility = {
+				idx: parseInt(result.genericFUBAbilityIdx),
+				level: 0,
+				requiredLevel: 0
+			}
+		}
+		
 		var mechData = {
 			SRWStats: {
 				pilot: {
-					abilities: []
-				},
+					abilities: [],
+					level: 0,
+					SRWInitialized: true
+				},			
 				mech: result			
 			},
 			SRWInitialized: true
-		}
-		
-		
+		}		
 		
 		result.weapons = this.getMechWeapons(mechData, mechProperties, previousWeapons);
 	}
@@ -1275,7 +1287,8 @@ StatCalc.prototype.storeActorData = function(actor){
 			classId = actor.currentClass().id;
 		}
 		$SRWSaveManager.storeMechData(classId, {
-			mechUpgrades: actor.SRWStats.mech.stats.upgradeLevels
+			mechUpgrades: actor.SRWStats.mech.stats.upgradeLevels,
+			genericFUBAbilityIdx: actor.SRWStats.mech.genericFUBAbilityIdx
 		});		
 	}	
 }
@@ -1288,7 +1301,8 @@ StatCalc.prototype.storeMechData = function(mech){
 		classId = mech.classData.id;
 	}
 	$SRWSaveManager.storeMechData(classId, {
-		mechUpgrades: mech.stats.upgradeLevels
+		mechUpgrades: mech.stats.upgradeLevels,
+		genericFUBAbilityIdx: mech.genericFUBAbilityIdx
 	});	
 }
 
@@ -1352,6 +1366,19 @@ StatCalc.prototype.applyPilotUpgradeDeltas = function(actor, deltas){
 		}
 	});
 	this.calculateSRWActorStats(actor);
+}
+
+StatCalc.prototype.getGenericFUB = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.genericFUBAbilityIdx
+	}
+}
+
+StatCalc.prototype.applyGenericFUB = function(actor, skillId){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.mech.genericFUBAbilityIdx = skillId;
+		this.calculateSRWMechStats(actor.SRWStats.mech);
+	}
 }
 
 StatCalc.prototype.isShip = function(actor){
@@ -1518,14 +1545,22 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatil
 	var mechData = {
 		SRWStats: {
 			pilot: {
-				abilities: []
-			},
+				abilities: [],
+				level: 0,
+				SRWInitialized: true
+			},			
 			mech: targetStats			
 		},
 		SRWInitialized: true
 	}
 	calculatedStats.maxHP = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxHP, "maxHP");
 	calculatedStats.maxEN = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxEN, "maxEN");
+	
+	calculatedStats.armor = $statCalc.applyStatModsToValue(mechData, calculatedStats.armor, "base_arm");
+	calculatedStats.mobility = $statCalc.applyStatModsToValue(mechData, calculatedStats.mobility, "base_mob");
+	calculatedStats.accuracy = $statCalc.applyStatModsToValue(mechData, calculatedStats.accuracy, "base_acc");
+	
+	calculatedStats.move = $statCalc.applyStatModsToValue(mechData, calculatedStats.move, "base_move");
 	
 	if(!preserveVolatile){
 		calculatedStats.currentHP = calculatedStats.maxHP;
@@ -1550,7 +1585,7 @@ StatCalc.prototype.incrementTerrain = function(terrain, increment){
 StatCalc.prototype.getEquipInfo = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		var result = [];
-		for(var i = 0; i < actor.SRWStats.mech.itemSlots; i++){			
+		for(var i = 0; i < this.getRealItemSlots(actor); i++){			
 			result.push(actor.SRWStats.mech.items[i]);				
 		}
 		return result;	
@@ -3089,6 +3124,15 @@ StatCalc.prototype.getRealENCost = function(actor, cost){
 	return cost;
 }
 
+StatCalc.prototype.getRealItemSlots = function(actor){	
+	if(this.isActorSRWInitialized(actor)){
+		var slots = actor.SRWStats.mech.itemSlots;
+		slots = this.applyStatModsToValue(actor, slots, ["item_slot"]);
+		return Math.min(slots, 4);
+	}	
+	return 0;
+}
+
 StatCalc.prototype.getRealWeaponRange = function(actor, weapon){		
 	if(this.isActorSRWInitialized(actor)){			
 		var result = weapon.range;
@@ -3189,7 +3233,7 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 	function accumulateFromAbilityList(abilityList, abilityManager){
 		if(abilityList && abilityManager){			
 			abilityList.forEach(function(abilityDef){
-				if(abilityDef && !excludedSkills[abilityDef.idx] && (typeof abilityDef.requiredLevel == "undefined" || _this.getCurrentLevel(actor) >= abilityDef.requiredLevel) && abilityManager.isActive(actor, abilityDef.idx, abilityDef.level)){
+				if(abilityDef && !excludedSkills[abilityDef.idx] && (typeof abilityDef.requiredLevel == "undefined" || abilityDef.requiredLevel == 0 || _this.getCurrentLevel(actor) >= abilityDef.requiredLevel) && abilityManager.isActive(actor, abilityDef.idx, abilityDef.level)){
 					var statMods = abilityManager.getStatmod(actor, abilityDef.idx, abilityDef.level);
 					var targetList;			
 					statMods.forEach(function(statMod){
@@ -3221,9 +3265,14 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 		accumulateFromAbilityList(abilities, $mechAbilityManager);
 		
 		var FUBAbility = actor.SRWStats.mech.fullUpgradeAbility;	
-		if(typeof FUBAbility != "undefined" && FUBAbility != -1){
+		if(typeof FUBAbility != "undefined" && FUBAbility != -1 && FUBAbility.idx != -1){
 			accumulateFromAbilityList([FUBAbility], $mechAbilityManager);	
 		}
+		
+		var genericFullUpgradeAbility = actor.SRWStats.mech.genericFullUpgradeAbility;	
+		if(typeof genericFullUpgradeAbility != "undefined" && genericFullUpgradeAbility != -1 && genericFullUpgradeAbility.idx != -1){
+			accumulateFromAbilityList([genericFullUpgradeAbility], $mechAbilityManager);	
+		}		
 		
 		var items = actor.SRWStats.mech.items;		
 		accumulateFromAbilityList(items, $itemEffectManager);		

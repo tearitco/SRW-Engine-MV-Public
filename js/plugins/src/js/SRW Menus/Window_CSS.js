@@ -251,6 +251,13 @@ Window_CSS.prototype.getAvailableUnits = function(){
 	return this._availableUnits;
 }
 
+Window_CSS.prototype.refreshAllUnits = function(){
+	var availableUnits = this.getAvailableUnits();
+	availableUnits.forEach(function(unit){
+		$statCalc.initSRWStats(unit);
+	});
+}
+
 Window_CSS.prototype.getNextAvailableUnitGlobal = function(currentUnitId){
 	var availableUnits = this.getAvailableUnits();
 	var currentIdx = -1;

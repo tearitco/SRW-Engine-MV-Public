@@ -24,7 +24,29 @@ Window_UpgradeMech.prototype.initialize = function() {
 	this._maxSelection = 6;
 	this._currentSelection = 1;
 	this._currentCost = 0;
+	
+	this._currentGenericFUBSelection = 0;
+	this._UIState = "upgrades"; //fub_selection
+	
+	this._genericFUBInfo = [
+		{name: APPSTRINGS.MECHUPGRADES.label_generic_fub_HP, id: 30},
+		{name: APPSTRINGS.MECHUPGRADES.label_generic_fub_EN, id: 31},
+		{name: APPSTRINGS.MECHUPGRADES.label_generic_fub_armor, id: 32},
+		{name: APPSTRINGS.MECHUPGRADES.label_generic_fub_mobility, id: 33},
+		{name: APPSTRINGS.MECHUPGRADES.label_generic_fub_accuracy, id: 34},
+		{name: APPSTRINGS.MECHUPGRADES.label_generic_fub_movement, id: 29},
+		{name: APPSTRINGS.MECHUPGRADES.label_generic_fub_item_slot, id: 35, req: function(refData){return $statCalc.getRealItemSlots(refData) < 4}},
+	];
+	
+	this._maxFUBSelection = this._genericFUBInfo.length;
+	
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
+}
+
+Window_UpgradeMech.prototype.resetSelection = function(){
+	this._currentSelection = 1;
+	this._currentCost = 0;
+	this._currentGenericFUBSelection = 0;
 }
 
 Window_UpgradeMech.prototype.resetDeltas = function() {
@@ -43,36 +65,54 @@ Window_UpgradeMech.prototype.getCurrentSelection = function(){
 }
 
 Window_UpgradeMech.prototype.incrementSelection = function(){
-	this._currentSelection++;
-	if(this._currentSelection >= this._maxSelection){
-		this._currentSelection = 0;
+	if(this._UIState == "upgrades"){
+		this._currentSelection++;
+		if(this._currentSelection >= this._maxSelection){
+			this._currentSelection = 0;
+		}
+	} else {
+		this._currentGenericFUBSelection++;
+		if(this._currentGenericFUBSelection >= this._maxFUBSelection){
+			this._currentGenericFUBSelection = 0;
+		}
 	}
 }
 
 Window_UpgradeMech.prototype.decrementSelection = function(){
-	this._currentSelection--;
-	if(this._currentSelection < 0){
-		this._currentSelection = this._maxSelection - 1;
+	if(this._UIState == "upgrades"){
+		this._currentSelection--;
+		if(this._currentSelection < 0){
+			this._currentSelection = this._maxSelection - 1;
+		}
+	} else {
+		this._currentGenericFUBSelection--;
+		if(this._currentGenericFUBSelection < 0){
+			this._currentGenericFUBSelection = this._maxFUBSelection - 1;
+		}
 	}
 }
 
 Window_UpgradeMech.prototype.incrementUpgradeLevel = function(){
-	var mechData = this.getCurrentSelection();
-	var calculatedStats = mechData.stats.calculated;
-	var upgradeLevels = mechData.stats.upgradeLevels;
-	var upgradeId = this._upgradeTypes[this._currentSelection].id;
-	
-	if(upgradeLevels[upgradeId] + this._currentUpgradeDeltas[upgradeId] < $statCalc.getMaxUpgradeLevel()){
-		this._currentUpgradeDeltas[upgradeId]++;
-		SoundManager.playCursor();
+	if(this._UIState == "upgrades"){
+		var mechData = this.getCurrentSelection();
+		var calculatedStats = mechData.stats.calculated;
+		var upgradeLevels = mechData.stats.upgradeLevels;
+		var upgradeId = this._upgradeTypes[this._currentSelection].id;
+		
+		if(upgradeLevels[upgradeId] + this._currentUpgradeDeltas[upgradeId] < $statCalc.getMaxUpgradeLevel()){
+			this._currentUpgradeDeltas[upgradeId]++;
+			SoundManager.playCursor();
+		}
 	}
 }
 
 Window_UpgradeMech.prototype.decrementUpgradeLevel = function(){	
-	var upgradeId = this._upgradeTypes[this._currentSelection].id;	
-	if(this._currentUpgradeDeltas[upgradeId] > 0){
-		this._currentUpgradeDeltas[upgradeId]--;
-		SoundManager.playCursor();
+	if(this._UIState == "upgrades"){
+		var upgradeId = this._upgradeTypes[this._currentSelection].id;	
+		if(this._currentUpgradeDeltas[upgradeId] > 0){
+			this._currentUpgradeDeltas[upgradeId]--;
+			SoundManager.playCursor();
+		}
 	}
 }
 
@@ -112,6 +152,10 @@ Window_UpgradeMech.prototype.createComponents = function() {
 	this._attackList = new AttackList(this._attackListDisplay, this);
 	this._attackList.createComponents();
 	windowNode.appendChild(this._attackListDisplay);
+	
+	this._genericFUBDisplay = document.createElement("div");	
+	this._genericFUBDisplay.classList.add("generic_fub_display");	
+	windowNode.appendChild(this._genericFUBDisplay);
 }	
 
 
@@ -165,23 +209,51 @@ Window_UpgradeMech.prototype.update = function() {
 		
 		if(Input.isTriggered('ok')){
 			this.requestRedraw();
-			var cost = this.currentCost();					
-			if(cost <= $gameParty.gold()){
+			if(this._UIState == "upgrades"){
+				var cost = this.currentCost();					
+				if(cost <= $gameParty.gold()){
+					SoundManager.playOk();
+					$gameParty.loseGold(cost);
+					var mechData = this.getCurrentSelection();
+					var refData = this.createReferenceData(mechData);
+					$statCalc.applyMechUpgradeDeltas(refData, this._currentUpgradeDeltas);
+					$statCalc.storeMechData(mechData);
+					if($statCalc.getOverallModificationLevel(this.createReferenceData(mechData)) >= 100){
+						if($statCalc.getGenericFUB(refData) == -1 || $statCalc.getGenericFUB(refData) == null){
+							this._UIState = "fub_selection";
+							this._genericFUBDisplay.classList.add("active");
+						}						
+					}
+				} else {
+					SoundManager.playCancel();
+				}
+				this.resetDeltas();
+			} else {
 				SoundManager.playOk();
-				$gameParty.loseGold(cost);
 				var mechData = this.getCurrentSelection();
 				var refData = this.createReferenceData(mechData);
-				$statCalc.applyMechUpgradeDeltas(refData, this._currentUpgradeDeltas);
-				$statCalc.storeMechData(mechData);
-			} else {
-				SoundManager.playCancel();
-			}
-			this.resetDeltas();
+				var disabled = false;
+				if(this._genericFUBInfo[this._currentGenericFUBSelection].req){
+					disabled = !this._genericFUBInfo[this._currentGenericFUBSelection].req(refData);
+				}
+				if(!disabled){				
+					$statCalc.applyGenericFUB(refData, this._genericFUBInfo[this._currentGenericFUBSelection].id);
+					$statCalc.storeMechData(mechData);
+					this.refreshAllUnits();
+					$gameTemp.currentMenuUnit.mech = $statCalc.getMechData($dataClasses[$gameTemp.currentMenuUnit.mech.id], true);
+					$statCalc.calculateSRWMechStats($gameTemp.currentMenuUnit.mech);
+					
+					this._genericFUBDisplay.classList.remove("active");
+					this._UIState = "upgrades";		
+				}	
+			}			
 		}
-		if(Input.isTriggered('cancel')){	
-			this.resetDeltas();
-			SoundManager.playCancel();
-			$gameTemp.popMenu = true;	
+		if(Input.isTriggered('cancel')){
+			if(this._UIState == "upgrades"){
+				this.resetDeltas();
+				SoundManager.playCancel();
+				$gameTemp.popMenu = true;	
+			}			
 		}		
 		
 		this.refresh();
@@ -295,6 +367,32 @@ Window_UpgradeMech.prototype.redraw = function() {
 	
 	var mechIcon = this._container.querySelector("#upgrade_name_icon");
 	this.loadMechMiniSprite(this.getCurrentSelection().id, mechIcon);
+	
+	function createGenericFUBEntry(idx, title, disabled){
+		var content = "";
+		content+="<div class='generic_fub_entry scaled_text "+(disabled ? "disabled" : "")+" "+(idx == _this._currentGenericFUBSelection ? "selected" : "")+"'>";
+		content+=title;
+		content+="</div>";
+		return content;
+	}
+	
+	var genericFUBContent = "";
+	genericFUBContent+="<div class='generic_fub_header'>";
+	genericFUBContent+="<div class='fund_entry_label scaled_text'>"+APPSTRINGS.MECHUPGRADES.label_generic_fub+"</div>";
+	genericFUBContent+="</div>";
+	
+	var mechData = this.getCurrentSelection();
+	var refData = this.createReferenceData(mechData);
+	
+	for(var i = 0; i < this._genericFUBInfo.length ; i++){
+		var disabled = false;
+		if(this._genericFUBInfo[i].req){
+			disabled = !this._genericFUBInfo[i].req(refData);
+		}
+		genericFUBContent+=createGenericFUBEntry(i, this._genericFUBInfo[i].name, disabled);
+	}
+	
+	this._genericFUBDisplay.innerHTML = genericFUBContent;
 	
 	Graphics._updateCanvas();
 }
