@@ -381,7 +381,8 @@ StatCalc.prototype.resetStageTemp = function(actor){
 			mapAttackCoolDown: 1,
 			nonMapAttackCounter: 1,
 			isBoarded: false,
-			isAI: false
+			isAI: false,
+			isEssential: false
 		};
 		this.resetStatus(actor);
 	}
@@ -537,6 +538,20 @@ StatCalc.prototype.isAI = function(actor){
 StatCalc.prototype.setIsAI = function(actor, state){
 	if(this.isActorSRWInitialized(actor)){
 		actor.SRWStats.stageTemp.isAI = state;
+	} 
+}
+
+StatCalc.prototype.isEssential = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.isEssential;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setEssential = function(actor, state){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.isEssential = state;
 	} 
 }
 

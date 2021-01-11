@@ -863,6 +863,14 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * makeActorControllable actor\_id
 
 	Make the actor with the specified ID controllable by the player.	
+	
+* setActorEssential actor\_id
+	
+	Mark the actor with specified ID as essential. Essential actors can not board ships.
+	
+* setActorNonEssential actor\_id
+	
+	Mark the actor with specified ID as non-essential.		
 
 ## Script commands
 

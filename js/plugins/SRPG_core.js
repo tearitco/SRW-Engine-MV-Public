@@ -591,6 +591,16 @@ var $battleSceneManager = new BattleSceneManager();
 			var actor = $gameActors.actor(args[0]);
 			$statCalc.setIsAI(actor, false);
 		}
+		
+		if (command === 'setActorEssential') {
+			var actor = $gameActors.actor(args[0]);
+			$statCalc.setEssential(actor, true);
+		}
+		
+		if (command === 'setActorNonEssential') {
+			var actor = $gameActors.actor(args[0]);
+			$statCalc.setEssential(actor, false);
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -3987,8 +3997,10 @@ var $battleSceneManager = new BattleSceneManager();
                     for (var i = 0; i < list.length; i++) {
                         var pos = list[i];
                         if (pos[2] == false && pos[0] == this._x && pos[1] == this._y) {
-							var target = $statCalc.activeUnitAtPosition({x: this._x, y: this._y}, "actor");							
-							if(!$gameTemp.activeShip && $statCalc.isShip(target) && $gameTemp.activeEvent().eventId() != target.event.eventId()){
+							var target = $statCalc.activeUnitAtPosition({x: this._x, y: this._y}, "actor");	
+							var initiator = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+							
+							if(!$statCalc.isEssential(initiator) && !$gameTemp.activeShip && $statCalc.isShip(target) && $gameTemp.activeEvent().eventId() != target.event.eventId()){
 								SoundManager.playOk();
 								var battlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
                                 battlerArray[1].srpgMakeNewActions();
