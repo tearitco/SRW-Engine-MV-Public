@@ -139,11 +139,11 @@ The list can contain the same ability\_id twice but with a different ability lev
 
 A pilot's personality determines how their Will changes when certain events occur. The Will change for each type of event can be specified:
 
-\<pilotOnHitWill:1\><br> Applies when a pilot hits its target.
-\<pilotOnMissWill:-1\><br> Applies when a pilot misses its target.
-\<pilotOnDamageWill:2\><br> Applies when a pilot takes damage.
-\<pilotOnEvadeWill:3\><br> Applies when a pilot avoids an attack.
-\<pilotOnDestroyWill:3\><br> Applies when a pilot destroys a target.
+\<pilotOnHitWill:1\> Applies when a pilot hits its target.<br>
+\<pilotOnMissWill:-1\> Applies when a pilot misses its target.<br>
+\<pilotOnDamageWill:2\> Applies when a pilot takes damage.<br>
+\<pilotOnEvadeWill:3\> Applies when a pilot avoids an attack.<br>
+\<pilotOnDestroyWill:3\> Applies when a pilot destroys a target.<br>
 
 
 ## Enemy Pilots
