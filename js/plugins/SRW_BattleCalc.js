@@ -561,7 +561,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			var weaponref = this._attacker.action.attack;
 			aCache.attacked = dCache;
 			$gameTemp.sortedBattleActorCaches.push(aCache);
-			dCache.isAttacked = true;
+			
 			var isHit = Math.random() < _this.performHitCalculation(
 				this._attacker,
 				this._defender		
@@ -611,6 +611,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 					activeDefenderCache.defended = this._defender.actor;
 					isSupportDefender = true;
 					aCache.attacked = sCache;
+					
 					sCache.hasActed = true;						
 					if(Math.random() < $statCalc.applyStatModsToValue(this._supportDefender.actor, 0, ["double_image_rate"])){
 						sCache.isDoubleImage = true;
@@ -638,7 +639,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			
 			aCache.hits = isHit;
 			activeDefenderCache.isHit = isHit;
-			
+			activeDefenderCache.isAttacked = true;
 			aCache.inflictedCritical = damageResult.isCritical;
 			activeDefenderCache.tookCritical = damageResult.isCritical;
 			activeDefenderCache.barrierCost = damageResult.barrierCost;

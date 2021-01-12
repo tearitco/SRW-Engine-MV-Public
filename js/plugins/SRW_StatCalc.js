@@ -265,6 +265,17 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 	return result;
 }
 
+StatCalc.prototype.getPersonalityDef = function(actorProperties){
+	var result = {
+		hit: actorProperties.pilotOnHitWill * 1 || 0,
+		miss: actorProperties.pilotOnMissWill * 1 || 0,
+		damage: actorProperties.pilotOnDamageWill * 1 || 0,
+		evade: actorProperties.pilotOnEvadeWill * 1 || 0,
+		destroy: actorProperties.pilotOnDestroyWill * 1 || 3,
+	};
+	return result;
+}
+
 StatCalc.prototype.getSpiritInfo = function(actor, actorProperties){
 	var result = [];
 	for(var i = 1; i <= 6; i++){
@@ -808,7 +819,11 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	
 	var dbAbilities = this.getPilotAbilityInfo(actorProperties, this.getCurrentLevel(actor));	
 	
-	this.applyStoredActorData(actor, dbAbilities);
+	if(actor.isActor()){
+		this.applyStoredActorData(actor, dbAbilities);
+	} else {
+		actor.SRWStats.pilot.abilities = dbAbilities;
+	}	
 	
 	var mech;
 	var isForActor;
@@ -880,6 +895,8 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		}
 	}
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
+	
+	actor.SRWStats.pilot.personalityInfo = this.getPersonalityDef(actorProperties);
 	
 	var subPilots = this.getSubPilots(actor);
 	subPilots.forEach(function(pilotId){
@@ -1794,6 +1811,20 @@ StatCalc.prototype.getCurrentPP = function(actor){
 		return 0;
 	}	
 }
+
+StatCalc.prototype.getPersonalityInfo = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.pilot.personalityInfo;
+	} else {
+		return {
+			hit: 0,
+			miss: 0,
+			damage: 0,
+			evade: 0,
+			destroy: 3,
+		};
+	}	
+}	
 
 StatCalc.prototype.getSpiritList = function(actor){
 	if(this.isActorSRWInitialized(actor)){

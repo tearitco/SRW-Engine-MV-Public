@@ -3543,11 +3543,11 @@ var $battleSceneManager = new BattleSceneManager();
     };
 	
 	Game_Player.prototype.setFollowSpeed = function(speed) {
-		this._followSpeed = speed;
+		this._moveSpeed = speed;
 	}
 	
 	Game_Player.prototype.clearFollowSpeed = function() {
-		this._followSpeed = 0;
+		this._moveSpeed = this._topSpeed + 1;
 	}
 	
 	Game_Player.prototype.update = function(sceneActive) {		
@@ -9611,20 +9611,26 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					var oldHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP;
 					battleEffect.ref.setHp(oldHP - battleEffect.damageTaken);
 				}
+				
+				var defenderPersonalityInfo = $statCalc.getPersonalityInfo(battleEffect.ref);
+				var attackerPersonalityInfo = $statCalc.getPersonalityInfo(battleEffect.attackedBy);
+				
 				if(battleEffect.attackedBy && battleEffect.isDestroyed){
-					$statCalc.modifyWill(battleEffect.attackedBy.ref, 2);
+					$statCalc.modifyWill(battleEffect.attackedBy.ref, Math.floor((attackerPersonalityInfo.destroy || 0) / 2));
 					//$statCalc.modifyAllWill(battleEffect.isActor ? "actor" : "enemy", 1);	
 					$statCalc.applyEnemyDestroyedWill($gameSystem.getFactionId(battleEffect.attackedBy.ref));	
 				}
 				if(battleEffect.isAttacked){		
 					if(!battleEffect.isHit){
 						$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["evade_will"]));
+						$statCalc.modifyWill(battleEffect.ref, defenderPersonalityInfo.evade);
 						$statCalc.incrementEvadeCount(battleEffect.ref);
-					} else {
+					} else {						
 						$statCalc.resetEvadeCount(battleEffect.ref);
 					}					
 				}
-				if(battleEffect.isHit){						
+				if(battleEffect.isHit){		
+					$statCalc.modifyWill(battleEffect.ref, defenderPersonalityInfo.damage);
 					$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["damage_will"]));
 					if(battleEffect.attackedBy){
 						applyStatusConditions(battleEffect.attackedBy.ref, battleEffect.ref);
@@ -9690,25 +9696,42 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					battleEffect.attacked.ref.setHp(oldHP - battleEffect.damageInflicted);
 				}
 				
+				var personalityInfo = $statCalc.getPersonalityInfo(battleEffect.ref);
+				
+				
 				if(battleEffect.attacked && battleEffect.attacked.isDestroyed){					
-					$statCalc.modifyWill(battleEffect.ref, 4);
+					$statCalc.modifyWill(battleEffect.ref, personalityInfo.destroy || 0);
 					//$statCalc.modifyAllWill(battleEffect.isActor ? "actor" : "enemy", 1);	
 					$statCalc.applyEnemyDestroyedWill($gameSystem.getFactionId(battleEffect.ref));	
 				}	
 				if(battleEffect.isAttacked){		
 					if(!battleEffect.isHit){
-						$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["evade_will"]));
+						;
 						$statCalc.incrementEvadeCount(battleEffect.ref);
 					} else {
 						$statCalc.resetEvadeCount(battleEffect.ref);
 					}					
 				}
-				if(battleEffect.isHit){						
-					$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["damage_will"]));
+				if(battleEffect.isHit){		
+					
 				}
-				if(battleEffect.attacked && battleEffect.attacked.isHit){						
-					$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["hit_will"]));
-					applyStatusConditions(battleEffect.ref, battleEffect.attacked.ref);
+				if(battleEffect.attacked){	
+					var defenderPersonalityInfo = $statCalc.getPersonalityInfo(battleEffect.attacked.ref);
+					if(battleEffect.attacked.isHit){
+						$statCalc.modifyWill(battleEffect.ref, personalityInfo.hit || 0);
+						$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["hit_will"]));
+
+						$statCalc.modifyWill(battleEffect.attacked.ref, defenderPersonalityInfo.damage || 0);
+						$statCalc.modifyWill(battleEffect.attacked.ref, $statCalc.applyStatModsToValue(battleEffect.attacked.ref, 0, ["damage_will"]));						
+						
+						applyStatusConditions(battleEffect.ref, battleEffect.attacked.ref);
+					} else {
+						
+						$statCalc.modifyWill(battleEffect.attacked.ref, defenderPersonalityInfo.evade || 0)
+						$statCalc.modifyWill(battleEffect.attacked.ref, $statCalc.applyStatModsToValue(battleEffect.attacked.ref, 0, ["evade_will"]));
+									
+						$statCalc.modifyWill(battleEffect.ref, personalityInfo.miss || 0);
+					}					
 				}			
 				if(battleEffect.type == "initiator"){
 					$statCalc.incrementNonMapAttackCounter(battleEffect.ref);
@@ -10580,11 +10603,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			return;
 		}
 		
+    
         if (_srpgStandUnitSkip === 'true' && enemy.battleMode() === 'stand' || enemy.battleMode() === 'fixed') {
-            var targetType = this.makeTargetType(enemy, 'enemy');
             $gameTemp.setActiveEvent(event);
             $gameSystem.srpgMakeMoveTable(event);
-            var canAttackTargets = this.srpgMakeCanAttackTargets(enemy, targetType); //行動対象としうるユニットのリストを作成
+            var canAttackTargets = this.srpgMakeCanAttackTargets(enemy); //行動対象としうるユニットのリストを作成
             $gameTemp.clearMoveTable();
             if (canAttackTargets.length === 0) {
                 $gameTemp.setActiveEvent(event);
