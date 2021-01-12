@@ -5963,6 +5963,83 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	}
 	
 //====================================================================
+// ●Sprite_WillIndicator
+//====================================================================	
+	
+	function Sprite_WillIndicator() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_WillIndicator.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_WillIndicator.prototype.constructor = Sprite_WillIndicator;
+
+	Sprite_WillIndicator.prototype.initialize = function(character) {
+		Sprite_Base.prototype.initialize.call(this);
+		this._character = character;
+		this._isEnemy = character.isType() === 'enemy'
+		if(this._isEnemy){
+			this.bitmap = ImageManager.loadSystem('WillIndicatorEnemy');
+		} else {
+			this.bitmap = ImageManager.loadSystem('WillIndicator');
+		}
+		
+		this.anchor.x = 0.5;
+		this.anchor.y = 1;
+		
+		this.text = new PIXI.Text('',
+		{
+		  font : '13px Arial',
+		  fill : 0xffffff,
+		  cacheAsBitmap: true, // for better performance
+		  height: 30,
+		  width: 20,
+		}); 
+		if(this._isEnemy){
+			this.text.anchor.set(0); 
+			this.text.x = -23; 
+			this.text.y = -49.5	;
+		} else {
+			this.text.anchor.set(1); 
+			this.text.x = 23; 
+			this.text.y = -33.5	;
+		}		 
+		this.addChild(this.text)
+	};
+
+	Sprite_WillIndicator.prototype.update = function() {
+		this.x = this._character.screenX();
+		this.y = this._character.screenY();
+		//this.z = this._character.screenZ() - 1;
+		var eventId = this._character.eventId();
+		var battlerArray = $gameSystem.EventToUnit(eventId);
+		if($gameSystem.showWillIndicator && battlerArray){
+			var unit = battlerArray[1];
+			if(unit && !this._character.isErased()){
+				this.opacity = 255;
+				var maxWill = $statCalc.getMaxWill(unit);
+				var will = $statCalc.getCurrentWill(unit);
+				//this.drawText(will, 0, 0, 20);
+				this.text.text = will;
+				var color = "#ffffff";				
+				if(will < 100){
+					color = "#f1de55";
+				} 
+				if(will <= 50){
+					color = "#ff2222";
+				}
+				if(will == maxWill){
+					color = "#00f1ff";
+				}
+				this.text.style.fill = color;
+			} else {
+				this.opacity = 0;
+			}
+		} else {
+			this.opacity = 0;
+		}		
+	};
+	
+//====================================================================
 // ●Sprite_BasicShadow
 //====================================================================	
 	
@@ -6422,10 +6499,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if($gameTemp.intermissionPending){
 			return;
 		}
+			
 		this._bshadowSprites = {};
 		this._explosionSprites = {};
 		this._appearSprites = {};
 		this._disappearSprites = {};
+		this._willIndicators = {};
 		$gameMap.events().forEach(function(event) {
 			this.createBShadow(event._eventId,event);			
 		}, this);
@@ -6485,9 +6564,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this._baseSprite.addChild(this._characterSprites[i]);
 		}
 		$gameMap.events().forEach(function(event) {
-			this.createExplosionSprite(event._eventId,event);
-			this.createAppearSprite(event._eventId,event);
-			this.createDisappearSprite(event._eventId,event);
+			this.createExplosionSprite(event._eventId, event);
+			this.createAppearSprite(event._eventId, event);
+			this.createDisappearSprite(event._eventId, event);
+			this.createWillIndicator(event._eventId, event);
 		}, this);			
 		
 		this._reticuleSprite = new Sprite_Reticule();
@@ -6529,6 +6609,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			character._shadSprite = true;
 		};
 	};
+	
+	Spriteset_Map.prototype.createWillIndicator = function(id,character) {
+		if (!character) return;
+		if (!this._willIndicators[id]) {
+			this._willIndicators[id] = new Sprite_WillIndicator(character);
+			this._baseSprite.addChild(this._willIndicators[id]);
+			character._willIndicator = true;
+		};
+	};	
 
     var _SRPG_Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
@@ -8978,10 +9067,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					} else {
 						_this.handlingAutoSpirits = false;
 						if($gameTemp.AIActors.length){
-							_this.setBattlePhase('AI_phase');
-							_this.setSubBattlePhase('enemy_command');
+							$gameSystem.setBattlePhase('AI_phase');
+							$gameSystem.setSubBattlePhase('enemy_command');
 						} else {			
-							_this.setSubBattlePhase('initialize');
+							$gameSystem.setSubBattlePhase('initialize');
 						}	
 					}			
 				}
@@ -9224,6 +9313,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					//}									
 				} else {
 					$gameTemp.OKHeld = false;
+				}
+				
+				if(Input.isTriggered('menu')){
+					$gameSystem.showWillIndicator = !$gameSystem.showWillIndicator;
 				}
 				
 				/*if(Input.isTriggered('cancel')){
