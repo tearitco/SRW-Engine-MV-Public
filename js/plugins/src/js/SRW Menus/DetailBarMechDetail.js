@@ -54,7 +54,7 @@ DetailBarMechDetail.prototype.redraw = function(){
 	detailContent+="<div class='mech_stats_container scaled_text'>";
 	detailContent+="<div class='stat_section stat_section_move' >";
 	detailContent+="<div class='stat_label'>"+APPSTRINGS.MECHSTATS.move+"</div>";
-	detailContent+="<div class='stat_value'>"+calculatedStats.move+"</div>";
+	detailContent+="<div class='stat_value'>"+$statCalc.getCurrentMoveRange(actor)+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='stat_section stat_section_armor'>";
 	detailContent+="<div class='stat_label'>"+APPSTRINGS.MECHSTATS.armor+"</div>";	

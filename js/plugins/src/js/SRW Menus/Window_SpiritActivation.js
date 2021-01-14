@@ -105,7 +105,9 @@ Window_SpiritActivation.prototype.loadRequiredImages = function(){
 				} else {
 					promises.push(_this.loadImage(_this.makeSpiritAnimationURL(spiritAnimInfo.src)));
 				}
-			}			
+			} else if(effectDef.type == "repair"){
+				promises.push(_this.loadImage(_this.makeSpiritAnimationURL(effectDef.parameters.animId)));
+			}		
 		});
 		
 		Promise.all(promises).then(function(){
@@ -132,12 +134,15 @@ Window_SpiritActivation.prototype.getActorInfo = function() {
 	_this._actionQueue = effectList;	
 }
 
-Window_SpiritActivation.prototype.show = function() {
+Window_SpiritActivation.prototype.show = function(softRefresh) {
 	var _this = this;
 	this._processingAction = false;
 	this._finishing = false;
 	_this.clearMessage();
-	_this.createComponents();
+	if(!softRefresh){
+		_this.createComponents();
+	}
+	
 	_this.getActorInfo();	
 	_this.loadRequiredImages().then(function(){
 		_this._handlingInput = false;
@@ -177,7 +182,7 @@ Window_SpiritActivation.prototype.animateHP = function(elem, fillElem, startPerc
 	elem.style.display = "block";
 	fillElem.style.width = startPercent+"%";
 	var steps = 100;
-	var stepDuration =  400/steps;
+	var stepDuration =  (400 * this.getAnimTimeRatio())/steps;
 	var startTime = Date.now();
 	var sign = Math.sign(startPercent - endPercent);
 	var step = Math.abs(startPercent - endPercent) / steps;
@@ -244,13 +249,14 @@ Window_SpiritActivation.prototype.update = function() {
 						var spiritAnimInfo = $spiritManager.getSpiritDisplayInfo(spiritId).animInfo;
 						this._spiritAnimImage.style.display = "block";
 						this._spiritAnimImage.src = this.makeSpiritAnimationURL(spiritAnimInfo.src);
-						console.log("Showing spirit image with "  + this._spiritAnimImage.src);
+						this._spiritAnimImage.style["animation-duration"] = "";
+						this.applyDoubleTime(this._spiritAnimImage);
 											
 						setTimeout(function(){ 
 							_this._spiritAnimImage.style.display = "none" 
 							console.log("Hiding spirit image");
 							_this._processingAnimation = false;
-						}, spiritAnimInfo.duration);							
+						}, spiritAnimInfo.duration * this.getAnimTimeRatio());							
 						
 						var se = spiritAnimInfo.se || "SRWPowerUp";
 						var se = {};
@@ -280,12 +286,12 @@ Window_SpiritActivation.prototype.update = function() {
 						_this._actor.classList.add("damage");
 						setTimeout(function(){ 
 							_this.clearMessage();
-						}, 400);	
+						}, 400 * this.getAnimTimeRatio());	
 							
 						setTimeout(function(){ 
 							_this._spiritAnimImage.style.display = "none" 
 							_this._processingAnimation = false;
-						}, 650);	
+						}, 650 * this.getAnimTimeRatio());	
 						
 						var se = {};
 						se.name = 'SRWHit';
@@ -301,7 +307,7 @@ Window_SpiritActivation.prototype.update = function() {
 						setTimeout(function(){ 
 							_this._spiritAnimImage.style.display = "none" 
 							_this._processingAnimation = false;
-						}, 650);	
+						}, 650 * this.getAnimTimeRatio());	
 						
 						var se = {};
 						se.name = 'SRWDoubleImage';
@@ -316,10 +322,47 @@ Window_SpiritActivation.prototype.update = function() {
 						setTimeout(function(){ 
 							_this._spiritAnimImage.style.display = "none" 
 							_this._processingAnimation = false;
-						}, 650);	
+						}, 650 * this.getAnimTimeRatio());	
 						
 						var se = {};
 						se.name = 'SRWMiss';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 90;
+						AudioManager.playSe(se);
+					} else if(effectDef.type == "repair"){
+						this._processingAnimation = true;			
+						
+						this._spiritAnimImage.style.display = "block";
+						this._spiritAnimImage.src = this.makeSpiritAnimationURL(effectDef.parameters.animId);
+						this._spiritAnimImage.style["animation-duration"] = "";
+						this.applyDoubleTime(this._spiritAnimImage);
+											
+						setTimeout(function(){ 
+							_this._spiritAnimImage.style.display = "none" 
+							console.log("Hiding spirit image");
+							_this._processingAnimation = false;
+						}, 800 * this.getAnimTimeRatio());		
+						
+						
+						var stats = $statCalc.getCalculatedMechStats(effectDef.parameters.target);
+							
+						var startPercent = Math.floor((effectDef.parameters.startAmount / effectDef.parameters.total) * 100);
+						var endPercent = Math.floor((effectDef.parameters.endAmount / effectDef.parameters.total) * 100);
+						_this.setMessage(effectDef.parameters.endAmount - effectDef.parameters.startAmount, "#227722");
+						_this.animateHP(_this._HPBar, _this._HPBarFill, startPercent, endPercent);						
+						
+						setTimeout(function(){ 
+							_this.clearMessage();
+						}, 400 * this.getAnimTimeRatio());	
+							
+						setTimeout(function(){ 
+							_this._spiritAnimImage.style.display = "none" 
+							_this._processingAnimation = false;
+						}, 650 * this.getAnimTimeRatio());	
+						
+						var se = {};
+						se.name = 'SRWPowerUp';
 						se.pan = 0;
 						se.pitch = 100;
 						se.volume = 90;
@@ -368,8 +411,12 @@ Window_SpiritActivation.prototype.update = function() {
 			//this.getActorInfo();
 		} 	
 		
-		if(Input.isTriggered('ok')){
-			//this.getActorInfo();
+		if (Input.isTriggered('ok') || Input.isPressed('ok')) {
+			this._doubleSpeedEnabled = true;
+			this.getWindowNode().classList.add("double_speed");
+		} else {
+			this._doubleSpeedEnabled = false;
+			this.getWindowNode().classList.remove("double_speed"); //debug should be remove for final!
 		}
 		if(Input.isTriggered('cancel')){				
 			//$gameTemp.popMenu = true;	

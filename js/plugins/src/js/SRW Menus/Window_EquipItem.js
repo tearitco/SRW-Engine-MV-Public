@@ -43,7 +43,7 @@ Window_EquipItem.prototype.getCurrentSelection = function(){
 }
 
 Window_EquipItem.prototype.getMaxSelection = function(){
-	return this.getCurrentSelection().itemSlots;
+	return $statCalc.getRealItemSlots(this.createReferenceData(this.getCurrentSelection()));
 }
 
 Window_EquipItem.prototype.incrementSelection = function(){
@@ -211,7 +211,7 @@ Window_EquipItem.prototype.update = function() {
 					$inventoryManager.removeItemHolder(mech.id, this._currentSelection);
 					mech.items = $statCalc.getActorMechItems(mech.id);
 					this._currentUIState = "slot_selection";
-				} else {
+				} else if(inventoryInfo[itemIdx].count > 0){
 					if(inventoryInfo[itemIdx].count - inventoryInfo[itemIdx].holders.length > 0){
 						var mech = this.getCurrentSelection();
 						$inventoryManager.addItemHolder(itemIdx, mech.id, this._currentSelection);

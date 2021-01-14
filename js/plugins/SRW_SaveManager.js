@@ -51,7 +51,8 @@ SRWSaveManager.prototype.getMechData = function(mechId){
 				accuracy: 0,
 				weapons: 0,
 				move: 0
-			}			
+			},
+			genericFUBAbilityIdx: -1	
 		};
 	}
 	return JSON.parse(JSON.stringify($gameSystem.mechData[mechId]));
@@ -118,6 +119,12 @@ SRWSaveManager.prototype.addKills = function(pilotId, amount){
 SRWSaveManager.prototype.addPP = function(pilotId, amount){
 	var actorData = this.getActorData(pilotId);
 	actorData.PP+=amount*1;
+	this.storeActorData(pilotId, actorData);
+}
+
+SRWSaveManager.prototype.addExp = function(pilotId, amount){
+	var actorData = this.getActorData(pilotId);
+	actorData.exp+=amount*1;
 	this.storeActorData(pilotId, actorData);
 }
 

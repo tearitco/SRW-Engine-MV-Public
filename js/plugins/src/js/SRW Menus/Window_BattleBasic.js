@@ -701,22 +701,9 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	this._animationQueue.push([{target: initiator, type: currentInfo.anim_mainReturn}]);
 }
 
-Window_BattleBasic.prototype.applyDoubleTime = function(el) {	
-	if(this._doubleSpeedEnabled){
-		var compStyle = window.getComputedStyle(el, null);
-		var duration = compStyle.getPropertyValue("animation-duration").replace(/s$/, "");
-		el.style["animation-duration"] = duration / 2 + "s";
-	} else {
-		el.style["animation-duration"] = "";
-	}
-}
 
-Window_BattleBasic.prototype.getAnimTimeRatio = function() {	
-	if(this._doubleSpeedEnabled){
-		return 0.5;
-	}
-	return 1;
-}
+
+
 
 Window_BattleBasic.prototype.update = function() {
 	var _this = this;

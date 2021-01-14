@@ -8,7 +8,7 @@ var ENGINE_SETTINGS = {
 	},
 	KEEP_ENEMY_SPRITE_ORIENTATION: false,
 	ENEMY_TARGETING_FORMULA: "Math.min(hitrate + 0.01, 1) * damage",
-	DEBUG_SAVING: true,
+	DEBUG_SAVING: false,
 	CURSOR_SPEED: 4,
 	CURSOR_MAX_SPEED: 7,
 	CURSOR_MODE: "tick"

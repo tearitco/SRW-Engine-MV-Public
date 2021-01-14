@@ -135,6 +135,17 @@ The list can contain the same ability\_id twice but with a different ability lev
 
 \<pilotAbilityAce: 36\>The ace ability for the pilot is a separate entry and only takes the ability\_id as a parameter.<br>
 
+#### Personality
+
+A pilot's personality determines how their Will changes when certain events occur. The Will change for each type of event can be specified:
+
+\<pilotOnHitWill:1\> Applies when a pilot hits its target.<br>
+\<pilotOnMissWill:-1\> Applies when a pilot misses its target.<br>
+\<pilotOnDamageWill:2\> Applies when a pilot takes damage.<br>
+\<pilotOnEvadeWill:3\> Applies when a pilot avoids an attack.<br>
+\<pilotOnDestroyWill:3\> Applies when a pilot destroys a target.<br>
+
+
 ## Enemy Pilots
 Enemy Pilots are Enemies in vanilla RPG Maker terms. Of the default RPG Maker properties only the Name is used.<br>
 The rest of the pilot properties are set using metadata tags in the note field. It is recommended to create a new character by copying an existing, fully defined, character and changing the properties as needed.<br>
@@ -637,9 +648,11 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 	This command starts or end the intermission. Only called on the intermission map.
 
-* UnlockUnit class_id
+* unlockUnit class\_id
+	Make the mech with the specified id available to the player.
 
-
+* lockUnit class\_id
+	Make the mech with the specified id not available to the player.
 
 * SetLevel actor\_id level
 
@@ -864,6 +877,15 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 	Make the actor with the specified ID controllable by the player.	
 
+	
+* setActorEssential actor\_id
+	
+	Mark the actor with specified ID as essential. Essential actors can not board ships.
+	
+* setActorNonEssential actor\_id
+	
+	Mark the actor with specified ID as non-essential.		
+
 ## Script commands
 
 These added commands can be used in Script commands while making event scripts.<br>
@@ -947,9 +969,7 @@ They can also be used as conditionals in IF statements.
 		<br>
 		* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
 		<br>
-		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated
-
-		<br>
+		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated <br>
 		* targetRegion: the id of the region that the enemy should move towards<br>	
 		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
 

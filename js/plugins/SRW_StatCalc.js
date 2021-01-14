@@ -265,6 +265,17 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 	return result;
 }
 
+StatCalc.prototype.getPersonalityDef = function(actorProperties){
+	var result = {
+		hit: actorProperties.pilotOnHitWill * 1 || 0,
+		miss: actorProperties.pilotOnMissWill * 1 || 0,
+		damage: actorProperties.pilotOnDamageWill * 1 || 0,
+		evade: actorProperties.pilotOnEvadeWill * 1 || 0,
+		destroy: actorProperties.pilotOnDestroyWill * 1 || 3,
+	};
+	return result;
+}
+
 StatCalc.prototype.getSpiritInfo = function(actor, actorProperties){
 	var result = [];
 	for(var i = 1; i <= 6; i++){
@@ -380,7 +391,9 @@ StatCalc.prototype.resetStageTemp = function(actor){
 			isRevealed: false,
 			mapAttackCoolDown: 1,
 			nonMapAttackCounter: 1,
-			isBoarded: false
+			isBoarded: false,
+			isAI: false,
+			isEssential: false
 		};
 		this.resetStatus(actor);
 	}
@@ -525,6 +538,34 @@ StatCalc.prototype.isRevealed = function(actor){
 	}
 }
 
+StatCalc.prototype.isAI = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return !actor.isActor() || actor.SRWStats.stageTemp.isAI;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setIsAI = function(actor, state){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.isAI = state;
+	} 
+}
+
+StatCalc.prototype.isEssential = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.stageTemp.isEssential;
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setEssential = function(actor, state){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.isEssential = state;
+	} 
+}
+
 StatCalc.prototype.setRevealed = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		actor.SRWStats.stageTemp.isRevealed = true;
@@ -571,11 +612,24 @@ StatCalc.prototype.getCurrentENDisplay = function(actor){
 	return result;
 }
 
-StatCalc.prototype.applyBattleStartWill = function(){
+
+StatCalc.prototype.applyBattleStartWill = function(actor){
 	var _this = this;
-	this.iterateAllActors(null, function(actor, event){			
-		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_will"]));				
-	});
+	if(_this.isActorSRWInitialized(actor)){		
+		var rankInfo = $gameSystem.actorRankLookup;		
+		_this.setWill(actor, 100);	
+		_this.modifyWill(actor, _this.applyStatModsToValue(actor, 0, ["start_will"]));			
+		if(actor.isActor()){
+			
+			if(_this.isAce(actor)){
+				_this.modifyWill(actor, 5);	
+				
+				if(rankInfo[actor.actorId()] < 3){
+					_this.modifyWill(actor, 5);	
+				}
+			}			
+		}
+	}
 }
 
 StatCalc.prototype.applyTurnStartWill = function(type, factionId){
@@ -765,7 +819,11 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	
 	var dbAbilities = this.getPilotAbilityInfo(actorProperties, this.getCurrentLevel(actor));	
 	
-	this.applyStoredActorData(actor, dbAbilities);
+	if(actor.isActor()){
+		this.applyStoredActorData(actor, dbAbilities);
+	} else {
+		actor.SRWStats.pilot.abilities = dbAbilities;
+	}	
 	
 	var mech;
 	var isForActor;
@@ -840,6 +898,8 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		}
 	}
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
+	
+	actor.SRWStats.pilot.personalityInfo = this.getPersonalityDef(actorProperties);
 	
 	var subPilots = this.getSubPilots(actor);
 	subPilots.forEach(function(pilotId){
@@ -977,6 +1037,8 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 				requiredLevel: 0
 			}
 		}
+		
+		
 		if(mechProperties.mechCombinesFrom){
 			result.combinesFrom = JSON.parse(mechProperties.mechCombinesFrom);
 		}
@@ -992,33 +1054,43 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
 		result.transformRestores = mechProperties.mechTransformRestores * 1 || 0;	
 
-		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || 0;		
+		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;		
 		
 		result.abilities = this.getMechAbilityInfo(mechProperties);
 		result.itemSlots = parseInt(mechProperties.mechItemSlots);		
-		
+			
 		if(forActor){
 			if(result.inheritsUpgradesFrom){
 				result.stats.upgradeLevels = this.getStoredMechData(result.inheritsUpgradesFrom).mechUpgrades;
+				result.genericFUBAbilityIdx = this.getStoredMechData(result.inheritsUpgradesFrom).genericFUBAbilityIdx;	
 			} else {
 				result.stats.upgradeLevels = this.getStoredMechData(mech.id).mechUpgrades;
+				result.genericFUBAbilityIdx = this.getStoredMechData(result.id).genericFUBAbilityIdx;
 			}			
 			result.items = this.getActorMechItems(mech.id);
 		} else {
 			result.items = items || [];
 		}
 		
+		if(typeof result.genericFUBAbilityIdx != "undefined"){
+			result.genericFullUpgradeAbility = {
+				idx: parseInt(result.genericFUBAbilityIdx),
+				level: 0,
+				requiredLevel: 0
+			}
+		}
+		
 		var mechData = {
 			SRWStats: {
 				pilot: {
-					abilities: []
-				},
+					abilities: [],
+					level: 0,
+					SRWInitialized: true
+				},			
 				mech: result			
 			},
 			SRWInitialized: true
-		}
-		
-		
+		}		
 		
 		result.weapons = this.getMechWeapons(mechData, mechProperties, previousWeapons);
 	}
@@ -1255,7 +1327,8 @@ StatCalc.prototype.storeActorData = function(actor){
 			classId = actor.currentClass().id;
 		}
 		$SRWSaveManager.storeMechData(classId, {
-			mechUpgrades: actor.SRWStats.mech.stats.upgradeLevels
+			mechUpgrades: actor.SRWStats.mech.stats.upgradeLevels,
+			genericFUBAbilityIdx: actor.SRWStats.mech.genericFUBAbilityIdx
 		});		
 	}	
 }
@@ -1268,7 +1341,8 @@ StatCalc.prototype.storeMechData = function(mech){
 		classId = mech.classData.id;
 	}
 	$SRWSaveManager.storeMechData(classId, {
-		mechUpgrades: mech.stats.upgradeLevels
+		mechUpgrades: mech.stats.upgradeLevels,
+		genericFUBAbilityIdx: mech.genericFUBAbilityIdx
 	});	
 }
 
@@ -1332,6 +1406,19 @@ StatCalc.prototype.applyPilotUpgradeDeltas = function(actor, deltas){
 		}
 	});
 	this.calculateSRWActorStats(actor);
+}
+
+StatCalc.prototype.getGenericFUB = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.mech.genericFUBAbilityIdx
+	}
+}
+
+StatCalc.prototype.applyGenericFUB = function(actor, skillId){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.mech.genericFUBAbilityIdx = skillId;
+		this.calculateSRWMechStats(actor.SRWStats.mech);
+	}
 }
 
 StatCalc.prototype.isShip = function(actor){
@@ -1561,14 +1648,22 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatil
 	var mechData = {
 		SRWStats: {
 			pilot: {
-				abilities: []
-			},
+				abilities: [],
+				level: 0,
+				SRWInitialized: true
+			},			
 			mech: targetStats			
 		},
 		SRWInitialized: true
 	}
 	calculatedStats.maxHP = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxHP, "maxHP");
 	calculatedStats.maxEN = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxEN, "maxEN");
+	
+	calculatedStats.armor = $statCalc.applyStatModsToValue(mechData, calculatedStats.armor, "base_arm");
+	calculatedStats.mobility = $statCalc.applyStatModsToValue(mechData, calculatedStats.mobility, "base_mob");
+	calculatedStats.accuracy = $statCalc.applyStatModsToValue(mechData, calculatedStats.accuracy, "base_acc");
+	
+	calculatedStats.move = $statCalc.applyStatModsToValue(mechData, calculatedStats.move, "base_move");
 	
 	if(!preserveVolatile){
 		calculatedStats.currentHP = calculatedStats.maxHP;
@@ -1593,7 +1688,7 @@ StatCalc.prototype.incrementTerrain = function(terrain, increment){
 StatCalc.prototype.getEquipInfo = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		var result = [];
-		for(var i = 0; i < actor.SRWStats.mech.itemSlots; i++){			
+		for(var i = 0; i < this.getRealItemSlots(actor); i++){			
 			result.push(actor.SRWStats.mech.items[i]);				
 		}
 		return result;	
@@ -1802,6 +1897,20 @@ StatCalc.prototype.getCurrentPP = function(actor){
 		return 0;
 	}	
 }
+
+StatCalc.prototype.getPersonalityInfo = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.pilot.personalityInfo;
+	} else {
+		return {
+			hit: 0,
+			miss: 0,
+			damage: 0,
+			evade: 0,
+			destroy: 3,
+		};
+	}	
+}	
 
 StatCalc.prototype.getSpiritList = function(actor){
 	if(this.isActorSRWInitialized(actor)){
@@ -2101,7 +2210,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 					x: rangeTarget.event.posX(),
 					y: rangeTarget.event.posY()
 				};
-				if(!$battleCalc.isTargetInRange(pos, targetpos, weapon.range, weapon.minRange)){
+				if(!$battleCalc.isTargetInRange(pos, targetpos, $statCalc.getRealWeaponRange(actor, weapon), weapon.minRange)){
 					canUse = false;
 					detail.target = true;
 				}
@@ -2115,7 +2224,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 				var rangeResult;
 				var type = actor.isActor() ? "enemy" : "actor";
 				
-				if(!this.getAllInRange($gameSystem.getUnitFactionInfo(actor), pos, weapon.range, weapon.minRange).length){
+				if(!this.getAllInRange($gameSystem.getUnitFactionInfo(actor), pos, $statCalc.getRealWeaponRange(actor, weapon), weapon.minRange).length){
 					canUse = false;
 					detail.target = true;
 				}
@@ -2251,7 +2360,7 @@ StatCalc.prototype.getTopAce = function(){
 	var _this = this;
 	var maxKills = -1;
 	var topAce;
-	this.iterateAllActors(null, function(actor, event){		
+	this.iterateAllActors("actor", function(actor, event){		
 		var kills = _this.getKills(actor);
 		if(kills > maxKills){
 			maxKills = kills;
@@ -2261,6 +2370,30 @@ StatCalc.prototype.getTopAce = function(){
 	return topAce;
 }
 
+StatCalc.prototype.getActorRankLookup = function(){
+	var _this = this;
+	var result = {};
+	var rankInfo = [];
+	$gameParty.allMembers().forEach(function(actor){
+		rankInfo.push({id: actor.actorId(), score: _this.getKills(actor), name: actor.name()})
+	});
+	
+	rankInfo = rankInfo.sort(function(a, b){
+		var result;
+		if(a.score != b.score){
+			result = b.score - a.score;
+		} else {
+			result = a.name.localeCompare(b.name);
+		}
+		return result;
+	});
+	
+	for(var i = 0; i < rankInfo.length; i++){
+		result[rankInfo[i].id] = i;
+	}
+	return result;
+}
+
 StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 	var _this = this;
 	var allWeapons = _this.getActorMechWeapons(actor);
@@ -2268,7 +2401,7 @@ StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 	var currentMinRange = -1;
 	allWeapons.forEach(function(weapon){
 		if(_this.canUseWeapon(actor, weapon, postMoveEnabledOnly)){
-			var range = _this.getRealWeaponRange(actor, weapon.range);
+			var range = _this.getRealWeaponRange(actor, weapon);
 			var minRange = weapon.minRange;
 			if(range > currentRange){
 				currentRange = range;
@@ -3087,6 +3220,12 @@ StatCalc.prototype.resetAllBattleTemp = function(type, factionId){
 	});
 }
 
+StatCalc.prototype.hasEndedTurn = function(actor){		
+	if(this.isActorSRWInitialized(actor)){			
+		return actor.SRWStats.battleTemp.hasFinishedTurn;
+	} 	
+}
+
 StatCalc.prototype.setTurnEnd = function(actor){		
 	if(this.isActorSRWInitialized(actor)){			
 		actor.SRWStats.battleTemp.hasFinishedTurn = true;
@@ -3102,9 +3241,21 @@ StatCalc.prototype.getRealENCost = function(actor, cost){
 	return cost;
 }
 
-StatCalc.prototype.getRealWeaponRange = function(actor, originalRange){		
+StatCalc.prototype.getRealItemSlots = function(actor){	
+	if(this.isActorSRWInitialized(actor)){
+		var slots = actor.SRWStats.mech.itemSlots;
+		slots = this.applyStatModsToValue(actor, slots, ["item_slot"]);
+		return Math.min(slots, 4);
+	}	
+	return 0;
+}
+
+StatCalc.prototype.getRealWeaponRange = function(actor, weapon){		
 	if(this.isActorSRWInitialized(actor)){			
-		var result = originalRange;
+		var result = weapon.range;
+		if(result == 1){
+			return 1;
+		}
 		if(actor.SRWStats.pilot.activeSpirits.snipe){
 			result+=2;
 		}
@@ -3199,7 +3350,7 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 	function accumulateFromAbilityList(abilityList, abilityManager){
 		if(abilityList && abilityManager){			
 			abilityList.forEach(function(abilityDef){
-				if(abilityDef && !excludedSkills[abilityDef.idx] && (typeof abilityDef.requiredLevel == "undefined" || _this.getCurrentLevel(actor) >= abilityDef.requiredLevel) && abilityManager.isActive(actor, abilityDef.idx, abilityDef.level)){
+				if(abilityDef && !excludedSkills[abilityDef.idx] && (typeof abilityDef.requiredLevel == "undefined" || abilityDef.requiredLevel == 0 || _this.getCurrentLevel(actor) >= abilityDef.requiredLevel) && abilityManager.isActive(actor, abilityDef.idx, abilityDef.level)){
 					var statMods = abilityManager.getStatmod(actor, abilityDef.idx, abilityDef.level);
 					var targetList;			
 					statMods.forEach(function(statMod){
@@ -3231,9 +3382,14 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 		accumulateFromAbilityList(abilities, $mechAbilityManager);
 		
 		var FUBAbility = actor.SRWStats.mech.fullUpgradeAbility;	
-		if(typeof FUBAbility != "undefined" && FUBAbility != -1){
+		if(typeof FUBAbility != "undefined" && FUBAbility != -1 && FUBAbility.idx != -1){
 			accumulateFromAbilityList([FUBAbility], $mechAbilityManager);	
 		}
+		
+		var genericFullUpgradeAbility = actor.SRWStats.mech.genericFullUpgradeAbility;	
+		if(typeof genericFullUpgradeAbility != "undefined" && genericFullUpgradeAbility != -1 && genericFullUpgradeAbility.idx != -1){
+			accumulateFromAbilityList([genericFullUpgradeAbility], $mechAbilityManager);	
+		}		
 		
 		var items = actor.SRWStats.mech.items;		
 		accumulateFromAbilityList(items, $itemEffectManager);		
