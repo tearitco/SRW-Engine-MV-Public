@@ -335,7 +335,17 @@ SRWEditor.prototype.init = function(){
 			hasTarget: false,
 			params: [],
 			desc: "Remove static on character portrait."
-		} 
+		},
+		set_bg_scroll_ratio: {
+			hasTarget: false,
+			params: ["ratio"],
+			desc: "Set the speed at which the backgrounds scroll."
+		},
+		toggle_bg_scroll: {
+			hasTarget: false,
+			params: [],
+			desc: "Invert the current background scroll direction."
+		}
 	};
 	
 	
@@ -381,7 +391,8 @@ SRWEditor.prototype.init = function(){
 		percent: "How much of change to the value that should be shown. If the total change is 5000, specifying 50 will show 2500.",
 		seId: "The name of the sound effect to play.",
 		pitch: "The pitch to play the sound effect at.",
-		volume: "The volume to play the sound effect at."
+		volume: "The volume to play the sound effect at.",
+		ratio: "The factor by which the scoll speed is multiplied."
 	}
 	
 	_this._paramDisplayHandlers = {
@@ -603,6 +614,9 @@ SRWEditor.prototype.init = function(){
 		},
 		volume: function(value){
 		
+		},
+		ratio: function(value){
+			
 		}
 	}
 	

@@ -54,7 +54,8 @@ export default function BattleSceneManager(){
 	this._animationDirection = 1;
 
 	this.setBgScrollDirection(1, true);
-	this._bgScrollCooldown = 40;
+	this._bgScrollCooldown = 60;
+	this._bgScrollRatio = 1;
 
 	this._spriteManagers = {};
 	this._animationSpritesInfo = [];
@@ -558,13 +559,21 @@ BattleSceneManager.prototype.getBattleTextId = function(action){
 
 BattleSceneManager.prototype.setBgScrollDirection = function(direction, immediate){
 	var _this = this;
-	_this._previousBgScrollDirection = _this._bgScrollDirection;
-	_this._bgScrollDirection = direction;
-	if(immediate){
-		_this._bgScrollTimer = 0;
-	} else {
-		_this._bgScrollTimer = _this._bgScrollCooldown;
-	}
+	if(!_this._changingScroll){		
+		_this._previousBgScrollDirection = _this._bgScrollDirection;
+		_this._bgScrollDirection = direction;
+		if(immediate){
+			_this._bgScrollTimer = 0;
+		} else {
+			_this._changingScroll = true;
+			_this._bgScrollTimer = _this._bgScrollCooldown;
+		}
+	}	
+}
+
+BattleSceneManager.prototype.setBgScrollRatio = function(ratio, immediate){
+	var _this = this;
+	_this._bgScrollRatio = ratio;
 }
 
 BattleSceneManager.prototype.hookBeforeRender = function(){
@@ -606,16 +615,28 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		var ticksSinceLastUpdate = Math.floor(deltaTime / _this._animationTickDuration);	
 		
 		var animRatio =  _this._scene.getAnimationRatio();
-		var step = 0.04;
-		/*if(_this._previousBgScrollDirection != _this._bgScrollDirection){
+		var step = 0.04 * _this._bgScrollRatio;
+		if(_this._changingScroll){
 			if(_this._bgScrollTimer > 0){
-				step-=(step / _this._bgScrollCooldown) * (_this._bgScrollCooldown - _this._bgScrollTimer + 1);		
+				if(!_this._bgSpeedUp){//slowing down
+					step-=(step / _this._bgScrollCooldown) * (_this._bgScrollCooldown - _this._bgScrollTimer + 1);
+				} else {//speeding up
+					step-=(step / _this._bgScrollCooldown) * (_this._bgScrollTimer + 1);
+				}
 				_this._bgScrollTimer-=ticksSinceLastUpdate;
 			} else {
+				if(_this._previousBgScrollDirection != _this._bgScrollDirection){
+					_this._bgScrollTimer = _this._bgScrollCooldown;
+					_this._bgSpeedUp = true;
+				} else {
+					_this._bgSpeedUp = false;
+					_this._changingScroll = false;
+				}
 				_this._previousBgScrollDirection = _this._bgScrollDirection;
 			}
-		} */
-		
+			//console.log(step);
+		} 
+	
 		_this._bgs.forEach(function(bg){
 			scrollBg(bg, animRatio, step);
 		});
@@ -1611,6 +1632,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var targetObj = getTargetObject(target);
 			
 			var targetOffset = _this._defaultPositions.camera_main_idle.x - _this._camera.position.x;
+			if(_this._currentAnimatedAction.type == "initiator" && (!_this._currentAnimatedAction.attacked || !_this._currentAnimatedAction.attacked.isDestroyed)){
+				if(_this._currentAnimatedAction.side == "actor"){
+					_this.setBgScrollDirection(-1);		
+				} else {
+					_this.setBgScrollDirection(1);		
+				}
+			}			
 				
 			_this._camera.position.x = 0;
 			
@@ -1795,7 +1823,14 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		hide_portrait_noise:  function(target, params){
 			_this._UILayerManager.hideNoise();
+		},
+		set_bg_scroll_ratio:  function(target, params){
+			_this.setBgScrollRatio(params.ratio || 0);
+		},
+		toggle_bg_scroll:  function(target, params){
+			_this.setBgScrollDirection(_this._bgScrollDirection * -1);
 		}
+		
 	};
 	if(animationHandlers[animation.type] && _this._currentAnimatedAction){
 		animationHandlers[animation.type](animation.target, animation.params || {});
@@ -2160,6 +2195,7 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 
 BattleSceneManager.prototype.resetScene = function() {
 	var _this = this;
+	_this.setBgScrollRatio(1);
 	_this._UILayerManager.hideNoise();
 	_this._animationList = [];
 	_this._matrixAnimations = {};
