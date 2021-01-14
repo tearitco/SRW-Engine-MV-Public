@@ -707,6 +707,16 @@ SRWEditor.prototype.prepareBattleScenePreview = function(){
 	_this._battleSceneFadeLayer = document.querySelector("#attack_editor #fade_container");
 	_this._battleSceneFadeLayer.style.width = "";
 	_this._battleSceneFadeLayer.style.height = "";
+	
+	if(_this._battleSceneSystemFadeLayer){
+		document.querySelector("#attack_editor .preview_window").appendChild(_this._battleSceneSystemFadeLayer);
+	} else {
+		document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#system_fade_container"));
+	}
+	_this._battleSceneSystemFadeLayer = document.querySelector("#attack_editor #system_fade_container");
+	_this._battleSceneSystemFadeLayer.style.width = "";
+	_this._battleSceneSystemFadeLayer.style.height = "";
+	
 	$battleSceneManager.init(true);	
 	$battleSceneManager._fadeContainer = _this._battleSceneFadeLayer;
 }

@@ -103,7 +103,13 @@ BattleSceneManager.prototype.initContainer = function(){
 	
 	this._fadeContainer = document.createElement("div");
 	this._fadeContainer.id = "fade_container";
+	this._fadeContainer.classList.add("fade_container");
 	document.body.appendChild(this._fadeContainer);
+	
+	this._systemFadeContainer = document.createElement("div");
+	this._systemFadeContainer.id = "system_fade_container";
+	this._systemFadeContainer.classList.add("fade_container");
+	document.body.appendChild(this._systemFadeContainer);
 	
 	this._UIcontainer = document.createElement("div");
 	this._UIcontainer.id = "battle_scene_ui_layer";	
@@ -655,9 +661,9 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		
 		Input.update();
 		_this.isOKHeld = Input.isPressed("ok") || Input.isLongPressed("ok");
-		/*if(Input.isPressed("cancel") && _this._sceneCanEnd && !_this._sceneIsEnding){
+		if(Input.isPressed("cancel") && _this._sceneCanEnd && !_this._sceneIsEnding){
 			_this.endScene();
-		}*/
+		}
 		
 		if(_this._animsPaused || (_this._maxAnimationTick != -1 && _this._currentAnimationTick >= _this._maxAnimationTick)){
 			return;
@@ -2082,9 +2088,19 @@ BattleSceneManager.prototype.resetSprites = function() {
 BattleSceneManager.prototype.resetFadeState = function() {
 	var newDiv = document.createElement("div");
 	newDiv.id = "fade_container";
+	newDiv.classList.add("fade_container");
 	
 	this._fadeContainer.replaceWith(newDiv);
 	this._fadeContainer = newDiv;
+}
+
+BattleSceneManager.prototype.resetSystemFadeState = function() {
+	var newDiv = document.createElement("div");
+	newDiv.id = "system_fade_container";
+	newDiv.classList.add("fade_container");
+	
+	this._systemFadeContainer.replaceWith(newDiv);
+	this._systemFadeContainer = newDiv;
 }
 
 BattleSceneManager.prototype.fadeToBlack = function(holdDuration) {
@@ -2092,6 +2108,7 @@ BattleSceneManager.prototype.fadeToBlack = function(holdDuration) {
 	return new Promise(function(resolve, reject){
 		_this.resetFadeState();
 		_this._fadeContainer.classList.add("fade_to_black");
+		_this._fadeContainer.style.display = "block";
 		_this._fadeContainer.addEventListener("animationend", function(){
 			setTimeout(resolve, (holdDuration || 0));
 		});
@@ -2103,7 +2120,32 @@ BattleSceneManager.prototype.fadeFromBlack = function() {
 	return new Promise(function(resolve, reject){
 		_this.resetFadeState();
 		_this._fadeContainer.classList.add("fade_from_black");
+		_this._fadeContainer.style.display = "";
 		_this._fadeContainer.addEventListener("animationend", function(){
+			resolve();
+		});
+	});	
+}
+
+BattleSceneManager.prototype.systemFadeToBlack = function(duration, holdDuration) {
+	var _this = this;
+	return new Promise(function(resolve, reject){
+		_this.resetSystemFadeState();
+		_this._systemFadeContainer.classList.add("fade_to_black");
+		_this._systemFadeContainer.style["animation-duration"] = duration;
+		_this._systemFadeContainer.addEventListener("animationend", function(){
+			setTimeout(resolve, (holdDuration || 0));
+		});
+	});	
+}
+
+BattleSceneManager.prototype.systemFadeFromBlack = function(duration) {
+	var _this = this;
+	return new Promise(function(resolve, reject){
+		_this.resetSystemFadeState();
+		_this._systemFadeContainer.classList.add("fade_from_black");
+		_this._systemFadeContainer.style["animation-duration"] = duration;
+		_this._systemFadeContainer.addEventListener("animationend", function(){
 			resolve();
 		});
 	});	
@@ -2286,7 +2328,7 @@ BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffse
 
 BattleSceneManager.prototype.fadeAndShowScene = function(){
 	var _this = this;
-	_this.fadeToBlack(1).then(function(){
+	_this.systemFadeToBlack(1, 1000).then(function(){
 		_this.showScene();
 	});	
 }
@@ -2386,7 +2428,7 @@ BattleSceneManager.prototype.showScene = function() {
 		_this.createEnvironment(firstAction.ref);
 		_this._lastActionWasSupportAttack = false;
 		_this._lastActionWasSupportDefend = false;
-		_this.fadeFromBlack();
+		_this.systemFadeFromBlack();
 		_this._currentAnimatedAction = firstAction;
 		
 		_this.playIntroAnimation().then(function(){
@@ -2462,8 +2504,8 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 
 BattleSceneManager.prototype.endScene = function() {
 	var _this = this;
-	_this._sceneIsEnding = true;
-	_this.fadeToBlack(1000).then(function(){
+	_this._sceneIsEnding = true;	
+	_this.systemFadeToBlack(400, 400).then(function(){			
 		_this.stopScene();
 		_this._runningAnimation = false;
 		_this.disposeAnimationSprites();
@@ -2471,7 +2513,7 @@ BattleSceneManager.prototype.endScene = function() {
 		_this.disposeSpriterBackgrounds();
 		_this._animationList = [];
 		_this._UIcontainer.style.display = "";
-		_this.fadeFromBlack(1000).then(function(){
+		_this.systemFadeFromBlack(400, 1000).then(function(){
 			$gameSystem.setSubBattlePhase('after_battle');
 			if(!$gameTemp.editMode){
 				SceneManager.resume();
@@ -2487,10 +2529,10 @@ BattleSceneManager.prototype.processActionQueue = function() {
 			return;
 		}
 		setTimeout(function(){
-			_this.fadeToBlack(1000).then(function(){
+			_this.systemFadeToBlack(100, 1000).then(function(){
 				_this.stopScene();
 				_this._UIcontainer.style.display = "";
-				_this.fadeFromBlack(1000).then(function(){
+				_this.systemFadeFromBlack(1000).then(function(){
 					$gameSystem.setSubBattlePhase('after_battle');
 					if(!$gameTemp.editMode){
 						SceneManager.resume();
@@ -2594,7 +2636,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 BattleSceneManager.prototype.playBattleScene = function(){
 	var _this = this;
 	_this.stopScene();
-	_this.fadeToBlack(1000).then(function(){
+	_this.systemFadeToBlack(200, 1000).then(function(){
 		$gameTemp.popMenu = true;//remove before battle menu
 		_this.startScene();
 		_this.showScene();
@@ -2637,7 +2679,7 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this.stopScene();
 	_this.startScene();		
 	_this.createEnvironment();
-	_this.fadeFromBlack();	
+	_this.systemFadeFromBlack();
 }
 
 BattleSceneManager.prototype.showText = function(entityType, ref, name, type, subType, target, targetIdx, attackId) {
