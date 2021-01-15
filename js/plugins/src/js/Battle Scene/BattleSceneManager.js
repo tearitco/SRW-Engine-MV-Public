@@ -1345,38 +1345,42 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			
 			//support defend animation
 			if(_this._currentAnimatedAction.attacked.type == "support defend"){
-				_this.delayAnimationList(startTick + 27, 120);
+				_this.delayAnimationList(startTick + 27, 140);
 				_this._animationList[startTick + 30] = [
 					{type: "teleport", target: "Camera", params: {position: _this._defaultPositions.camera_main_idle}},
 					{type: "rotate_to", target: "Camera", params: {rotation: _this._defaultRotations.camera_main_idle}},
-					{type: "show_sprite", target: "active_target", params: {}},
+					{type: "show_sprite", target: "active_target", params: {}},					
+				];	
+				
+				_this._animationList[startTick + 50] = [
 					{type: "set_sprite_frame", target: "active_target", params: {name: "out"}},
 					{type: "translate", target: "active_target", params: {startPosition: _this._defaultPositions.enemy_main_idle, position: new BABYLON.Vector3(-10, 0, 1), duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
-				];	
-				_this._animationList[startTick + 60] = [
+				];
+				
+				_this._animationList[startTick + 80] = [
 					{type: "show_sprite", target: "active_support_defender", params: {}},
 					{type: "set_sprite_frame", target: "active_support_defender", params: {name: "in"}},
 					{type: "translate", target: "active_support_defender", params: {startPosition: new BABYLON.Vector3(-10, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 					{type: "show_support_defender_text"},					
 				];
 				
-				_this._animationList[startTick + 90] = [
+				_this._animationList[startTick + 110] = [
 					{type: "set_sprite_frame", target: "active_support_defender", params: {name: "main", spriterOnly: true}},
 					{type: "set_sprite_frame", target: "active_support_defender", params: {name: "main", defaultOnly: true}},
 					{type: "set_sprite_frame", target: "active_target", params: {name: "main"}},
 				];
 				
-				_this._animationList[startTick + 100] = [
+				_this._animationList[startTick + 120] = [
 					{type: "fade_swipe", target: "", params: {time: 900}},
 				];
 				
-				_this._animationList[startTick + 110] = [
+				_this._animationList[startTick + 130] = [
 					{type: "enable_support_defender"},
 				];				
 				
 				if(params.commands){
-					_this._animationList[startTick + 111] = params.commands;	
-					_this._animationList[startTick + 112] = [{type: "updateBgMode", target: "active_target"}];
+					_this._animationList[startTick + 131] = params.commands;	
+					_this._animationList[startTick + 132] = [{type: "updateBgMode", target: "active_target"}];
 				}
 			} else {
 				if(params.commands){
