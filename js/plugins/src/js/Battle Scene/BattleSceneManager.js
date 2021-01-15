@@ -708,11 +708,18 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					if(_this._supportDefenderActive){
 						_this._supportDefenderActive = false;
 						_this._animationList[_this._currentAnimationTick  + 50] = [
+							{type: "set_sprite_frame", target: "active_support_defender", params: {name: "out"}},
 							{type: "translate", target: "active_support_defender", params: {startPosition: _this._defaultPositions.enemy_main_idle, position: new BABYLON.Vector3(-10, 0, 1), duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 						];	
 						_this._animationList[_this._currentAnimationTick  + 60] = [
+							{type: "set_sprite_frame", target: "active_target", params: {name: "in"}},
 							{type: "translate", target: "active_target", params: {startPosition: new BABYLON.Vector3(-10, 0, 1), position: _this._defaultPositions.enemy_main_idle, duration: 30, easingFunction: new BABYLON.SineEase(), easingMode: BABYLON.EasingFunction.EASINGMODE_EASEIN}},
 							{type: "disable_support_defender", target: "", params: {}},
+						];
+						
+						_this._animationList[_this._currentAnimationTick  + 90] = [
+							{type: "set_sprite_frame", target: "active_target", params: {name: "main"}},
+							{type: "set_sprite_frame", target: "active_support_defender", params: {name: "main"}},
 						];
 						_this._animationList[_this._currentAnimationTick  + 100] = []; //padding
 					} else if(_this._doubleImageActive){
@@ -2394,6 +2401,22 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 		} else {
 			animId = 0;//default
 		}
+		var preloadCtr = 0;
+		function preloadDefaultFrames(ref){
+			var defaultFrames = ["main", "in", "out", "hurt", "dodge"];
+			if(ref){
+				var imgPath = $statCalc.getBattleSceneImage(ref);
+				defaultFrames.forEach(function(frame){
+					var bg = _this.createSceneBg((preloadCtr++)+"_preload", imgPath+"/"+frame, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+					_this._animationBackgroundsInfo.push(bg);
+				});
+			}
+		}
+		
+		preloadDefaultFrames(nextAction.ref);
+		preloadDefaultFrames(nextAction.originalTarget.ref);
+		preloadDefaultFrames(nextAction.attacked.ref);
+		
 		var animationList = _this._animationBuilder.buildAnimation(animId, _this);
 		Object.keys(animationList).forEach(function(animType){
 			animationList[animType].forEach(function(batch){
