@@ -111,6 +111,21 @@ BattleSceneManager.prototype.initContainer = function(){
 	this._systemFadeContainer.classList.add("fade_container");
 	document.body.appendChild(this._systemFadeContainer);
 	
+	this._swipeContainer = document.createElement("div");
+	this._swipeContainer.id = "swipe_container";
+	this._swipeContainer.classList.add("fade_container");
+	
+	this._swipeBox = document.createElement("div");
+	this._swipeBox.id = "swipe_box";
+	//this._swipeBox.classList.add("");
+	this._swipeContainer.appendChild(this._swipeBox);
+	
+	this._swipeImage = document.createElement("img");
+	this._swipeImage.setAttribute("src", "img/SRWBattleScene/battleFade.png");
+	this._swipeImage.id = "swipe_image";
+	this._swipeBox.appendChild(this._swipeImage);
+	document.body.appendChild(this._swipeContainer);
+	
 	this._UIcontainer = document.createElement("div");
 	this._UIcontainer.id = "battle_scene_ui_layer";	
 	document.body.appendChild(this._UIcontainer);		
@@ -625,15 +640,16 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		if(_this._changingScroll){
 			if(_this._bgScrollTimer > 0){
 				if(!_this._bgSpeedUp){//slowing down
-					step-=(step / _this._bgScrollCooldown) * (_this._bgScrollCooldown - _this._bgScrollTimer + 1);
+					step-=(step / _this._bgScrollCooldown) * (_this._bgScrollCooldown - _this._bgScrollTimer);
 				} else {//speeding up
-					step-=(step / _this._bgScrollCooldown) * (_this._bgScrollTimer + 1);
+					step-=(step / _this._bgScrollCooldown) * (_this._bgScrollTimer);
 				}
 				_this._bgScrollTimer-=ticksSinceLastUpdate;
 			} else {
 				if(_this._previousBgScrollDirection != _this._bgScrollDirection){
 					_this._bgScrollTimer = _this._bgScrollCooldown;
 					_this._bgSpeedUp = true;
+					_this.setBgScrollRatio(1);
 				} else {
 					_this._bgSpeedUp = false;
 					_this._changingScroll = false;
@@ -1283,11 +1299,21 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},		
 		fade_swipe: function(target, params){
 			var swipeTime = params.time || 700;
+			var direction;
+			if(params.direction){
+				direction = params.direction;
+			} else {
+				if(_this._currentAnimatedAction.side == "actor"){
+					direction = "right";
+				} else {
+					direction = "left";
+				}
+			}
 			if(_this.isOKHeld){
 				swipeTime/=2;
 			}
-			_this.fadeToBlack(swipeTime).then(function(){
-				_this.fadeFromBlack();
+			_this.swipeToBlack(direction, "in", swipeTime).then(function(){
+				_this.swipeToBlack(direction, "out");
 			});	
 		},
 		fade_white: function(target, params){
@@ -1310,7 +1336,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},	
 		next_phase: function(target, params){
 			
-			_this._animationList[startTick + 1] = [{type: "fade_swipe", target: "", params: {time: 700}}];	
+			_this._animationList[startTick + 1] = [{type: "fade_swipe", target: "", params: {time: 300}}];	
 			
 			_this._animationList[startTick + 25] = [{type: "create_target_environment"}];
 			if(params.cleanUpCommands){				
@@ -2103,6 +2129,25 @@ BattleSceneManager.prototype.resetSystemFadeState = function() {
 	this._systemFadeContainer = newDiv;
 }
 
+BattleSceneManager.prototype.swipeToBlack = function(direction, inOrOut, holdDuration) {
+	var _this = this;
+	return new Promise(function(resolve, reject){
+		//_this.resetFadeState();
+		var swipeClass;
+		if(direction == "left"){
+			swipeClass = "swipe_left";
+		} else {
+			swipeClass = "swipe_right";
+		}
+		_this._swipeBox.className = "";
+		_this._swipeBox.classList.add(swipeClass);		
+		_this._swipeBox.classList.add(inOrOut);
+		_this._swipeBox.addEventListener("animationend", function(){
+			setTimeout(resolve, (holdDuration || 0));
+		});
+	});
+}
+
 BattleSceneManager.prototype.fadeToBlack = function(holdDuration) {
 	var _this = this;
 	return new Promise(function(resolve, reject){
@@ -2504,22 +2549,24 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 
 BattleSceneManager.prototype.endScene = function() {
 	var _this = this;
-	_this._sceneIsEnding = true;	
-	_this.systemFadeToBlack(400, 400).then(function(){			
-		_this.stopScene();
-		_this._runningAnimation = false;
-		_this.disposeAnimationSprites();
-		_this.disposeAnimationBackgrounds();
-		_this.disposeSpriterBackgrounds();
-		_this._animationList = [];
-		_this._UIcontainer.style.display = "";
-		_this.systemFadeFromBlack(400, 1000).then(function(){
-			$gameSystem.setSubBattlePhase('after_battle');
-			if(!$gameTemp.editMode){
-				SceneManager.resume();
-			}			
-		});			
-	});	
+	if(!_this._sceneIsEnding){
+		_this._sceneIsEnding = true;	
+		_this.systemFadeToBlack(400, 400).then(function(){			
+			_this.stopScene();
+			_this._runningAnimation = false;
+			_this.disposeAnimationSprites();
+			_this.disposeAnimationBackgrounds();
+			_this.disposeSpriterBackgrounds();
+			_this._animationList = [];
+			_this._UIcontainer.style.display = "";
+			_this.systemFadeFromBlack(400, 1000).then(function(){
+				$gameSystem.setSubBattlePhase('after_battle');
+				if(!$gameTemp.editMode){
+					SceneManager.resume();
+				}			
+			});			
+		});
+	}	
 }
 
 BattleSceneManager.prototype.processActionQueue = function() {
@@ -2528,18 +2575,22 @@ BattleSceneManager.prototype.processActionQueue = function() {
 		if($gameTemp.debugSceneManager){
 			return;
 		}
-		setTimeout(function(){
-			_this.systemFadeToBlack(100, 1000).then(function(){
-				_this.stopScene();
-				_this._UIcontainer.style.display = "";
-				_this.systemFadeFromBlack(1000).then(function(){
-					$gameSystem.setSubBattlePhase('after_battle');
-					if(!$gameTemp.editMode){
-						SceneManager.resume();
-					}
-				});			
-			});		
-		}, 1000);
+		if(!_this._sceneIsEnding){
+			_this._sceneIsEnding = true;
+			setTimeout(function(){
+				_this.systemFadeToBlack(100, 1000).then(function(){					
+					_this.stopScene();
+					_this._UIcontainer.style.display = "";
+					_this.systemFadeFromBlack(1000).then(function(){
+						$gameSystem.setSubBattlePhase('after_battle');
+						if(!$gameTemp.editMode){
+							SceneManager.resume();
+						}
+					});			
+				});		
+			}, 1000);
+		}
+		
 		return;
 	} else {	
 		var nextAction = _this._actionQueue.shift();		

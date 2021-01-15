@@ -46,6 +46,13 @@
 	z-index: 60;	
 }
 
+#swipe_container {
+	z-index: 58;	
+	overflow: hidden;	
+	
+	opacity: 1;
+}
+
 .fade_container.fade_to_black {
 	background-color: #000000;
 	animation-name: fade_to;
@@ -96,6 +103,97 @@
 @keyframes fade_from {
 	 0% { opacity: 1;}
   100% { opacity: 0;}
+}
+
+#swipe_box {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	background-color: #000000;
+	display: none;
+}
+
+#swipe_image {
+	height: 100%;
+	position: absolute;
+	top: 0;
+	
+}
+
+#swipe_box.swipe_left {	
+	display: block;
+}
+
+#swipe_box.swipe_left.in #swipe_image {
+	transform: scaleX(-1);
+	right: 100%;
+}
+
+#swipe_box.swipe_left.out #swipe_image {
+	transform: scaleX(1);
+	left: 100%;
+}
+
+#swipe_box.swipe_left.in {
+	animation-name: swipe_left_in;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+	animation-timing-function: linear;
+}
+
+#swipe_box.swipe_left.out {
+	animation-name: swipe_left_out;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+	animation-timing-function: linear;
+}
+
+@keyframes swipe_left_in {
+	 0% { margin-left: 120%;}
+  100% { margin-left: 0%;}
+}
+
+@keyframes swipe_left_out {
+	 0% { margin-left: 0%;}
+  100% { margin-left: -120%;}
+}
+
+#swipe_box.swipe_right {	
+	display: block;
+}
+
+#swipe_box.swipe_right.in #swipe_image {
+	transform: scaleX(1);
+	left: 100%;
+}
+
+#swipe_box.swipe_right.out #swipe_image {
+	transform: scaleX(-1);
+	right: 100%;
+}
+
+#swipe_box.swipe_right.in {
+	animation-name: swipe_right_in;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+	animation-timing-function: linear;
+}
+
+#swipe_box.swipe_right.out {
+	animation-name: swipe_right_out;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+	animation-timing-function: linear;
+}
+
+@keyframes swipe_right_in {
+	 0% { margin-left: -120%;}
+  100% { margin-left: 0%;}
+}
+
+@keyframes swipe_right_out {
+	 0% { margin-left: 0%;}
+  100% { margin-left: 120%;}
 }
 
 #fps_counter {
