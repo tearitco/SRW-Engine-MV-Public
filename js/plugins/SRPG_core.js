@@ -4653,7 +4653,7 @@ Game_Interpreter.prototype.showEnemyPhaseText = function(){
 		if($gameTemp.currentFaction == 2){
 			colorId = 14;
 		}
-		$gameMessage.add("\\TA[1]\n\\>\\C["+colorId+"]\\{"+text+"\n\\.\\.\\|\\^");				
+		$gameMessage.add("\\TA[1]\n\\>\\C["+colorId+"]\\{"+text+"\n\\.\\.\\^");	//\\|			
 		this._index++;
         this.setWaitMode('message');
 	}
@@ -5554,7 +5554,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	}
 	
 	$gameSystem.setSubBattlePhase('halt');
-	SceneManager.stop();	
+	//SceneManager.stop();	
 	$battleSceneManager.playBattleScene();
 	if(params.songId){
 		$songManager.playSong(params.songId);
@@ -6174,7 +6174,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				this.opacity = 0;
 			} else {
 				this.y-=this._character._floatOffset;
-				this.opacity = this._character._opacity
+				this.opacity = this._character._opacity - 128;
 			};
 		} else {
 			this.opacity = 0;
@@ -9018,7 +9018,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		if($gameSystem.isSubBattlePhase() == "event_before_battle"){
 			if(!$gameMap.isEventRunning()){
-				this.playBattleScene();
+				if(_this.beforeBattleEventTimer <= 0){
+					this.playBattleScene();
+				} else {
+					_this.beforeBattleEventTimer--;
+				}				
+			} else {
+				_this.beforeBattleEventTimer = 20;
 			}
 			return;
 		}

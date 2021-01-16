@@ -353,7 +353,7 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 	}
 	var bg = BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height, updatable: true}, this._scene);
 	bg.billboardMode = billboardMode || 0;
-	bg.renderingGroupId = 1;
+	//bg.renderingGroupId = 1;
 	var material = new BABYLON.StandardMaterial(name, this._scene);
 		
 	var texture = new BABYLON.DynamicTexture("dyn_texture_"+name, {width: 1000, height: 1000}, this._scene, false);//, BABYLON.Texture.NEAREST_NEAREST
@@ -399,7 +399,7 @@ BattleSceneManager.prototype.configureSprite = function(parent, id, shadowInfo, 
 		barrier.material.diffuseTexture.uScale = -1;
 		barrier.material.diffuseTexture.uOffset = 1;
 	}
-	barrier.renderingGroupId = 1;
+	//barrier.renderingGroupId = 1;
 	barrier.setEnabled(false);
 	barrier.parent = parent.sprite.pivothelper;
 	parent.sprite.barrierSprite = barrier;
@@ -619,7 +619,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 			var shadowSprite = spriteInfo.sprite.shadowSprite;
 			if(shadowSprite){			
 				shadowSprite.position.x = spriteInfo.sprite.position.x + ((shadowSprite.shadowInfo.offsetX || 0) * (shadowSprite.shadowInfo.type == "enemy" ? -1 : 1));
-				shadowSprite.position.z = spriteInfo.sprite.position.z + (shadowSprite.shadowInfo.offsetZ || 0);
+				shadowSprite.position.z = spriteInfo.sprite.position.z + 0.1;//(shadowSprite.shadowInfo.offsetZ || 0);
 				
 				shadowSprite.setEnabled(spriteInfo.sprite.isEnabled());
 			}
@@ -1345,7 +1345,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			
 			_this._animationList[startTick + 1] = [{type: "fade_swipe", target: "", params: {time: 300}}];	
 			
-			_this._animationList[startTick + 25] = [{type: "create_target_environment"}];
+			_this._animationList[startTick + 25] = [{type: "create_target_environment"}, {type: "updateBgMode", target: "active_target"}];
 			if(params.cleanUpCommands){				
 				_this._animationList[startTick + 26] = params.cleanUpCommands;						
 			}				
@@ -1386,9 +1386,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				];				
 				
 				if(params.commands){
-					_this._animationList[startTick + 131] = params.commands;	
-					_this._animationList[startTick + 132] = [{type: "updateBgMode", target: "active_target"}];
+					_this._animationList[startTick + 131] = params.commands;						
 				}
+				_this._animationList[startTick + 132] = [{type: "updateBgMode", target: "active_target"}];
 			} else {
 				if(params.commands){
 					_this._animationList[startTick + 27] = params.commands;	
@@ -1442,7 +1442,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(params.animationFrames){
 				spriteInfo.sprite.playAnimation(0, params.animationFrames, params.animationLoop, params.animationDelay);
 			}
-			spriteInfo.manager.renderingGroupId = 1;
+			//spriteInfo.manager.renderingGroupId = 1;
 			_this._animationSpritesInfo.push(spriteInfo);
 		},
 		remove_sprite: function(target, params){
