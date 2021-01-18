@@ -639,6 +639,7 @@ SRWEditor.prototype.init = function(){
 	_this._currentBattleTextStage = -1;
 	_this._currentBattleTextEvent = -1;
 	_this._currentTextUnit = 0;
+	_this._currentTextHook = "battle_intro";
 	
 	_this.show();
 }
@@ -842,7 +843,20 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		content+="Unit";
 		content+="</div>";
 		content+=_this.createUnitSelect(_this._currentTextUnit, null, false, "main_unit_select");
+		
+		
+		var textHooks = _this._battleTextBuilder.getAvailableTextHooks();
+		content+="<div class='select_label'>";
+		content+="Text Type";
 		content+="</div>";
+		content+="<select id='text_type_select'>";
+		
+		textHooks.forEach(function(textHook){
+			content+="<option "+(_this._currentTextHook == textHook ? "selected" : "")+" value='"+textHook+"'>"+textHook+"</option>";
+		});
+		content+="</select>";
+		content+="</div>";
+		
 		content+="</div>";
 		content+="</div>";
 		
@@ -876,7 +890,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			unitSet = $dataEnemies;
 		}
 		var result = "";
-		var textHooks = _this._battleTextBuilder.getAvailableTextHooks();
+		
 		
 		function createUnitText(textInfo){
 			var content = "";
@@ -952,8 +966,8 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		if(def && def.name){
 			content+="<div data-unitid='"+i+"' class='unit_text_block tick_block'>";
 			content+=i+". "+def.name;				
-			
-			textHooks.sort().forEach(function(textHook){
+			textHook = _this._currentTextHook;	
+			//textHooks.sort().forEach(function(textHook){
 				content+="<div data-hook='"+textHook+"' data-unitid='"+i+"' class='cmd_block cmd_block_outer text_block'>";
 				content+="<div class='hook_label'>";
 				content+=textHook;
@@ -1006,7 +1020,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				}
 				content+="</div>";
 				content+="</div>";
-			});
+			//});
 			content+="</div>";
 
 		}
@@ -1051,6 +1065,11 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			_this._currentTextUnit = this.value;
 			_this.showBattleTextEditorControls();
 		});
+		
+		containerNode.querySelector("#text_type_select").addEventListener("change", function(){
+			_this._currentTextHook = this.value;
+			_this.showBattleTextEditorControls();
+		});		
 		
 		var viewButtons = containerNode.querySelectorAll(".view_text_btn");
 		viewButtons.forEach(function(button){
