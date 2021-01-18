@@ -88,7 +88,7 @@
 				break;
 			case 122:   /* F11 */
 				event.preventDefault();
-				if(SceneManager._scene instanceof Scene_Title){
+				if(SceneManager._scene instanceof Scene_Title && $gameTemp.isPlaytest()){
 					$gameTemp.editMode = true;
 					AudioManager.fadeOutBgm(60);
 					SceneManager.stop();

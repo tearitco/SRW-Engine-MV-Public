@@ -909,6 +909,22 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * setActorNonEssential actor\_id
 	
 	Mark the actor with specified ID as non-essential.		
+	
+* setDefaultBattleEnv env\_id
+	
+	Set the default battle environment for the stage to the specified environment id.
+	
+* setSkyBattleEnv env\_id
+
+	Set the sky battle environment for the stage to the specified environment id.
+	
+* setRegionBattleEnv region\_id env\_id
+
+	Set the standard battle environment for all tiles in the specified region to the specified environment id.		
+
+* setRegionSkyBattleEnv region\_id env\_id
+
+	Set the sky battle environment for all tiles in the specified region to the specified environment id.
 
 ## Script commands
 
@@ -1075,7 +1091,7 @@ A setting can be left blank by entering "" as its value.
 
 	Set the battle mode for the enemies tied to the events with and id between start id and id.
 
-* this.setSquadMode(squad_id, mode)
+* this.setSquadMode(squad_id, mode)canObtainSRPoint
 
 	Set the battle mode for all enemies that are part of the specified squad.<br>
 
@@ -1118,3 +1134,6 @@ A setting can be left blank by entering "" as its value.
 * this.applyActorSpirits(actor\_id, spirit\_ids)
 
 	Apply spirits effects to the actor unit with the specified id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.
+	
+## Battle Text Editor
+

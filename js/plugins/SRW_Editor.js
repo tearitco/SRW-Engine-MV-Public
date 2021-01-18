@@ -1089,9 +1089,9 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				var targetMechId;
 				if(subType == "target_mech"){
 					targetMechId = this.closest(".quote").querySelector(".target_mech_select").value;
-				}							
+				}				
 				
-				$battleSceneManager.showText(entityType, actor, name, type, subType, {id: targetId, mechId: targetMechId}, targetIdx, attackId);
+				$battleSceneManager.showText(entityType, actor, name, type, subType, {id: targetId, mechId: targetMechId}, targetIdx, attackId, {id: targetId, mechId: targetMechId});
 			});
 		});	
 

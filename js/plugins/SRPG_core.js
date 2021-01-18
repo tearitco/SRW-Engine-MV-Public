@@ -5149,6 +5149,7 @@ Game_Interpreter.prototype.manualDeploy = function(){
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
 	$gameTemp.pushMenu = "in_stage_deploy";
 	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployInfo()));
+	return false;
 }
 
 // 指定した座標にプレイヤーを移動する

@@ -2656,7 +2656,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				
 				var battleText;
 				if(nextAction.type == "support attack"){
-					battleText = _this._battleTextManager.getText(entityType, nextAction.ref, "support_attack", nextAction.isActor ? "actor" : "enemy", _this.getBattleTextId(nextAction.attacked));
+					battleText = _this._battleTextManager.getText(entityType, nextAction.ref, "support_attack", nextAction.isActor ? "actor" : "enemy", _this.getBattleTextId(nextAction.attacked), null, null, _this.getBattleTextId(nextAction.mainAttacker));
 				}
 				
 				if(!battleText || battleText.text == "..."){
@@ -2772,8 +2772,8 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this.systemFadeFromBlack();
 }
 
-BattleSceneManager.prototype.showText = function(entityType, ref, name, type, subType, target, targetIdx, attackId) {
+BattleSceneManager.prototype.showText = function(entityType, ref, name, type, subType, target, targetIdx, attackId, supported) {
 	var _this = this;
-	var battleText = _this._battleTextManager.getText(entityType, ref, type, subType, target, targetIdx, attackId);
+	var battleText = _this._battleTextManager.getText(entityType, ref, type, subType, target, targetIdx, attackId, supported);
 	_this._UILayerManager.setTextBox(entityType, ref.actorId, name, battleText);
 }

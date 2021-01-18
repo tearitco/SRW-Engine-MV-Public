@@ -544,8 +544,11 @@ BattleCalc.prototype.generateBattleResult = function(){
 			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
 		}
 		aCache.side = this._side;
-		if(aCache.type == "support attack" && mainAttackerCache.isDestroyed){
-			return; //the support attacker does not get to attack if the main attacker is down
+		if(aCache.type == "support attack"){
+			if(mainAttackerCache.isDestroyed){
+				return; //the support attacker does not get to attack if the main attacker is down
+			}			
+			aCache.mainAttacker = mainAttackerCache;
 		}
 		if(aCache.type == "defender"){
 			aCache.counterActivated = $gameTemp.defenderCounterActivated;
