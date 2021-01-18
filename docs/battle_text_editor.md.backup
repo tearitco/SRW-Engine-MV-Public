@@ -75,5 +75,3 @@ When selecting the Special Text Type additional controls become available:
 ![](img/quote_select_special.png)
 
 The Event select is added which allows selection of previously defined Special Quote sets. The reference id is the id by which the  set of Quotes will be referred to by other parts of the game. When using the setStageTextId plugin command this is the id that should be used in the command. Existing Special Quote sets can be copied and deleted, and new Special Quote Sets can be created.
-
-Editing the Quotes themselves works the same as for Default Quotes. 

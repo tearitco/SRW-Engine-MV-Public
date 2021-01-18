@@ -884,6 +884,10 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * setSaveDisplayName name
 
 	Set the name that will show up in the save file list for newly saved files. Spaces should be replaced by underscores in the command, ex.: "Debug\_Stage\_1" becomes "Debug Stage 1" on the file select screen.
+	
+* setStageTextId id
+
+	Set the special text id for text on this stage. See the chapter on the Battle Text Editor for more info on special text.
 
 * setEventWill event\_id amount
 	
@@ -1137,3 +1141,4 @@ A setting can be left blank by entering "" as its value.
 	
 ## Battle Text Editor
 
+[Link](battle_text_editor.md)
