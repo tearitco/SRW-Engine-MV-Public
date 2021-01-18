@@ -1,4 +1,4 @@
-# SRW Engine MV User Manual V1.0
+# SRW Engine MV User Manual V2.0
 
 # Set-up
 
@@ -8,6 +8,25 @@ In the project directory navigate to js/plugins/config and copy the "default" di
 # Plugin Config
 
 The config for the plugins that make up SRW Engine MV lives in the js/plugins/config directory inside two folders: default and active. The default folder contains the default settings, while the active folder contains settings modified for your game if applicable. The file in the default folder is overwritten by the file in the active folder with the same name. When the engine is updated only the defaults will be changed and the files in the active folder will never be touched. So if you want to customize any of these files for your game always first copy them to the active folder and modify the version in the active folder. <br>
+
+## Engine.conf.js
+
+This config file allows configuration of engine level settings.
+```javascript
+	var ENGINE_SETTINGS = {
+		DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
+		BATTLE_SCENE: {
+			SPRITES_FILTER_MODE: "NEAREST", // set the filtering mode for textures in the battle scene: NEAREST or TRILINEAR
+			DEFAULT_ANIM: {// defines default animations
+				DESTROY: 2 // the default destroy animation
+			}
+		},
+		KEEP_ENEMY_SPRITE_ORIENTATION: false, // if true enemy sprites on the map will not be flipped
+		ENEMY_TARGETING_FORMULA: "Math.min(hitrate + 0.01, 1) * damage", // the formula used by enemy AI to score potential targets. A target with a higher score will be preferred. hitrate and damage are the projected hit rate and damage the unit will deal to a target.
+		DEBUG_SAVING: false, // if enabled the save option on the pause menu during a stage will behave like the regular save function, rather than as a quick save.
+		CURSOR_SPEED: 4, // the default cursor speed
+	}
+```
 
 # Terrain
 
@@ -276,6 +295,11 @@ Image files for the battle scene are stored in the img/SRWBattleScene directory 
 
 \<mechBattleSceneSprite:harold\> The name of the sub directory in the img/SRWBattleScene folder that houses the image files for the Mech. <br>
 \<mechBattleSceneSpriteSize:64\> The height and width of the main.png image for this mech.<br>
+\<mechBattleSceneUseSpriter:1\> If 1 the sprite for this mech is a Spriter sprite. More info about Spriter sprites in the chapter on the battle animation system. <br>
+\<mechBattleSceneShadowSize:1\> The size of the shadow displayed for the mech in the battle scene.<br>
+\<mechBattleSceneShadowOffsetX:0\>The x offset for the shadow relative to the center point of the mech's sprite in the battle scene.<br>
+\<mechBattleReferenceSize:3\> The world space size of the Mech's sprite. This size is used for determining the size and position of the unit's barrier.<br>
+\<mechBattleSceneDeathAnim:1\> Specifies the id of a battle animation to be played when the mech is destroyed. If omitted the default death animation is used.
 
 # Attacks
 
@@ -639,6 +663,11 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 ## Plugin commands
 
+* SRPGBattle start|end
+
+	This command starts or ends the SRPG mode of the engine.<br>
+	Generally only called by the init or intermission map to start a new stage.
+	
 * Intermission start|end
 
 	This command starts or end the intermission. Only called on the intermission map.
@@ -871,6 +900,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * makeActorControllable actor\_id
 
 	Make the actor with the specified ID controllable by the player.	
+
 	
 * setActorEssential actor\_id
 	
