@@ -5988,7 +5988,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		this.text = new PIXI.Text('',
 		{
-		  font : '13px Arial',
+		  fontFamily : 'Arial',
+		  fontSize: "13px",
 		  fill : 0xffffff,
 		  cacheAsBitmap: true, // for better performance
 		  height: 30,
