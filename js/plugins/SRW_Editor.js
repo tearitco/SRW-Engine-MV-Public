@@ -218,7 +218,7 @@ SRWEditor.prototype.init = function(){
 		},
 		create_bg: {
 			hasTarget: true,
-			params: ["path", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
+			params: ["path", "parent", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
 			desc: "Create a new background."
 		},
 		remove_bg: {
@@ -351,6 +351,7 @@ SRWEditor.prototype.init = function(){
 	
 	_this._paramTooltips = {
 		position: "A position defined by an x, y and z coordinate.",
+		parent: "The id of the object that will be the parent of this object.",
 		rotation: "A rotation defined by an x, y and z component. The rotations are describe with radian values.",
 		startPosition: "A position defined by an x, y and z and coordinate.",
 		duration: "The duration of the command in animation ticks.",
@@ -436,6 +437,9 @@ SRWEditor.prototype.init = function(){
 			result+="</div>";
 			return result;
 		},
+		parent: function(value){
+			
+		}, 
 		startPosition: function(value){
 			return _this._paramDisplayHandlers.position(value);
 		},

@@ -1452,12 +1452,24 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},
 		create_bg: function(target, params){
-			var bg = _this.createSceneBg(target, params.path, _this.applyAnimationDirection(params.position), params.size, params.alpha, params.billboardMode);
+			var position;
+			if(params.position){
+				position = params.position;
+			} else {
+				position = new BABYLON.Vector3(0, 0, 0);
+			}
+			var bg = _this.createSceneBg(target, params.path, _this.applyAnimationDirection(position), params.size, params.alpha, params.billboardMode);
 			if(params.rotation){
 				bg.rotation = _this.applyAnimationDirection(params.rotation);
 			}
 			if(params.animationFrames){
 				_this.registerBgAnimation(bg, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames, params.animationLoop, params.animationDelay);
+			}
+			if(params.parent){
+				var parentObj = getTargetObject(params.parent);
+				if(parentObj){
+					bg.parent = parentObj;
+				}
 			}
 			_this._animationBackgroundsInfo.push(bg);
 		},
