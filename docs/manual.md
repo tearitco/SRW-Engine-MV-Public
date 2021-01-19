@@ -707,6 +707,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 			
 * removeItem
 
+
 	Removes one of the specified item from the inventory.	
 
 * addItemToHolder item\_id mech\_id slot
@@ -753,25 +754,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 	
 * unlockDeploySlot slot
 
-* setSRWBattleBg name	
-	
-	Set the battle background for grounded units.<br>
-	The name is the name of the image found in img\SRWBattlebacks\
-
-* setSRWBattleParallax1 name	
-	
-	Set the first parallax background for grounded units.<br>
-	The name is the name of the image found in img\SRWBattlebacks\	
 		
-* setSRWSkyBattleBg name		
-
-	Set the battle background for flying units.<br>
-	The name is the name of the image found in img\SRWBattlebacks\
-
-* setSRWSkyBattleParallax1 name
-		
-	Set the first parallax background for flying units.<br>
-	The name is the name of the image found in img\SRWBattlebacks\				
 	
 * addMapHighlight x y color
 
@@ -1142,3 +1125,7 @@ A setting can be left blank by entering "" as its value.
 ## Battle Text Editor
 
 [Link](battle_text_editor.md)
+
+## Battle Environment Editor
+
+[Link](battle_environment_editor.md)
