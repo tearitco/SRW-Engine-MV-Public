@@ -1685,7 +1685,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}		
 		},
 		reset_position: function(target, params){
-			var targetObj = getTargetObject(target);
+			var targetObj = getTargetObject("active_target");
 			
 			var targetOffset = _this._defaultPositions.camera_main_idle.x - _this._camera.position.x;
 			if(_this._currentAnimatedAction.type == "initiator" && (!_this._currentAnimatedAction.attacked || !_this._currentAnimatedAction.attacked.isDestroyed)){

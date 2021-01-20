@@ -126,11 +126,11 @@ SRWEditor.prototype.init = function(){
 			params: ["magnitude_x", "magnitude_y", "duration", "easingFunction", "easingMode"],
 			desc: "Shake the screen on the x and y axis with the specified magnitude."
 		},
-		set_camera_target: {
+		/*set_camera_target: {
 			hasTarget: true,
 			params: [],
 			desc: "Lock the camera on an object in the scene. The camera will always look straight at the object while locked."
-		},	
+		},*/	
 	
 		set_damage_text: {
 			hasTarget: false,
@@ -261,11 +261,11 @@ SRWEditor.prototype.init = function(){
 			params: ["index"],
 			desc: "Set the frame of a sprite."
 		},
-		set_sprite_animation: {
+		/*	set_sprite_animation: {
 			hasTarget: true,
 			params: ["name", "animationFrames", "holdFrame", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
 			desc: "Set the source of a sprite and specify animation details."
-		},
+		},*/
 		set_sprite_frame: {
 			hasTarget: true,
 			params: ["name"],
@@ -287,17 +287,17 @@ SRWEditor.prototype.init = function(){
 			desc: "Hide the default background elements."
 		},
 		show_bgs: {
-			hasTarget: true,
+			hasTarget: false,
 			params: [],
 			desc: "Show the default background elements."
 		},
 		reset_position: {
-			hasTarget: true,
+			hasTarget: false,
 			params: ["duration"],
 			desc: "Reset the position of the target to the default position."
 		},
 		destroy: {
-			hasTarget: true,
+			hasTarget: false,
 			params: [],
 			desc: "Play the destruction animation of the target."
 		},
@@ -352,11 +352,11 @@ SRWEditor.prototype.init = function(){
 	_this._paramTooltips = {
 		position: "A position defined by an x, y and z coordinate.",
 		parent: "The id of the object that will be the parent of this object.",
-		rotation: "A rotation defined by an x, y and z component. The rotations are describe with radian values.",
-		startPosition: "A position defined by an x, y and z and coordinate.",
+		rotation: "A rotation defined by an x, y and z component. The rotations are described with radian values.",
+		startPosition: "A position defined by an x, y and z coordinate.",
 		duration: "The duration of the command in animation ticks.",
-		easingFunction: "Descibes how an object moves from point a to point b. If not specified the object will move linearly.",
-		easingMode: "In, out or inout. Parameterizes easingFunction.",
+		easingFunction: "Describes how an object moves from point a to point b. If not specified the object will move linearly.",
+		easingMode: "In, out or inout. Parameterizes the easingFunction.",
 		hide: "Hide the target object after the command has finished.",
 		catmullRom: "Describes two addtional points for a Catmull-Rom spline.",
 		startRotation: "A rotation defined by an x, y and z component. The rotations are described with radian values.",
@@ -370,8 +370,8 @@ SRWEditor.prototype.init = function(){
 		endFade: "The final opacity of the object, between 0-1.",
 		time: "The duration of the command in milliseconds.",
 		speed: "The speed of the effect.",
-		speedIn: "The speed of the fadein 'fast' or 'slow'.",
-		speedOut: "The speed of the fadeout 'fast' or 'slow'.",
+		speedIn: "The speed of the fadein: 'fast' or 'slow'.",
+		speedOut: "The speed of the fadeout: 'fast' or 'slow'.",
 		cleanUpCommands: "A list of commands to be run to clean up objects before the next phase.",
 		commands: "A list of commands to be run to during the phase transition to set up the next phase.",
 		animationFrames: "The number of animation frames in the spritesheet.",
@@ -389,11 +389,11 @@ SRWEditor.prototype.init = function(){
 		color: "The blend color for the skybox.",
 		scale: "A scaling factor for the effect.",
 		index: "The new sprite index",
-		percent: "How much of change to the value that should be shown. If the total change is 5000, specifying 50 will show 2500.",
+		percent: "How much of the change to the value that should be shown. If the total change is 5000, specifying 50 will show 2500.",
 		seId: "The name of the sound effect to play.",
 		pitch: "The pitch to play the sound effect at.",
 		volume: "The volume to play the sound effect at.",
-		ratio: "The factor by which the scoll speed is multiplied."
+		ratio: "The factor by which the scroll speed is multiplied."
 	}
 	
 	_this._paramDisplayHandlers = {
