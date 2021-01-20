@@ -708,6 +708,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * removeItem
 
 
+
 	Removes one of the specified item from the inventory.	
 
 * addItemToHolder item\_id mech\_id slot
@@ -1129,3 +1130,7 @@ A setting can be left blank by entering "" as its value.
 ## Battle Environment Editor
 
 [Link](battle_environment_editor.md)
+
+## Attack Editor
+
+[Link](battle_scene_editor.md)
