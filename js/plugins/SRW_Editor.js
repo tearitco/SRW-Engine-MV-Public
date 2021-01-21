@@ -1925,7 +1925,7 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 			content+="<input class='tick_input' value='"+tick+"'></input>";
 			//content+="<button class='tick_button'>Update</button>";	
 			content+="<button class='tick_delete_button'>Delete</button>";	
-			content+="<button class='tick_play_button'>Play</button>";				
+			//content+="<button class='tick_play_button'>Play</button>";				
 			content+="<div>"
 			content+="<button class='tick_add_command'>New</button>";		
 			if(_this._clipboardCommand){

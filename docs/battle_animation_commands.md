@@ -1,3 +1,16 @@
+## Notes
+
+The Target input provides a drop down menu with system defined Target ids for ease of use:
+
+* active\_main: The Sprite of the unit performing the current attack.
+* active\_target: The Sprite of the target of the current attack. This reference will refer to the support defender when the support defender is active.
+* Camera: The Camera of the Battle Scene.
+
+Some commands have a drop down menu that provides default values for ease of use:
+
+* position, startPosition: Have a drop down list with the default positions for the main sprites and the camera.
+* rotation, startRotation: Have a drop down list with the default rotations for the main sprites and the camera.
+
 ### clear\_attack\_text
 Clear the text box.
 
@@ -253,7 +266,7 @@ Show attack text for the current target.
 
 Parameters:
 
-* id: The id of the Quote to show.
+* id: The id of the Quote to show. To assign text for an attack the text should be defined in the Battle Text editor for the Pilot and matching Attack. The id used in the Attack Animation should be the Quote ID defined in the Battle Text editor.
 
 ### set\_bg\_scroll\_ratio
 Set the speed at which the backgrounds scroll.

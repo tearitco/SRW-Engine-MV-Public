@@ -13,6 +13,19 @@ Attack animations are assigned to weapons using the weaponAnimId tag. If no anim
 
 To time the Animation Commands in an Attack Animation each command is assigned to a certain animation Tick. Each animation Tick is 1/60th of a second.
 
+### Basic scene layout
+
+It is important to keep in mind the default positions of key objects in the scene when making an Attack Animation.
+Position are shown as (x, y, z).
+
+Main Sprites(Actor, Enemy) are at height 0 and depth 0 with an x offset of 2 from the center.
+* actor: (2,0,0)
+* enemy: (-2,0,0)
+
+The default position of the Camera is pulled back to -6.5 on the z axis and is elevated by 1.15 on the y axis (0,1.15,-6.5).
+
+These default positions are available from a drop down list when working with position parameters.
+
 ### Assets
 
 Assets for Attack Animations live in the following places depending on their type.
@@ -58,6 +71,14 @@ This folder should contain the following:
 
 The Spriter Character must have animations defined with names that match the default poses(main, hurt, dodge, in, out).  
 Usage of animation commands is the same between regular and Spriter sprites.
+
+### Effekseer Support
+
+The Battle Scene supports displaying particle systems created using the freely available Effekseer(effekseer.github.io/en/) program, though with an important limitation: For technical reasons Effekseer particles systems can only be rendered on top of the rest of the Battle Scene. This means it is impossible to have an effekseer particle system behind any other element of the Battle Scene.
+
+To use an Effekseer particle system simply export the particle system to the .efk format and put it in the effekseer folder of the project and put the required textures in the effekseer/Texture folder. Note that you will need to ensure that the Effekseer project refers to the texture with the correct path, so while making the particle system keep the textures you use in a Texture folder in the same folder as the project file!
+
+Once the files are in the right place the particle system can be displayed in the Battle Scene with the play_effekseer Animation Command.
 
 ### Sequences
 
@@ -107,6 +128,49 @@ An Attack Animation is constructed as a list of Animation Commands divided into 
 
 ### Usage
 
+#### General Controls
+
+![](img/battle_scene_main_controls.png)
+
+Existing Attack Animations can be selected from the main drop down. The selected Attack Animation can be previewed in the Preview Pane by clicking the Play button. Animations can be copied or deleted and new Animations can be created. Each Animation can be given a name, though this is mostly for organization purposes, when referring to Attack Animations in the engine the id of the Animation will be used.
 
 
+#### Preview controls
+
+![](img/battle_scene_preview_controls.png)
+
+* Play Button
+* Stop Button
+* Enemy Side: If set the attack will play from the enemy side. Note that the Actor and Enemy settings are not flipped
+* Attack Hit: If enabled the Hit Sequence can be tested, if disabled the Miss Sequence can be tested
+* Attack Destroys: Of enabled the Destroy sequence can be tested
+* Attack: The attack for which the animation should play, this setting is here to enable the correct battle dialogue to play during the preview
+* Environment: The Battle Environment in which the preview will take place. Note that the environment will not change for flying participants during the preview.
+* Actor: The Pilot on the Actor side
+* Actor Mech: The mech on the Actor side
+* Enemy: The Pilot on the enemy side
+* Enemy mech: The mech on the Enemy side
+
+#### Sequence
+
+![](img/battle_scene_sequence_commands.png)
+
+The Sequence Drop Down lets you pick which Sequence to edit(see above for more information on Sequences).
+The New Tick button prompts for a new Tick to be entered when clicked and will create the New Tick in the current Sequence. 
+#### Tick Commands
+
+![](img/battle_scene_tick_commands.png)
+
+Each Tick has its own entry. Tick Entries can contain multiple Animation Commands, these Animation commands will start on the same Tick. Tick entries are sorted by their Animation Tick in ascending order. The Tick value can be edited at top left input of the Tick Entry. Keep in mind that if the Tick for a Tick Entry is edited to be later than an other existing Tick their positions will change. If a Tick is edited to the same value as an already existing tick a you will be prompted to either discard the already existing Tick or to combine both Tick Entries.
+
+The Delete button allows removing an entire tick and all its Animation Commands. The New button adds one new Animation Command to the Tick Entry. 
+
+Each Animation Command can have the following attributes:  
+
+* Command: The id of the Animation Command
+* Target: The target for the command(optional)
+* Parameters: Configuration for the command, the number of parameters depends on the command.
+
+**You can hover over the "Command" text or the name of a Parameter to see a tooltip with more information.**<br>
+For more information on the Animation Commands and their parameters please refer to the [Animation Command list.](battle_animation_commands.md)
 

@@ -29,5 +29,3 @@ Layers have the following attributes:
 * Height: The height of one loop of the layer in the scene, expressed in scene units.
 * Y Offset: The vertical(height) offset of the layer, expressed in scene units.
 * Z Offset: The depth offset of the layer, expressed in scene units.
-
-
