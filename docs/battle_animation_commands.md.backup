@@ -367,7 +367,7 @@ Parameters:
 * easingFunction: Describes how an object moves from point a to point b. If not specified the object will move linearly.
 * easingMode: In, out or inout. Parameterizes the easingFunction.
 * hide: Hide the target object after the command has finished.
-* catmullRom: Describes two addtional points for a Catmull-Rom spline.
+* catmullRom: Describes two addtional points for a Catmull-Rom spline. To get an idea on how to position the points you can try this visualization https://www.desmos.com/calculator/552cpvzfxw. The two points provided for this parameter are the points that are not on the curve(red and orange).
 
 ### updateBgMode
 Update the current default backgrounds to match the target. This command is automatically called during the next\_phase command.
