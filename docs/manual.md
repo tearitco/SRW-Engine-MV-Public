@@ -320,7 +320,7 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponWill:-1\>Will requirement for the weapon, -1 if there is no requirement<br>
 \<weaponTerrain:AA-A\>If a terrain value is "-" the weapon cannot be used on enemies who are currently on a tile of that terrain.<br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
-\<weaponCategory:missile\><br> The particle type of the weapon. Missile, funnel, beam, gravity, physical or  "".	
+\<weaponCategory:missile\><br> The particle type of the weapon: missile, funnel, beam, gravity, physical or  "".	
  
 Weapons can have up to two special effects.
 
@@ -706,6 +706,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 	Adds one of each existing item to the inventory.
 			
 * removeItem
+
 
 
 
