@@ -196,13 +196,6 @@ var $battleSceneManager = new BattleSceneManager();
 	}
 	var Graphics_getScale = Graphics.getScale;
 	
-	Graphics.getScale = function(){
-		if(!$gameTemp || !$gameTemp.editMode){
-			return Graphics_getScale.call(this);
-		} else {
-			return 1;
-		}		
-	}
 	
 	Graphics._getCurrentWidth = function(){			
 		return this._width * this.getScale();

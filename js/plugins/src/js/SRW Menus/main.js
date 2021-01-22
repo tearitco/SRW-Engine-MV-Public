@@ -88,7 +88,11 @@ Graphics.getOriginalWidth = function(){
 }
 
 Graphics.getScale = function(){
-	return this._realScale * (this.getOriginalWidth() / 1110);
+	if(!$gameTemp || !$gameTemp.editMode){
+		return this._realScale * (this.getOriginalWidth() / 1110);
+	} else {
+		return 1;
+	}
 }
 
 
