@@ -250,15 +250,15 @@ BattleSceneUILayer.prototype.resetTextBox = function(){
 	this._currentEntityType = -1;
 	this._currentIconClassId = -1;
 	this._currentName = "";
-	this._currentText = ""; 	
+	this._currentText = {}; 	
 	this.showTextBox();
 }
 
-BattleSceneUILayer.prototype.setTextBox = function(entityType, entityId, displayName, text){
+BattleSceneUILayer.prototype.setTextBox = function(entityType, entityId, displayName, textInfo){
 	this._currentEntityType = entityType;
 	this._currentIconClassId = entityId;
 	this._currentName = displayName;
-	this._currentText = text; 	
+	this._currentText = textInfo; 	
 	this.showTextBox();
 }
 
@@ -298,31 +298,79 @@ BattleSceneUILayer.prototype.showDamage = function(entityType, amount){
 
 BattleSceneUILayer.prototype.showTextBox = function() {
 	var textDisplayContent = "";
+	textDisplayContent+="<div id='icon_and_noise_container'>";
 	textDisplayContent+="<div id='icon_container'></div>";
+	
+	textDisplayContent+="<canvas width=144 height=144 id='noise'></canvas>";
+	textDisplayContent+="</div>";
 	
 	textDisplayContent+="<div id='name_container' class='text_container scaled_text'>";	
 	textDisplayContent+=this._currentName;
 	textDisplayContent+="</div>";
 	textDisplayContent+="<div id='text_container' class='text_container scaled_text'>";	
-	textDisplayContent+="\u300C "+this._currentText+" \u300D";
+	textDisplayContent+="\u300C "+(this._currentText.text || "")+" \u300D";
 	textDisplayContent+="</div>";
 	
 	this._textDisplay.innerHTML = textDisplayContent;
 	this.updateScaledDiv(this._textDisplay, true, false);
 	
-	var iconContainer = this._textDisplay.querySelector("#icon_container");
+	var iconContainer = this._textDisplay.querySelector("#icon_and_noise_container");
 	this.updateScaledDiv(iconContainer);
+
+	
+	this._noiseCanvas = this._textDisplay.querySelector("#noise");
+	this._noiseCtx = this._noiseCanvas.getContext("2d");
 	
 	if(this._currentIconClassId != -1 && this._currentEntityType != -1){
 		var actorIcon = this._container.querySelector("#icon_container");
-		if(this._currentEntityType == "actor"){
+		/*if(this._currentEntityType == "actor"){
 			this.loadActorFace(this._currentIconClassId, actorIcon);
 		} else {
 			this.loadEnemyFace(this._currentIconClassId, actorIcon);
-		}		
+		}*/	
+		this.loadFaceByParams(this._currentText.faceName, this._currentText.faceIndex, actorIcon);	
 	}	
 	
 	Graphics._updateCanvas();
+	
+	//this.showNoise();//debug
+}
+
+BattleSceneUILayer.prototype.showNoise = function() {
+	var _this = this;
+	_this._runNoise = true;
+	var iconContainer = this._container.querySelector("#icon_container");
+	iconContainer.className = "";
+	iconContainer.classList.add("shake");
+	
+	this._noiseCanvas.className = "";
+	this._noiseCanvas.classList.add("fade_in");
+	this._noiseCanvas.classList.add("active");
+	function noise(){	
+		if(_this._noiseCtx){
+			var imgd = _this._noiseCtx.createImageData(_this._noiseCanvas.width, _this._noiseCanvas.height);
+			var pix = imgd.data;
+
+			for (var i = 0, n = pix.length; i < n; i += 4) {
+			// var c = 7 + Math.sin(i/50000 + time/7); // A sine wave of the form sin(ax + bt)
+				pix[i] = pix[i+1] = pix[i+2] = 255 * Math.random() + 50; // Set a random gray
+				pix[i+3] = 255; // 100% opaque
+			}
+
+			_this._noiseCtx.putImageData(imgd, 0, 0);
+			//time = (time + 1) % canvas.height;
+		
+		}
+		if(_this._runNoise){
+			requestAnimationFrame(noise);
+		}		
+	}
+	requestAnimationFrame(noise);
+}
+
+BattleSceneUILayer.prototype.hideNoise = function() {
+	this._runNoise = false;
+	this._noiseCanvas.className = "";
 }	
 
 BattleSceneUILayer.prototype.redraw = function() {	

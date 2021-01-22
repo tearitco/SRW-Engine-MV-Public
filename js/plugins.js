@@ -13,6 +13,9 @@ var $plugins =
 {"name":"MadeWithMv","status":false,"description":"Show a Splash Screen \"Made with MV\" and/or a Custom Splash Screen before going to main screen.","parameters":{"Show Made With MV":"true","Made with MV Image":"MadeWithMv","Show Custom Splash":"false","Custom Image":"","Fade Out Time":"40","Fade In Time":"40","Wait Time":"80"}},
 {"name":"SimpleMsgSideView","status":false,"description":"at sideview battle, only display item/skill names.","parameters":{"displayAttack":"0","position":"1"}},
 {"name":"--SRW Plugins--------","status":false,"description":"----------------------------------------------------------------------","parameters":{}},
+{"name":"BattleTextBuilder","status":true,"description":"","parameters":{}},
+{"name":"BattleAnimationBuilder","status":true,"description":"","parameters":{}},
+{"name":"BattleEnvironmentBuilder","status":true,"description":"","parameters":{}},
 {"name":"SRW_MapAttackManager","status":true,"description":"","parameters":{}},
 {"name":"SRW_StageInfoManager","status":true,"description":"","parameters":{}},
 {"name":"SRW_SongManager","status":true,"description":"","parameters":{}},
@@ -25,6 +28,7 @@ var $plugins =
 {"name":"SRW_BattleCalc","status":true,"description":"","parameters":{}},
 {"name":"SRW_StatCalc","status":true,"description":"","parameters":{}},
 {"name":"SRW_BattleTextManager","status":true,"description":"","parameters":{}},
+{"name":"SRW_Editor","status":true,"description":"","parameters":{}},
 {"name":"--SRPG Plugins--------","status":false,"description":"----------------------------------------------------------------------","parameters":{}},
 {"name":"SRPG_core","status":true,"description":"(v1.22) SRPG battle system (tactical battle system) on map.","parameters":{"srpgTroopID":"1","srpgBattleSwitchID":"1","existActorVarID":"1","existEnemyVarID":"2","turnVarID":"3","activeEventID":"4","targetEventID":"5","defaultMove":"4","srpgBattleExpRate":"0.4","srpgBattleExpRateForActors":"0.1","srpgBattleQuickLaunch":"true","srpgActorCommandEquip":"true","srpgBattleEndAllHeal":"true","srpgStandUnitSkip":"true","srpgPredictionWindowMode":"1","srpgAutoBattleStateId":"14","srpgBestSearchRouteSize":"30","srpgDamageDirectionChange":"true","enemyDefaultClass":"Enemy","textSrpgEquip":"Equip","textSrpgMove":"Move","textSrpgRange":"Range","textSrpgWait":"Wait","textSrpgTurnEnd":"End Turn","textSrpgAutoBattle":"Auto Battle"}},
 {"name":"SRPG_ImmediateSkill","status":true,"description":"Create skills that do not consume turns in SRPG converter.","parameters":{}},
@@ -40,5 +44,10 @@ var $plugins =
 {"name":"astar","status":true,"description":"","parameters":{}},
 {"name":"BindPicturesToMap","status":true,"description":"1.0.7 Plugin Commands for binding pictures to the map and/or changing what layer they're drawn on.","parameters":{}},
 {"name":"effekseer_asmjs","status":true,"description":"","parameters":{}},
+{"name":"goog","status":true,"description":"","parameters":{}},
+{"name":"atlas","status":true,"description":"","parameters":{}},
+{"name":"render-ctx2d","status":true,"description":"","parameters":{}},
+{"name":"render-webgl","status":true,"description":"","parameters":{}},
+{"name":"spriter","status":true,"description":"","parameters":{}},
 {"name":"RiP_UnlockedCamera","status":true,"description":"Unlock the camera from map edges keeping it centered on the player.","parameters":{"Default Camera":"true"}}
 ];

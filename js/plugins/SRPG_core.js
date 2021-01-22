@@ -42,6 +42,8 @@ var _defeatConditionText = 19;
 
 var _existShipVarId = 20;
 
+var $SRWEditor = new SRWEditor();
+
 var $SRWStageInfoManager = new SRWStageInfoManager();
 var $SRWSaveManager = new SRWSaveManager();
 var $statCalc = new StatCalc();
@@ -102,6 +104,28 @@ var $battleSceneManager = new BattleSceneManager();
 		return keyName === 'cancel';
 	};
 	
+	Input._shouldPreventDefault = function(keyCode) {
+		if($gameTemp.editMode){
+			return false;
+		} else {
+			switch (keyCode) {
+				case 8:     // backspace
+				case 33:    // pageup
+				case 34:    // pagedown
+				case 37:    // left arrow
+				case 38:    // up arrow
+				case 39:    // right arrow
+				case 40:    // down arrow
+					return true;
+			}
+		}		
+		return false;
+	};
+	
+	TouchInput._onWheel = function(event) {
+		
+	}
+	
 	Graphics._createAllElements = function() {
 		this._createErrorPrinter();
 		this._createCanvas();
@@ -116,17 +140,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$battleSceneManager.initContainer();			
 	};
 	
-	/*Graphics.startLoading = function() {
-		this._loadingCount = 0;
 
-		ProgressWatcher.truncateProgress();
-		ProgressWatcher.setProgressListener(this._updateProgressCount.bind(this));
-		this._progressTimeout = setTimeout(function() {
-			if(!SceneManager._stopped){
-				Graphics._showProgress();
-			}			
-		}, 1500);
-	};*/
 	
 	Graphics.render = function(stage) {
 		if (this._skipCount <= 0) { //fix for rare freezes
@@ -148,53 +162,52 @@ var $battleSceneManager = new BattleSceneManager();
 		this.frameCount++;
 	};
 	
+
 	var Graphics_updateCanvas = Graphics._updateCanvas;
 	Graphics._updateCanvas = function(){
 		Graphics_updateCanvas.call(this);
-		
-		/*if($CSSUIManager){
-			$CSSUIManager.updateLayer({width: this._width, height: this._height});
-		}	*/
-		var customUILayer = document.querySelector("#custom_UI_layer");
-		if(customUILayer){
-			customUILayer.width = this._width;
-			customUILayer.height = this._height;
-			this._centerElement(customUILayer);
+		if(!$gameTemp || !$gameTemp.editMode){
+			var customUILayer = document.querySelector("#custom_UI_layer");
+			if(customUILayer){
+				customUILayer.width = this._width;
+				customUILayer.height = this._height;
+				this._centerElement(customUILayer);
+			}	
+			var battleSceneLayer = document.querySelector("#battle_scene_layer");
+			if(battleSceneLayer){
+				battleSceneLayer.width = this._width;
+				battleSceneLayer.height = this._height;
+				this._centerElement(battleSceneLayer);
+			}	
+			var battleSceneUILayer = document.querySelector("#battle_scene_ui_layer");
+			if(battleSceneUILayer){
+				battleSceneUILayer.width = this._width;
+				battleSceneUILayer.height = this._height;
+				this._centerElement(battleSceneUILayer);
+			}	
+			var fadeContainer = document.querySelector("#fade_container");
+			if(fadeContainer){
+				fadeContainer.width = this._width;
+				fadeContainer.height = this._height;
+				this._centerElement(fadeContainer);
+			}	
 		}	
-		var battleSceneLayer = document.querySelector("#battle_scene_layer");
-		if(battleSceneLayer){
-			battleSceneLayer.width = this._width;
-			battleSceneLayer.height = this._height;
-			this._centerElement(battleSceneLayer);
-		}	
-		var battleSceneUILayer = document.querySelector("#battle_scene_ui_layer");
-		if(battleSceneUILayer){
-			battleSceneUILayer.width = this._width;
-			battleSceneUILayer.height = this._height;
-			this._centerElement(battleSceneUILayer);
-		}	
-		var fadeContainer = document.querySelector("#fade_container");
-		if(fadeContainer){
-			fadeContainer.width = this._width;
-			fadeContainer.height = this._height;
-			this._centerElement(fadeContainer);
-		}	
-		
-		$CSSUIManager.updateScaledText();
+		$CSSUIManager.updateScaledText();				
+	}
+	var Graphics_getScale = Graphics.getScale;
+	
+	Graphics.getScale = function(){
+		if(!$gameTemp || !$gameTemp.editMode){
+			return Graphics_getScale.call(this);
+		} else {
+			return 1;
+		}		
 	}
 	
-	/*Graphics._centerElement = function(element) {
-		var width = Math.floor(element.width * this._realScale);
-		var height = Math.floor(element.height * this._realScale);
-		element.style.position = 'absolute';
-		element.style.margin = 'auto';
-		element.style.top = 0;
-		element.style.left = 0;
-		element.style.right = 0;
-		element.style.bottom = 0;
-		element.style.width = width + 'px';
-		element.style.height = height + 'px';
-	};*/
+	Graphics._getCurrentWidth = function(){			
+		return this._width * this.getScale();
+			
+	}
 
     var _Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -335,12 +348,52 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.battleParallax1 = args[0];
 		}
 		
+		if (command === 'setSRWBattleParallax2') {
+			$gameSystem.battleParallax2 = args[0];
+		}
+		
+		if (command === 'setSRWBattleParallax3') {
+			$gameSystem.battleParallax3 = args[0];
+		}
+		
+		if (command === 'setSRWBattleParallax3') {
+			$gameSystem.battleParallax3 = args[0];
+		}
+		
+		if (command === 'setSRWBattleFloor') {
+			$gameSystem.battleFloor = args[0];
+		}
+		
+		if (command === 'setSRWBattleSkybox') {
+			$gameSystem.battleSkyBox = args[0];
+		}
+		
 		if (command === 'setSRWSkyBattleBg') {
 			$gameSystem.skyBattleBg = args[0];
 		}
 		
 		if (command === 'setSRWSkyBattleParallax1') {
 			$gameSystem.skyBattleParallax1 = args[0];
+		}
+		
+		if (command === 'setSRWDefaultBattleEnv') {
+			$gameSystem.defaultBattleEnv = args[0];
+		}
+		
+		if (command === 'setDefaultBattleEnv') {
+			$gameSystem.defaultBattleEnv = args[0];
+		}
+		
+		if (command === 'setSkyBattleEnv') {
+			$gameSystem.skyBattleEnv = args[0];
+		}
+		
+		if (command === 'setRegionBattleEnv') {
+			$gameSystem.regionBattleEnv[args[0]] = args[1];
+		}
+		
+		if (command === 'setRegionSkyBattleEnv') {
+			$gameSystem.regionSkyBattleEnv[args[0]] = args[1];
 		}
 		
 		if (command === 'addMapHighlight') {
@@ -570,7 +623,11 @@ var $battleSceneManager = new BattleSceneManager();
 		
 		if (command === 'setSaveDisplayName') {			
 			$gameSystem.saveDisplayName = (args[0] || "").replace(/\_/ig, " ");
-		}		
+		}	
+
+		if (command === 'setStageTextId') {			
+			$gameSystem.stageTextId = args[0];
+		}				
 		
 		if (command === 'setEventWill') {	
 			var actor = $gameSystem.EventToUnit(args[0])[1];
@@ -601,6 +658,7 @@ var $battleSceneManager = new BattleSceneManager();
 			var actor = $gameActors.actor(args[0]);
 			$statCalc.setEssential(actor, false);
 		}
+
     };		
 //====================================================================
 // ●Game_Temp
@@ -1214,14 +1272,20 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.persuadeOptions = {};
 		$gameTemp.currentSwapSource = -1;
 		$gameTemp.enemyAppearQueue = [];
+		$gameSystem.defaultBattleEnv = null;
+		$gameSystem.skyBattleEnv = null;
+		$gameSystem.regionBattleEnv = {};
+		$gameSystem.regionSkyBattleEnv = {};
+		$gameSystem.stageTextId = null;
+
 		$gameTemp.disappearQueue = [];
+
 		$gameSystem.actorRankLookup = $statCalc.getActorRankLookup();
 		$gameTemp.AIWaitTimer = 0;
 		
 		$gameVariables.setValue(_masteryConditionText, APPSTRINGS.GENERAL.label_default_mastery_condition);	
 		$gameVariables.setValue(_victoryConditionText, APPSTRINGS.GENERAL.label_default_victory_condition);	
 		$gameVariables.setValue(_defeatConditionText, APPSTRINGS.GENERAL.label_default_defeat_condition);
-		
 		
 		$gameSystem.factionConfig = {
 			0: {
@@ -2014,6 +2078,27 @@ var $battleSceneManager = new BattleSceneManager();
 			}			
 		} 
 		return null;		
+    };
+	
+	Game_System.prototype.getUnitSceneBgId = function(actor) {
+		if($gameTemp.editMode){
+			return $SRWEditor.getBattleEnvironmentId();
+		} else {
+			var region = $gameMap.regionId(actor.event.posX(), actor.event.posY());
+			if($statCalc.isFlying(actor)){
+				if($gameSystem.regionSkyBattleEnv[region] != null){
+					return $gameSystem.regionSkyBattleEnv[region];
+				}
+				
+				if($gameSystem.skyBattleEnv){
+					return $gameSystem.skyBattleEnv;
+				} 
+			} 
+			if($gameSystem.regionBattleEnv[region] != null){
+				return $gameSystem.regionBattleEnv[region];
+			}
+			return $gameSystem.defaultBattleEnv;						
+		}
     };
 
 //==================================================================
@@ -3249,7 +3334,7 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		}		
 
-		if(currentRegion == 3){
+		if(currentRegion == 3 && !$statCalc.isFlying(actor)){
 			if($statCalc.canBeOnWater(actor, "water") < 2){
 				moveCost*=2;
 			}
@@ -4568,7 +4653,7 @@ Game_Interpreter.prototype.showEnemyPhaseText = function(){
 		if($gameTemp.currentFaction == 2){
 			colorId = 14;
 		}
-		$gameMessage.add("\\TA[1]\n\\>\\C["+colorId+"]\\{"+text+"\n\\.\\.\\|\\^");				
+		$gameMessage.add("\\TA[1]\n\\>\\C["+colorId+"]\\{"+text+"\n\\.\\.\\^");	//\\|			
 		this._index++;
         this.setWaitMode('message');
 	}
@@ -5064,6 +5149,7 @@ Game_Interpreter.prototype.manualDeploy = function(){
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
 	$gameTemp.pushMenu = "in_stage_deploy";
 	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployInfo()));
+	
 }
 
 // 指定した座標にプレイヤーを移動する
@@ -5222,6 +5308,10 @@ Sample:
 Game_Interpreter.prototype.prepareBattleSceneActor = function(params) {
 	var actor = new Game_Actor(params.id, 0, 0);
 	$statCalc.initSRWStats(actor);
+	if(params.mechId){
+		actor._mechClass = params.mechId;	
+		$statCalc.initSRWStats(actor);
+	}
 	params.unit = actor;
 	actor.event = {
 		eventId: function(){return 1;}
@@ -5233,6 +5323,10 @@ Game_Interpreter.prototype.prepareBattleSceneActor = function(params) {
 Game_Interpreter.prototype.prepareBattleSceneSupportActor = function(params) {
 	var actor = new Game_Actor(params.id, 0, 0);
 	$statCalc.initSRWStats(actor);
+	if(params.mechId){
+		actor._mechClass = params.mechId;	
+		$statCalc.initSRWStats(actor);
+	}
 	params.unit = actor;
 	actor.event = {
 		eventId: function(){return 3;}
@@ -5268,11 +5362,18 @@ Game_Interpreter.prototype.prepareBattleSceneSupportEnemy = function(params) {
 Game_Interpreter.prototype.prepareBattleSceneAction = function(params) {
 	var unit = params.unit;
 	
+	var weapon;
+	if(typeof params.weapon == "object"){
+		weapon = params.weapon;
+	} else {
+		weapon = $statCalc.getActorMechWeapon(unit, params.weapon)
+	}
+	
 	var action;
 	if(params.action == "attack"){		
 		action = {
 			type: "attack",
-			attack: $statCalc.getActorMechWeapon(unit, params.weapon),
+			attack: weapon,
 			target: 0
 		}
 	}
@@ -5378,20 +5479,24 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	this.setBattleSceneHP(actorSupport, params.actorSupport);
 	this.setBattleSceneHP(enemySupport, params.enemySupport);
 
-	function BattleAction(attacker, defender, supportDefender, side){
+	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
 		this._attacker = attacker;
 		this._defender = defender;
 		this._supportDefender = supportDefender;
 		this._side = side;
+		this._isSupportAttack = isSupportAttack;
 	}
 	
 	BattleAction.prototype.execute = function(orderIdx){
 		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		if(this._isSupportAttack){
+			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
+		}
 		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
 		aCache.side = this._side;
 		var activeDefender = this._defender;
 		if(this._supportDefender) {
-			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._cacheReference];
+			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
 			if(!sCache.hasActed){
 				activeDefender = this._supportDefender;
 				dCache = sCache;
@@ -5402,6 +5507,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		if(!aCache.isDestroyed && !dCache.isDestroyed){		
 			aCache.actionOrder = orderIdx;
 			aCache.attacked = dCache;
+			aCache.originalTarget = dCache;
 			aCache.hasActed = true;
 			dCache.hasActed = true;
 			
@@ -5435,10 +5541,10 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	
 	var actions = [];
 	if(supportAttacker){			
-		actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide));								
+		actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
 	}	
 	actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
-	actions.push(new BattleAction(defender, attacker, defenderSide));			
+	actions.push(new BattleAction(defender, attacker, null, defenderSide));			
 	
 	
 	for(var i = 0; i < actions.length; i++){
@@ -5449,7 +5555,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	}
 	
 	$gameSystem.setSubBattlePhase('halt');
-	SceneManager.stop();	
+	//SceneManager.stop();	
 	$battleSceneManager.playBattleScene();
 	if(params.songId){
 		$songManager.playSong(params.songId);
@@ -6070,7 +6176,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				this.opacity = 0;
 			} else {
 				this.y-=this._character._floatOffset;
-				this.opacity = this._character._opacity
+				this.opacity = this._character._opacity - 128;
 			};
 		} else {
 			this.opacity = 0;
@@ -8914,7 +9020,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		if($gameSystem.isSubBattlePhase() == "event_before_battle"){
 			if(!$gameMap.isEventRunning()){
-				this.playBattleScene();
+				if(_this.beforeBattleEventTimer <= 0){
+					this.playBattleScene();
+				} else {
+					_this.beforeBattleEventTimer--;
+				}				
+			} else {
+				_this.beforeBattleEventTimer = 20;
 			}
 			return;
 		}
@@ -9017,7 +9129,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameTemp.disableHighlightGlow = false;
 				$gameSystem.undeployActors();
 				$gameSystem.deployActors(true, false, true);
-				$gameSystem.setSubBattlePhase("initialize");
+				$gameSystem.setSubBattlePhase("start_srpg");
 				
 				$gameMap._interpreter.setWaitMode("enemy_appear");
 				$gameTemp.enemyAppearQueueIsProcessing = true;

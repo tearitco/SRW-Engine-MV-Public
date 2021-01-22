@@ -1,111 +1,113 @@
 $SRWConfig.battleText = {
-	actors: {
+	actor: {
 		1: { //Harold
 			battle_intro: {
 				default: [
-					"Let's see how well you stand up to my assault!",
-					"Don't underestimate me just because I can't fly!"
+					{faceName: "Actor1", faceIndex: 0, text: "Let's see how well you stand up to my assault!"},
+					{faceName: "Actor1", faceIndex: 0, text: "Don't underestimate me just because I can't fly!"},
 				]
 			},
 			retaliate: {
 				default: [
-					"Right back at ya, pal."
+					{faceName: "Actor1", faceIndex: 0, text: "Right back at ya, pal."},
 				]
 			},
 			attacks: {
-				0: ["Things are about to get rough."],
-				1: ["HAAAAAAA"],	
-				2: ["HAAAAAAAAAAA"],
-				3: ["HAAAAAAAAAAAAAAA"],
-				4: ["HAAAAAAAAAAAAAAAAAA"],
-				5: ["HAAAAAAAAAAAAAAAAAAAAAA"],	
-				6: ["HAH!"],
-				7: ["End of the line for you, pal."],
+				1: {
+					default: [{faceName: "Actor1", faceIndex: 0, text: "Here I come!", quoteId: 0},]
+				},
+				2: {
+					default: [{faceName: "Actor1", faceIndex: 0, text: "Not usually my style, but!", quoteId: 0},]
+				}	
 			},
 			evade: {
 				default: [
-					"Whew, I actually dodged something for once."
+					{faceName: "Actor1", faceIndex: 0, text: "Whew, I actually dodged something for once."},
 				]
 			},
 			damage: {
 				default: [
-					"Hey! You're scuffing the paint on my armor!"
+					{faceName: "Actor1", faceIndex: 0, text: "Hey! You're scuffing the paint on my armor!"},
 				]
 			},
 			damage_critical: {
 				default: [
-					"Well, this is looking kinda bad..."
+					{faceName: "Actor1", faceIndex: 0, text: "Well, this is looking kinda bad..."},
 				]
 			},
 			destroyed: {
 				default: [
-					"Aaaaaaaaaagh!"
+					{faceName: "Actor1", faceIndex: 0, text: "Aaaaaaaaaagh!"},
 				]
 			}, 
 			support_defend: {
 				default: [
-					"Stand back!"
+					{faceName: "Actor1", faceIndex: 0, text: "Stand back!"},
 				],
-				3: [
-					"Marsha, watch out!"
-				]
+				actor: [
+					{unitId: 3, faceName: "Actor1", faceIndex: 0, text: "Marsha, watch out!"},
+				]				
 			}
 		},
 		3: { //Marsha
 			battle_intro: {
 				default: [
-					"Line right up for your free explosion!"
+					{faceName: "Actor3", faceIndex: 7, text: "Line right up for your free explosion!"},
 				]
 			},
 			retaliate: {
 				default: [
-					"You're messing with the wrong witch, punk!"
+					{faceName: "Actor3", faceIndex: 7, text: "You're messing with the wrong witch, punk!"},
 				],
-				1: [
-					"Why is it always bats..."
-				]
+				enemy: [
+					{unitId: 1, faceName: "Actor3", faceIndex: 7, text: "Why is it always bats..."},
+				]				
 			},
 			attacks: {
-				0: ["Time to get serious!"],
-				1: ["Got get 'em boys!"]		
+				1: {
+					default: [{faceName: "Actor3", faceIndex: 7, text: "Do I really have to get so close to them...", quoteId: 0},]
+				},
+				2: {
+					default: [{faceName: "Actor3", faceIndex: 7, text: "Ranged attacks are where it's at!", quoteId: 0},]
+				}
 			},
 			evade: {
 				default: [
-					"Better luck next time!"
+					{faceName: "Actor3", faceIndex: 7, text: "Better luck next time!"},
 				]
 			},
 			damage: {
 				default: [
-					"Ack, I'm not built for actually taking hits..."
+					{faceName: "Actor3", faceIndex: 7, text: "Ack, I'm not built for actually taking hits..."},
 				]
 			},
 			damage_critical: {
 				default: [
-					"H-Harold, could you give me some cover please..."
+					{faceName: "Actor3", faceIndex: 7, text: "H-Harold, could you give me some cover please..."},
 				]
 			},
 			destroyed: {
 				default: [
-					"Iyaaaaaaaaaa!"
+					{faceName: "Actor3", faceIndex: 7, text: "Iyaaaaaaaaaa!"},
 				]
 			}, 
 			support_defend: {
 				default: [
-					"Wait, why am I jumping in to take an attack?!"
+					{faceName: "Actor3", faceIndex: 7, text: "Wait, why am I jumping in to take an attack?!"},
 				]
 			}
 		}
 	},
-	enemies: {
+	enemy: {
 		1: { //Bat
 			battle_intro: {
 				default: [
-					"Skree!"
+					{faceName: "Monster", faceIndex: 0, text: "Skree!"}
 				]
 			},
 			retaliate: {
 				default: [
-					"Skr-Skreeee!"
+					{faceName: "Monster", faceIndex: 0, text: "Skr-Skreeee!"}
 				]
 			},
 			attacks: {
@@ -113,39 +115,39 @@ $SRWConfig.battleText = {
 			},
 			evade: {
 				default: [
-					"Skree skree!"
+					{faceName: "Monster", faceIndex: 0, text: "Skree skree!"}
 				]
 			},
 			damage: {
 				default: [
-					"Skree!"
+					{faceName: "Monster", faceIndex: 0, text: "Skree!"}
 				]
 			},
 			damage_critical: {
 				default: [
-					"Skree..."
+					{faceName: "Monster", faceIndex: 0, text: "Skree..."}
 				]
 			},
 			destroyed: {
 				default: [
-					"SKREEEEEEEEEEEE!"
+					{faceName: "Monster", faceIndex: 0, text: "SKREEEEEEEEEEEE!"}
 				]
 			}, 
 			support_defend: {
 				default: [
-					"Skree!"
+					{faceName: "Monster", faceIndex: 0, text: "Skree!"}
 				]
 			}
 		},
 		3: { //Orc
 			battle_intro: {
 				default: [
-					"... Attack..."
+					{faceName: "Monster", faceIndex: 2, text: "... Attack..."}
 				]
 			},
 			retaliate: {
 				default: [
-					"... Attack!"
+					{faceName: "Monster", faceIndex: 2, text: "... Attack!"}
 				]
 			},
 			attacks: {
@@ -153,39 +155,39 @@ $SRWConfig.battleText = {
 			},
 			evade: {
 				default: [
-					"Ha!"
+					{faceName: "Monster", faceIndex: 2, text: "Ha!"}
 				]
 			},
 			damage: {
 				default: [
-					"Gah!"
+					{faceName: "Monster", faceIndex: 2, text: "Gah!"}
 				]
 			},
 			damage_critical: {
 				default: [
-					"Grugh!!"
+					{faceName: "Monster", faceIndex: 2, text: "Grugh!!"}
 				]
 			},
 			destroyed: {
 				default: [
-					"GRAAAAAAAAGH!"
+					{faceName: "Monster", faceIndex: 2, text: "GRAAAAAAAAGH!"}
 				]
 			}, 
 			support_defend: {
 				default: [
-					"... Defend..."
+					{faceName: "Monster", faceIndex: 2, text: "... Defend..."}
 				]
 			}
 		},
 		5: { //Wraith
 			battle_intro: {
 				default: [
-					"Be cursed with me..."
+					{faceName: "Monster", faceIndex: 6, text: "Be cursed with me..."}
 				]
 			},
 			retaliate: {
 				default: [
-					"Unforgivable..."
+					{faceName: "Monster", faceIndex: 6, text: "Unforgivable..."}
 				]
 			},
 			attacks: {
@@ -193,48 +195,51 @@ $SRWConfig.battleText = {
 			},
 			evade: {
 				default: [
-					"Useless."
+					{faceName: "Monster", faceIndex: 6, text: "Useless."}
 				]
 			},
 			damage: {
 				default: [
-					"Agh!"
+					{faceName: "Monster", faceIndex: 6, text: "Agh!"}
 				]
 			},
 			damage_critical: {
 				default: [
-					"Pain..."
+					{faceName: "Monster", faceIndex: 6, text: "Pain..."}
 				]
 			},
 			destroyed: {
 				default: [
-					"SHYAAAAAAA..."
+					{faceName: "Monster", faceIndex: 6, text: "SHYAAAAAAA..."}
 				]
 			}, 
 			support_defend: {
 				default: [
-					"... Defend..."
+					{faceName: "Monster", faceIndex: 6, text: "... Defend..."}
 				]
 			}
 		}
 	}
 };
 
-$SRWConfig.eventBattleText = {
-	0: {
-		actors: {			
-			1: { //Harold
-				damage: {
-					default: [
-						"That director guy better pay for my armor..."
-					]
-				},			
-				support_defend: {
-					3: [
-						"Marsha, don't die in the event!"
-					]
-				}
-			},
-		}
+$SRWConfig.eventBattleText = [
+	{
+		refId: "event_0",
+		data: {
+			actor: {			
+				1: { //Harold
+					damage: {
+						default: [
+							{faceName: "Actor1", faceIndex: 0, text: "That director guy better pay for my armor..."}
+						]
+					},			
+					support_defend: {
+						actor: [
+							{unitId: 3, faceName: "Actor1", faceIndex: 0, text: "Marsha, don't die in the event!"}
+						]
+					}
+				},
+			}
+		}		
 	}
-}
+]

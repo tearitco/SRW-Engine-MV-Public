@@ -100,8 +100,7 @@ Window_CSS.prototype.loadActorFace = function(actorId, elem) {
 	this.loadFace($dataActors[actorId], elem);
 }
 
-Window_CSS.prototype.loadFace = function(actorData, elem) {
-		
+Window_CSS.prototype.loadFace = function(actorData, elem) {		
 	var faceName;
 	if(typeof actorData.faceName != "undefined"){
 		faceName = actorData.faceName;		
@@ -114,6 +113,10 @@ Window_CSS.prototype.loadFace = function(actorData, elem) {
 	} else {
 		faceIndex = actorData.meta.faceIndex - 1;
 	}
+	this.loadFaceByParams(faceName, faceIndex, elem);
+}
+
+Window_CSS.prototype.loadFaceByParams = function(faceName, faceIndex, elem) {
 	var width = Window_Base._faceWidth;
     var height = Window_Base._faceHeight;
 	

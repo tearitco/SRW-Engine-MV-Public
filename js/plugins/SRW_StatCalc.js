@@ -251,7 +251,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 				willRequired: parseInt(weaponProperties.weaponWill),
 				terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
 				effects: effects,
-				particleType: (weaponProperties.weaponCategory || "").trim(), //missile, funnel, beam, gravity, physical or "".
+				particleType: (weaponProperties. egory || "").trim(), //missile, funnel, beam, gravity, physical or "".
 				animId: parseInt(weaponProperties.weaponAnimId) || -1,
 				isMap: isMap, 
 				mapId: mapId,
@@ -828,11 +828,14 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	var mech;
 	var isForActor;
 	if(actor.isActor()){
-		if(preserveVolatile){
+		if(actor._mechClass){//should only be the case when the editor is used
+			mech = $dataClasses[actor._mechClass];
+		} else if(preserveVolatile){
 			mech = $dataClasses[actor.SRWStats.mech.id];
 		}
 		if(!mech){
 			mech = actor.currentClass();
+
 		}		
 		isForActor = true;
 	} else {
@@ -844,6 +847,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		var previousStats;
 		var previousFlightState;
 		var previousCombineInfo;
+		var previousBoarded;
 		
 		if(preserveVolatile){
 			if(actor.SRWStats.mech.stats){
@@ -853,6 +857,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 				}
 				previousFlightState = actor.SRWStats.mech.isFlying;
 				previousCombineInfo = actor.SRWStats.mech.combineInfo;
+				previousBoarded = actor.SRWStats.mech.unitsOnBoard;
 			}			
 		}
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items, previousWeapons);
@@ -876,6 +881,9 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			}
 			if(previousCombineInfo){
 				actor.SRWStats.mech.combineInfo = previousCombineInfo;
+			}
+			if(previousBoarded){
+				actor.SRWStats.mech.unitsOnBoard = previousBoarded;
 			}
 		}
 	}
@@ -971,9 +979,29 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.expYield = parseInt(mechProperties.mechExpYield);
 		result.PPYield = parseInt(mechProperties.mechPPYield);
 		result.fundYield = parseInt(mechProperties.mechFundYield);
-		result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
+		/*result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
-		result.battleSceneSpriteSize = mechProperties.mechBattleSceneSpriteSize || 0;
+		
+		result.battleSceneSpriteSize = parseInt(mechProperties.mechBattleSceneSpriteSize);
+		
+		result.useSpriter = parseInt(mechProperties.mechBattleSceneUseSpriter);
+		
+		result.battleSceneShadowInfo = {
+			size: 3,
+			offsetZ: 0,
+			offsetX: 0
+		};
+
+		
+		if(mechProperties.mechBattleSceneShadowSize){
+			result.battleSceneShadowInfo.size = mechProperties.mechBattleSceneShadowSize*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetZ){
+			result.battleSceneShadowInfo.offsetZ = mechProperties.mechBattleSceneShadowOffsetZ*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetX){
+			result.battleSceneShadowInfo.offsetX = mechProperties.mechBattleSceneShadowOffsetX*1;
+		}*/
 		
 		result.stats.base.maxHP = parseInt(mechProperties.mechHP);
 		//result.currentHP = mechProperties.mechHP;
@@ -1442,9 +1470,56 @@ StatCalc.prototype.addBoardedUnit = function(actor, ship){
 	} 
 }
 
+StatCalc.prototype.getBattleSceneInfo = function(actor){
+	var result = {};
+	if(this.isActorSRWInitialized(actor)){
+		var mechProperties = $dataClasses[actor.SRWStats.mech.id].meta;
+		result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
+		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
+		
+		result.battleSceneSpriteSize = parseInt(mechProperties.mechBattleSceneSpriteSize);
+		
+		result.useSpriter = parseInt(mechProperties.mechBattleSceneUseSpriter);
+		
+		result.battleSceneShadowInfo = {
+			size: 1,
+			offsetZ: 0,
+			offsetX: 0
+		};
+
+		
+		if(mechProperties.mechBattleSceneShadowSize){
+			result.battleSceneShadowInfo.size = mechProperties.mechBattleSceneShadowSize*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetZ){
+			result.battleSceneShadowInfo.offsetZ = mechProperties.mechBattleSceneShadowOffsetZ*1;
+		}
+		if(mechProperties.mechBattleSceneShadowOffsetX){
+			result.battleSceneShadowInfo.offsetX = mechProperties.mechBattleSceneShadowOffsetX*1;
+		}
+		
+		result.battleReferenceSize = parseInt(mechProperties.mechBattleReferenceSize) || 3;
+		
+		result.deathAnimId = mechProperties.mechBattleSceneDeathAnim;
+	} 
+	return result;
+}
+
 StatCalc.prototype.getBattleSceneImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.battleSceneSpriteName;	
+		return this.getBattleSceneInfo(actor).battleSceneSpriteName;	
+	} else {
+		return "";
+	}
+}
+
+StatCalc.prototype.getBattleSceneSpriteType = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		if(this.getBattleSceneInfo(actor).useSpriter){
+			return "spriter";
+		} else {
+			return "default";
+		}
 	} else {
 		return "";
 	}
@@ -1452,7 +1527,15 @@ StatCalc.prototype.getBattleSceneImage = function(actor){
 
 StatCalc.prototype.getBattleSceneImageSize = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.battleSceneSpriteSize;	
+		return this.getBattleSceneInfo(actor).battleSceneSpriteSize;	
+	} else {
+		return 0;
+	}
+}
+
+StatCalc.prototype.getBattleSceneShadowInfo = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return JSON.parse(JSON.stringify(this.getBattleSceneInfo(actor).battleSceneShadowInfo));	
 	} else {
 		return 0;
 	}
@@ -1460,7 +1543,7 @@ StatCalc.prototype.getBattleSceneImageSize = function(actor){
 
 StatCalc.prototype.getBasicBattleImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.basicBattleSpriteName;	
+		return this.getBattleSceneInfo(actor).basicBattleSpriteName;	
 	} else {
 		return "";
 	}
@@ -1468,7 +1551,15 @@ StatCalc.prototype.getBasicBattleImage = function(actor){
 
 StatCalc.prototype.getBattleIdleImage = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.battleSceneSpriteName;	
+		return this.getBattleSceneInfo(actor).battleSceneSpriteName;	
+	} else {
+		return "";
+	}
+}
+
+StatCalc.prototype.getBattleReferenceSize = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return this.getBattleSceneInfo(actor).battleReferenceSize;	
 	} else {
 		return "";
 	}

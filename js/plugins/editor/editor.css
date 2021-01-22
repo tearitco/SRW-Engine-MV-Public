@@ -1,0 +1,589 @@
+:root {
+	--theme-color: #1c70d9;	
+	--light-theme-color: #e0eeff;
+	--white-filter: invert(100%) sepia(0%) saturate(7440%) hue-rotate(311deg) brightness(105%) contrast(97%);
+}
+
+#srw_editor {
+	width: 100vw;
+    height: 100vh;
+    background-color: #FFFFFF;
+    z-index: 999999;
+    position: absolute;
+    top: 0;
+    left: 0;
+	font-family: Trebuchet MS;
+}
+
+#srw_editor button {
+	border: 0px;
+	background-color: #F1F1F1;
+	color: #444444;
+	border-radius: 999px;
+	border: 1px solid #E0E0E0;
+	cursor: pointer;
+}
+
+#srw_editor button:hover {
+	background-color: #E0E0E0;
+}
+
+#srw_editor .header {
+	width: 100%;
+	height: 50px;
+	display: flex;
+	align-items: center;
+	padding-left: 10px;
+	font-size: 20px;
+	color: #FFFFFF;
+	background-color: var(--theme-color);
+}
+
+#srw_editor .content {
+	width: 100%;
+	height: calc(100% - 50px);
+}
+
+#srw_editor #attack_editor {
+	display: flex;
+	height: 100%;
+}
+
+#srw_editor #info_section {
+	position: relative;
+}
+
+#srw_editor #save_def {
+	position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 100px;
+    font-size: 25px;
+}
+
+#srw_editor #attack_editor .edit_controls {
+	width: 30%;
+	height: 100%;
+}
+
+#srw_editor #attack_editor .timeline{
+	height: 50%;
+	width: 100%;
+}
+
+#srw_editor #attack_editor .edit_panel{
+	height: 50%;
+	width: 100%;
+	background-color: var(--light-theme-color);
+}
+
+#srw_editor #attack_editor .preview{
+	height: 100%;	
+    width: 70%;
+	background-color: #3a3b55;
+	
+}
+
+#srw_editor #attack_editor .preview_window_container {
+	position: relative;
+	margin-top: 5%;
+	display: flex;  
+    justify-content: center;
+}
+
+#srw_editor #attack_editor .preview_window {
+	width: 1110px;
+    height: 624px;
+	background-color: #000000;
+	position: relative;
+}
+
+#srw_editor #attack_editor .preview_controls {
+	margin-left: auto;
+	margin-right: auto;
+	width: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#srw_editor #attack_editor .preview_extra_controls {
+	margin-left: auto;
+	margin-right: auto;
+	width: fit-content;	
+	padding: 5px;
+	background-color: #bfc2ff;	
+	border-radius: 5px;
+	margin-top: 10px;
+}
+
+#srw_editor #attack_editor .extra_control {
+	display: flex;
+}
+
+#srw_editor #attack_editor .editor_label {
+	flex-shrink: none;
+	width: 130px;
+}
+
+#srw_editor #attack_editor .preview_controls img{
+	width: 40px;
+	cursor: pointer;
+	filter: invert(78%) sepia(31%) saturate(3977%) hue-rotate(196deg) brightness(110%) contrast(110%);
+}
+
+#srw_editor #battle_scene_layer {
+	width: 100%;
+	height: 100%;
+}
+
+#srw_editor #battle_scene_ui_layer {
+	width: 100%;
+	height: 100%;
+}
+
+#srw_editor #fade_container {
+	width: 100%;
+	height: 100%;
+}
+
+#srw_editor .definition_select {
+	width: 200px;
+}
+
+#srw_editor .selection_controls {
+	width: calc(100% - 10px);
+	display: flex;
+	align-items: center;
+	height: 50px;
+	padding-left: 5px;
+	padding-right: 5px;
+	border-bottom: 1px solid #3a3b55;
+}
+
+#srw_editor .selection_control_buttons {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+}
+
+#srw_editor .selection_control_buttons button{
+	margin: 2px;
+	width: 60px;
+}
+
+#srw_editor .section {
+	
+}
+
+#srw_editor .section_label {
+	font-size: 18px;
+	padding-left: 8px;
+	padding-top: 8px;
+	color: #4f52b1;
+}
+
+#srw_editor .section_content {
+	padding: 10px;
+	font-size: 12px;
+}
+
+#srw_editor #def_name {
+	margin-left: 5px;
+}	
+
+#srw_editor #sequence_select {
+	margin-left: 5px;
+}
+
+#srw_editor .tick_block {
+	margin: 10px;
+	padding: 5px;
+	border-radius: 10px;
+	background-color: #b8c8f1;
+}
+
+#srw_editor .tick_input {
+	width: 40px;
+}
+
+#srw_editor .cmd_block {
+	margin: 4px;
+	padding: 2px;
+	border-radius: 10px;
+	background-color: #576082;
+	color: #FFFFFF;
+}
+
+#srw_editor .cmd_block_inner {
+	margin: 4px;
+	padding: 2px;
+	border-radius: 10px;
+	background-color: #576082;
+	color: #FFFFFF;
+}
+
+#srw_editor .command_label {
+	display: inline-block;
+	width: 65px;
+}
+
+#srw_editor .param_label {
+	display: inline-block;
+	width: 100px;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+#srw_editor .command_row {
+	padding: 4px;
+}
+
+#srw_editor .target_select {
+	display: inline-block;
+	margin-left: 4px;
+}
+
+#srw_editor #timeline_section {
+	height: calc(100vh - 200px);
+	padding-right: 0px;
+}
+
+#srw_editor .command_param {
+	display: flex;
+    align-items: center;
+	margin-top: 4px;
+	padding: 2px;
+	border: 1px solid #FFFFFF;
+	border-radius: 999px;
+	margin-left: 4px;
+}
+
+#srw_editor .command_param[data-param="cleanUpCommands"]{
+	border-radius: 5px;
+	background-color: #b8c8f1;
+	color: #2f3754;
+}
+
+#srw_editor .command_param[data-param="commands"]{
+	border-radius: 5px;
+	background-color: #b8c8f1;
+	color: #2f3754;
+}
+
+#srw_editor .command_param[data-param="cleanUpCommands"] .position_select{
+	width: 80px;
+}
+
+#srw_editor .command_param[data-param="commands"] .position_select{
+	width: 80px;
+}
+
+#srw_editor .command_param[data-param="cleanUpCommands"] .rotation_select{
+	width: 80px;
+}
+
+#srw_editor .command_param[data-param="commands"] .rotation_select{
+	width: 80px;
+}
+
+#srw_editor .param_values {
+	display: flex;
+}
+
+#srw_editor .param_value {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+#srw_editor .param_coord {
+	width: 40px;
+}
+
+#srw_editor .commands_scroll {
+	overflow: auto;
+	height: calc(100% - 40px);
+}
+
+#srw_editor .commands_scroll input {
+	background-color: #2f3754;
+    color: white;
+    border: 0;
+    border-radius: 99px;
+    padding-left: 5px;
+}
+
+#srw_editor .commands_scroll select {
+	background-color: #2f3754;
+    color: white;
+    border: 0;
+    border-radius: 99px;
+    padding-left: 5px;
+}
+
+#srw_editor .command_tools {
+	display: flex;
+	padding-bottom: 10px;
+}
+
+#srw_editor .tick_button {
+	margin-left: 5px;
+}
+
+#srw_editor .tick_delete_button {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+#srw_editor .command_tools #new_tick {
+	margin-left: 5px;
+	margin-right: 5px;
+	
+}
+
+#srw_editor .command_type {
+	display: flex;
+	align-items: center;
+}
+
+#srw_editor .delete_command {
+	margin-left: 5px;
+}
+
+#srw_editor .tick_add_command {
+	margin-top: 2px;
+}
+
+#srw_editor .tick_paste_command {
+	margin-left: 5px;
+}
+
+#srw_editor .copy_command {
+	margin-left: 5px;
+}
+
+#srw_editor .extra_control select{
+	background-color: #2f3754;
+    color: white;
+    border: 0;
+    border-radius: 99px;
+    padding-left: 5px;
+	width: 100px;
+	margin: 2px;
+}
+
+#srw_editor .tick_play_button {
+	float: right;
+}
+
+#srw_editor #editor_selector {
+	margin-left: auto;
+	margin-right: 20px;
+}
+
+#srw_editor .bg_label {
+	width: 80px;
+}
+
+#srw_editor .bg_block {
+	
+}
+
+#srw_editor .bg_block .param_values{
+	align-items: center;
+    padding: 2px;
+}
+   
+#srw_editor .bg_block .bg_controls {
+	display: flex;
+	align-items: center;
+}
+
+#srw_editor .bg_block .bg_controls .label_visible {
+	margin-left: auto;
+	color: #FFFFFF;
+	width: auto;
+	margin-right: 2px;
+}
+
+#srw_editor #text_editor_section_tools {
+	
+}
+
+#srw_editor #text_editor_section_tools .row {
+	display: flex;
+	align-items: center;
+	padding: 2px;
+}
+
+#srw_editor #text_editor_section_tools select {
+	margin-right: 4px;
+	flex-shrink: none;
+}
+
+#srw_editor #text_editor_section_tools .select_label {
+	margin-right: 4px;
+	flex-shrink: none;
+}
+
+#srw_editor .text_block {
+	padding: 5px;
+}
+
+#srw_editor .text_types {
+	padding: 5px;
+}
+
+#srw_editor .text_label {
+	font-size: 14px;
+	width: 60px;
+}
+
+#srw_editor .text_editor .param_value {
+	width: 99%;
+	margin: 1px;
+}
+
+#srw_editor .quote_config .command_label {
+	width: 80px;
+	font-size: 14px;
+}
+
+#srw_editor .quote_config input {
+	margin-right: 4px;
+	width: 60px;
+
+}
+
+#srw_editor .quote_config {
+	display: flex;
+	align-items: center;
+}	
+
+#srw_editor .quote_id_container {
+	display: flex;
+	margin-top: 2px;
+}
+
+#srw_editor .quote_id_container .command_label {
+	width: 85px;
+	font-size: 14px;
+}
+
+#srw_editor .quote_id_container input {
+	margin-right: 4px;
+	width: 60px;
+}
+
+#srw_editor .quote {
+	padding: 4px;
+    border-radius: 8px;
+    background-color: #b8c8f1;
+	margin-bottom: 4px;
+	margin-top: 4px;
+	
+}
+
+#srw_editor .view_text_btn {
+	margin-left: auto;
+	margin-right: 5px;
+	cursor: pointer;
+}
+
+#srw_editor .view_text_btn img{
+	width: 16px;	
+}
+
+#srw_editor .delete_text_btn {	
+	margin-right: 5px;
+	cursor: pointer;
+}
+
+#srw_editor .delete_text_btn img{
+	width: 20px;	
+}
+
+#srw_editor .text_category_controls {
+	display: flex;
+	align-items: center;
+	margin: 2px;
+}
+
+#srw_editor .add_category_quote {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+#srw_editor .text_scroll_default {
+	height: calc(100% - 95px);
+}
+
+#srw_editor .attack_text {
+	position: relative;
+	padding: 4px;
+	border: 1px solid #FFFFFF;
+	border-radius: 8px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+#srw_editor .attack_text .title_label {
+	width: 100%;
+}
+
+#srw_editor .delete_weapon_entry {
+	position: absolute;
+	top: 0;
+	right: 0;
+	cursor: pointer;
+	filter: var(--white-filter);
+}
+
+#srw_editor .attacks_controls {
+	display: flex;
+	align-items: center;
+}
+
+#srw_editor .attacks_controls .text_label{
+	width: 90px;
+}
+
+#srw_editor .add_attack {
+	margin-left: 5px;
+}
+
+#srw_editor .event_controls {
+	display: flex;
+	align-items: center;
+	font-size: 14px;
+	padding: 5px;
+}
+
+#srw_editor .event_controls button{
+	margin-left: 5px;
+}
+
+#event_controls .event_controls .event_id {
+	width: 80px;
+	margin-left: 5px;
+}
+
+#srw_editor .text_scroll_event {
+	height: calc(100% - 127px);
+}
+
+#srw_editor .reference_id_label {
+	width: 100px;
+}
+
+#srw_editor .text_category_controls .text_label {
+	width: 80px;
+}
+
+#srw_editor .catmullrom_block {
+	width: 100%; 
+	display: block;
+}
+#srw_editor .catmullrom_block .param_values{
+	margin: 2px;
+}

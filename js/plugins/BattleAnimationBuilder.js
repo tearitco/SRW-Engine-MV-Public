@@ -1,14 +1,306 @@
 function BattleAnimationBuilder(){	
-	this._animLookup = {
-		1: this.Summon_Swarm,
-		2: this.Boss_Beam,
-		3: this.All_Out_Assault
+	var _this = this;
+	_this._isLoaded = new Promise(function(resolve, reject){
+		_this._resolveLoad = resolve;
+	});
+	this.loadDefinitions(
+		"active", 
+		function(data){
+			_this.processDefinitions(data)
+		}, function(){
+			_this.loadDefinitions(
+				"default",
+				function(data){
+					_this.processDefinitions(data)
+				}
+			)	
+		}
+	);
+}
+
+BattleAnimationBuilder.prototype.loadDefinitions = function(type, onload, onerror){
+	var xhr = new XMLHttpRequest();
+    var url = 'js/plugins/config/'+type+'/BattleAnimations.json';
+    xhr.open('GET', url);
+    xhr.overrideMimeType('application/json');
+    xhr.onload = function() {
+        if (xhr.status < 400) {
+            onload(JSON.parse(xhr.responseText));            
+        }
+    };
+    xhr.onerror = onerror;
+    window[name] = null;
+    xhr.send();
+}
+
+BattleAnimationBuilder.prototype.getEasingFunctions = function(){
+	return {
+		"sine": "SineEase",		
+		"circle": "CircleEase",
+		"back": "BackEase",
+		"bounce": "BounceEase",
+		"cubic": "CubicEase",
+		"elastic": "ElasticEase",
+		"exponential": "ExponentialEase",
+		"power": "PowerEase",
+		"quadratic": "QuadraticEase",
+		"quartic": "QuarticEase",
+		"quintic": "QuinticEase"
+	};
+}
+
+BattleAnimationBuilder.prototype.getDefinitions = function(){
+	return this._animLookup;
+}
+
+BattleAnimationBuilder.prototype.isLoaded = function(){
+	return this._isLoaded;
+}
+
+BattleAnimationBuilder.prototype.save = function(id){
+	var fs = require('fs');
+	var dirPath = 'js/plugins/config/active';
+	if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath);
+    }
+	fs.writeFileSync('js/plugins/config/active/BattleAnimations.json', JSON.stringify(this._animLookup));
+}
+
+BattleAnimationBuilder.prototype.saveBackup = function(id){
+	var fs = require('fs');
+	var dirPath = 'js/plugins/config/active';
+	if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath);
+    }
+	fs.writeFileSync('js/plugins/config/active/BattleAnimations.json.bak', JSON.stringify(this._animLookup));
+}
+
+BattleAnimationBuilder.prototype.newDef = function(name){
+	var newId = Math.max(...Object.keys(this._animLookup)) + 1;
+	this._animLookup[newId] = {
+		name: name,
+		data: {
+			mainAnimation: {},
+			onHit: {},
+			onHitOverwrite: {},
+			onMiss: {},
+			onMissOverwrite: {},
+			onDestroy: {},
+			onDestroyOverwrite: {}
+		}		
+	};
+	//this.save();
+	return newId;
+}
+
+BattleAnimationBuilder.prototype.copyDef = function(id){
+	var newId = Math.max(...Object.keys(this._animLookup)) + 1;
+	this._animLookup[newId] = JSON.parse(JSON.stringify(this._animLookup[id]));
+	//this.save();
+	return newId;
+}
+
+BattleAnimationBuilder.prototype.deleteDef = function(id){
+	delete this._animLookup[id];
+	//this.save();
+}
+
+BattleAnimationBuilder.prototype.updateName = function(id, value){
+	this._animLookup[id].name = value;
+	//this.save();
+}
+
+BattleAnimationBuilder.prototype.isUsedTick = function(id, sequence, tick){
+	var def = this._animLookup[id].data[sequence];	
+	if(def[tick] && def[tick].length){
+		return true;
 	}
+	return false;
+}
+
+BattleAnimationBuilder.prototype.newTick = function(id, sequence, tick){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick] = [];
+}
+
+BattleAnimationBuilder.prototype.deleteTick = function(id, sequence, tick){
+	var def = this._animLookup[id].data[sequence];	
+	delete def[tick];
+}
+
+BattleAnimationBuilder.prototype.addCommand = function(id, sequence, tick, command){
+	var def = this._animLookup[id].data[sequence];	
+	if(command){
+		def[tick].unshift(JSON.parse(JSON.stringify(command)));
+	} else {
+		def[tick].unshift({
+			type: "clear_attack_text",
+			target: "",
+			params: {}
+		});
+	}	
+}
+
+BattleAnimationBuilder.prototype.addInnerCommand = function(id, sequence, tick, idx, type, command){
+	var def = this._animLookup[id].data[sequence];
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	if(command){
+		params[type].unshift(JSON.parse(JSON.stringify(command)));
+	} else {
+		params[type].unshift({
+			type: "clear_attack_text",
+			target: "",
+			params: {}
+		});
+	}	
+}
+
+BattleAnimationBuilder.prototype.getCommandCopy = function(id, sequence, tick, cmdIdx){
+	var def = this._animLookup[id].data[sequence];	
+	return JSON.parse(JSON.stringify(def[tick][cmdIdx]));
+}
+
+BattleAnimationBuilder.prototype.getInnerCommandCopy = function(id, sequence, tick, idx, type, innerIdx){
+	var def = this._animLookup[id].data[sequence];	
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	return JSON.parse(JSON.stringify(params[type][innerIdx]));
+}
+
+BattleAnimationBuilder.prototype.changeCommand = function(id, sequence, tick, cmdIdx, cmdId){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][cmdIdx] = {
+		type: cmdId,
+		target: "",
+		params: {}
+	};
+}
+
+BattleAnimationBuilder.prototype.changeInnerCommand = function(id, sequence, tick, idx, type, innerIdx, cmdId){
+	var def = this._animLookup[id].data[sequence];
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	params[type][innerIdx] = {
+		type: cmdId,
+		target: "",
+		params: {}
+	};
+}
+
+BattleAnimationBuilder.prototype.changeCommandTarget = function(id, sequence, tick, cmdIdx, target){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][cmdIdx].target = target;
+}
+
+BattleAnimationBuilder.prototype.changeInnerCommandTarget = function(id, sequence, tick, idx, type, innerIdx, target){
+	var def = this._animLookup[id].data[sequence];
+	var params = def[tick][idx].params;
+	if(!params[type]){
+		params[type] = [];
+	}
+	params[type][innerIdx].target = target;
+}
+
+BattleAnimationBuilder.prototype.deleteCommand = function(id, sequence, tick, idx){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick].splice(idx, 1);
+}
+
+BattleAnimationBuilder.prototype.deleteInnerCommand = function(id, sequence, tick, idx, type, innerIdx){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][idx].params[type].splice(innerIdx, 1);
+}
+
+BattleAnimationBuilder.prototype.changeParamValue = function(id, sequence, tick, cmdIdx, param, value){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][cmdIdx].params[param] = value;
+}
+
+BattleAnimationBuilder.prototype.changeInnerParamValue = function(id, sequence, tick, cmdIdx, type, innerIdx, param, value){
+	var def = this._animLookup[id].data[sequence];	
+	def[tick][cmdIdx].params[type][innerIdx].params[param] = value;
+}
+
+BattleAnimationBuilder.prototype.updateTick = function(id, sequence, originalTick, tick){
+	tick = tick*1;
+	originalTick = originalTick*1;
+	var def = this._animLookup[id].data[sequence];
+	if(def){
+		if(!def[tick]){
+			def[tick] = [];
+		}
+		def[tick] = def[tick].concat(def[originalTick]);
+		delete def[originalTick];
+	}
+	//this.save();
+}
+
+BattleAnimationBuilder.prototype.processDefinitions = function(data){
+	var _this = this;
+	
+	
+	_this._animLookup = data;
+	_this._resolveLoad();
+	/*Object.keys(this._animLookup).forEach(function(id){
+		var data = _this._animLookup[id].data;
+		
+	}); */
+}
+
+BattleAnimationBuilder.prototype.processDefinition = function(data){
+	var _this = this;
+	var paramHandlers = {
+		easingFunction: function(value){
+			if(value != ""){
+				return new BABYLON[_this.getEasingFunctions()[value]]()
+			} else {
+				return "";
+			}			
+		}
+	};
+	
+	data = JSON.parse(JSON.stringify(data));
+	Object.keys(data).forEach(function(animTimelineType){
+		var timeLineData = data[animTimelineType];
+		var tmp = [];
+		Object.keys(timeLineData).forEach(function(tick){
+			tmp[tick*1] = timeLineData[tick];
+			var commands = tmp[tick];
+			commands.forEach(function(command){
+				var params = command.params;
+				Object.keys(params).forEach(function(param){
+					if(paramHandlers[param]){
+						params[param] = paramHandlers[param](params[param]);
+					}
+					if(param == "commands"){
+						var innerCommands = params[param];
+						innerCommands.forEach(function(command){
+							var params = command.params;
+							Object.keys(params).forEach(function(param){
+								if(paramHandlers[param]){
+									params[param] = paramHandlers[param](params[param]);
+								}
+							});
+						});
+					}
+				});
+			});
+		});
+		data[animTimelineType] = tmp;
+	});
+	return data;
 }
 
 BattleAnimationBuilder.prototype.buildAnimation = function(idx, context){
 	if(this._animLookup[idx]){
-		return this._animLookup[idx].call(context);
+		return this.processDefinition(this._animLookup[idx].data);
 	} else {
 		return null;
 	}	
