@@ -80,7 +80,11 @@ import "./style/SRW_Menus.css";
 import Window_CSS from "./Window_CSS.js";
 
 Graphics._getCurrentWidth = function(){
-	return this._width * this._realScale;
+	if(!$gameTemp || !$gameTemp.editMode){
+		return this._width * this._realScale;
+	} else {
+		return 1110;
+	}	
 }
 
 Graphics.getOriginalWidth = function(){

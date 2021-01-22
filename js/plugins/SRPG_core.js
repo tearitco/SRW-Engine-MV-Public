@@ -194,13 +194,6 @@ var $battleSceneManager = new BattleSceneManager();
 		}	
 		$CSSUIManager.updateScaledText();				
 	}
-	var Graphics_getScale = Graphics.getScale;
-	
-	
-	Graphics._getCurrentWidth = function(){			
-		return this._width * this.getScale();
-			
-	}
 
     var _Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
