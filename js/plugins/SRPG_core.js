@@ -1277,7 +1277,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.regionBattleEnv = {};
 		$gameSystem.regionSkyBattleEnv = {};
 		$gameSystem.stageTextId = null;
-
+		//$gameSystem.showWillIndicator = false;
 		$gameTemp.disappearQueue = [];
 
 		$gameSystem.actorRankLookup = $statCalc.getActorRankLookup();
@@ -6081,8 +6081,21 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 
 	Sprite_WillIndicator.prototype.initialize = function(character) {
 		Sprite_Base.prototype.initialize.call(this);
-		this._character = character;
-		this._isEnemy = character.isType() === 'enemy'
+		this._character = character;		
+		this.text = new PIXI.Text('',
+		{
+		  fontFamily : 'Arial',
+		  fontSize: "13px",
+		  fill : 0xffffff,
+		  cacheAsBitmap: true, // for better performance
+		  height: 30,
+		  width: 20,
+		});
+		this.addChild(this.text)
+	};
+
+	Sprite_WillIndicator.prototype.update = function() {
+		this._isEnemy = this._character.isType() === 'enemy'
 		if(this._isEnemy){
 			this.bitmap = ImageManager.loadSystem('WillIndicatorEnemy');
 		} else {
@@ -6092,15 +6105,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.anchor.x = 0.5;
 		this.anchor.y = 1;
 		
-		this.text = new PIXI.Text('',
-		{
-		  fontFamily : 'Arial',
-		  fontSize: "13px",
-		  fill : 0xffffff,
-		  cacheAsBitmap: true, // for better performance
-		  height: 30,
-		  width: 20,
-		}); 
+		 
 		if(this._isEnemy){
 			this.text.anchor.set(0); 
 			this.text.x = -23; 
@@ -6109,11 +6114,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this.text.anchor.set(1); 
 			this.text.x = 23; 
 			this.text.y = -33.5	;
-		}		 
-		this.addChild(this.text)
-	};
-
-	Sprite_WillIndicator.prototype.update = function() {
+		}	
+		
 		this.x = this._character.screenX();
 		this.y = this._character.screenY();
 		//this.z = this._character.screenZ() - 1;

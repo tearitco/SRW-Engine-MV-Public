@@ -1356,7 +1356,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				_this._animationList[startTick + 30] = [
 					{type: "teleport", target: "Camera", params: {position: _this._defaultPositions.camera_main_idle}},
 					{type: "rotate_to", target: "Camera", params: {rotation: _this._defaultRotations.camera_main_idle}},
-					{type: "show_sprite", target: "active_target", params: {}},					
+					{type: "show_sprite", target: "active_target", params: {}},		
+					{type: "hide_sprite", target: "active_main", params: {}},					
 				];	
 				
 				_this._animationList[startTick + 50] = [
@@ -1382,6 +1383,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				];
 				
 				_this._animationList[startTick + 130] = [
+					{type: "show_sprite", target: "active_main", params: {}},	
 					{type: "enable_support_defender"},
 				];				
 				
