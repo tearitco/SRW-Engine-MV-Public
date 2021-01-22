@@ -251,7 +251,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 				willRequired: parseInt(weaponProperties.weaponWill),
 				terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
 				effects: effects,
-				particleType: (weaponProperties.weaponCategory || "").trim(), //missile, funnel, beam, gravity, physical or "".
+				particleType: (weaponProperties. egory || "").trim(), //missile, funnel, beam, gravity, physical or "".
 				animId: parseInt(weaponProperties.weaponAnimId) || -1,
 				isMap: isMap, 
 				mapId: mapId,
@@ -847,6 +847,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		var previousStats;
 		var previousFlightState;
 		var previousCombineInfo;
+		var previousBoarded;
 		
 		if(preserveVolatile){
 			if(actor.SRWStats.mech.stats){
@@ -856,6 +857,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 				}
 				previousFlightState = actor.SRWStats.mech.isFlying;
 				previousCombineInfo = actor.SRWStats.mech.combineInfo;
+				previousBoarded = actor.SRWStats.mech.unitsOnBoard;
 			}			
 		}
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items, previousWeapons);
@@ -879,6 +881,9 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			}
 			if(previousCombineInfo){
 				actor.SRWStats.mech.combineInfo = previousCombineInfo;
+			}
+			if(previousBoarded){
+				actor.SRWStats.mech.unitsOnBoard = previousBoarded;
 			}
 		}
 	}

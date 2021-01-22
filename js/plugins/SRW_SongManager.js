@@ -25,6 +25,13 @@ SRWSongManager.prototype.playSong = function(songId){
 	}
 }
 
+SRWSongManager.prototype.fadeInSong = function(songId){
+	var _this = this;
+
+	_this.playSong(songId);
+	//AudioManager.fadeInBgm(1);	
+}
+
 SRWSongManager.prototype.getUnitSongInfo = function(actor){
 	if(!actor){
 		return {
@@ -69,5 +76,5 @@ SRWSongManager.prototype.playStageSong = function(){
 	} else {
 		songId = $gameSystem.currentStageSong;
 	}	
-	this.playSong(songId);	
+	this.fadeInSong(songId);	
 }

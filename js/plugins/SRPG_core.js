@@ -3334,7 +3334,7 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		}		
 
-		if(currentRegion == 3){
+		if(currentRegion == 3 && !$statCalc.isFlying(actor)){
 			if($statCalc.canBeOnWater(actor, "water") < 2){
 				moveCost*=2;
 			}
@@ -5149,7 +5149,7 @@ Game_Interpreter.prototype.manualDeploy = function(){
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
 	$gameTemp.pushMenu = "in_stage_deploy";
 	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployInfo()));
-	return false;
+	
 }
 
 // 指定した座標にプレイヤーを移動する
@@ -9129,7 +9129,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameTemp.disableHighlightGlow = false;
 				$gameSystem.undeployActors();
 				$gameSystem.deployActors(true, false, true);
-				$gameSystem.setSubBattlePhase("initialize");
+				$gameSystem.setSubBattlePhase("start_srpg");
 				
 				$gameMap._interpreter.setWaitMode("enemy_appear");
 				$gameTemp.enemyAppearQueueIsProcessing = true;
