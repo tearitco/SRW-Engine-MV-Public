@@ -1518,6 +1518,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			//scale*=_this._animationDirection;
 			var speed = params.speed || 1;
 			var rotation = params.rotation || new BABYLON.Vector3(0,0,0);
+			if(_this._animationDirection == -1){
+				rotation.y = rotation.y * 1 + Math.PI;
+			}
+			
 			var info;
 			var effect = _this._effksContext.loadEffect("effekseer/"+params.path+".efk", 1.0, function(){
 				// Play the loaded effect
@@ -2050,6 +2054,7 @@ BattleSceneManager.prototype.playDefaultAttackAnimation = function(cacheRef){
 
 BattleSceneManager.prototype.readBattleCache = function() {
 	var _this = this;
+	_this._noCounter = false;
 	_this._actionQueue = [];
 	//_this._requiredImages.push("img/basic_battle/test.png");
 	_this._participantInfo.actor.participating = false;
@@ -2058,7 +2063,12 @@ BattleSceneManager.prototype.readBattleCache = function() {
 	_this._participantInfo.enemy_supporter.participating = false;
 	Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 		var battleEffect = $gameTemp.battleEffectCache[cacheRef];
-			
+		
+		if(battleEffect.type == "defender" && battleEffect.action.type == "none" && !battleEffect.isDestroyed){
+			_this._noCounter = true;
+			_this._defenderCache = battleEffect;
+		}
+		
 		_this._actionQueue[battleEffect.actionOrder] = battleEffect;
 		battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP;
 		var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
@@ -2618,6 +2628,18 @@ BattleSceneManager.prototype.processActionQueue = function() {
 		}
 		if(!_this._sceneIsEnding){
 			_this._sceneIsEnding = true;
+			var endTimer = 1000;
+			if(_this._noCounter){
+				endTimer = 2000;
+				
+				var nextAction = _this._defenderCache;
+				var entityType = nextAction.isActor ? "actor" : "enemy";
+				var entityId = nextAction.ref.SRWStats.pilot.id;				
+				
+				var battleText = _this._battleTextManager.getText(entityType, nextAction.ref, "no_counter", nextAction.isActor ? "actor" : "enemy", _this.getBattleTextId(nextAction.attacked), null, null);
+				
+				_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText);
+			}
 			setTimeout(function(){
 				_this.systemFadeToBlack(100, 1000).then(function(){					
 					_this.stopScene();
@@ -2629,7 +2651,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 						}
 					});			
 				});		
-			}, 1000);
+			}, endTimer);
 		}
 		
 		return;

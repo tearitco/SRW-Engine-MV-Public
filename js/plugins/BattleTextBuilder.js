@@ -27,7 +27,8 @@ function BattleTextBuilder(){
 		"damage_critical",
 		"destroyed",
 		"support_defend",
-		"support_attack"
+		"support_attack",
+		"no_counter"
 	];			
 }
 
