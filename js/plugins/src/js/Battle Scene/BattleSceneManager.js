@@ -2424,11 +2424,6 @@ BattleSceneManager.prototype.getBgPromise = function(bg){
 BattleSceneManager.prototype.preloadSceneAssets = function(){
 	var _this = this;
 	
-	var timeOutInterval = setInterval(function(){
-		clearInterval(timeOutInterval);
-		alert("Scene assets are missing, please check the network tab in the console! ");
-	},20000);
-	
 	return new Promise(function(resolve, reject){
 		var promises = [];
 		
@@ -2517,7 +2512,6 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 		}	
 		
 		Promise.all(promises).then(() => {
-			clearInterval(timeOutInterval);
 			resolve();
 		});	
 	});
