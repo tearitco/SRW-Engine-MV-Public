@@ -2413,80 +2413,141 @@ BattleSceneManager.prototype.fadeAndShowScene = function(){
 	});	
 }
 
+BattleSceneManager.prototype.getBgPromise = function(bg){
+	return new Promise((resolve) => {
+		bg.material.diffuseTexture.onLoadObservable.add(() => {
+			resolve();
+		});
+	});
+}		
+
 BattleSceneManager.prototype.preloadSceneAssets = function(){
 	var _this = this;
-	for(var i = 0; i < _this._actionQueue.length; i++){
-		var nextAction = _this._actionQueue[i];
-		var attack = nextAction.action.attack;
+	
+	var timeOutInterval = setInterval(function(){
+		clearInterval(timeOutInterval);
+		alert("Scene assets are missing, please check the network tab in the console! ");
+	},20000);
+	
+	return new Promise(function(resolve, reject){
+		var promises = [];
 		
-		var animId;
-		if(attack && typeof attack.animId != "undefined" && attack.animId != -1){
-			animId = attack.animId;
-		} else {
-			animId = 0;//default
-		}
-		var preloadCtr = 0;
-		function preloadDefaultFrames(ref){
-			var defaultFrames = ["main", "in", "out", "hurt", "dodge"];
-			if(ref){
-				var imgPath = $statCalc.getBattleSceneImage(ref);
-				defaultFrames.forEach(function(frame){
-					var bg = _this.createSceneBg((preloadCtr++)+"_preload", imgPath+"/"+frame, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-					_this._animationBackgroundsInfo.push(bg);
-				});
+		for(var i = 0; i < _this._actionQueue.length; i++){
+			var nextAction = _this._actionQueue[i];
+			var attack = nextAction.action.attack;
+			
+			var animId;
+			if(attack && typeof attack.animId != "undefined" && attack.animId != -1){
+				animId = attack.animId;
+			} else {
+				animId = 0;//default
 			}
+			var preloadCtr = 0;
+			function preloadDefaultFrames(ref){
+				var defaultFrames = ["main", "in", "out", "hurt", "dodge"];
+				if(ref){
+					var imgPath = $statCalc.getBattleSceneImage(ref);
+					defaultFrames.forEach(function(frame){
+						var bg = _this.createSceneBg((preloadCtr++)+"_preload", imgPath+"/"+frame, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+						 
+						//(bg.material.diffuseTexture.onLoadObservable);
+						
+						promises.push(_this.getBgPromise(bg));
+						_this._animationBackgroundsInfo.push(bg);
+					});
+				}
+			}
+			
+			preloadDefaultFrames(nextAction.ref);
+			preloadDefaultFrames(nextAction.originalTarget.ref);
+			preloadDefaultFrames(nextAction.attacked.ref);
+			
+			promises.push(_this.preloadEnvironment(nextAction.ref));
+			promises.push(_this.preloadEnvironment(nextAction.originalTarget.ref));
+			promises.push(_this.preloadEnvironment(nextAction.attacked.ref));
+			
+			var animationList = _this._animationBuilder.buildAnimation(animId, _this);
+			Object.keys(animationList).forEach(function(animType){
+				animationList[animType].forEach(function(batch){
+					batch.forEach(function(animCommand){
+						var target = animCommand.target;
+						var params = animCommand.params;
+						if(animCommand.type == "create_bg"){
+							var bg = _this.createSceneBg(animCommand.target+"_preload", params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+							promises.push(_this.getBgPromise(bg));
+							_this._animationBackgroundsInfo.push(bg);
+						}	
+						if(animCommand.type == "set_sprite_animation" || animCommand.type == "set_sprite_frame"){
+							var action = nextAction;
+							var targetAction = nextAction.attacked;
+							
+							var battleEffect;
+							if(target == "active_main" || target == "active_support_attacker"){
+								battleEffect = action;
+							} else if(target == "active_target" || target == "active_support_defender"){
+								battleEffect = targetAction;
+							}								
+							
+							var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+							var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+							promises.push(_this.getBgPromise(bg));
+							_this._animationBackgroundsInfo.push(bg);
+							
+						}
+						if(animCommand.type == "create_sky_box"){
+							var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
+							var skyboxMaterial = new BABYLON.StandardMaterial(animCommand.target+"_material", _this._scene);
+							skyboxMaterial.backFaceCulling = false;
+							skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("img/skyboxes/"+params.path, _this._scene);
+							skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+							skyboxMaterial.diffuseColor = params.color || new BABYLON.Color3(0, 0, 0);
+							skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+							skybox.material = skyboxMaterial;
+							skybox.isVisible = false;
+						}	
+						if(animCommand.type == "create_layer"){
+							var bg = new BABYLON.Layer(animCommand.target+"_preload", "img/SRWBattleScene/"+params.path+".png", _this._scene, params.isBackground);							
+							//promises.push(getPromise(bg));
+							//_this._animationBackgroundsInfo.push(bg);
+							bg.dispose();														
+						}					
+					});
+				});				
+			});		
+		}	
+		
+		Promise.all(promises).then(() => {
+			clearInterval(timeOutInterval);
+			resolve();
+		});	
+	});
+}
+
+BattleSceneManager.prototype.preloadEnvironment = function(ref){
+	var _this = this;	
+	return new Promise(function(resolve, reject){	
+		var bgId = $gameSystem.getUnitSceneBgId(ref);
+		var promises = [];
+		var environmentDef = _this._environmentBuilder.getDefinition(bgId);
+		if(environmentDef){
+			var bgs = JSON.parse(JSON.stringify(environmentDef.data.bgs));			
+			var ctr = 0;			
+			bgs.forEach(function(bg){
+				if(!bg.hidden){		
+					if(bg.isfixed){			
+						//_this._fixedBgs.push(_this.createBg("bg"+ctr, bg.path, new BABYLON.Vector3(0, bg.yoffset, bg.zoffset), {width: bg.width, height: bg.height}))
+						var fixedBg = (new BABYLON.Layer("bg"+ctr, "img/SRWBattlebacks/"+bg.path+".png", _this._scene, true));
+						fixedBg.dispose();
+					} else {
+						var bg = _this.createBg("bg"+ctr+"_preload", bg.path, new BABYLON.Vector3(0, 0, -1000), 1, 1);	
+						promises.push(_this.getBgPromise(bg));	
+					}	
+				}	
+				ctr++;
+			});
 		}
-		
-		preloadDefaultFrames(nextAction.ref);
-		preloadDefaultFrames(nextAction.originalTarget.ref);
-		preloadDefaultFrames(nextAction.attacked.ref);
-		
-		var animationList = _this._animationBuilder.buildAnimation(animId, _this);
-		Object.keys(animationList).forEach(function(animType){
-			animationList[animType].forEach(function(batch){
-				batch.forEach(function(animCommand){
-					var target = animCommand.target;
-					var params = animCommand.params;
-					if(animCommand.type == "create_bg"){
-						var bg = _this.createSceneBg(animCommand.target+"_preload", params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-						_this._animationBackgroundsInfo.push(bg);
-					}	
-					if(animCommand.type == "set_sprite_animation" || animCommand.type == "set_sprite_frame"){
-						var action = nextAction;
-						var targetAction = nextAction.attacked;
-						
-						var battleEffect;
-						if(target == "active_main" || target == "active_support_attacker"){
-							battleEffect = action;
-						} else if(target == "active_target" || target == "active_support_defender"){
-							battleEffect = targetAction;
-						}								
-						
-						var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
-						var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-						_this._animationBackgroundsInfo.push(bg);
-						
-					}
-					if(animCommand.type == "create_sky_box"){
-						var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
-						var skyboxMaterial = new BABYLON.StandardMaterial(animCommand.target+"_material", _this._scene);
-						skyboxMaterial.backFaceCulling = false;
-						skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("img/skyboxes/"+params.path, _this._scene);
-						skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-						skyboxMaterial.diffuseColor = params.color || new BABYLON.Color3(0, 0, 0);
-						skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-						skybox.material = skyboxMaterial;
-						skybox.isVisible = false;
-					}	
-					if(animCommand.type == "create_layer"){
-						var bg = new BABYLON.Layer(animCommand.target+"_preload", "img/SRWBattleScene/"+params.path+".png", _this._scene, params.isBackground);							
-						//_this._animationBackgroundsInfo.push(bg);
-						bg.dispose();														
-					}					
-				});
-			});				
-		});		
-	}
+		Promise.all(promises).then(resolve);
+	});
 }
 
 BattleSceneManager.prototype.showScene = function() {
@@ -2496,8 +2557,9 @@ BattleSceneManager.prototype.showScene = function() {
 	_this._UIcontainer.style.display = "block";	
 	_this.readBattleCache();
 	_this.resetScene();
-	_this.preloadSceneAssets();
-	setTimeout(finalize, 1000); //TODO: add more intelligent pre-loading
+	_this.preloadSceneAssets().then(function(){
+		finalize();
+	});
 		
 	function finalize(){
 		_this._UILayerManager.resetTextBox();
