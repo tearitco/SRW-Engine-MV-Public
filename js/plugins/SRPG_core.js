@@ -4819,9 +4819,6 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 			enemy_unit.event = event;
 			if (mode) {
 				enemy_unit.setBattleMode(mode);
-				/*if (targetId) {
-					enemy_unit.setTargetId(targetId);
-				}*/
 			}
 			enemy_unit.initTp(); //TPを初期化
 			var faceName = enemy_unit.enemy().meta.faceName; //顔グラフィックをプリロードする
