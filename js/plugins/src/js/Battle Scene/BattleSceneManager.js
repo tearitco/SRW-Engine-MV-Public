@@ -1339,7 +1339,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			} else {
 				action = _this._currentAnimatedAction;
 			}
-			_this.setBgMode($statCalc.isFlying(action.ref) ? "sky" : "land");			
+			_this.setBgMode($statCalc.isFlying(action.ref) || $statCalc.getTileType(action.ref) == "space" ? "sky" : "land");			
 		},	
 		next_phase: function(target, params){
 			
@@ -2610,7 +2610,7 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 		
 		
 		_this._bgsHidden = false;
-		_this.setBgMode($statCalc.isFlying(action.ref) ? "sky" : "land");
+		_this.setBgMode($statCalc.isFlying(action.ref) || $statCalc.getTileType(action.ref) == "space" ? "sky" : "land");
 		_this._actorSprite.sprite.material.diffuseTexture.uScale = 1;
 		_this._actorSprite.sprite.material.diffuseTexture.vScale = 1;
 		_this._enemySprite.sprite.material.diffuseTexture.uScale = -1;
