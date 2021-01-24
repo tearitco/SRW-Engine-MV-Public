@@ -4814,14 +4814,15 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 		enemy_unit.squadId = squadId;	
 		enemy_unit.targetRegion = targetRegion;	
 		enemy_unit.factionId = factionId;	
-		enemy_unit.targetId = targetId;
+		//enemy_unit._targetId = targetId;
+		if (targetId != null) {
+			enemy_unit.setTargetId(targetId);
+		}
 		if (enemy_unit) {
 			enemy_unit.event = event;
 			if (mode) {
 				enemy_unit.setBattleMode(mode);
-				if (targetId) {
-					enemy_unit.setTargetId(targetId);
-				}
+				
 			}
 			enemy_unit.initTp(); //TPを初期化
 			var faceName = enemy_unit.enemy().meta.faceName; //顔グラフィックをプリロードする
@@ -11034,11 +11035,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}
 		}
 		targets = tmp;
-		if(!battler.isActor() && battler.targetId && battler.targetId != -1){
+		if(!battler.isActor() && battler.targetId() != -1){
 			var target;
 			for(var i = 0; i < targets.length; i++){
 				var actor = $gameSystem.EventToUnit(targets[i].eventId())[1];
-				if(actor.isActor() && actor.actorId() == battler.targetId){
+				if(actor.isActor() && actor.actorId() == battler.targetId()){
 					target = targets[i];
 				}
 			}
@@ -11071,11 +11072,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}
 		}
 		targets = tmp;
-		if(!battler.isActor() && battler.targetId && battler.targetId != -1){
+		if(!battler.isActor() && battler.targetId() != -1){
 			var target;
 			for(var i = 0; i < targets.length; i++){
 				var actor = $gameSystem.EventToUnit(targets[i].eventId())[1];
-				if(actor.isActor() && actor.actorId() == battler.targetId){
+				if(actor.isActor() && actor.actorId() == battler.targetId()){
 					target = targets[i];
 				}
 			}
@@ -11115,7 +11116,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var bestScore = -1;
 		var attacker = $gameSystem.EventToUnit(activeEvent.eventId())[1];
 		var targetsByHit = [];
-		var priorityTargetId = attacker.targetId;
+		var priorityTargetId = attacker.targetId();
 		var priorityTargetEvent = -1;
 		
 		canAttackTargets.forEach(function(event) {
