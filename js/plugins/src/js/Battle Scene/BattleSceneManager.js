@@ -2413,9 +2413,13 @@ BattleSceneManager.prototype.fadeAndShowScene = function(){
 	});	
 }
 
-BattleSceneManager.prototype.getBgPromise = function(bg){
+BattleSceneManager.prototype.getBgPromise = function(bg){	
+	return this.getTexturePromise(bg.material.diffuseTexture);
+}	
+
+BattleSceneManager.prototype.getTexturePromise = function(texture){
 	return new Promise((resolve) => {
-		bg.material.diffuseTexture.onLoadObservable.add(() => {
+		texture.onLoadObservable.add(() => {
 			resolve();
 		});
 	});
@@ -2443,12 +2447,21 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 				if(ref){
 					var imgPath = $statCalc.getBattleSceneImage(ref);
 					defaultFrames.forEach(function(frame){
-						var bg = _this.createSceneBg((preloadCtr++)+"_preload", imgPath+"/"+frame, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+						//var bg = _this.createSceneBg((preloadCtr++)+"_preload", imgPath+"/"+frame, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
 						 
 						//(bg.material.diffuseTexture.onLoadObservable);
 						
-						promises.push(_this.getBgPromise(bg));
-						_this._animationBackgroundsInfo.push(bg);
+						//promises.push(_this.getBgPromise(bg));
+						//_this._animationBackgroundsInfo.push(bg);
+						var sampleMode;
+						if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
+							sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
+						} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
+							sampleMode = BABYLON.Texture.NEAREST_NEAREST
+						}
+												
+						var texture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+frame+".png", _this._scene, false, true, sampleMode);
+						promises.push(_this.getTexturePromise(texture));
 					});
 				}
 			}
@@ -2552,7 +2565,7 @@ BattleSceneManager.prototype.showScene = function() {
 	_this.readBattleCache();
 	_this.resetScene();
 	_this.preloadSceneAssets().then(function(){
-		finalize();
+		setTimeout(finalize, 1000);
 	});
 		
 	function finalize(){
