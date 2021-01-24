@@ -890,13 +890,14 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		}
 	}
 	
-	if(!isForActor){
-		if(this.canFly(actor)){
-			this.setFlying(actor, true);
-		}		
-	}	
+		
 	
-	if(!preserveVolatile){	
+	if(!preserveVolatile){		
+		if(!isForActor){
+			if(this.canFly(actor)){
+				this.setFlying(actor, true);
+			}		
+		}	
 		if(actor.event && $dataMap){ //hacky solution to the initializer being called in context where either no event has been assigned to the actor(initial load of map, intermission) or where $dataMap has not loaded yet(loading save)
 			var validPosition = this.canStandOnTile(actor, {x: actor.event.posX(), y: actor.event.posY()});
 			if(!validPosition){
@@ -2086,7 +2087,7 @@ StatCalc.prototype.canBeOnSpace = function(actor){
 
 StatCalc.prototype.canFly = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(actor, 0, ["fly"]);
+		return ((actor.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(actor, 0, ["fly"])) && this.getTileType(actor) != "space");
 	} else {
 		return false;
 	}		
