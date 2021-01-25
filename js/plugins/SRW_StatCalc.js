@@ -88,7 +88,7 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 }
 
 StatCalc.prototype.getTileType = function(actor){
-	if(this.isActorSRWInitialized(actor) && actor.event){
+	if(this.isActorSRWInitialized(actor) && actor.event && actor.event.posX){
 		var position = {x: actor.event.posX(), y: actor.event.posY()};
 		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
 			return "air";		
