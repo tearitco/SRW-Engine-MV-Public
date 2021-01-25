@@ -620,7 +620,11 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 			if(shadowSprite){			
 				shadowSprite.position.x = spriteInfo.sprite.position.x + ((shadowSprite.shadowInfo.offsetX || 0) * (shadowSprite.shadowInfo.type == "enemy" ? -1 : 1));
 				shadowSprite.position.z = spriteInfo.sprite.position.z + 0.1;//(shadowSprite.shadowInfo.offsetZ || 0);
+				var scale = Math.max(4 - spriteInfo.sprite.position.y, 0) / 4;
 				
+				shadowSprite.scaling.x = scale;
+				shadowSprite.scaling.y = scale;
+				shadowSprite.scaling.z = scale;
 				shadowSprite.setEnabled(spriteInfo.sprite.isEnabled());
 			}
 			/*if(spriteInfo.sprite.isEnabled()){
