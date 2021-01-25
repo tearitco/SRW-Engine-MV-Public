@@ -131,7 +131,8 @@ BattleSceneManager.prototype.initContainer = function(){
 	document.body.appendChild(this._UIcontainer);		
 }
 
-BattleSceneManager.prototype.init = function(attachControl){	
+BattleSceneManager.prototype.init = function(attachControl){
+	var _this = this;
 	if(!this._initialized){
 		this._initialized = true;
 		this._UILayerManager = new BattleSceneUILayer("battle_scene_ui_layer");	
@@ -141,7 +142,15 @@ BattleSceneManager.prototype.init = function(attachControl){
 		this._engine = new BABYLON.Engine(this._canvas, true, {preserveDrawingBuffer: true, stencil: true}); // Generate the BABYLON 3D engine	
 		this._effksContext = effekseer.createContext();
 		this._effksContext.init(this._glContext);
-		this.initScene(attachControl);
+		
+		this._attachControl = attachControl;
+		this.initScene();
+		
+		// Watch for browser/canvas resize events
+		window.addEventListener("resize", function () {
+			_this._engine.resize();
+		});
+		
 		this._UILayerManager.redraw();
 	}
 }
@@ -178,9 +187,13 @@ BattleSceneManager.prototype.getDefaultRotations = function(){
 	return this._defaultRotations;
 }	
 
-BattleSceneManager.prototype.initScene = function(attachControl){
+BattleSceneManager.prototype.initScene = function(){
 	var _this = this;
 	 // Create the scene space
+	if(this._scene){
+		this._scene.dispose();
+	}
+	 
 	var scene = new BABYLON.Scene(this._engine);
 	this._scene = scene;
 	this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
@@ -189,7 +202,7 @@ BattleSceneManager.prototype.initScene = function(attachControl){
 	// Add a camera to the scene and attach it to the canvas
 	//var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, new BABYLON.Vector3(0,0,5), scene);
 	this._camera = new BABYLON.FreeCamera("FreeCamera", this._defaultPositions.camera_main_idle, scene);
-	if(attachControl){
+	if(this._attachControl){
 		this._camera.attachControl(this._canvas, true);
 		//hack to add up down controls to the camera
 		document.addEventListener("keydown", function(e){
@@ -233,10 +246,7 @@ BattleSceneManager.prototype.initScene = function(attachControl){
 	//this.startScene();	
 	this._engine.resize();
 	
-	// Watch for browser/canvas resize events
-	window.addEventListener("resize", function () {
-		_this._engine.resize();
-	});
+	
 }
 
 BattleSceneManager.prototype.createBg = function(name, img, position, size, alpha, rotation, useDiffuseAlpha, billboardMode){
@@ -320,13 +330,14 @@ BattleSceneManager.prototype.createSceneBg = function(name, path, position, size
 		
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, BABYLON.Texture.NEAREST_NEAREST);
 	material.diffuseTexture.hasAlpha = true;
-	//material.useAlphaFromDiffuseTexture  = true;
+	//
 	
 	material.specularColor = new BABYLON.Color3(0, 0, 0);
 	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
 	material.ambientColor = new BABYLON.Color3(0, 0, 0);
 	if(typeof alpha != "undefined"){
 		material.alpha = alpha;
+		material.useAlphaFromDiffuseTexture  = true;
 	}	
 
     bg.material = material;
@@ -1678,6 +1689,11 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._floors.forEach(function(bg){
 				bg.isVisible = false;
 			});
+			_this._fixedBgs.forEach(function(bg){
+				bg.scale.x = 0;
+				bg.scale.y = 0;
+				bg.scale.z = 0;
+			});
 		},
 		show_bgs: function(target, params){
 			_this._bgsHidden = false;
@@ -1692,7 +1708,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				_this._floors.forEach(function(bg){
 					bg.isVisible = true;
 				});
-			}		
+			}	
+			_this._fixedBgs.forEach(function(bg){
+				bg.scale.x = 1;
+				bg.scale.y = 1;
+				bg.scale.z = 1;
+			});			
 		},
 		reset_position: function(target, params){
 			var targetObj = getTargetObject("active_target");
@@ -2322,6 +2343,8 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 
 BattleSceneManager.prototype.resetScene = function() {
 	var _this = this;
+	this.initScene();
+	
 	_this.setBgScrollRatio(1);
 	_this._UILayerManager.hideNoise();
 	_this._animationList = [];
@@ -2358,7 +2381,7 @@ BattleSceneManager.prototype.resetScene = function() {
 
 BattleSceneManager.prototype.createEnvironment = function(ref){
 	var _this = this;
-	
+
 	_this._bgs.forEach(function(bg){
 		bg.dispose();
 	});	
@@ -2390,8 +2413,6 @@ BattleSceneManager.prototype.createEnvironment = function(ref){
 		});
 	}
 }	
-	
-
 
 BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffset, zOffset){
 	var _this = this;
@@ -2566,8 +2587,8 @@ BattleSceneManager.prototype.showScene = function() {
 	_this._sceneCanEnd = false;
 	_this._sceneIsEnding = false;
 	_this._UIcontainer.style.display = "block";	
-	_this.readBattleCache();
 	_this.resetScene();
+	_this.readBattleCache();	
 	_this.preloadSceneAssets().then(function(){
 		setTimeout(finalize, 1000);
 	});
