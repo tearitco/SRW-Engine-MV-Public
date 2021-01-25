@@ -218,6 +218,49 @@ BattleAnimationBuilder.prototype.deleteInnerCommand = function(id, sequence, tic
 	def[tick][idx].params[type].splice(innerIdx, 1);
 }
 
+BattleAnimationBuilder.prototype.moveCommand = function(id, sequence, tick, idx, direction){
+	var def = this._animLookup[id].data[sequence];	
+	idx = idx * 1;
+	var commands = def[tick];
+	if(commands.length > 1){
+		if(direction == "up"){
+			if(idx != 0){
+				var tmp = commands[idx-1];
+				commands[idx-1] = commands[idx];
+				commands[idx] = tmp;
+			}
+		} else {
+			if(idx != commands.length - 1){
+				var tmp = commands[idx+1];
+				commands[idx+1] = commands[idx];
+				commands[idx] = tmp;
+			}
+		}
+	}
+}
+
+BattleAnimationBuilder.prototype.moveInnerCommand = function(id, sequence, tick, idx, type, innerIdx, direction){
+	var def = this._animLookup[id].data[sequence];	
+	idx = idx * 1;
+	innerIdx = innerIdx * 1;
+	var commands = def[tick][idx].params[type];
+	if(commands.length > 1){
+		if(direction == "up"){
+			if(innerIdx != 0){
+				var tmp = commands[innerIdx-1];
+				commands[innerIdx-1] = commands[innerIdx];
+				commands[innerIdx] = tmp;
+			}
+		} else {
+			if(innerIdx != commands.length - 1){
+				var tmp = commands[innerIdx+1];
+				commands[innerIdx+1] = commands[innerIdx];
+				commands[innerIdx] = tmp;
+			}
+		}
+	}
+}
+
 BattleAnimationBuilder.prototype.changeParamValue = function(id, sequence, tick, cmdIdx, param, value){
 	var def = this._animLookup[id].data[sequence];	
 	def[tick][cmdIdx].params[param] = value;

@@ -2237,6 +2237,26 @@ SRWEditor.prototype.showAttackEditorControls = function(){
 				event.returnValue = "You have unsaved changes, exit anyway?";
 			}
 		});		
+		
+		
+		var inputs = containerNode.querySelectorAll(".move_command_button");
+		inputs.forEach(function(input){
+			input.addEventListener("click", function(){
+				var direction = this.getAttribute("data-direction");
+				var tick = this.closest(".tick_block").querySelector(".tick_input").value;	
+				var cmdIdx = this.closest(".cmd_block").getAttribute("data-cmdidx");
+				var isCmdParam = this.closest(".inner_commands") != null;
+				if(isCmdParam){
+					var cmdInnerIdx = this.closest(".cmd_block_inner").getAttribute("data-cmdidx");
+					var type = this.closest(".command_param").getAttribute("data-param");
+					_this._animationBuilder.moveInnerCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, type, cmdInnerIdx, direction);
+				} else {
+					_this._animationBuilder.moveCommand(_this._currentDefinition, _this._currentSequenceType, tick, cmdIdx, direction);
+				}
+				_this._modified = true;
+				_this.showAttackEditorControls();							
+			});
+		});
 	});	
 }
 
@@ -2311,6 +2331,16 @@ SRWEditor.prototype.getCommandContent = function(command, isInner){
 	result+=_this.getCommandSelect(command.type, isInner);
 	result+="<button class='copy_command'>Copy</button>";
 	result+="<button class='delete_command'>Delete</button>";	
+	
+	result+="<div class='move_command_buttons'>";
+	result+="<div data-direction='up' class='move_command_button up'>";
+	result+="<img src='js/plugins/editor/svg/arrow-up-line.svg'>";
+	result+="</div>";
+	result+="<div data-direction='down' class='move_command_button down'>";
+	result+="<img src='js/plugins/editor/svg/arrow-down-line.svg'>";
+	result+="</div>";
+	result+="</div>";
+	
 	result+="</div>";
 	
 	if(displayInfo.hasTarget){

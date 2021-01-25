@@ -587,3 +587,16 @@
 #srw_editor .catmullrom_block .param_values{
 	margin: 2px;
 }
+
+#srw_editor .move_command_buttons {
+	margin-left: auto;
+	display: flex;
+}
+
+#srw_editor .move_command_buttons img{
+	width: 16px;
+}
+
+#srw_editor .move_command_buttons .move_command_button {
+	cursor: pointer;
+}
