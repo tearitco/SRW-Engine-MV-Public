@@ -2744,7 +2744,7 @@ StatCalc.prototype.getSupportAttackCandidates = function(factionId, position){
 	this.iterateAllActors(null, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
 			var maxSupportAttacks = $statCalc.applyStatModsToValue(actor, 0, ["support_attack"]);
-			if(maxSupportAttacks > actor.SRWStats.battleTemp.supportAttackCount && !actor.SRWStats.battleTemp.hasFinishedTurn){
+			if(maxSupportAttacks > actor.SRWStats.battleTemp.supportAttackCount && (!actor.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT)){
 				if($gameSystem.isFriendly(actor, factionId)){
 					result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});	
 				}				
@@ -3475,3 +3475,63 @@ StatCalc.prototype.applyMaxStatModsToValue = function(actor, value, types, exclu
 	return max;
 }
 
+StatCalc.prototype.getCommanderBonus = function(actor){
+	var commanderLookup = this.getCommanderAuraLookup(actor);
+	var result = 0;
+	if(actor.event){
+	    var x = actor.event.posX();
+		var y = actor.event.posY();
+		if(commanderLookup[x] && commanderLookup[x][y]){
+			result = commanderLookup[x][y];
+		}
+	}
+	result = parseInt(result);
+	if(isNaN(result)){
+		result = 0;
+	}
+	return result;
+}
+
+StatCalc.prototype.getCommanderAuraLookup = function(actor){
+	var _this = this;
+	var result = {};
+	var type = $gameSystem.isEnemy(actor);
+	if(this.isActorSRWInitialized(actor)){
+		this.iterateAllActors(null, function(actor, event){			
+			if(!event.isErased() && $gameSystem.isEnemy(actor) == type){
+				var commanderLevel = _this.applyStatModsToValue(actor, 0, "commander_aura");	
+				if(commanderLevel > 0){
+					var sourceX = event.posX();
+					var sourceY = event.posY();
+					for(var i = 0; i < 10; i++){
+						var x = i - 5;
+						for(var j = 0; j < 10; j++){
+							var y = j - 5;
+							var distance = Math.abs(x) + Math.abs(y);
+							if(distance <= 5 && distance > 0){
+								var realX = sourceX + x;
+								var realY = sourceY + y;
+								var auraLookup = ENGINE_SETTINGS.COMMANDER_AURA[commanderLevel];
+								if(auraLookup){
+									var amount = auraLookup[distance-1];
+									if(amount){
+										if(!result[realX]){
+											result[realX] = {};
+										}
+										if(!result[realX][realY]){
+											result[realX][realY] = 0;
+										}
+										if(amount > result[realX][realY]){
+											result[realX][realY] = amount;
+										}
+									}
+								}
+							}
+						}	
+					}
+				}	
+			}		
+		});
+	} 
+	return result;		
+}

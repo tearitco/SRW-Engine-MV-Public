@@ -15,5 +15,7 @@ var ENGINE_SETTINGS_DEFAULT = {
 		2: [15,12,8],
 		3: [20,16,12,8],
 		4: [25,20,15,10,5]
-	}
+	},
+	SUPPORT_ATTACK_RATIO: 0.8,
+	ALLOW_TURN_END_SUPPORT: false
 }

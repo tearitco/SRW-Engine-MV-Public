@@ -782,4 +782,22 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		1
 	);
+	
+	this.addDefinition(
+		44, 
+		"Commander", 
+		"Grants a boost to evasion and accuracy to adjacent allies. Range and effectiveness depend on the skill level.", 
+		true,
+		true,
+		function(actor, level){
+			return [
+				{type: "commander_aura", modType: "addFlat", value: level}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
 }

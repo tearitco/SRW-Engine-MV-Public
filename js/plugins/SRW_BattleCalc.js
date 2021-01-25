@@ -139,6 +139,7 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		
 		var baseHit = (attackerPilotStats.hit/2 + accuracy) * attackerTerrainMod + weaponInfo.hitMod;
 		
+		
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
 		var defenderMechStats = $statCalc.getCalculatedMechStats(defenderInfo.actor);
 		var mobility = defenderMechStats.mobility;
@@ -149,11 +150,13 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		
 		var defenderTerrainMod = $statCalc.getTerrainMod(defenderInfo.actor);
 		
-		var baseEvade = (defenderPilotStats.evade/2 + mobility) * defenderTerrainMod;			
+		var baseEvade = (defenderPilotStats.evade/2 + mobility) * defenderTerrainMod;
 		
 		var terrainEvadeFactor = $statCalc.getCurrentTerrainMods(defenderInfo.actor).evasion || 0;
 		
 		var finalHit = (baseHit - baseEvade) * this._sizeEvadeMod[defenderMechStats.size] * (1 - terrainEvadeFactor/100);
+		
+		finalHit = finalHit + $statCalc.getCommanderBonus(attackerInfo.actor) - $statCalc.getCommanderBonus(defenderInfo.actor);
 		
 		finalHit = $statCalc.applyStatModsToValue(attackerInfo.actor, finalHit, ["hit"]);
 		var evadeMod = 0;
@@ -639,6 +642,9 @@ BattleCalc.prototype.generateBattleResult = function(){
 					activeDefenderCache.madeContact = true;
 					//activeDefenderCache.attacked = aCache;
 				}
+			}
+			if(this._isSupportAttack && !$statCalc.applyStatModsToValue(this._attacker.actor, 0, ["full_support_damage"])){
+				damageResult.damage = Math.floor(damageResult.damage * ENGINE_SETTINGS.SUPPORT_ATTACK_RATIO);				
 			}
 			
 			aCache.hits = isHit;
