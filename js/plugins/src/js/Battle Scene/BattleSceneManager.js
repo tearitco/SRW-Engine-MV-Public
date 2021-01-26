@@ -866,8 +866,8 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					t = animation.easingFunction.ease(t);
 				}	
 				if(t < 1){
-					var startVector = new BABYLON.Vector3(animation.startFade, 0, 0);
-					var endVector = new BABYLON.Vector3(animation.endFade, 0, 0);
+					var startVector = new BABYLON.Vector3(animation.startFade * 1, 0, 0);
+					var endVector = new BABYLON.Vector3(animation.endFade * 1, 0, 0);
 					var interpVector = BABYLON.Vector3.Lerp(startVector, endVector, t);
 					console.log(interpVector);
 					targetObj.visibility = interpVector.x;
