@@ -948,7 +948,9 @@ BattleSceneManager.prototype.disposeAnimationBackgrounds = function(){
 
 BattleSceneManager.prototype.disposeEffekseerInstances = function(){
 	this._effekseerInfo.forEach(function(effekInfo){
-		effekInfo.handle.stop();
+		if(effekInfo.handle){
+			effekInfo.handle.stop();
+		}		
 	});
 	this._effekseerInfo = [];
 }
