@@ -820,8 +820,8 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					if(animation.easingFunction){
 						t = animation.easingFunction.ease(t);
 					}				
-					var startSizeVector = new BABYLON.Vector3(animation.startSize, animation.startSize, animation.startSize);
-					var endSizeVector = new BABYLON.Vector3(animation.endSize, animation.endSize, animation.endSize);
+					var startSizeVector = new BABYLON.Vector3(animation.startSize * 1, animation.startSize * 1, animation.startSize * 1);
+					var endSizeVector = new BABYLON.Vector3(animation.endSize * 1, animation.endSize * 1, animation.endSize * 1);
 					var sizeVector = BABYLON.Vector3.Lerp(startSizeVector, endSizeVector, t);
 					
 					targetObj.scaling.x = sizeVector.x;
