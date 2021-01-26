@@ -748,6 +748,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 						_this._runningAnimation = false;
 						_this.disposeAnimationSprites();
 						_this.disposeAnimationBackgrounds();
+						_this.disposeEffekseerInstances();
 						//_this.disposeSpriterBackgrounds();
 						_this._animationResolve();
 					}					
@@ -943,6 +944,12 @@ BattleSceneManager.prototype.disposeAnimationBackgrounds = function(){
 		bg.dispose();
 	});
 	this._animationBackgroundsInfo = [];
+}
+
+BattleSceneManager.prototype.disposeEffekseerInstances = function(){
+	this._effekseerInfo.forEach(function(effekInfo){
+		effekInfo.handle.setShown(false);
+	});
 }
 
 BattleSceneManager.prototype.disposeSpriterBackgrounds = function(){
@@ -2703,6 +2710,7 @@ BattleSceneManager.prototype.endScene = function() {
 			_this.disposeAnimationSprites();
 			_this.disposeAnimationBackgrounds();
 			_this.disposeSpriterBackgrounds();
+			_this.disposeEffekseerInstances();
 			_this._animationList = [];
 			_this._UIcontainer.style.display = "";
 			_this.systemFadeFromBlack(400, 1000).then(function(){
