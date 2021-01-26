@@ -686,7 +686,7 @@ SRWEditor.prototype.prepareBattleScenePreview = function(){
 	var _this = this;
 	document.onkeydown = null;
 	
-	if(_this._battleSceneLayer){
+	/*if(_this._battleSceneLayer){
 		document.querySelector("#attack_editor .preview_window").appendChild(_this._battleSceneLayer);
 	} else {
 		document.querySelector("#attack_editor .preview_window").appendChild(document.querySelector("#battle_scene_layer"));
@@ -729,10 +729,35 @@ SRWEditor.prototype.prepareBattleScenePreview = function(){
 	}
 	_this._battleSceneSwipeLayer = document.querySelector("#attack_editor #swipe_container");
 	_this._battleSceneSwipeLayer.style.width = "";
-	_this._battleSceneSwipeLayer.style.height = "";
+	_this._battleSceneSwipeLayer.style.height = "";*/
+	
+	
+	
+	
+	
+	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._container);
+	$battleSceneManager._container.style.width = "";
+	$battleSceneManager._container.style.height = "";
+	
+	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._UIcontainer);	
+	$battleSceneManager._UIcontainer.style.width = "";
+	$battleSceneManager._UIcontainer.style.height = "";
+	
+	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._fadeContainer);
+	$battleSceneManager._fadeContainer.style.width = "";
+	$battleSceneManager._fadeContainer.style.height = "";
+	
+	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._systemFadeContainer);
+	$battleSceneManager._systemFadeContainer.style.width = "";
+	$battleSceneManager._systemFadeContainer.style.height = "";
+	
+	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._swipeContainer);
+	$battleSceneManager._swipeContainer.style.width = "";
+	$battleSceneManager._swipeContainer.style.height = "";
 	
 	$battleSceneManager.init(true);	
-	$battleSceneManager._fadeContainer = _this._battleSceneFadeLayer;
+	
+	//$battleSceneManager._fadeContainer = _this._battleSceneFadeLayer;
 }
 
 SRWEditor.prototype.showBattleTextEditor = function(){
@@ -1850,7 +1875,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	
 	document.querySelector("#stop_button").addEventListener("click", function(){
-		$battleSceneManager.endScene();
+		$battleSceneManager.endScene(true);
 	});
 	
 	document.querySelector("#chk_hits").addEventListener("change", function(){

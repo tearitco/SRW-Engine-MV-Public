@@ -2699,9 +2699,9 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 	}
 }
 
-BattleSceneManager.prototype.endScene = function() {
+BattleSceneManager.prototype.endScene = function(force) {
 	var _this = this;
-	if(!_this._sceneIsEnding){
+	if(!_this._sceneIsEnding || force){
 		_this._sceneIsEnding = true;	
 		_this.systemFadeToBlack(400, 400).then(function(){			
 			_this.stopScene();
