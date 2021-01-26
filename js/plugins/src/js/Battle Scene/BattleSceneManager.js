@@ -870,7 +870,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					var startVector = new BABYLON.Vector3(animation.startFade * 1, 0, 0);
 					var endVector = new BABYLON.Vector3(animation.endFade * 1, 0, 0);
 					var interpVector = BABYLON.Vector3.Lerp(startVector, endVector, t);
-					console.log(interpVector);
+					//console.log(interpVector);
 					targetObj.visibility = interpVector.x;
 				} else {
 					targetObj.visibility = animation.endFade;
@@ -948,8 +948,9 @@ BattleSceneManager.prototype.disposeAnimationBackgrounds = function(){
 
 BattleSceneManager.prototype.disposeEffekseerInstances = function(){
 	this._effekseerInfo.forEach(function(effekInfo){
-		effekInfo.handle.setShown(false);
+		effekInfo.handle.stop();
 	});
+	this._effekseerInfo = [];
 }
 
 BattleSceneManager.prototype.disposeSpriterBackgrounds = function(){
@@ -1346,12 +1347,24 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			});	
 		},
 		fade_white: function(target, params){
-			var fadeTime = params.time || 700;
+			var fadeTime = params.time || 0.7;
+			if(params.speed == "fast"){
+				params.speed = 0.3;
+			} else if(params.speed == "slow"){
+				params.speed = 0.6;
+			}
+			if(params.speedOut == "fast"){
+				params.speedOut = 0.3;
+			} else if(params.speedOut == "slow"){
+				params.speedOut = 0.6;
+			}
 			if(_this.isOKHeld){
 				fadeTime/=2;
+				params.speed/=2;
+				params.speedOut/=2;
 			}
-			_this.fadeToWhite(fadeTime, params.speedIn || "fast").then(function(){
-				_this.fadeFromWhite(params.speedOut || "fast");
+			_this.fadeToWhite(fadeTime * 1000, params.speed).then(function(){
+				_this.fadeFromWhite(params.speedOut);
 			});	
 		},		
 		updateBgMode: function(target){
@@ -1690,12 +1703,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._bgs.forEach(function(bg){
 				bg.isVisible = false;
 			});
-			_this._skyBgs.forEach(function(bg){
-				bg.isVisible = false;
-			});
-			_this._floors.forEach(function(bg){
-				bg.isVisible = false;
-			});
+			
 			_this._fixedBgs.forEach(function(bg){
 				bg.scale.x = 0;
 				bg.scale.y = 0;
@@ -1704,18 +1712,11 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		show_bgs: function(target, params){
 			_this._bgsHidden = false;
-			if(_this._bgMode == "sky"){
-				_this._skyBgs.forEach(function(bg){
-					bg.isVisible = true;
-				});	
-			} else {
-				_this._bgs.forEach(function(bg){
-					bg.isVisible = true;
-				});
-				_this._floors.forEach(function(bg){
-					bg.isVisible = true;
-				});
-			}	
+			
+			_this._bgs.forEach(function(bg){
+				bg.isVisible = true;
+			});
+			
 			_this._fixedBgs.forEach(function(bg){
 				bg.scale.x = 1;
 				bg.scale.y = 1;
@@ -2231,9 +2232,10 @@ BattleSceneManager.prototype.fadeFromBlack = function() {
 	var _this = this;
 	return new Promise(function(resolve, reject){
 		_this.resetFadeState();
-		_this._fadeContainer.classList.add("fade_from_black");
-		_this._fadeContainer.style.display = "";
+		_this._fadeContainer.style.display = "block";
+		_this._fadeContainer.classList.add("fade_from_black");		
 		_this._fadeContainer.addEventListener("animationend", function(){
+			_this._fadeContainer.style.display = "";
 			resolve();
 		});
 	});	
@@ -2267,12 +2269,9 @@ BattleSceneManager.prototype.fadeToWhite = function(holdDuration, fadeSpeed) {
 	var _this = this;
 	return new Promise(function(resolve, reject){
 		_this.resetFadeState();
-		_this._fadeContainer.style.display = "block";
-		if(fadeSpeed == "slow"){
-			_this._fadeContainer.classList.add("fade_to_white_slow");
-		} else {
-			_this._fadeContainer.classList.add("fade_to_white");
-		}
+		_this._fadeContainer.style.display = "block";		
+		_this._fadeContainer.classList.add("fade_to_white");	
+		_this._fadeContainer.style["animation-duration"] = fadeSpeed;	
 		
 		_this._fadeContainer.addEventListener("animationend", function(){
 			setTimeout(resolve, (holdDuration || 0));
@@ -2284,14 +2283,12 @@ BattleSceneManager.prototype.fadeFromWhite = function(fadeSpeed) {
 	var _this = this;
 	return new Promise(function(resolve, reject){
 		_this.resetFadeState();
-		_this._fadeContainer.style.display = "";
-		if(fadeSpeed == "slow"){
-			_this._fadeContainer.classList.add("fade_from_white_slow");
-		} else {
-			_this._fadeContainer.classList.add("fade_from_white");		
-		}
+		_this._fadeContainer.style.display = "block";
+		_this._fadeContainer.classList.add("fade_from_white");	
+		_this._fadeContainer.style["animation-duration"] = fadeSpeed;
 		
 		_this._fadeContainer.addEventListener("animationend", function(){
+			_this._fadeContainer.style.display = "";
 			resolve();
 		});
 	});	
