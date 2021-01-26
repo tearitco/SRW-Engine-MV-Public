@@ -2260,7 +2260,7 @@ BattleSceneManager.prototype.fadeToWhite = function(holdDuration, fadeSpeed) {
 	var _this = this;
 	return new Promise(function(resolve, reject){
 		_this.resetFadeState();
-		
+		_this._fadeContainer.style.display = "block";
 		if(fadeSpeed == "slow"){
 			_this._fadeContainer.classList.add("fade_to_white_slow");
 		} else {
@@ -2277,6 +2277,7 @@ BattleSceneManager.prototype.fadeFromWhite = function(fadeSpeed) {
 	var _this = this;
 	return new Promise(function(resolve, reject){
 		_this.resetFadeState();
+		_this._fadeContainer.style.display = "";
 		if(fadeSpeed == "slow"){
 			_this._fadeContainer.classList.add("fade_from_white_slow");
 		} else {
