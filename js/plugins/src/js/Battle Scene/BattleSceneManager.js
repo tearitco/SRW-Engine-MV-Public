@@ -13,7 +13,8 @@ export default function BattleSceneManager(){
 	this._bgWidth = 50;	
 	this._defaultSpriteSize = 128;
 	this._defaultShadowSize = 1;
-
+	this._bgScrollDirection = 1;
+	this._previousBgScrollDirection = 1;
 	this._defaultPositions = {
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
 		"ally_main_idle": new BABYLON.Vector3(2, 0, 1),
@@ -591,7 +592,7 @@ BattleSceneManager.prototype.getBattleTextId = function(action){
 
 BattleSceneManager.prototype.setBgScrollDirection = function(direction, immediate){
 	var _this = this;
-	if(!_this._changingScroll){		
+	if(!_this._changingScroll && _this._previousBgScrollDirection != direction){		
 		_this._previousBgScrollDirection = _this._bgScrollDirection;
 		_this._bgScrollDirection = direction;
 		if(immediate){
@@ -2596,6 +2597,18 @@ BattleSceneManager.prototype.showScene = function() {
 	_this._UIcontainer.style.display = "block";	
 	_this.resetScene();
 	_this.readBattleCache();	
+	
+	var firstAction = _this._actionQueue[0];
+	var ctr = 1;
+	while((!firstAction || !firstAction.hasActed || firstAction.action.type == "defend" || firstAction.action.type == "evade") && ctr < _this._actionQueue.length){
+		firstAction = _this._actionQueue[ctr++];
+	}
+	if(firstAction.side == "actor"){
+		_this.setBgScrollDirection(1, true);
+	} else {
+		_this.setBgScrollDirection(-1, true);
+	}
+	
 	_this.preloadSceneAssets().then(function(){
 		setTimeout(finalize, 1000);
 	});
@@ -2620,6 +2633,7 @@ BattleSceneManager.prototype.showScene = function() {
 		while((!firstAction || !firstAction.hasActed || firstAction.action.type == "defend" || firstAction.action.type == "evade") && ctr < _this._actionQueue.length){
 			firstAction = _this._actionQueue[ctr++];
 		}
+		
 		
 		_this.setUpActionSceneState(firstAction);
 		_this.createEnvironment(firstAction.ref);
@@ -2660,7 +2674,10 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 		_this._enemySupporterSprite.sprite.setEnabled(false);
 		if(action.side == "actor"){
 			_this._animationDirection = 1;
+			
 			_this.setBgScrollDirection(1, false);
+			
+			
 			_this._enemySprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;
@@ -2675,7 +2692,9 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 			}			
 		} else {
 			_this._animationDirection = -1;
+			
 			_this.setBgScrollDirection(-1, false);	
+			
 			_this._actorSprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;

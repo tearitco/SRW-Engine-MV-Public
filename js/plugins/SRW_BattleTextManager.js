@@ -165,9 +165,16 @@ SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, 
 				if(!options.length){
 					options = definitions.default;
 				} 
-				var idx;
-
-				if(targetIdx != null){
+				var idx = -1;
+				if(type == "attacks"){
+					var ctr = 0;
+					while(ctr < options.length && idx == -1){
+						if(options[ctr].quoteId == targetIdx){
+							idx = ctr;
+						}					
+						ctr++;
+					}
+				} else if(targetIdx != null){
 					idx = targetIdx;
 				} else {
 					idx = Math.floor(Math.random() * (options.length));
