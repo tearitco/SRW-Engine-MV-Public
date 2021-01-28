@@ -651,6 +651,14 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			var actor = $gameActors.actor(args[0]);
 			$statCalc.setEssential(actor, false);
 		}
+		
+		if (command === 'unlockMechWeapon') {			
+			$statCalc.setWeaponUnlocked(args[0], args[1]);
+		}
+		
+		if (command === 'lockMechWeapon') {
+			$statCalc.setWeaponLocked(args[0], args[1]);
+		}
 
     };		
 //====================================================================

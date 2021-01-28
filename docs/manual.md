@@ -267,11 +267,11 @@ When working with transforming or combining mechs it usually desirable for the u
 
 ### Attacks
 
-The attacks available to the mech, identified by a Weapon ID.<br>
-If a mech should gain weapons during the game, a new Mech entry should be made and the pilot should be switched to the new Mech.
+The attacks available to the mech, identified by a Weapon ID. Optional a second parameter can be provided, if set to 1 the attack will be locked for the mech until it is unlocked using the unlockMechWeapon plugin command.<br>
 
 \<mechAttack0:1\><br>
 \<mechAttack1:2\><br>
+\<mechAttack1:2,1\><br> 
 
 ### Abilities
 
@@ -710,6 +710,7 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 
 
 
+
 	Removes one of the specified item from the inventory.	
 
 * addItemToHolder item\_id mech\_id slot
@@ -914,6 +915,15 @@ Variables 0021-0060 are stageTemp variables that can be used to keep track of th
 * setRegionSkyBattleEnv region\_id env\_id
 
 	Set the sky battle environment for all tiles in the specified region to the specified environment id.
+
+* unlockMechWeapon mech\_id weapon\_id
+
+	Set the weapon with the specified id as unlocked for the mech/class with the specified id.
+
+
+*  lockMechWeapon mech\_id weapon\_id
+
+	Set the weapon with the specified id as locked for the mech/class with the specified id.
 
 ## Script commands
 

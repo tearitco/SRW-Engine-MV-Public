@@ -197,69 +197,75 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 		});
 	}
 	for(var i = 0; i < 20; i++) {
-		var weaponId = mechProperties["mechAttack"+i];
-		if(weaponId !== undefined){
-			var weaponDefinition = $dataWeapons[weaponId];
-			var weaponProperties = weaponDefinition.meta;
-			var totalAmmo = parseInt(weaponProperties.weaponAmmo);
-			totalAmmo = Math.ceil(this.applyStatModsToValue(actor, totalAmmo, ["ammo"]));
-			var effects = [];
-			for(var j = 0; j < 2; j++){
-				if(weaponProperties["weaponEffect"+j]){
-					effects[j] = weaponProperties["weaponEffect"+j];
+		var weaponDef = mechProperties["mechAttack"+i];
+		if(weaponDef !== undefined){		
+			var parts = weaponDef.split(",");
+			var weaponId = parts[0];
+			var isLocked = parts[1];
+			if(weaponId !== undefined){
+				var weaponDefinition = $dataWeapons[weaponId];
+				var weaponProperties = weaponDefinition.meta;
+				var totalAmmo = parseInt(weaponProperties.weaponAmmo);
+				totalAmmo = Math.ceil(this.applyStatModsToValue(actor, totalAmmo, ["ammo"]));
+				var effects = [];
+				for(var j = 0; j < 2; j++){
+					if(weaponProperties["weaponEffect"+j]){
+						effects[j] = weaponProperties["weaponEffect"+j];
+					}
 				}
+				var isMap = false;
+				var mapId;
+				var ignoresFriendlies = false;
+				if(weaponProperties.weaponMapId){
+					isMap = true;
+					mapId = JSON.parse(weaponProperties.weaponMapId);
+					ignoresFriendlies = weaponProperties.weaponIgnoresFriendlies*1 || 0;
+				}
+				
+				var isCombination = false;
+				var combinationWeapons = [];
+				var combinationType = 0;
+				if(weaponProperties.weaponComboWeapons){
+					isCombination = true;
+					combinationWeapons = JSON.parse(weaponProperties.weaponComboWeapons);
+				}
+				if(weaponProperties.weaponComboType){
+					combinationType = weaponProperties.weaponComboType;
+				}
+				var currentAmmo;
+				var currentWeapon = currentWeaponsLookup[parseInt(weaponDefinition.id)];
+				if(currentWeapon){
+					currentAmmo = currentWeapon.currentAmmo;
+				} else {
+					currentAmmo = totalAmmo;
+				}
+				result.push({
+					id: parseInt(weaponDefinition.id),
+					name: weaponDefinition.name,
+					type: weaponProperties.weaponType,
+					postMoveEnabled: parseInt(weaponProperties.weaponPostMoveEnabled),
+					power: parseInt(weaponProperties.weaponPower),
+					minRange: parseInt(weaponProperties.weaponMinRange),
+					range: parseInt(weaponProperties.weaponRange),
+					hitMod: parseInt(weaponProperties.weaponHitMod),
+					critMod: parseInt(weaponProperties.weaponCritMod),
+					totalAmmo: totalAmmo,
+					currentAmmo: currentAmmo,
+					ENCost: parseInt(weaponProperties.weaponEN),
+					willRequired: parseInt(weaponProperties.weaponWill),
+					terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
+					effects: effects,
+					particleType: (weaponProperties. egory || "").trim(), //missile, funnel, beam, gravity, physical or "".
+					animId: parseInt(weaponProperties.weaponAnimId) || -1,
+					isMap: isMap, 
+					mapId: mapId,
+					ignoresFriendlies: ignoresFriendlies,
+					isCombination: isCombination,
+					combinationWeapons: combinationWeapons,
+					combinationType: combinationType,
+					isLocked: isLocked
+				});
 			}
-			var isMap = false;
-			var mapId;
-			var ignoresFriendlies = false;
-			if(weaponProperties.weaponMapId){
-				isMap = true;
-				mapId = JSON.parse(weaponProperties.weaponMapId);
-				ignoresFriendlies = weaponProperties.weaponIgnoresFriendlies*1 || 0;
-			}
-			
-			var isCombination = false;
-			var combinationWeapons = [];
-			var combinationType = 0;
-			if(weaponProperties.weaponComboWeapons){
-				isCombination = true;
-				combinationWeapons = JSON.parse(weaponProperties.weaponComboWeapons);
-			}
-			if(weaponProperties.weaponComboType){
-				combinationType = weaponProperties.weaponComboType;
-			}
-			var currentAmmo;
-			var currentWeapon = currentWeaponsLookup[parseInt(weaponDefinition.id)];
-			if(currentWeapon){
-				currentAmmo = currentWeapon.currentAmmo;
-			} else {
-				currentAmmo = totalAmmo;
-			}
-			result.push({
-				id: parseInt(weaponDefinition.id),
-				name: weaponDefinition.name,
-				type: weaponProperties.weaponType,
-				postMoveEnabled: parseInt(weaponProperties.weaponPostMoveEnabled),
-				power: parseInt(weaponProperties.weaponPower),
-				minRange: parseInt(weaponProperties.weaponMinRange),
-				range: parseInt(weaponProperties.weaponRange),
-				hitMod: parseInt(weaponProperties.weaponHitMod),
-				critMod: parseInt(weaponProperties.weaponCritMod),
-				totalAmmo: totalAmmo,
-				currentAmmo: currentAmmo,
-				ENCost: parseInt(weaponProperties.weaponEN),
-				willRequired: parseInt(weaponProperties.weaponWill),
-				terrain: this.parseTerrainString(weaponProperties.weaponTerrain),
-				effects: effects,
-				particleType: (weaponProperties. egory || "").trim(), //missile, funnel, beam, gravity, physical or "".
-				animId: parseInt(weaponProperties.weaponAnimId) || -1,
-				isMap: isMap, 
-				mapId: mapId,
-				ignoresFriendlies: ignoresFriendlies,
-				isCombination: isCombination,
-				combinationWeapons: combinationWeapons,
-				combinationType: combinationType
-			});
 		}
 	}
 	return result;
@@ -1071,9 +1077,11 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			if(result.inheritsUpgradesFrom){
 				result.stats.upgradeLevels = this.getStoredMechData(result.inheritsUpgradesFrom).mechUpgrades;
 				result.genericFUBAbilityIdx = this.getStoredMechData(result.inheritsUpgradesFrom).genericFUBAbilityIdx;	
+				result.unlockedWeapons = this.getStoredMechData(result.inheritsUpgradesFrom).unlockedWeapons;	
 			} else {
 				result.stats.upgradeLevels = this.getStoredMechData(mech.id).mechUpgrades;
 				result.genericFUBAbilityIdx = this.getStoredMechData(result.id).genericFUBAbilityIdx;
+				result.unlockedWeapons = this.getStoredMechData(result.id).unlockedWeapons;	
 			}			
 			result.items = this.getActorMechItems(mech.id);
 		} else {
@@ -1350,7 +1358,8 @@ StatCalc.prototype.storeMechData = function(mech){
 	}
 	$SRWSaveManager.storeMechData(classId, {
 		mechUpgrades: mech.stats.upgradeLevels,
-		genericFUBAbilityIdx: mech.genericFUBAbilityIdx
+		genericFUBAbilityIdx: mech.genericFUBAbilityIdx,
+		unlockedWeapons: mech.unlockedWeapons
 	});	
 }
 
@@ -1705,9 +1714,70 @@ StatCalc.prototype.getEquipInfo = function(actor){
 	}	
 }
 
+StatCalc.prototype.setWeaponUnlocked = function(mechId, weaponId){
+	var mechData = this.getMechDataById(mechId, true);
+	mechData.unlockedWeapons[weaponId] = true;
+	this.storeMechData(mechData);
+	
+	//ensure any live instances of the mech on the map also unlock the attack
+	var currentPilot = this.getCurrentPilot(mechId);
+	if(currentPilot){
+		this.setWeaponUnlockedForActor(currentPilot, weaponId)
+	}
+}
+
+StatCalc.prototype.setWeaponUnlockedForActor = function(actor, weaponId){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.mech.unlockedWeapons[weaponId] = true;
+		this.storeMechData(actor.SRWStats.mech);
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.setWeaponLocked = function(mechId, weaponId){
+	var mechData = this.getMechDataById(mechId, true);
+	mechData.unlockedWeapons[weaponId] = false;
+	this.storeMechData(mechData);
+	
+	//ensure any live instances of the mech on the map also lock the attack
+	var currentPilot = this.getCurrentPilot(mechId);
+	if(currentPilot){
+		this.setWeaponLockedForActor(currentPilot, weaponId)
+	}
+}
+
+StatCalc.prototype.setWeaponLockedForActor = function(actor, weaponId){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.mech.unlockedWeapons[weaponId] = false;
+		this.storeMechData(actor.SRWStats.mech);
+	} else {
+		return false;
+	}
+}
+
+StatCalc.prototype.isWeaponUnlocked = function(actor, weapon){
+	if(this.isActorSRWInitialized(actor)){
+		if(actor.SRWStats.mech.unlockedWeapons && actor.SRWStats.mech.unlockedWeapons[weapon.id] != null){			
+			return actor.SRWStats.mech.unlockedWeapons[weapon.id];						
+		} else {
+			return !weapon.isLocked;
+		}
+	} else {
+		return false;
+	}
+}
+
 StatCalc.prototype.getCurrentWeapons = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.weapons;	
+		var tmp = [];
+		var allWeapons = actor.SRWStats.mech.weapons;	
+		for(var i = 0; i < allWeapons.length; i++){
+			if(this.isWeaponUnlocked(actor, allWeapons[i])){
+				tmp.push(allWeapons[i]);
+			}
+		}
+		return tmp;	
 	} else {
 		return [];
 	}	
@@ -2012,11 +2082,7 @@ StatCalc.prototype.getCurrentMaxPilotAbilitySlot = function(actor){
 }	
 
 StatCalc.prototype.getActorMechWeapons = function(actor){
-	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.mech.weapons;
-	} else {
-		return {};
-	}	
+	return this.getCurrentWeapons(actor);
 }
 
 StatCalc.prototype.getActorMechWeapon = function(actor, weaponId){

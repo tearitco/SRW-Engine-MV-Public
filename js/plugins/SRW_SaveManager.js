@@ -52,8 +52,12 @@ SRWSaveManager.prototype.getMechData = function(mechId){
 				weapons: 0,
 				move: 0
 			},
-			genericFUBAbilityIdx: -1	
+			genericFUBAbilityIdx: -1,
+			unlockedWeapons: []
 		};
+	}
+	if(!$gameSystem.mechData[mechId].unlockedWeapons){//late addition to the mech data
+		$gameSystem.mechData[mechId].unlockedWeapons = [];
 	}
 	return JSON.parse(JSON.stringify($gameSystem.mechData[mechId]));
 }
