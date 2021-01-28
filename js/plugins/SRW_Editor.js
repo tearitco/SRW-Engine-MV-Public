@@ -644,38 +644,71 @@ SRWEditor.prototype.init = function(){
 	_this.show();
 }
 
+
+SRWEditor.prototype.savePreferences = function(id){
+	if(!this._preferences){
+		this._preferences = {};
+	}
+	var fs = require('fs');
+	var dirPath = 'js/plugins/config/active';
+	if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath);
+    }
+	fs.writeFileSync('js/plugins/config/active/EditorPreferences.json', JSON.stringify(this._preferences));
+}
+
 SRWEditor.prototype.show = function(){
 	var _this = this;
 	var content = "";
 	
 	AudioManager.stopBgm();
 	
-	var currentEditorInfo = this._editorData[this._currentEditor];
-	content+="<div class='header'>";
-	content+=this._title + " - " + currentEditorInfo.title;
+	var xhr = new XMLHttpRequest();
+    var url = 'js/plugins/config/active/EditorPreferences.json';
+    xhr.open('GET', url);
+    xhr.overrideMimeType('application/json');
+    xhr.onload = function() {
+        if (xhr.status < 400) {
+            _this._preferences = (JSON.parse(xhr.responseText));  
+			finalize();	
+        }
+    };
+    xhr.onerror = finalize;
+    window[name] = null;
+    xhr.send();
 	
-	content+="<select id='editor_selector'>";
-	content+="<option value='attack_editor' "+(this._currentEditor == "attack_editor" ? "selected" : "")+">Attack Editor</option>";
-	content+="<option value='environment_editor' "+(this._currentEditor == "environment_editor" ? "selected" : "")+">Environment Editor</option>";
-	content+="<option value='battle_text_editor' "+(this._currentEditor == "battle_text_editor" ? "selected" : "")+">Battle Text Editor</option>";
 	
-	content+="</select>";
-	content+="</div>";
-	
-	content+="<div class='content'>";
-	content+="</div>";
-	
-	_this._contentDiv.innerHTML = content;
-	
-	_this._contentDiv.querySelector("#editor_selector").addEventListener("change", function(){
-		$battleSceneManager.endScene();
-		_this._currentDefinition = 0;
-		_this._currentEnvironmentDefinition = 0;
-		_this._currentEditor = this.value;
-		_this.show();
-	});
-	
-	currentEditorInfo.func.call(this);
+	function finalize(){	
+		if(!_this._preferences){
+			_this._preferences = {};
+		}
+		var currentEditorInfo = _this._editorData[_this._currentEditor];
+		content+="<div class='header'>";
+		content+=_this._title + " - " + currentEditorInfo.title;
+		
+		content+="<select id='editor_selector'>";
+		content+="<option value='attack_editor' "+(_this._currentEditor == "attack_editor" ? "selected" : "")+">Attack Editor</option>";
+		content+="<option value='environment_editor' "+(_this._currentEditor == "environment_editor" ? "selected" : "")+">Environment Editor</option>";
+		content+="<option value='battle_text_editor' "+(_this._currentEditor == "battle_text_editor" ? "selected" : "")+">Battle Text Editor</option>";
+		
+		content+="</select>";
+		content+="</div>";
+		
+		content+="<div class='content'>";
+		content+="</div>";
+		
+		_this._contentDiv.innerHTML = content;
+		
+		_this._contentDiv.querySelector("#editor_selector").addEventListener("change", function(){
+			$battleSceneManager.endScene();
+			_this._currentDefinition = 0;
+			_this._currentEnvironmentDefinition = 0;
+			_this._currentEditor = this.value;
+			_this.show();
+		});
+		
+		currentEditorInfo.func.call(_this);
+	}
 }
 
 SRWEditor.prototype.getBattleEnvironmentId = function(){
@@ -1694,6 +1727,41 @@ SRWEditor.prototype.showEnvironmentEditorControls = function(){
 	});	
 }
 
+SRWEditor.prototype.applyPreferences = function(){
+	var _this = this;
+	if(_this._preferences){
+		Object.keys(_this._preferences).forEach(function(id){
+			var elem = document.getElementById(id);
+			if(elem){
+				elem.value = _this._preferences[id];
+			}		
+		});
+		if(_this._preferences.actor_select != null){
+			_this._currentActor = _this._preferences.actor_select;
+		}
+		
+		if(_this._preferences.quote_set != null){
+			_this._currentQuoteSet = _this._preferences.quote_set;
+		}
+	
+		if(_this._preferences.environment_select != null){
+			_this._currentEnvironmentDefinition = _this._preferences.environment_select;
+		}
+	
+		if(_this._preferences.actor_mech_select != null){
+			_this._currentActorMech = _this._preferences.actor_mech_select;
+		}
+
+		if(_this._preferences.enemy_select != null){
+			_this._currentEnemy = _this._preferences.enemy_select;
+		}
+	
+		if(_this._preferences.enemy_mech_select != null){
+			_this._currentEnemyMech = _this._preferences.enemy_mech_select;
+		}
+	}
+}
+
 SRWEditor.prototype.showAttackEditor = function(){
 	var _this = this;
 	var containerNode = _this._contentDiv.querySelector(".content");
@@ -1739,7 +1807,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div title='The attack for which to show quotes.' class='extra_control'>";
 	content+="<div class='editor_label'>Attack</div>";
-	content+="<select id='quote_set'>";
+	content+="<select class='has_preference' id='quote_set'>";
 	$dataWeapons.forEach(function(weapon){
 		if(weapon && weapon.name){
 			content+="<option value='"+weapon.id+"'>"+weapon.name+"</option>"
@@ -1753,7 +1821,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div title='The environment that will be used for the preview.' class='extra_control'>";
 	content+="<div class='editor_label'>Environment</div>";
-	content+="<select id='environment_select'>";
+	content+="<select class='has_preference' id='environment_select'>";
 	
 	content+="</select>"
 
@@ -1761,7 +1829,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div class='extra_control'>";
 	content+="<div class='editor_label'>Actor</div>";
-	content+="<select id='actor_select'>";
+	content+="<select class='has_preference' id='actor_select'>";
 	for(var i = 1; i < $dataActors.length; i++){
 		if($dataActors[i].name){
 			var id = $dataActors[i].id;
@@ -1773,7 +1841,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div class='extra_control'>";
 	content+="<div class='editor_label'>Actor Mech</div>";
-	content+="<select id='actor_mech_select'>";
+	content+="<select class='has_preference' id='actor_mech_select'>";
 	for(var i = 1; i < $dataClasses.length; i++){
 		if($dataClasses[i].name){
 			var id = $dataClasses[i].id;
@@ -1785,7 +1853,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div class='extra_control'>";
 	content+="<div class='editor_label'>Enemy</div>";
-	content+="<select id='enemy_select'>";
+	content+="<select class='has_preference' id='enemy_select'>";
 	for(var i = 1; i < $dataEnemies.length; i++){
 		if($dataEnemies[i].name){
 			var id = $dataEnemies[i].id;
@@ -1797,7 +1865,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	content+="<div class='extra_control'>";
 	content+="<div class='editor_label'>Enemy Mech</div>";
-	content+="<select id='enemy_mech_select'>";
+	content+="<select class='has_preference' id='enemy_mech_select'>";
 	for(var i = 1; i < $dataClasses.length; i++){
 		if($dataClasses[i].name){
 			var id = $dataClasses[i].id;
@@ -1816,6 +1884,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	
 	containerNode.innerHTML = content;
 	
+	_this.applyPreferences();
 	
 	
 	this.prepareBattleScenePreview();
@@ -1834,6 +1903,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 			content+="<option value='"+id+"'>"+defs[id].name+"</option>";		
 		});		
 		containerNode.querySelector("#environment_select").innerHTML = content;
+		_this.applyPreferences();
 	});
 	
 	_this._animationBuilder.isLoaded().then(function(){
@@ -1889,6 +1959,14 @@ SRWEditor.prototype.showAttackEditor = function(){
 	document.querySelector("#chk_enemy_side").addEventListener("change", function(){
 		_this._enemySideAttack = this.checked;
 	});
+	
+	var preferenceEntries = document.querySelectorAll(".has_preference")
+	preferenceEntries.forEach(function(entry){
+		entry.addEventListener("change", function(){
+			_this._preferences[this.id] = this.value;
+			_this.savePreferences();
+		});
+	});	
 }
 
 SRWEditor.prototype.showAttackEditorControls = function(){
