@@ -401,7 +401,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "reduction_barrier", modType: "addFlat", value: 1000},{type: "beam_reduction_barrier", modType: "addFlat", value: 2000},{type: "gravity_reduction_barrier", modType: "addFlat", value: 2000},{type: "reduction_barrier_cost", modType: "addFlat", value: 5}];
+			return [{type: "reduction_barrier", modType: "addFlat", value: 1000},{type: "beam_reduction_barrier", modType: "addFlat", value: 2000},{type: "gravity_reduction_barrier", modType: "addFlat", value: 2000},{type: "reduction_barrier_cost", modType: "addFlat", value: 10}];
 		},
 		function(actor, level){
 			return true;
@@ -505,4 +505,26 @@ $SRWConfig.mechAbilties = function(){
 			return true;
 		}
 	);
+	
+			
+	this.addDefinition(
+		36, 
+		"Phase Shift Armor", 
+		"Reduces damage taken from all weapon types except Beam.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "gravity_reduction_barrier", modType: "addFlat", value: 800},
+				{type: "missile_reduction_barrier", modType: "addFlat", value: 800},
+				{type: "funnel_reduction_barrier", modType: "addFlat", value: 800},
+				{type: "physical_reduction_barrier", modType: "addFlat", value: 800},
+				{type: "typeless_reduction_barrier", modType: "addFlat", value: 800},
+				{type: "reduction_barrier_cost", modType: "addFlat", value: 10}
+			];
+		},
+		function(actor, level){
+			return true;
+		}
+	);		
 };

@@ -398,13 +398,25 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			if(weaponInfo.particleType == "gravity"){
 				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["gravity_reduction_barrier"])
 			}
+			if(weaponInfo.particleType == "missile"){
+				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["missile_reduction_barrier"])
+			}
+			if(weaponInfo.particleType == "funnel"){
+				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["funnel_reduction_barrier"])
+			}
+			if(weaponInfo.particleType == "physical"){
+				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["physical_reduction_barrier"])
+			}
+			if(weaponInfo.particleType == ""){
+				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["typeless_reduction_barrier"])
+			}
 			if(reductionBarrierAmount) {
 				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier_cost"]);
 				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
 					result.hasReductionBarrier = true;
 					finalDamage-=reductionBarrierAmount;
 					if(finalDamage < 0){
-						finalDamage = 0;
+						finalDamage = 10;
 					}
 				}
 			}
