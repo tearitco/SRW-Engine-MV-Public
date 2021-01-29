@@ -515,11 +515,11 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		function(actor, level){
 			return [
-				{type: "gravity_reduction_barrier", modType: "addFlat", value: 800},
-				{type: "missile_reduction_barrier", modType: "addFlat", value: 800},
-				{type: "funnel_reduction_barrier", modType: "addFlat", value: 800},
-				{type: "physical_reduction_barrier", modType: "addFlat", value: 800},
-				{type: "typeless_reduction_barrier", modType: "addFlat", value: 800},
+				{type: "gravity_reduction_barrier", modType: "addFlat", value: 1000},
+				{type: "missile_reduction_barrier", modType: "addFlat", value: 1000},
+				{type: "funnel_reduction_barrier", modType: "addFlat", value: 1000},
+				{type: "physical_reduction_barrier", modType: "addFlat", value: 1000},
+				{type: "typeless_reduction_barrier", modType: "addFlat", value: 1000},
 				{type: "reduction_barrier_cost", modType: "addFlat", value: 10}
 			];
 		},
