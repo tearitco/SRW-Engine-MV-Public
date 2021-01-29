@@ -1730,7 +1730,20 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var targetObj = getTargetObject("active_target");
 			
 			var targetOffset = _this._defaultPositions.camera_main_idle.x - _this._camera.position.x;
-			if(_this._currentAnimatedAction.type == "initiator" && (!_this._currentAnimatedAction.attacked || !_this._currentAnimatedAction.attacked.isDestroyed)){
+			
+			var changeScrollDirection = true;
+			if($gameTemp.defenderCounterActivated && _this._currentAnimatedAction.type != "defender"){
+				changeScrollDirection = false;
+			}
+			if(!$gameTemp.defenderCounterActivated && _this._currentAnimatedAction.type != "initiator"){
+				changeScrollDirection = false;
+			}
+			
+			if(_this._currentAnimatedAction.attacked && _this._currentAnimatedAction.attacked.isDestroyed){
+				changeScrollDirection = false;
+			}
+			
+			if(changeScrollDirection){
 				if(_this._currentAnimatedAction.side == "actor"){
 					_this.setBgScrollDirection(-1);		
 				} else {

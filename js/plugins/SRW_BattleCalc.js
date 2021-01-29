@@ -719,6 +719,9 @@ BattleCalc.prototype.generateBattleResult = function(){
 	
 	var actions = [];
 	var defenderCounterActivates = Math.random() < $statCalc.applyStatModsToValue(defender.actor, 0, ["counter_rate"]);
+	if(defender.action && defender.action.attack && defender.action.attack.isCounter){
+		defenderCounterActivates = true;
+	}
 	if(defenderCounterActivates){
 		$gameTemp.defenderCounterActivated = true;
 		actions.push(new BattleAction(defender, attacker, null, defenderSide));

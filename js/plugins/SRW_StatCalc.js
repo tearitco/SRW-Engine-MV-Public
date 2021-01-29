@@ -263,7 +263,8 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 					isCombination: isCombination,
 					combinationWeapons: combinationWeapons,
 					combinationType: combinationType,
-					isLocked: isLocked
+					isLocked: isLocked,
+					isCounter: parseInt(weaponProperties.weaponIsCounter)
 				});
 			}
 		}

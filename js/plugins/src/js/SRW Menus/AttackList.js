@@ -130,6 +130,11 @@ AttackList.prototype.createAttributeBlock = function(attack) {
 	} 
 	content+="</div>";
 	content+="<div class='attribute_block_entry scaled_width scaled_height scaled_text'>";
+	if(attack.isCounter){
+		content+="C";
+	} 
+	content+="</div>";
+	content+="<div class='attribute_block_entry scaled_width scaled_height scaled_text'>";
 	if(attack.particleType == "missile"){
 		content+="Mi";	
 	}
