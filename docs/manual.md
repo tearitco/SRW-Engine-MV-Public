@@ -320,7 +320,9 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponWill:-1\>Will requirement for the weapon, -1 if there is no requirement<br>
 \<weaponTerrain:AA-A\>If a terrain value is "-" the weapon cannot be used on enemies who are currently on a tile of that terrain.<br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
-\<weaponCategory:missile\><br> The particle type of the weapon: missile, funnel, beam, gravity, physical or  "".	
+\<weaponCategory:missile\> The particle type of the weapon: missile, funnel, beam, gravity, physical or  "".	
+\<weaponIsCounter:1\> If set to one the weapon will always trigger a Counter on the enemy turn. <br>
+ 
  
 Weapons can have up to two special effects.
 

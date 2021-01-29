@@ -1854,6 +1854,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				}
 			}
 			HPProvider.animatedHP-=originalAction.damageInflicted;
+			if(originalAction.inflictedCritical){
+				_this._UILayerManager.setNotification(action.isActor ? "actor" : "enemy", "CRITICAL!");
+			}
 		},
 		drain_hp_bar: function(target, params){			
 			var originalAction = _this._currentAnimatedAction;
@@ -2649,6 +2652,9 @@ BattleSceneManager.prototype.showScene = function() {
 		
 		
 		_this.setUpActionSceneState(firstAction);
+		if($gameTemp.defenderCounterActivated){
+			_this._UILayerManager.setNotification(firstAction.isActor ? "actor" : "enemy", "COUNTER");
+		}
 		_this.createEnvironment(firstAction.ref);
 		_this._lastActionWasSupportAttack = false;
 		_this._lastActionWasSupportDefend = false;
