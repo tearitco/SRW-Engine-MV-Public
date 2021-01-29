@@ -156,6 +156,10 @@ Window_UpgradeMech.prototype.createComponents = function() {
 	this._genericFUBDisplay = document.createElement("div");	
 	this._genericFUBDisplay.classList.add("generic_fub_display");	
 	windowNode.appendChild(this._genericFUBDisplay);
+	
+	this._actorBattleImg = document.createElement("div");
+	this._actorBattleImg.classList.add("actor_battle_sprite");	
+	windowNode.appendChild(this._actorBattleImg);
 }	
 
 
@@ -393,6 +397,11 @@ Window_UpgradeMech.prototype.redraw = function() {
 	}
 	
 	this._genericFUBDisplay.innerHTML = genericFUBContent;
+	
+	this.updateScaledDiv(this._actorBattleImg);
+	
+	var battleSpriteFolder = $statCalc.getBattleSceneImage(refData);
+	this._actorBattleImg.innerHTML = "<img src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'>";
 	
 	Graphics._updateCanvas();
 }

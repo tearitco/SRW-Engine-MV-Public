@@ -281,4 +281,5 @@
 
 .actor_battle_sprite img{
 	width: 100%;
+	image-rendering: pixelated;
 }

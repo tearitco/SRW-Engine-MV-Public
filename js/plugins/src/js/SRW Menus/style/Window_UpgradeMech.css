@@ -7,6 +7,7 @@
 	left: 37%;
     width: 58%;
 	background-color: var(--section-bg-color);
+	z-index: 1;
 }
 
 .weapon_upgrade_container {
@@ -201,4 +202,8 @@
 
 .generic_fub_entry.selected {
 	background-color: var(--selected-color);
+}
+
+#upgrade_mech #attack_list_control {
+	z-index: 1;
 }
