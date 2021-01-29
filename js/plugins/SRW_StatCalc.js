@@ -1389,6 +1389,13 @@ StatCalc.prototype.calculateSRWActorStats = function(actor, preserveVolatile){
 		calculatedStats.SP = this.applyStatModsToValue(actor, calculatedStats.SP, ["sp"]);	
 		if(!preserveVolatile || calculatedStats.currentSP == null){
 			calculatedStats.currentSP = calculatedStats.SP;		
+			if(actor.isActor() && ENGINE_SETTINGS.VXT_SP){
+				if(_this.isAce(actor)){
+					calculatedStats.currentSP = Math.round(calculatedStats.currentSP * 0.75) ;
+				} else {
+					calculatedStats.currentSP = Math.round(calculatedStats.currentSP * 0.5);
+				}				
+			}
 		}
 	}
 }

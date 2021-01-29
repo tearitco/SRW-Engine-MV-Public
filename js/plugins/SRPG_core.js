@@ -1862,7 +1862,12 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
                 battlerArray[1].SRPGActionTimesSet($statCalc.applyStatModsToValue(battlerArray[1], 1, ["extra_action"]));
 				var SPRegen = 0;
 				SPRegen = $statCalc.applyStatModsToValue(battlerArray[1], SPRegen, ["SP_regen"]);
-				$statCalc.recoverSP(battlerArray[1], SPRegen);
+				if(ENGINE_SETTINGS.VXT_SP){
+					SPRegen+=5;
+				}
+				if($gameVariables.value(_turnVarID) != 1){
+					$statCalc.recoverSP(battlerArray[1], SPRegen);
+				}
 				
 				if($statCalc.applyStatModsToValue(battlerArray[1], 0, ["auto_wall"])){
 					spiritActivations.push({actor: battlerArray[1], spirit: 22});
