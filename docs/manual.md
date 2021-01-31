@@ -659,6 +659,13 @@ The first two pages of Control Variables are reserved for specific functions in 
 Variables 0021-0060 are stageTemp variables that can be used to keep track of things over the course of a single stage.<br>
 <b>The engine will automatically clear these when a new stage starts!</b>
 
+Page 4 and 5 of the Control Variables have been made reserved for specific functions in the engine after more variables became necessary. Currently the following Variables are available:
+
+* 0061 - lastActorAttackId: The ID of the attack used by the actor in the most recent battle.
+* 0062 - lastActorSupportAttackId: The ID of the attack used by the actor support attacker in the most recent battle.
+* 0063 - lastEnemyAttackId: The ID of the attack used by the enemy in the most recent battle.
+* 0064 - lastEnemySupportAttackId: The ID of the attack used by the enemy support attacker in the most recent battle.
+
 ## Switches
 
 <b>The first page of switches is reserved for engine specific functions and should not be used!</b>
@@ -1135,6 +1142,18 @@ A setting can be left blank by entering "" as its value.
 * this.applyActorSpirits(actor\_id, spirit\_ids)
 
 	Apply spirits effects to the actor unit with the specified id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.
+
+* isActorHitBy(actor\_id, weapon\_id, include\_support)
+
+	Can be used as conditional to check if the actor with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.
+	
+* isEnemyHitBy(enemy\_id, weapon\_id, include\_support)
+
+	Can be used as conditional to check if the enemy with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.	
+
+* isEventHitBy(event\_id, weapon\_id, include\_support)
+
+	Can be used as conditional to check if the event with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.	
 	
 ## Battle Text Editor
 

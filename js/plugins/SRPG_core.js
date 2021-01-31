@@ -42,6 +42,11 @@ var _defeatConditionText = 19;
 
 var _existShipVarId = 20;
 
+var _lastActorAttackId = 61;
+var _lastActorSupportAttackId = 62;
+var _lastEnemyAttackId = 63;
+var _lastEnemySupportAttackId = 64;
+
 var $SRWEditor = new SRWEditor();
 
 var $SRWStageInfoManager = new SRWStageInfoManager();
@@ -5266,6 +5271,50 @@ Game_Interpreter.prototype.activeFaction = function() {
 	return $gameTemp.currentFaction;
 }
 
+Game_Interpreter.prototype.lastActorAttack = function() {
+	return $gameTemp.lastActorAttack;
+}
+
+Game_Interpreter.prototype.isActorHitBy = function(actorId, weaponId, includeSupport) {
+	var result = false;
+	if($gameTemp.unitHitInfo && $gameTemp.unitHitInfo.actor){
+		if($gameTemp.unitHitInfo.actor[actorId] && $gameTemp.unitHitInfo.actor[actorId][weaponId]){
+			var hitInfo = $gameTemp.unitHitInfo.actor[actorId][weaponId];
+			if(includeSupport || !hitInfo.isSupport) {
+				result = true;
+			} 
+		}
+	}
+	return result;
+}
+
+Game_Interpreter.prototype.isEnemyHitBy = function(enemyId, weaponId, includeSupport) {
+	var result = false;
+	if($gameTemp.unitHitInfo && $gameTemp.unitHitInfo.enemy){
+		if($gameTemp.unitHitInfo.enemy[enemyId] && $gameTemp.unitHitInfo.enemy[enemyId][weaponId]){
+			var hitInfo = $gameTemp.unitHitInfo.enemy[enemyId][weaponId];
+			if(includeSupport || !hitInfo.isSupport) {
+				result = true;
+			} 
+		}
+	}
+	return result;
+}
+
+Game_Interpreter.prototype.isEventHitBy = function(eventId, weaponId, includeSupport) {
+	var result = false;
+	if($gameTemp.unitHitInfo && $gameTemp.unitHitInfo.event){
+		if($gameTemp.unitHitInfo.event[eventId] && $gameTemp.unitHitInfo.event[eventId][weaponId]){
+			var hitInfo = $gameTemp.unitHitInfo.event[eventId][weaponId];
+			if(includeSupport || !hitInfo.isSupport) {
+				result = true;
+			} 
+		}
+	}
+	return result;
+}
+
+
 /**************************************
 Sample:
 	this.playBattleScene({
@@ -9366,6 +9415,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$gameTemp.AIWaitTimer--;
 			if($gameTemp.AIWaitTimer < 0){			
 				if ($gameSystem.isSubBattlePhase() === 'enemy_command') {
+					$gameTemp.unitHitInfo = {};
 					this.srpgInvokeAICommand();					
 					return;
 				} else if ($gameSystem.isSubBattlePhase() === 'enemy_move') {				
@@ -9410,6 +9460,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$gameTemp.isPostMove = false;
 			$gameTemp.isHitAndAway = false;		
 			$gameTemp.currentMapTargets	= [];
+			$gameTemp.unitHitInfo = {};
 			previousPosition = $gameTemp.previousCursorPosition || {x: -1, y: -1};
 			var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
 			$gameTemp.previousCursorPosition = currentPosition;

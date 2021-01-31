@@ -519,6 +519,9 @@ BattleCalc.prototype.generateBattleResult = function(){
 		supportDefender = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];
 	}
 	
+	$gameVariables.setValue(_lastActorSupportAttackId, null);
+	$gameVariables.setValue(_lastEnemySupportAttackId, null);
+	
 	var attackerSide;
 	var defenderSide;
 	if($gameTemp.isEnemyAttack){
@@ -526,12 +529,23 @@ BattleCalc.prototype.generateBattleResult = function(){
 		defenderSide = "actor";
 		attacker = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
 		defender = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
+		if(supportAttacker){			
+			$gameVariables.setValue(_lastEnemySupportAttackId, supportAttacker.action.attack.id);
+		}
+		
 	} else {
 		attackerSide = "actor";
 		defenderSide = "enemy";
 		attacker = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
 		defender = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
+		if(supportAttacker){
+			$gameVariables.setValue(_lastActorSupportAttackId, supportAttacker.action.attack.id);
+		}
 	}
+	
+	$gameVariables.setValue(_lastActorAttackId, $gameTemp.actorAction.attack.id);
+	$gameVariables.setValue(_lastEnemyAttackId, $gameTemp.enemyAction.attack.id);
+	
 	
 	defender.isCounterAttack = true;
 	this.prepareBattleCache(attacker, "initiator");
@@ -738,6 +752,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 		actions.push(new BattleAction(defender, attacker, null, defenderSide));			
 	}
 	
+	
+	
 	for(var i = 0; i < actions.length; i++){
 		actions[i].execute(i);
 	}
@@ -771,9 +787,45 @@ BattleCalc.prototype.generateBattleResult = function(){
 		aCache.ppGain = ppGain;
 		aCache.fundGain = fundGain;
 	}
+	
+	$gameTemp.unitHitInfo = {
+		actor: {
+			
+		},
+		enemy: {
+			
+		},
+		event: {
+			
+		}
+	};
+	
+	Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
+		var battleEffect = $gameTemp.battleEffectCache[cacheRef];
+		if(battleEffect && battleEffect.attacked && battleEffect.hits){
+			var attackId = battleEffect.action.attack.id;
+			if(battleEffect.attacked.ref.isActor()){
+				var targetId = battleEffect.attacked.ref.actorId();
+				if(!$gameTemp.unitHitInfo.actor[targetId]){
+					$gameTemp.unitHitInfo.actor[targetId] = {};
+				}
+				$gameTemp.unitHitInfo.actor[targetId][attackId] = {isSupport: battleEffect.type == "support attack"};		
+			} else {
+				var targetId = battleEffect.attacked.ref.enemyId();
+				if(!$gameTemp.unitHitInfo.enemy[targetId]){
+					$gameTemp.unitHitInfo.enemy[targetId] = {};
+				}
+				$gameTemp.unitHitInfo.enemy[targetId][attackId] = {isSupport: battleEffect.type == "support attack"};		
+			}
+			var targetId = battleEffect.attacked.ref.event.eventId();
+			if(!$gameTemp.unitHitInfo.event[targetId]){
+				$gameTemp.unitHitInfo.event[targetId] = {};
+			}
+			$gameTemp.unitHitInfo.event[targetId][attackId] = {isSupport: battleEffect.type == "support attack"};	
+			
+		}
+	});	
 }
-
-
 
 BattleCalc.prototype.generateMapBattleResult = function(){
 	var _this = this;
