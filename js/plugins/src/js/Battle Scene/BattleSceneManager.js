@@ -1370,7 +1370,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				params.speed = 0.6;
 			} else {
 				params.speed*=_this._animationTickDuration;
-				params.speed = Math.round(speed / 100) / 10;
+				params.speed = Math.round(params.speed / 100) / 10;
 			}
 			
 			if(params.speedOut == "fast"){
@@ -1379,7 +1379,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				params.speedOut = 0.6;
 			} else {
 				params.speedOut*=_this._animationTickDuration;
-				params.speedOut = Math.round(speedOut / 100) / 10;
+				params.speedOut = Math.round(params.speedOut / 100) / 10;
 			}			
 			
 			if(_this.isOKHeld){
