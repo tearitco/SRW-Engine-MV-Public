@@ -11328,6 +11328,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var occupiedPositions = $statCalc.getOccupiedPositionsLookup(battler.isActor() ? "enemy" :  "actor");
 		var allOccupiedPosition = $statCalc.getOccupiedPositionsLookup();
 		
+		
+		
+		
 		var pathfindingGrid = [];
 		for(var i = 0; i < $gameMap.width(); i++){
 			pathfindingGrid[i] = [];
@@ -11340,8 +11343,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var currentBestDist = -1;
 		var improves = true;
 		var path = [];
+		var bestPath = [];
+		var targetTileCounter = 0;
 		
-		while(currentBestDist != targetDist && improves){
+		while(currentBestDist != targetDist && targetTileCounter < list.length){
 			var graph = new Graph(pathfindingGrid);
 			var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
 			var endNode = graph.grid[targetCoords.x][targetCoords.y];
@@ -11370,8 +11375,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				
 				if(currentBestDist != -1 && currentBestDist >= targetDist && currentBestDist <= dist){
 					improves = false;				
+				} else {
+					bestPath = path;
+					currentBestDist = dist;
 				}
-				currentBestDist = dist;
+				targetTileCounter++;
 			} else {
 				improves = false;
 			}
