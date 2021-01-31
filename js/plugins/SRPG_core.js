@@ -11383,7 +11383,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			} else {
 				improves = false;
 			}
-		}		
+		}	
+
+		if(bestPath){
+			path = bestPath;
+		}	
 		
 		var pathNodeLookup = {};
 		var ctr = 0;
