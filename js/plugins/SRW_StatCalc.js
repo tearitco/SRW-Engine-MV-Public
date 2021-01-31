@@ -718,7 +718,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			pilot: {
 				race: "",
 				id: -1,
-				level: 0,
+				level: level,
 				will: 100,
 				PP: 0,
 				exp: level * 500,
@@ -822,7 +822,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	actor.SRWStats.pilot.stats.growthRates.evade = parseFloat(actorProperties.pilotEvadeGrowth);
 	actor.SRWStats.pilot.stats.growthRates.hit = parseFloat(actorProperties.pilotHitGrowth);
 	
-	this.calculateSRWActorStats(actor, preserveVolatile);	//calculate stats so that level is set for ability determination
+	//this.calculateSRWActorStats(actor, preserveVolatile);	//calculate stats so that level is set for ability determination
 	
 	var dbAbilities = this.getPilotAbilityInfo(actorProperties, this.getCurrentLevel(actor));	
 	
