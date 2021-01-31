@@ -416,7 +416,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 					result.hasReductionBarrier = true;
 					finalDamage-=reductionBarrierAmount;
 					if(finalDamage < 0){
-						finalDamage = 10;
+						finalDamage = 0;
 					}
 				}
 			}

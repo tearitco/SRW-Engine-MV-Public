@@ -1331,7 +1331,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},		
 		fade_swipe: function(target, params){
-			var swipeTime = params.time || 700;
+			var swipeTime = params.time;
+			if(!swipeTime){
+				swipeTime = 700;
+			} else {
+				swipeTime*=_this._animationTickDuration;
+			}
 			var direction;
 			if(params.direction){
 				direction = params.direction;
@@ -1350,17 +1355,33 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			});	
 		},
 		fade_white: function(target, params){
-			var fadeTime = params.time || 0.7;
+			var fadeTime = params.time;
+			
+			if(!fadeTime){
+				fadeTime = 0.7;
+			} else {
+				fadeTime*=_this._animationTickDuration;
+				fadeTime = Math.round(fadeTime / 100) / 10;
+			}
+			
 			if(params.speed == "fast"){
 				params.speed = 0.3;
 			} else if(params.speed == "slow"){
 				params.speed = 0.6;
+			} else {
+				params.speed*=_this._animationTickDuration;
+				params.speed = Math.round(speed / 100) / 10;
 			}
+			
 			if(params.speedOut == "fast"){
 				params.speedOut = 0.3;
 			} else if(params.speedOut == "slow"){
 				params.speedOut = 0.6;
-			}
+			} else {
+				params.speedOut*=_this._animationTickDuration;
+				params.speedOut = Math.round(speedOut / 100) / 10;
+			}			
+			
 			if(_this.isOKHeld){
 				fadeTime/=2;
 				params.speed/=2;
@@ -1369,6 +1390,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this.fadeToWhite(fadeTime * 1000, params.speed).then(function(){
 				_this.fadeFromWhite(params.speedOut);
 			});	
+		
 		},		
 		updateBgMode: function(target){
 			var action;
@@ -1381,7 +1403,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},	
 		next_phase: function(target, params){
 			
-			_this._animationList[startTick + 1] = [{type: "fade_swipe", target: "", params: {time: 300}}];	
+			_this._animationList[startTick + 1] = [{type: "fade_swipe", target: "", params: {time: 18}}];	
 			
 			_this._animationList[startTick + 25] = [{type: "create_target_environment"}, {type: "updateBgMode", target: "active_target"}];
 			if(params.cleanUpCommands){				
@@ -1417,7 +1439,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				];
 				
 				_this._animationList[startTick + 120] = [
-					{type: "fade_swipe", target: "", params: {time: 900}},
+					{type: "fade_swipe", target: "", params: {time: 54}},
 				];
 				
 				_this._animationList[startTick + 130] = [
@@ -1502,6 +1524,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(params.rotation){
 				bg.rotation = _this.applyAnimationDirection(params.rotation);
 			}
+			
+			params.animationDelay*=_this._animationTickDuration;
+			
 			if(params.animationFrames){
 				_this.registerBgAnimation(bg, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames, params.animationLoop, params.animationDelay);
 			}
@@ -1523,6 +1548,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		create_layer: function(target, params){
 			var bg = new BABYLON.Layer(target, "img/SRWBattleScene/"+params.path+".png", _this._scene, params.isBackground);
 			if(params.animationFrames){
+				params.animationDelay*=_this._animationTickDuration;
 				_this.registerBgAnimation(bg, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames, params.animationLoop, params.animationDelay);
 			}
 			_this._animationBackgroundsInfo.push(bg);
@@ -1622,6 +1648,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
 				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
 				if(params.animationFrames){
+					params.animationDelay*=_this._animationTickDuration;
 					_this.registerBgAnimation(targetObj, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames, params.animationLoop*1, params.animationDelay, params.holdFrame*1);
 				}
 			}
@@ -2229,6 +2256,13 @@ BattleSceneManager.prototype.swipeToBlack = function(direction, inOrOut, holdDur
 		_this._swipeBox.className = "";
 		_this._swipeBox.classList.add(swipeClass);		
 		_this._swipeBox.classList.add(inOrOut);
+		if(_this.isOKHeld){
+			var duration = _this._swipeBox.style["animation-duration"].replace(/s$/, "");
+			duration/=2;
+			_this._swipeBox.style["animation-duration"] = duration;
+		} else {
+			_this._swipeBox.style["animation-duration"] = "";
+		}
 		_this._swipeBox.addEventListener("animationend", function(){
 			setTimeout(resolve, (holdDuration || 0));
 		});
