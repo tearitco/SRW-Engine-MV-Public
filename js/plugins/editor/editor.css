@@ -600,3 +600,14 @@
 #srw_editor .move_command_buttons .move_command_button {
 	cursor: pointer;
 }
+
+#srw_editor .line_controls {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#srw_editor .add_line {
+	width: 16px;
+	cursor: pointer;
+}

@@ -96,9 +96,15 @@ BattleTextBuilder.prototype.updateText = function(params, updateValues){
 			hookDef = hookDef[params.weaponId];			
 		} 
 		var options = hookDef[params.subType];
+		var lines = options[params.targetIdx];
+		if(!Array.isArray(lines)){
+			lines = [lines];
+		}		
+		var line = lines[params.lineIdx];
 		Object.keys(updateValues).forEach(function(key){
-			options[params.targetIdx][key] = updateValues[key];
+			line[key] = updateValues[key];
 		});		
+		options[params.targetIdx] = lines;	
 	} catch(e){
 		console.log(e.message);
 	}
@@ -168,6 +174,40 @@ BattleTextBuilder.prototype.addText = function(params, value){
 	}
 }
 
+BattleTextBuilder.prototype.addTextLine = function(params){
+	try {
+		var def = this.getDefinitions()[params.sceneType];		
+		if(params.sceneType == "event"){			
+			def = def[params.eventId].data;
+		}		
+		var entityDef = def[params.entityType][params.entityId];
+		var hookDef = entityDef[params.type];
+		if(params.type == "attacks"){
+			hookDef = hookDef[params.weaponId];			
+		}
+		var options = hookDef[params.subType];		
+		var lines = options[params.targetIdx];
+		if(!Array.isArray(lines)){
+			lines = [lines];
+		}
+		
+		var newEntry;
+		if(params.subType == "default"){
+			newEntry = {text: "", faceName: "", faceIndex: ""};
+		} else {
+			newEntry = {text: "", faceName: "", faceIndex: "", unitId: -1};
+		}
+		if(params.type == "attacks"){
+			newEntry.quoteId = 0;
+		}
+		
+		lines.push(newEntry);
+		options[params.targetIdx] = lines;		
+	} catch(e){
+		console.log(e.message);
+	}
+}
+
 BattleTextBuilder.prototype.setUnitId = function(params, id){
 	try {
 		var def = this.getDefinitions()[params.sceneType];		
@@ -180,7 +220,13 @@ BattleTextBuilder.prototype.setUnitId = function(params, id){
 			hookDef = hookDef[params.weaponId];			
 		}
 		var options = hookDef[params.subType];		
-		options[params.targetIdx].unitId = id;
+		var lines = options[params.targetIdx];
+		if(!Array.isArray(lines)){
+			lines = [lines];
+		}
+		
+		lines[params.lineIdx].unitId = id;
+		options[params.targetIdx] = lines;	
 	} catch(e){
 		console.log(e.message);
 	}
@@ -197,8 +243,13 @@ BattleTextBuilder.prototype.setMechId = function(params, id){
 		if(params.type == "attacks"){
 			hookDef = hookDef[params.weaponId];			
 		}
-		var options = hookDef[params.subType];		
-		options[params.targetIdx].mechId = id;
+		var options = hookDef[params.subType];	
+		var lines = options[params.targetIdx];
+		if(!Array.isArray(lines)){
+			lines = [lines];
+		}	
+		lines[params.lineIdx].mechId = id;
+		options[params.targetIdx] = lines;	
 	} catch(e){
 		console.log(e.message);
 	}
@@ -215,8 +266,16 @@ BattleTextBuilder.prototype.deleteText = function(params){
 		if(params.type == "attacks"){
 			hookDef = hookDef[params.weaponId];			
 		}
-		var options = hookDef[params.subType];		
-		options.splice(params.targetIdx, 1);
+		var options = hookDef[params.subType];
+		var lines = options[params.targetIdx];
+		if(!Array.isArray(lines)){
+			lines = [lines];
+		}				
+		lines.splice(params.lineIdx, 1);
+		options[params.targetIdx] = lines;	
+		if(!lines.length){
+			options.splice(params.targetIdx, 1);
+		}		
 	} catch(e){
 		console.log(e.message);
 	}

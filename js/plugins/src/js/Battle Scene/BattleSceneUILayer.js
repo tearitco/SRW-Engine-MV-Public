@@ -258,8 +258,8 @@ BattleSceneUILayer.prototype.setTextBox = function(entityType, entityId, display
 	this._currentEntityType = entityType;
 	this._currentIconClassId = entityId;
 	this._currentName = displayName;
-	this._currentText = textInfo; 	
-	this.showTextBox();
+	this._currentText = JSON.parse(JSON.stringify(textInfo)); 	
+	return this.showTextBox();
 }
 
 BattleSceneUILayer.prototype.showAllyNotification = function(text){
@@ -297,43 +297,65 @@ BattleSceneUILayer.prototype.showDamage = function(entityType, amount){
 }
 
 BattleSceneUILayer.prototype.showTextBox = function() {
-	var textDisplayContent = "";
-	textDisplayContent+="<div id='icon_and_noise_container'>";
-	textDisplayContent+="<div id='icon_container'></div>";
-	
-	textDisplayContent+="<canvas width=144 height=144 id='noise'></canvas>";
-	textDisplayContent+="</div>";
-	
-	textDisplayContent+="<div id='name_container' class='text_container scaled_text'>";	
-	textDisplayContent+=this._currentName;
-	textDisplayContent+="</div>";
-	textDisplayContent+="<div id='text_container' class='text_container scaled_text'>";	
-	textDisplayContent+="\u300C "+(this._currentText.text || "")+" \u300D";
-	textDisplayContent+="</div>";
-	
-	this._textDisplay.innerHTML = textDisplayContent;
-	this.updateScaledDiv(this._textDisplay, true, false);
-	
-	var iconContainer = this._textDisplay.querySelector("#icon_and_noise_container");
-	this.updateScaledDiv(iconContainer);
+	var _this = this;
+	var lines = [];
+	if(!Array.isArray(_this._currentText)){
+		lines = [_this._currentText];
+	} else {
+		lines = _this._currentText;
+	}
+	return new Promise(function(resolve, reject){
+		_this.showTextLines(lines, resolve);
+	});	
+}
 
-	
-	this._noiseCanvas = this._textDisplay.querySelector("#noise");
-	this._noiseCtx = this._noiseCanvas.getContext("2d");
-	
-	if(this._currentIconClassId != -1 && this._currentEntityType != -1){
-		var actorIcon = this._container.querySelector("#icon_container");
-		/*if(this._currentEntityType == "actor"){
-			this.loadActorFace(this._currentIconClassId, actorIcon);
-		} else {
-			this.loadEnemyFace(this._currentIconClassId, actorIcon);
-		}*/	
-		this.loadFaceByParams(this._currentText.faceName, this._currentText.faceIndex, actorIcon);	
+BattleSceneUILayer.prototype.showTextLines = function(lines, callback) {	
+	var _this = this;
+	var line = lines.shift();
+	if(line){
+		var textDisplayContent = "";
+		textDisplayContent+="<div id='icon_and_noise_container'>";
+		textDisplayContent+="<div id='icon_container'></div>";
+		
+		textDisplayContent+="<canvas width=144 height=144 id='noise'></canvas>";
+		textDisplayContent+="</div>";
+		
+		textDisplayContent+="<div id='name_container' class='text_container scaled_text'>";	
+		textDisplayContent+=_this._currentName;
+		textDisplayContent+="</div>";
+		textDisplayContent+="<div id='text_container' class='text_container scaled_text'>";	
+		textDisplayContent+="\u300C "+(line.text || "")+" \u300D";
+		textDisplayContent+="</div>";
+		
+		_this._textDisplay.innerHTML = textDisplayContent;
+		_this.updateScaledDiv(_this._textDisplay, true, false);
+		
+		var iconContainer = _this._textDisplay.querySelector("#icon_and_noise_container");
+		_this.updateScaledDiv(iconContainer);
+
+		
+		_this._noiseCanvas = _this._textDisplay.querySelector("#noise");
+		_this._noiseCtx = _this._noiseCanvas.getContext("2d");
+		
+		if(_this._currentIconClassId != -1 && _this._currentEntityType != -1){
+			var actorIcon = _this._container.querySelector("#icon_container");
+			/*if(_this._currentEntityType == "actor"){
+				_this.loadActorFace(_this._currentIconClassId, actorIcon);
+			} else {
+				_this.loadEnemyFace(_this._currentIconClassId, actorIcon);
+			}*/	
+			_this.loadFaceByParams(line.faceName, line.faceIndex, actorIcon);	
+		}	
+		
+		Graphics._updateCanvas();
+		var duration = 90 * 1000/60;
+		if(line.duration){
+			duration = line.duration * 1000/60;
+		}
+		setTimeout(function(){_this.showTextLines(lines, callback)}, duration);
+	} else {
+		callback();
 	}	
-	
-	Graphics._updateCanvas();
-	
-	//this.showNoise();//debug
 }
 
 BattleSceneUILayer.prototype.showNoise = function() {
@@ -370,7 +392,9 @@ BattleSceneUILayer.prototype.showNoise = function() {
 
 BattleSceneUILayer.prototype.hideNoise = function() {
 	this._runNoise = false;
-	this._noiseCanvas.className = "";
+	if(this._noiseCanvas){
+		this._noiseCanvas.className = "";	
+	}	
 }	
 
 BattleSceneUILayer.prototype.redraw = function() {	

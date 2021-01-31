@@ -2654,8 +2654,12 @@ BattleSceneManager.prototype.showScene = function() {
 		firstAction = _this._actionQueue[ctr++];
 	}
 	if(firstAction.side == "actor"){
+		_this._previousBgScrollDirection = 1;
+		_this._bgScrollDirection = 1;
 		_this.setBgScrollDirection(1, true);
 	} else {
+		_this._previousBgScrollDirection = -1;
+		_this._bgScrollDirection = -1;
 		_this.setBgScrollDirection(-1, true);
 	}
 	
@@ -2867,40 +2871,39 @@ BattleSceneManager.prototype.processActionQueue = function() {
 					
 					battleText = _this._battleTextManager.getText(entityType, nextAction.ref, textType, nextAction.isActor ? "enemy" : "actor", _this.getBattleTextId(nextAction.attacked));
 				}
-				
-				_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText);
 				if(nextAction.type == "support attack"){
 					_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
-				}				
-				_this._currentAnimatedAction = nextAction;
-				if(nextAction.side == "actor"){
-					_this._animationDirection = 1;
-					//_this.setBgScrollDirection(1, false);
-					_this._active_main = _this._actorSprite.sprite;	
-					_this._active_support_attacker = _this._actorSupporterSprite.sprite;
-					_this._active_support_defender = _this._enemySupporterSprite.sprite;
-					_this._active_target = _this._enemySprite.sprite;		
-				} else {
-					_this._animationDirection = -1;
-					//_this.setBgScrollDirection(-1, false);
-					_this._active_main = _this._enemySprite.sprite;
-					_this._active_support_attacker = _this._enemySupporterSprite.sprite;
-					_this._active_support_defender = _this._actorSupporterSprite.sprite;
-					_this._active_target = _this._actorSprite.sprite; 
 				}
-				_this._active_main.barrierSprite.setEnabled(false);
-				_this._active_support_attacker.barrierSprite.setEnabled(false);
-				_this._active_target.barrierSprite.setEnabled(false);
-				_this._active_support_defender.barrierSprite.setEnabled(false);
-				if(nextAction.attacked.hasBarrier){
-					if(nextAction.attacked.type == "defender" || nextAction.attacked.type == "initiator"){
-						_this._active_target.barrierSprite.setEnabled(true);
+				_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText).then(function(){
+					_this._currentAnimatedAction = nextAction;
+					if(nextAction.side == "actor"){
+						_this._animationDirection = 1;
+						//_this.setBgScrollDirection(1, false);
+						_this._active_main = _this._actorSprite.sprite;	
+						_this._active_support_attacker = _this._actorSupporterSprite.sprite;
+						_this._active_support_defender = _this._enemySupporterSprite.sprite;
+						_this._active_target = _this._enemySprite.sprite;		
 					} else {
-						_this._active_support_defender.barrierSprite.setEnabled(true);
+						_this._animationDirection = -1;
+						//_this.setBgScrollDirection(-1, false);
+						_this._active_main = _this._enemySprite.sprite;
+						_this._active_support_attacker = _this._enemySupporterSprite.sprite;
+						_this._active_support_defender = _this._actorSupporterSprite.sprite;
+						_this._active_target = _this._actorSprite.sprite; 
 					}
-				}
-				var attack = nextAction.action.attack;
-				setTimeout(function(){
+					_this._active_main.barrierSprite.setEnabled(false);
+					_this._active_support_attacker.barrierSprite.setEnabled(false);
+					_this._active_target.barrierSprite.setEnabled(false);
+					_this._active_support_defender.barrierSprite.setEnabled(false);
+					if(nextAction.attacked.hasBarrier){
+						if(nextAction.attacked.type == "defender" || nextAction.attacked.type == "initiator"){
+							_this._active_target.barrierSprite.setEnabled(true);
+						} else {
+							_this._active_support_defender.barrierSprite.setEnabled(true);
+						}
+					}
+					var attack = nextAction.action.attack;
+					
 					if(typeof attack.animId != "undefined" && attack.animId != -1){
 						_this.playAttackAnimation(nextAction, _this._animationBuilder.buildAnimation(attack.animId, _this)).then(function(){
 							_this.processActionQueue();
@@ -2913,7 +2916,8 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							_this.processActionQueue();
 						});
 					}
-				}, 1000);		
+				
+				});	
 			}	
 		} else {
 			_this.processActionQueue();

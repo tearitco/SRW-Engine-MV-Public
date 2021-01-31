@@ -1190,14 +1190,20 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			var attackText = elem.closest(".attack_text");
 			if(attackText){
 				params.weaponId = attackText.getAttribute("data-weaponid");
-			}			
+			}		
+			var quoteLine = elem.closest(".quote_line");
+			if(quoteLine){
+				params.lineIdx = quoteLine.getAttribute("data-lineidx");
+			}
+			
+			
 			return params;
 		}	
 		
 		var buttons = containerNode.querySelectorAll(".delete_text_btn");
 		buttons.forEach(function(button){
 			button.addEventListener("click", function(){
-				if(confirm("Delete this quote?")){
+				if(confirm("Delete this line?")){
 					var params = getLocatorInfo(this);				
 					_this._battleTextBuilder.deleteText(params);
 					_this._modified = true;
@@ -1233,13 +1239,13 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 		
 		function updateQuote(){
 			var newVal  = {
-				text: this.closest(".quote").querySelector(".quote_text").value,
-				faceName: this.closest(".quote").querySelector(".quote_face_name").value,
-				faceIndex: this.closest(".quote").querySelector(".quote_face_index").value,
+				text: this.closest(".quote_line").querySelector(".quote_text").value,
+				faceName: this.closest(".quote_line").querySelector(".quote_face_name").value,
+				faceIndex: this.closest(".quote_line").querySelector(".quote_face_index").value,
 			}
 			var params = getLocatorInfo(this);
 			if(params.type == "attacks"){
-				newVal.quoteId = this.closest(".quote").querySelector(".quote_id").value;
+				newVal.quoteId = this.closest(".quote_line").querySelector(".quote_id").value;
 			}
 			_this._battleTextBuilder.updateText(params, newVal);
 			_this._modified = true;
@@ -1276,6 +1282,16 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				_this.showBattleTextEditorControls();
 			});
 		});		
+		
+		var inputs = containerNode.querySelectorAll(".add_line");
+		inputs.forEach(function(input){
+			input.addEventListener("click", function(){
+				var params = getLocatorInfo(this);
+				_this._battleTextBuilder.addTextLine(params);
+				_this._modified = true;
+				_this.showBattleTextEditorControls();
+			});
+		});	
 		
 		var inputs = containerNode.querySelectorAll(".unit_select");
 		inputs.forEach(function(input){
@@ -1362,56 +1378,78 @@ SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, me
 	if(unitInfo){
 		targetUnitId = unitInfo.id;
 	}
+	var lines = [];
+	if(!Array.isArray(quote)){
+		lines = [quote];
+	} else {
+		lines = quote;
+	}
+	
+	var lineCounter = 0;
 	content+="<div data-subtype='"+type+"' data-idx='"+idx+"' data-targetunit='"+(targetUnitId)+"' class='quote'>";
-	content+="<div class='quote_config'>";
-	content+="<div class='command_label '>Face name:</div>";
-	content+="<input class='quote_face_name' value='"+quote.faceName+"'></input>";
-	content+="<div class='command_label '>Face index:</div>";
-	content+="<input class='quote_face_index' value='"+quote.faceIndex+"'></input>";
+	lines.forEach(function(quote){	
+		content+="<div data-lineidx='"+(lineCounter++)+"' class='quote_line'>";
+		 
+		content+="<div class='quote_config'>";
+		
+		content+="<div class='command_label '>Face name:</div>";
+		content+="<input class='quote_face_name' value='"+quote.faceName+"'></input>";
+		content+="<div class='command_label '>Face index:</div>";
+		content+="<input class='quote_face_index' value='"+quote.faceIndex+"'></input>";
+		
+		
+		content+="<div title='View this quote' class='view_text_btn'><img src='js/plugins/editor/svg/eye-line.svg'></div>"
+		content+="<div title='Delete this quote' class='delete_text_btn'><img src='js/plugins/editor/svg/close-line.svg'></div>"
+		content+="</div>";
+		
+		content+="<div class='quote_id_container'>";
+		if(quote.quoteId != null){		
+			content+="<div class='command_label '>Quote ID:</div>";
+			content+="<input class='quote_id' value='"+quote.quoteId+"'></input>";		
+		}	
+		
+		if(unitInfo){
+			content+="<div class='command_label '>Other unit:</div>";
+			content+=this.createUnitSelect(unitInfo.id, unitInfo.type);
+		}
+		
+		if(mechInfo){
+			content+="<div class='command_label '>Mech:</div>";
+			content+="<select class='mech_select'>";
+			content+="<option value='-1'></option>";
+			$dataClasses.forEach(function(classInfo){
+				if(classInfo && classInfo.name){
+					content+="<option "+(classInfo.id == mechInfo.id ? "selected" : "")+" value='"+classInfo.id+"'>"+classInfo.name+"</option>";
+				}
+			});	
+			content+="</select>";		
+		}
+		
+		if(targetMechInfo){
+			content+="<div class='command_label '>Target Mech:</div>";
+			content+="<select class='target_mech_select'>";
+			content+="<option value='-1'></option>";
+			$dataClasses.forEach(function(classInfo){
+				if(classInfo && classInfo.name){
+					content+="<option "+(classInfo.id == targetMechInfo.id ? "selected" : "")+" value='"+classInfo.id+"'>"+classInfo.name+"</option>";
+				}
+			});	
+			content+="</select>";		
+		}
+		
+		content+="</div>";
+		content+="<input class='param_value quote_text' value=\""+(quote.text.replace(/\"/g, '&quot;') || "")+"\"></input>";
+		content+="</div>";
+	});
 	
 	
-	content+="<div title='View this quote' class='view_text_btn'><img src='js/plugins/editor/svg/eye-line.svg'></div>"
-	content+="<div title='Delete this quote' class='delete_text_btn'><img src='js/plugins/editor/svg/close-line.svg'></div>"
+	content+="<div class='line_controls'>";
+	
+	content+="<img class='add_line' src='js/plugins/editor/svg/add-line.svg'>";
+	
+	content+="</div>";
 	content+="</div>";
 	
-	content+="<div class='quote_id_container'>";
-	if(quote.quoteId != null){		
-		content+="<div class='command_label '>Quote ID:</div>";
-		content+="<input class='quote_id' value='"+quote.quoteId+"'></input>";		
-	}	
-	
-	if(unitInfo){
-		content+="<div class='command_label '>Other unit:</div>";
-		content+=this.createUnitSelect(unitInfo.id, unitInfo.type);
-	}
-	
-	if(mechInfo){
-		content+="<div class='command_label '>Mech:</div>";
-		content+="<select class='mech_select'>";
-		content+="<option value='-1'></option>";
-		$dataClasses.forEach(function(classInfo){
-			if(classInfo && classInfo.name){
-				content+="<option "+(classInfo.id == mechInfo.id ? "selected" : "")+" value='"+classInfo.id+"'>"+classInfo.name+"</option>";
-			}
-		});	
-		content+="</select>";		
-	}
-	
-	if(targetMechInfo){
-		content+="<div class='command_label '>Target Mech:</div>";
-		content+="<select class='target_mech_select'>";
-		content+="<option value='-1'></option>";
-		$dataClasses.forEach(function(classInfo){
-			if(classInfo && classInfo.name){
-				content+="<option "+(classInfo.id == targetMechInfo.id ? "selected" : "")+" value='"+classInfo.id+"'>"+classInfo.name+"</option>";
-			}
-		});	
-		content+="</select>";		
-	}
-	
-	content+="</div>";
-	content+="<input class='param_value quote_text' value=\""+(quote.text.replace(/\"/g, '&quot;') || "")+"\"></input>";
-	content+="</div>";
 	return content;
 }
 

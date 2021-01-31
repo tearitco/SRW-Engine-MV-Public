@@ -821,8 +821,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	actor.SRWStats.pilot.stats.growthRates.defense = parseFloat(actorProperties.pilotDefenseGrowth);
 	actor.SRWStats.pilot.stats.growthRates.evade = parseFloat(actorProperties.pilotEvadeGrowth);
 	actor.SRWStats.pilot.stats.growthRates.hit = parseFloat(actorProperties.pilotHitGrowth);
-	
-	//this.calculateSRWActorStats(actor, preserveVolatile);	//calculate stats so that level is set for ability determination
+
 	
 	var dbAbilities = this.getPilotAbilityInfo(actorProperties, this.getCurrentLevel(actor));	
 	
@@ -832,7 +831,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		actor.SRWStats.pilot.abilities = dbAbilities;
 	}	
 	
-	this.calculateSRWActorStats(actor, preserveVolatile);	//calculate stats again so that stats modifications from abilities can be taken into account
+	this.calculateSRWActorStats(actor, preserveVolatile);	
 	
 	var mech;
 	var isForActor;
