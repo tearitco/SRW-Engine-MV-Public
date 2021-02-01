@@ -665,7 +665,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			$statCalc.setWeaponLocked(args[0], args[1]);
 		}
 		
-		if (command === 'unlockedUpgradeLevel') {
+		if (command === 'setUnlockedUpgradeLevel') {
 			var tmp = parseInt(args[0]);
 			if(!isNaN(tmp)){
 				$gameSystem.unlockedUpgradeLevel = tmp;

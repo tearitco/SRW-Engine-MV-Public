@@ -964,6 +964,10 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 *  lockMechWeapon mech\_id weapon\_id
 
 	Set the weapon with the specified id as locked for the mech/class with the specified id.
+	
+* setUnlockedUpgradeLevel level
+
+	Sets the allowed max level of upgrades to the specified level. Does not remove upgrades that go above the newly specified level.
 
 ## Script commands
 
