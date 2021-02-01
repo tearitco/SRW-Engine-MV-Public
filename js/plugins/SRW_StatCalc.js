@@ -840,10 +840,10 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	if(actor.isActor()){
 		if(actor._mechClass){//should only be the case when the editor is used
 			mech = $dataClasses[actor._mechClass];
-		} else if(preserveVolatile){
+		} else if(preserveVolatile && actor.SRWStats.mech){
 			mech = $dataClasses[actor.SRWStats.mech.id];
 		}
-		if(!mech){
+		if(!mech && actor.event){//do not apply a mech class for an actor that is not tied to an event
 			mech = actor.currentClass();
 
 		}		
@@ -860,7 +860,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		var previousBoarded;
 		
 		if(preserveVolatile){
-			if(actor.SRWStats.mech.stats){
+			if(actor.SRWStats.mech && actor.SRWStats.mech.stats){
 				var previousStats = actor.SRWStats.mech.stats.calculated;				
 				if(preserveVolatile){
 					previousWeapons = actor.SRWStats.mech.weapons;
@@ -1077,6 +1077,8 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.transformsInto = mechProperties.mechTransformsInto * 1 || null;			
 		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
 		result.transformRestores = mechProperties.mechTransformRestores * 1 || 0;	
+		
+		result.transformedActor = mechProperties.mechTransformedActor;
 
 		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;		
 		
@@ -1124,8 +1126,10 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 }
 
 StatCalc.prototype.getSubPilots = function(actor){
-	if(this.isActorSRWInitialized(actor)){
+	if(this.isActorSRWInitialized(actor) && actor.SRWStats.mech){
 		return actor.SRWStats.mech.subPilots || [];
+	} else {
+		return [];
 	}
 }
 StatCalc.prototype.canTransform = function(actor){
@@ -1137,11 +1141,26 @@ StatCalc.prototype.canTransform = function(actor){
 
 StatCalc.prototype.transform = function(actor, force){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		if(this.canTransform(actor ) || force){			
+		if(this.canTransform(actor) || force){	
 			var calculatedStats = this.getCalculatedMechStats(actor);
 			var previousHPRatio = calculatedStats.currentHP / calculatedStats.maxHP;
 			var previousENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
-			actor.SRWStats.mech = this.getMechDataById(actor.SRWStats.mech.transformsInto, true);
+			var transformIntoId = actor.SRWStats.mech.transformsInto;
+			var targetActorId = actor.SRWStats.mech.transformedActor;
+			if(targetActorId != null){
+				var targetActor = $gameActors.actor(targetActorId);
+				if(targetActor.actorId() != actor.actorId()){
+					if(this.isActorSRWInitialized(targetActor)){
+						targetActor.event = actor.event;
+						actor.event = null;
+						actor.SRWStats.mech = null;
+						$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
+						actor = targetActor;
+					}
+				}
+			}		
+			
+			actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
 			this.calculateSRWMechStats(actor.SRWStats.mech);
 			if(!actor.SRWStats.mech.transformRestores){
 				calculatedStats = this.getCalculatedMechStats(actor);
@@ -1965,7 +1984,7 @@ StatCalc.prototype.getCalculatedPilotStats = function(actor){
 
 StatCalc.prototype.getCalculatedMechStats = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		if(actor.SRWStats.mech.stats){
+		if(actor.SRWStats.mech && actor.SRWStats.mech.stats){
 			return actor.SRWStats.mech.stats.calculated;
 		} else {
 			return {};
@@ -3266,9 +3285,19 @@ StatCalc.prototype.setSpirit = function(actor, spirit){
 	} 	
 }
 
-StatCalc.prototype.clearSpirit = function(actor, spirit){		
-	if(this.isActorSRWInitialized(actor)){			
+StatCalc.prototype.clearSpirit = function(actor, spirit){	
+	var _this = this;
+	if(_this.isActorSRWInitialized(actor)){			
 		actor.SRWStats.pilot.activeSpirits[spirit] = false;
+		var subPilots = actor.SRWStats.mech.subPilots;
+		if(subPilots){
+			subPilots.forEach(function(subPilotId){
+				var subActor = $gameActors.actor(subPilotId);
+				if(_this.isActorSRWInitialized(subActor)){
+					subActor.SRWStats.pilot.activeSpirits[spirit] = false;
+				}				
+			});
+		}
 	} 	
 }
 
@@ -3473,34 +3502,36 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 		var aceAbility = actor.SRWStats.pilot.aceAbility;	
 		if(typeof aceAbility != "undefined" && aceAbility != -1){
 			accumulateFromAbilityList([aceAbility], $pilotAbilityManager);	
-		}			
-		
-		var abilities = actor.SRWStats.mech.abilities;		
-		accumulateFromAbilityList(abilities, $mechAbilityManager);
-		
-		var FUBAbility = actor.SRWStats.mech.fullUpgradeAbility;	
-		if(typeof FUBAbility != "undefined" && FUBAbility != -1 && FUBAbility.idx != -1){
-			accumulateFromAbilityList([FUBAbility], $mechAbilityManager);	
-		}
-		
-		var genericFullUpgradeAbility = actor.SRWStats.mech.genericFullUpgradeAbility;	
-		if(typeof genericFullUpgradeAbility != "undefined" && genericFullUpgradeAbility != -1 && genericFullUpgradeAbility.idx != -1){
-			accumulateFromAbilityList([genericFullUpgradeAbility], $mechAbilityManager);	
 		}		
-		
-		var items = actor.SRWStats.mech.items;		
-		accumulateFromAbilityList(items, $itemEffectManager);		
 
-		if(actor.SRWStats.battleTemp && actor.SRWStats.battleTemp.currentAttack){
-			var effects = actor.SRWStats.battleTemp.currentAttack.effects;
-			if(effects){
-				var tmp = [];
-				for(var i = 0; i < effects.length; i++){
-					tmp.push({idx: effects[i]});
-				}
-				accumulateFromAbilityList(tmp, $weaponEffectManager);		
+		if(actor.SRWStats.mech){			
+			var abilities = actor.SRWStats.mech.abilities;		
+			accumulateFromAbilityList(abilities, $mechAbilityManager);
+			
+			var FUBAbility = actor.SRWStats.mech.fullUpgradeAbility;	
+			if(typeof FUBAbility != "undefined" && FUBAbility != -1 && FUBAbility.idx != -1){
+				accumulateFromAbilityList([FUBAbility], $mechAbilityManager);	
 			}
-		}	
+			
+			var genericFullUpgradeAbility = actor.SRWStats.mech.genericFullUpgradeAbility;	
+			if(typeof genericFullUpgradeAbility != "undefined" && genericFullUpgradeAbility != -1 && genericFullUpgradeAbility.idx != -1){
+				accumulateFromAbilityList([genericFullUpgradeAbility], $mechAbilityManager);	
+			}		
+			
+			var items = actor.SRWStats.mech.items;		
+			accumulateFromAbilityList(items, $itemEffectManager);		
+
+			if(actor.SRWStats.battleTemp && actor.SRWStats.battleTemp.currentAttack){
+				var effects = actor.SRWStats.battleTemp.currentAttack.effects;
+				if(effects){
+					var tmp = [];
+					for(var i = 0; i < effects.length; i++){
+						tmp.push({idx: effects[i]});
+					}
+					accumulateFromAbilityList(tmp, $weaponEffectManager);		
+				}
+			}	
+		}
 	}
 	return result;
 }

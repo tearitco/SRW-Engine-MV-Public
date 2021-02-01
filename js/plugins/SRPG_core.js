@@ -8554,8 +8554,18 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		
 		function applySpirit(){
-			_this.applyAdditionalSpiritEffects(currentSpirit, currentSpirit.target, currentSpirit.caster);					
-			$spiritManager.applyEffect(currentSpirit.idx, currentSpirit.caster, [currentSpirit.target], currentSpirit.cost);			
+			_this.applyAdditionalSpiritEffects(currentSpirit, currentSpirit.target, currentSpirit.caster);
+			var targets = [currentSpirit.target];
+			if(currentSpirit.target.isActor()){
+				var subPilots = currentSpirit.target.SRWStats.mech.subPilots;
+				if(subPilots){
+					subPilots.forEach(function(actorId){
+						targets.push($gameActors.actor(actorId));
+					});
+				}
+			}			
+			$spiritManager.applyEffect(currentSpirit.idx, currentSpirit.caster, targets, currentSpirit.cost);
+			
 			$gameTemp.spiritTargetActor = currentSpirit.target;
 			$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: currentSpirit.target, idx: currentSpirit.idx}}];	
 			_this._spiritAnimWindow.show(true);	

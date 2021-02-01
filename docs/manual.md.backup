@@ -270,9 +270,10 @@ Swapping sub-pilots is not supported.
 
 Units can be given the ability to transform into other units.
 
-\<mechTransformsInto:1\>: The id of the mech into which the mech can transform.
-\<mechTransformWill:0\>: The required will for transformation.
-\<mechTransformRestores:0\> If 1 the mech will recover all HP and EN after transforming. If 0 the old HP and EN will carry over.
+\<mechTransformsInto:1\>: The id of the mech into which the mech can transform.<br>
+\<mechTransformWill:0\>: The required will for transformation.<br>
+\<mechTransformRestores:0\> If 1 the mech will recover all HP and EN after transforming. If 0 the old HP and EN will carry over.<br>
+\<mechTransformedActor:1\> If specified the unit's pilot will be set to the actor with specified id after transforming.
 
 ### Combining Units
 
