@@ -184,10 +184,13 @@ Window_CSS.prototype.getMechDisplayData = function(unit) {
 Window_CSS.prototype.createUpgradeBar = function(level, pending) {
 	var content = "";
 	var parts = $statCalc.getMaxUpgradeLevel();
+	var unlocked = $statCalc.getUnlockedUpgradeLevel();
 	content+="<div class='upgrade_bar'>";
 	for(var i = 0; i < parts; i++){
 		var cssClass = "";
-		if(i < level){
+		if(i >= unlocked){
+			cssClass = "locked";
+		} else if(i < level){
 			cssClass = "active";
 		} else if(pending && i < (level + pending)) {
 			cssClass = "pending";

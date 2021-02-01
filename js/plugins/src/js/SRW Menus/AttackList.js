@@ -157,9 +157,10 @@ AttackList.prototype.createAttributeBlock = function(attack) {
 	return content;
 }
 
-AttackList.prototype.getUpgradeAmount = function() {
+AttackList.prototype.getUpgradeAmount = function(attack) {
 	if(this._weaponModProvider){
-		return $statCalc.getWeaponDamageUpgradeAmount(this._weaponModProvider.getWeaponLevels());
+		var refData = this.createReferenceData($gameTemp.currentMenuUnit.mech);
+		return $statCalc.getWeaponDamageUpgradeAmount(attack, this._weaponModProvider.getWeaponLevels());
 	} else {
 		return 0;
 	}
@@ -180,7 +181,7 @@ AttackList.prototype.createUpgradeViewRow = function(refData, attack) {
 	var currentPower = $statCalc.getWeaponPower(refData, attack)*1;
 	listContent+="<div class='attack_list_block scaled_text'>"+currentPower+"</div>";
 	listContent+="<div class='attack_list_block scaled_text'><div class='chevron_right scaled_width'><img src='svg/chevron_right.svg'></div></div>";
-	var upgradeAmount = this.getUpgradeAmount();
+	var upgradeAmount = this.getUpgradeAmount(attack);
 	listContent+="<div class='attack_list_block scaled_text'>"+(currentPower + upgradeAmount)+"</div>";
 	return listContent;
 }

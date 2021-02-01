@@ -25,6 +25,28 @@ This config file allows configuration of engine level settings.
 		ENEMY_TARGETING_FORMULA: "Math.min(hitrate + 0.01, 1) * damage", // the formula used by enemy AI to score potential targets. A target with a higher score will be preferred. hitrate and damage are the projected hit rate and damage the unit will deal to a target.
 		DEBUG_SAVING: false, // if enabled the save option on the pause menu during a stage will behave like the regular save function, rather than as a quick save.
 		CURSOR_SPEED: 4, // the default cursor speed
+		COMMANDER_AURA: {
+		1: [10,8],
+		2: [15,12,8],
+		3: [20,16,12,8],
+		4: [25,20,15,10,5]
+		},//defines the effects for each level of the Commander ability. Max range is 5.
+		SUPPORT_ATTACK_RATIO: 0.8,//defines how much damage a support attack does compared to a regular attack.
+		ALLOW_TURN_END_SUPPORT: false,//if true units that have ended their turn can still provide support attacks.
+		VXT_SP: false,//if true pilots will start the state at half SP but will automatically regen 5SP at the start of each turn.
+		COST_TYPES: {
+			NORMAL: {
+				0: [2000, 4000, 6000, 8000, 10000, 10000, 15000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000],
+				1: [2000, 3000, 5000, 5000, 5000, 10000, 10000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000]
+			},
+			WEAPON: {
+				0: [12000, 17000, 23000, 30000, 38000, 47000, 57000, 68000, 80000, 93000, 90000, 90000, 90000, 90000, 90000]
+			}
+		},//defines the cost types for upgrading mechs and mech weapons. Cost types are assigned in the mech/class definition to each stat.
+		WEAPON_UPGRADE_TYPES: {
+			0: [100, 100, 100, 150, 150, 150, 200, 200, 200, 250, 200, 200, 200, 200, 200],
+			1: [100, 150, 150, 150, 150, 200, 200, 200, 200, 250, 200, 200, 200, 200, 200]		
+		}//defines types of power increase for weapons. These types are assigned to weapons using the weaponUpgradeType tag.
 	}
 ```
 
@@ -209,19 +231,12 @@ The rest of the Mech properties are set using metadata tags in the note field. I
 \<mechPPYield: 15\><br>
 \<mechFundYield: 500\><br>
 
-### Weapon upgrade costs
+### Upgrade costs
 
 The upgrade costs for a mech's stats can be one of multiple types. The type defines how much each level of upgrades costs.
 
-Currently two types are supported for stats:
+Cost types are defined in Engine.conf. Types are separate between regular stats and weapon upgrades.
 
-0: \[2000, 4000, 6000, 8000, 10000, 10000, 15000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000\],<br>
-1: \[2000, 3000, 5000, 5000, 5000, 10000, 10000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000\]
-
-And one type for weapons:
-
-
-0: \[12000, 17000, 23000, 30000, 38000, 47000, 57000, 68000, 80000, 93000, 90000, 90000, 90000, 90000, 90000\]
 
 \<mechUpgradeWeaponCost: 0\><br>
 \<mechUpgradeHPCost: 0\><br>
@@ -229,6 +244,20 @@ And one type for weapons:
 \<mechUpgradeArmorCost: 0\><br>
 \<mechUpgradeMobilityCost: 0\><br>
 \<mechUpgradeAccuracyCost: 1\><br>
+
+### Upgrade amounts
+
+For normal stats, upgrades will increase the stat by a fixed value for each level of upgrades. This amount can be defined with the following settings:
+
+\<mechUpgradeHPAmount: 350\><br>
+\<mechUpgradeENAmount: 10\><br>
+\<mechUpgradeArmorAmount: 60\><br>
+\<mechUpgradeMobilityAmount: 5\><br>
+\<mechUpgradAccuracyAmount: 6\><br>
+
+The values listed above are the default values used when the tags are not present in the mech metadata.
+
+For weapons the upgrade amount per level is defined in the Weapon definition.
 
 ### Sub-pilots
 
@@ -332,6 +361,8 @@ Weapons can have up to two special effects.
 
 \<weaponMapId: 0\>The id of the MAP attack definition for the weapon. If this tag is included the weapon will be treated as a MAP attack.<br>
 \<weaponIgnoresFriendlies:1\> If set to 1 the map weapon will not damage friendly units. If set to 0, or if the property is omitted, it will.
+
+\<weaponUpgradeType:0\><br> Sets the growth type for the weapon's power when upgraded.
 
 ## Combinations Attacks
 

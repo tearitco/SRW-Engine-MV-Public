@@ -664,7 +664,13 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		if (command === 'lockMechWeapon') {
 			$statCalc.setWeaponLocked(args[0], args[1]);
 		}
-
+		
+		if (command === 'unlockedUpgradeLevel') {
+			var tmp = parseInt(args[0]);
+			if(!isNaN(tmp)){
+				$gameSystem.unlockedUpgradeLevel = tmp;
+			}			
+		}
     };		
 //====================================================================
 // ●Game_Temp

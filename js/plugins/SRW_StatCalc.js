@@ -264,7 +264,8 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 					combinationWeapons: combinationWeapons,
 					combinationType: combinationType,
 					isLocked: isLocked,
-					isCounter: parseInt(weaponProperties.weaponIsCounter)
+					isCounter: parseInt(weaponProperties.weaponIsCounter),
+					upgradeType: parseInt(weaponProperties.weaponUpgradeType) || 0
 				});
 			}
 		}
@@ -968,6 +969,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 				accuracy: 0,
 				weapons: 0
 			},
+			upgradeAmounts: {},
 			calculated: {}
 		},
 		weapons: [],
@@ -1043,6 +1045,13 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.stats.upgradeCostTypes.mobility = parseInt(mechProperties.mechUpgradeMobilityCost);	
 		result.stats.upgradeCostTypes.accuracy = parseInt(mechProperties.mechUpgradAccuracyCost);	
 		result.stats.upgradeCostTypes.weapons = parseInt(mechProperties.mechUpgradeWeaponCost);
+		
+		result.stats.upgradeAmounts.maxHP = parseInt(mechProperties.mechUpgradeHPAmount) || 350;
+		result.stats.upgradeAmounts.maxEN = parseInt(mechProperties.mechUpgradeENAmount) || 10;
+		result.stats.upgradeAmounts.armor = parseInt(mechProperties.mechUpgradeArmorAmount) || 60;
+		result.stats.upgradeAmounts.mobility = parseInt(mechProperties.mechUpgradeMobilityAmount) || 5;
+		result.stats.upgradeAmounts.accuracy = parseInt(mechProperties.mechUpgradAccuracyAmount) || 6;
+				
 
 		var FUBAbilityIdx = mechProperties.mechFullUpgradeAbility;
 		if(typeof FUBAbilityIdx != "undefined"){
@@ -1585,8 +1594,9 @@ StatCalc.prototype.getBattleReferenceSize = function(actor){
 	}
 }
 
-StatCalc.prototype.getWeaponDamageUpgradeAmount = function(levels){
-	var increasesTable = [100, 100, 100, 150, 150, 150, 200, 200, 200, 250, 200, 200, 200, 200, 200];
+StatCalc.prototype.getWeaponDamageUpgradeAmount = function(attack, levels){
+	var type = attack.upgradeType;
+	var increasesTable = ENGINE_SETTINGS.WEAPON_UPGRADE_TYPES[type];
 	var amount = 0;
 	for(var i = 0; i < levels.length; i++){
 		if(levels[i] < this.getMaxUpgradeLevel()){			
@@ -1597,13 +1607,8 @@ StatCalc.prototype.getWeaponDamageUpgradeAmount = function(levels){
 }
 
 StatCalc.prototype.getMechStatIncreaseCost = function(actor, type, levels){
-	var costTables = {
-		0: [2000, 4000, 6000, 8000, 10000, 10000, 15000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000],
-		1: [2000, 3000, 5000, 5000, 5000, 10000, 10000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000]
-	};
-	var weaponCostTables = {
-		0: [12000, 17000, 23000, 30000, 38000, 47000, 57000, 68000, 80000, 93000, 90000, 90000, 90000, 90000, 90000]
-	};
+	var costTables = ENGINE_SETTINGS.COST_TYPES.NORMAL;
+	var weaponCostTables = ENGINE_SETTINGS.COST_TYPES.WEAPON;
 	
 	var cost = 0;
 	var costType = actor.SRWStats.mech.stats.upgradeCostTypes[type];
@@ -1621,14 +1626,15 @@ StatCalc.prototype.getMechStatIncreaseCost = function(actor, type, levels){
 
 
 
-StatCalc.prototype.getMechStatIncrease = function(type, levels){
-	var amountPerLevel = {
+StatCalc.prototype.getMechStatIncrease = function(actor, type, levels){
+	var amountPerLevel = actor.SRWStats.mech.stats.upgradeAmounts;
+	/*{
 		maxHP: 350,
 		maxEN: 10,
 		armor: 60,
 		mobility: 5,
 		accuracy: 6
-	};
+	};*/
 	if(amountPerLevel[type]){
 		return amountPerLevel[type] * levels;
 	} else {
@@ -1642,22 +1648,23 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatil
 	var mechStats = targetStats.stats.base;
 	var mechUpgrades = targetStats.stats.upgradeLevels;
 	var calculatedStats = targetStats.stats.calculated;
+	var upgradeAmounts = targetStats.stats.upgradeAmounts;
 	calculatedStats.size = mechStats.size;
 	Object.keys(mechUpgrades).forEach(function(upgradedStat){
 		if(upgradedStat == "maxHP"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (350 * mechUpgrades[upgradedStat]);
+			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
 		}
 		if(upgradedStat == "maxEN"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (10 * mechUpgrades[upgradedStat]);
+			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
 		}
 		if(upgradedStat == "armor"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (60 * mechUpgrades[upgradedStat]);
+			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
 		}
 		if(upgradedStat == "mobility"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (5 * mechUpgrades[upgradedStat]);
+			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
 		}
 		if(upgradedStat == "accuracy"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (6 * mechUpgrades[upgradedStat]);
+			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
 		}
 		if(upgradedStat == "move"){
 			calculatedStats[upgradedStat] = mechStats[upgradedStat] + mechUpgrades[upgradedStat];
@@ -1812,7 +1819,7 @@ StatCalc.prototype.getWeaponPower = function(actor, weapon){
 		for(var i = 0; i < actor.SRWStats.mech.stats.upgradeLevels.weapons; i++){
 			levels.push(i);
 		}
-		return weapon.power + this.getWeaponDamageUpgradeAmount(levels);
+		return weapon.power + this.getWeaponDamageUpgradeAmount(weapon, levels);
 	} else {
 		return 0;
 	}
@@ -1824,6 +1831,14 @@ StatCalc.prototype.getMaxPilotStat = function(){
 
 StatCalc.prototype.getMaxTerrainLevelNumeric = function(){
 	return 4;
+}
+
+StatCalc.prototype.getUnlockedUpgradeLevel = function(){
+	if($gameSystem.unlockedUpgradeLevel != null){
+		return $gameSystem.unlockedUpgradeLevel;
+	} else {
+		return this.getMaxUpgradeLevel();
+	}
 }
 
 StatCalc.prototype.getMaxUpgradeLevel = function(){

@@ -407,6 +407,9 @@ body {
 	background-color: #40e59c;
 }
 
+.upgrade_bar_part.locked {
+	background-color: rgba(20, 20, 20, 0.5);
+}
 
 .chevron_right {
 	width: 1.5px;

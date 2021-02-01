@@ -99,7 +99,7 @@ Window_UpgradeMech.prototype.incrementUpgradeLevel = function(){
 		var upgradeLevels = mechData.stats.upgradeLevels;
 		var upgradeId = this._upgradeTypes[this._currentSelection].id;
 		
-		if(upgradeLevels[upgradeId] + this._currentUpgradeDeltas[upgradeId] < $statCalc.getMaxUpgradeLevel()){
+		if(upgradeLevels[upgradeId] + this._currentUpgradeDeltas[upgradeId] < $statCalc.getUnlockedUpgradeLevel()){
 			this._currentUpgradeDeltas[upgradeId]++;
 			SoundManager.playCursor();
 		}
@@ -304,6 +304,7 @@ Window_UpgradeMech.prototype.redraw = function() {
 	
 	var upgradeControlContent = "";
 	var mechData = this.getCurrentSelection();
+	var refData = this.createReferenceData(mechData);
 	var calculatedStats = mechData.stats.calculated;
 	var upgradeLevels = mechData.stats.upgradeLevels;
 	
@@ -314,7 +315,7 @@ Window_UpgradeMech.prototype.redraw = function() {
 		content+="<div class='upgrade_entry_label scaled_text'>"+displayData.title+"</div>";
 		content+="<div class='upgrade_entry_current scaled_text'>"+calculatedStats[displayData.id]+"</div>";
 		content+="<div class='chevron_right scaled_width'><img src='svg/chevron_right.svg'></div>";
-		content+="<div class='upgrade_entry_new scaled_text'>"+(calculatedStats[displayData.id] + $statCalc.getMechStatIncrease([displayData.id], _this._currentUpgradeDeltas[displayData.id]))+"</div>";
+		content+="<div class='upgrade_entry_new scaled_text'>"+(calculatedStats[displayData.id] + $statCalc.getMechStatIncrease(refData, [displayData.id], _this._currentUpgradeDeltas[displayData.id]))+"</div>";
 		content+="<div class='upgrade_entry_bar'>"+_this.createUpgradeBar(upgradeLevels[displayData.id], _this._currentUpgradeDeltas[displayData.id])+"</div>";
 		content+="</div>";
 		return content;
