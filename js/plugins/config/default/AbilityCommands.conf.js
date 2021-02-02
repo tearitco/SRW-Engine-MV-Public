@@ -9,6 +9,7 @@ $SRWConfig.abilityCommands = function(){
 			$statCalc.recoverENPercent(actor, 100);
 		}, function(actor){
 			return $statCalc.canRecoverEN(actor) || $statCalc.canRecoverHP(actor)
-		}
+		},
+		42//the animation that should be played when the ability is used, -1 if none
 	);	
 }

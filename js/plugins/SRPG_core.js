@@ -4063,7 +4063,9 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
 				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'	||
 				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_attack' 
+				$gameSystem.isSubBattlePhase() === 'enemy_attack' ||
+				$gameSystem.isSubBattlePhase() === 'await_character_anim'
+				
 				
 				
 				){
@@ -8893,7 +8895,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.isSubBattlePhase() === 'confirm_end_turn' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_attack' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_range_display'	
+				$gameSystem.isSubBattlePhase() === 'enemy_range_display' ||
+				$gameSystem.isSubBattlePhase() === 'await_character_anim'
 				
 				) {
                 this.menuCalling = false;
@@ -9492,6 +9495,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			
 			waitResetCursor("actor_command_window");
 		}	
+		
+		if ($gameSystem.isSubBattlePhase() === 'await_character_anim'){
+			if($gameTemp.animCharacter){
+				if($gameTemp.animCharacter.isAnimationPlaying()){
+					return;
+				} else {					
+					$gameSystem.setSubBattlePhase('normal');
+					$gameTemp.animCharacter = null;
+				}
+			}
+		}
 					
 		if ($gameSystem.isSubBattlePhase() === 'normal') {	
 			$gameTemp.activeShip = null;
@@ -9508,7 +9522,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$gameTemp.unitHitInfo = {};
 			previousPosition = $gameTemp.previousCursorPosition || {x: -1, y: -1};
 			var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
-			$gameTemp.previousCursorPosition = currentPosition;
+			$gameTemp.previousCursorPosition = currentPosition;			
 		
 			var summaryUnit = $statCalc.activeUnitAtPosition(currentPosition);
 			if(summaryUnit){
@@ -10643,7 +10657,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			itemDef.statmodHandler(actor);
        
 			this._abilityWindow.hide();
-			this._mapSrpgActorCommandWindow.setup(actor);
+			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();				
+			
+			if(itemDef.animId != null && itemDef.animId != -1){
+				$gameSystem.setSubBattlePhase('await_character_anim');	
+				$gameTemp.animCharacter = actor.event;
+				actor.event.requestAnimation(itemDef.animId);
+			}			
 		} else {
 			this._abilityWindow.activate();
 		}

@@ -171,14 +171,15 @@ AbilityCommandManger.prototype.initDefinitions = function(){
 	$SRWConfig.abilityCommands.call(this);
 }
 
-AbilityCommandManger.prototype.addDefinition = function(idx, name, desc, useCount, statmodHandler, isActiveHandler){
+AbilityCommandManger.prototype.addDefinition = function(idx, name, desc, useCount, statmodHandler, isActiveHandler, animId){
 	var _this = this;
 	this._abilityDefinitions[idx] = {
 		name: name,
 		desc: desc,
 		useCount: useCount,
 		statmodHandler: statmodHandler,
-		isActiveHandler: isActiveHandler
+		isActiveHandler: isActiveHandler,
+		animId: animId
 	};
 	if(statmodHandler){
 		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
