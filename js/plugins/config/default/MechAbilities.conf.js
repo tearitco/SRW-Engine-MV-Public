@@ -540,7 +540,7 @@ $SRWConfig.mechAbilties = function(){
 			];
 		},
 		function(actor, level){
-			return true;
+			return $statCalc.isFUB(actor);
 		}
 	);	
 };

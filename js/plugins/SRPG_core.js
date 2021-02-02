@@ -9491,8 +9491,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}
 		
 		if ($gameSystem.isSubBattlePhase() === 'cancel_move') {			
-			$gameTemp.activeEvent().locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);
-			
+			$gameTemp.activeEvent().locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);			
 			waitResetCursor("actor_command_window");
 		}	
 		

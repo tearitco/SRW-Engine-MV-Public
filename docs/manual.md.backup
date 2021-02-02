@@ -611,6 +611,49 @@ The format of a Weapon Effect definition is as follows:
 ```
 
 
+## Ability Commands
+
+Ability commands are managed in js/plugins/config/active/AbilityCommands.conf.js
+
+Some pilot or mech abilities can grant the unit use of special Ability Commands. The properties of the Ability Commands are defined as follows:
+
+```javascript
+
+	this.addDefinition(
+		0, //the id of the command
+		"Chalice", //the display name of the command
+		"Recover HP and EN to full up to twice per stage.", //the display description of the command
+		2, //the number of times the ability can be used per stage
+		function(actor){ //the function that applies the effect of the command to the user
+			$statCalc.recoverHPPercent(actor, 100);
+			$statCalc.recoverENPercent(actor, 100);
+		}, function(actor){ //the function that checks if the command can be used
+			return $statCalc.canRecoverEN(actor) || $statCalc.canRecoverHP(actor)
+		},
+		42 //the animation that should be played when the ability is used, -1 if none
+	);	
+
+```
+
+The abilities that grant use of Ability Commands use the special "ability\_command" type. These can be any type of Ability, this is an example of a Mech ability that grants use of an Ability Command as a Full Upgrade Bonus:
+
+```javascript
+	this.addDefinition(
+		37, 
+		"Chalice",
+		"Recover HP and EN to full up to twice per stage.",
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "ability_command", cmdId: 0},				
+			];
+		},
+		function(actor, level){
+			return $statCalc.isFUB(actor);
+		}
+	);	
+```
 # Event scripting
 
 ## Stage control events
