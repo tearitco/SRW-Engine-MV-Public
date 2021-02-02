@@ -50,6 +50,26 @@ This config file allows configuration of engine level settings.
 	}
 ```
 
+## BattleSongs.conf.js
+
+```javascript
+$SRWConfig.battleSongs = {
+	actorSongMapping: {// maps an actor id to a song. A song is defined by the name of a .ogg file in the audio/bgm folder
+		1: "Battle1",
+		3: "Battle1"
+	},
+	enemySongMapping: {// maps an enemy id to a song. A song is defined by the name of a .ogg file in the audio/bgm folder
+		5: "SRW_Boss1"
+	},
+	actorSongPriority: {//sets the priority of an actor's song over other songs, 1 if not listed
+		1: 3
+	},
+	enemySongPriority: {//set the priority of an enemy's song over other songs, 0 if not listed
+		5: 2
+	}
+};
+```
+
 # Terrain
 
 This engine reuses some properties of terrain available in vanilla RPG Maker to assign additional terrain functionality.
@@ -273,7 +293,7 @@ Units can be given the ability to transform into other units.
 \<mechTransformsInto:1\>: The id of the mech into which the mech can transform.<br>
 \<mechTransformWill:0\>: The required will for transformation.<br>
 \<mechTransformRestores:0\> If 1 the mech will recover all HP and EN after transforming. If 0 the old HP and EN will carry over.<br>
-\<mechTransformedActor:1\> If specified the unit's pilot will be set to the actor with specified id after transforming.
+\<mechTransformedActor:1\> If specified the unit's pilot will be set to the actor with the specified id after transforming.
 
 ### Combining Units
 
@@ -794,6 +814,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * lockDeploySlot slot
 
 	Prevent the player from changing a deploy slot in the intermission menu.<br>
+
 	Units required for events after the next deploy should be assigned to a slot and then have that slot be locked.	
 	
 * unlockDeploySlot slot
