@@ -396,6 +396,7 @@ StatCalc.prototype.resetStageTemp = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		actor.SRWStats.stageTemp = {
 			inventoryConsumed: {},
+			abilityUsed: {},
 			isRevealed: false,
 			mapAttackCoolDown: 1,
 			nonMapAttackCounter: 1,
@@ -843,7 +844,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		} else if(preserveVolatile && actor.SRWStats.mech){
 			mech = $dataClasses[actor.SRWStats.mech.id];
 		}
-		if(!mech && actor.event){//do not apply a mech class for an actor that is not tied to an event
+		if(!mech && !actor.isSubPilot){//sub pilots should not be linked to mechs
 			mech = actor.currentClass();
 
 		}		
@@ -918,9 +919,13 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	actor.SRWStats.pilot.personalityInfo = this.getPersonalityDef(actorProperties);
 	
 	var subPilots = this.getSubPilots(actor);
-	subPilots.forEach(function(pilotId){
-		_this.initSRWStats($gameActors.actor(pilotId), 1, [], preserveVolatile);
-	});
+	if(!actor.isSubPilot){
+		subPilots.forEach(function(pilotId){
+			var actor = $gameActors.actor(pilotId);
+			actor.isSubPilot = true;
+			_this.initSRWStats(actor, 1, [], preserveVolatile);
+		});	
+	}	
 }
 
 StatCalc.prototype.getMechDataById = function(id, forActor){
@@ -1153,13 +1158,14 @@ StatCalc.prototype.transform = function(actor, force){
 					if(this.isActorSRWInitialized(targetActor)){
 						targetActor.event = actor.event;
 						actor.event = null;
+						actor.isSubPilot = true;
 						actor.SRWStats.mech = null;
 						$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
 						actor = targetActor;
 					}
 				}
 			}		
-			
+			actor.isSubPilot = false;
 			actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
 			this.calculateSRWMechStats(actor.SRWStats.mech);
 			if(!actor.SRWStats.mech.transformRestores){
@@ -1862,6 +1868,24 @@ StatCalc.prototype.getUnlockedUpgradeLevel = function(){
 
 StatCalc.prototype.getMaxUpgradeLevel = function(){
 	return 10;
+}
+
+StatCalc.prototype.getMinModificationLevel = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		var minLevel = this.getMaxUpgradeLevel();
+		var mechUpgrades = actor.SRWStats.mech.stats.upgradeLevels;	
+		Object.keys(mechUpgrades).forEach(function(upgradedStat){
+			if(upgradedStat == "maxHP" || upgradedStat == "maxEN" || upgradedStat == "armor" || upgradedStat == "mobility" || upgradedStat == "accuracy"){
+				var level = mechUpgrades[upgradedStat] || 0;
+				if(level < minLevel){
+					minLevel = level;
+				}				
+			}
+		});		
+		return minLevel;
+	} else {
+		return 0;
+	}
 }
 
 StatCalc.prototype.getOverallModificationLevel = function(actor){
@@ -3098,7 +3122,7 @@ StatCalc.prototype.setAllHPPercent = function(type, percent){
 	var result = [];
 	this.iterateAllActors(type, function(actor){			
 		var mechStats = _this.getCalculatedMechStats(actor);
-		mechStats.currentHP = mechStats.maxHP * percent / 100;	
+		mechStats.currentHP = Math.floor(mechStats.maxHP * percent / 100);	
 	});
 	return result;
 }
@@ -3148,8 +3172,12 @@ StatCalc.prototype.isAce = function(actor){
 }
 
 StatCalc.prototype.isFUB = function(actor){
-	if(this.isActorSRWInitialized(actor)){		
-		return this.getOverallModificationLevel(actor) >= 100;
+	if(this.isActorSRWInitialized(actor)){	
+		if($gameSystem.requiredFUBLevel != null){
+			return this.getMinModificationLevel(actor) >= $gameSystem.requiredFUBLevel;
+		} else {
+			return this.getOverallModificationLevel(actor) >= 100;
+		}		
 	} else {
 		return false;
 	}
@@ -3451,6 +3479,38 @@ StatCalc.prototype.setConsumableUsed = function(actor, idx){
 	}	
 }
 
+StatCalc.prototype.getAbilityCommands = function(actor){
+	var _this = this;
+	var result = [];
+	if(_this.isActorSRWInitialized(actor)){	
+		if(!actor.SRWStats.stageTemp.abilityUsed){
+			actor.SRWStats.stageTemp.abilityUsed = {};
+		}
+		var commands = _this.getModDefinitions(actor, ["ability_command"]);
+		commands.forEach(function(commandDef){
+			var abilityDefinition = $abilityCommandManger.getAbilityDef(commandDef.cmdId);
+			var timesUsed = actor.SRWStats.stageTemp.abilityUsed[commandDef.cmdId] || 0;
+			if(abilityDefinition && timesUsed < abilityDefinition.useCount){
+				result.push(commandDef.cmdId);
+			}			
+		});
+	}	
+	return result;
+}
+
+StatCalc.prototype.setAbilityUsed = function(actor, idx){
+	if(this.isActorSRWInitialized(actor)){	
+		if(!actor.SRWStats.stageTemp.abilityUsed){
+			actor.SRWStats.stageTemp.abilityUsed = {};
+		}
+		if(!actor.SRWStats.stageTemp.abilityUsed[idx]){
+			actor.SRWStats.stageTemp.abilityUsed[idx] = 1;
+		} else {
+			actor.SRWStats.stageTemp.abilityUsed[idx]++;
+		}
+	}	
+}
+
 StatCalc.prototype.isStatModActiveOnAnyActor = function(modType, excludedSkills){
 	var _this = this;
 	var result = false;
@@ -3472,6 +3532,7 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 		mult_ceil: [],
 		addPercent: [],
 		addFlat: [],
+		list: []
 	};
 	function accumulateFromAbilityList(abilityList, abilityManager){
 		if(abilityList && abilityManager){			
@@ -3489,7 +3550,10 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 						} else if(statMod.modType == "mult_ceil"){
 							targetList = result.mult_ceil;
 						}
-						targetList.push(statMod);
+						if(targetList){
+							targetList.push(statMod);
+						}
+						result.list.push(statMod);
 					});			
 				}			
 			});	
@@ -3533,6 +3597,17 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 			}	
 		}
 	}
+	return result;
+}
+
+StatCalc.prototype.getModDefinitions = function(actor, types, excludedSkills){
+	var result = [];
+	var statMods = this.getActiveStatMods(actor, excludedSkills);	
+	for(var i = 0; i < statMods.list.length; i++){
+		if(types.indexOf(statMods.list[i].type) != -1){
+			result.push(statMods.list[i]);
+		}		
+	}	
 	return result;
 }
 

@@ -395,7 +395,7 @@ body {
 	width: 6%;
 	margin-left: 2%;
 	margin-right: 2%;
-	background-color: rgba(85, 85, 85, 0.5);
+	background-color: rgba(20, 20, 20, 0.5);
 	display: inline-block;
 }
 
@@ -407,8 +407,8 @@ body {
 	background-color: #40e59c;
 }
 
-.upgrade_bar_part.locked {
-	background-color: rgba(20, 20, 20, 0.5);
+.upgrade_bar_part.locked {	
+	background-color: rgba(85, 85, 85, 0.5);
 }
 
 .chevron_right {

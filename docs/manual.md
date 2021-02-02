@@ -990,6 +990,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * setUnlockedUpgradeLevel level
 
 	Sets the allowed max level of upgrades to the specified level. Does not remove upgrades that go above the newly specified level.
+	
+* setRequiredFUBLevel level
+	Sets the minimum level to which each stat should be upgraded before the Full Upgrade Bonus of mechs unlocks.
 
 ## Script commands
 

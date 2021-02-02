@@ -158,3 +158,53 @@ WeaponEffectManager.prototype.constructor = WeaponEffectManager;
 WeaponEffectManager.prototype.initDefinitions = function(){
 	$SRWConfig.weaponEffects.call(this);
 }
+
+function AbilityCommandManger(){
+	this._parent = AbilityManager.prototype;
+	this._parent.constructor.call(this);
+}
+
+AbilityCommandManger.prototype = Object.create(AbilityManager.prototype);
+AbilityCommandManger.prototype.constructor = AbilityCommandManger;
+
+AbilityCommandManger.prototype.initDefinitions = function(){
+	$SRWConfig.abilityCommands.call(this);
+}
+
+AbilityCommandManger.prototype.addDefinition = function(idx, name, desc, useCount, statmodHandler, isActiveHandler){
+	var _this = this;
+	this._abilityDefinitions[idx] = {
+		name: name,
+		desc: desc,
+		useCount: useCount,
+		statmodHandler: statmodHandler,
+		isActiveHandler: isActiveHandler
+	};
+	if(statmodHandler){
+		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
+	} else {
+		this._abilityDefinitions[idx].statmodHandler = function(){return {}}
+	}
+	if(isActiveHandler){
+		this._abilityDefinitions[idx].isActiveHandler = isActiveHandler;
+	} else {
+		this._abilityDefinitions[idx].isActiveHandler = function(){return true;}
+	}
+}
+
+AbilityCommandManger.prototype.getAbilityDisplayInfo = function(idx){
+	var abilityDef = this._abilityDefinitions[idx];
+	var result = {
+		name: "",
+		desc: "",
+		useCount: 0,
+		isActiveHandler: function(){return false;},
+	};
+	if(abilityDef){
+		result.name = abilityDef.name;
+		result.desc = abilityDef.desc;
+		result.useCount = abilityDef.useCount;
+		result.isActiveHandler = abilityDef.isActiveHandler;
+	}
+	return result;
+}

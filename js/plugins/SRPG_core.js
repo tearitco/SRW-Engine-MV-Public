@@ -56,6 +56,7 @@ var $spiritManager = new SpiritManager();
 var $pilotAbilityManager = new PilotAbilityManager(); 
 var $mechAbilityManager = new MechAbilityManager(); 
 var $itemEffectManager = new ItemEffectManager(); 
+var $abilityCommandManger = new AbilityCommandManger();
 var $weaponEffectManager = new WeaponEffectManager();
 var $battleCalc = new BattleCalc();
 var $CSSUIManager = new CSSUIManager();
@@ -671,6 +672,13 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				$gameSystem.unlockedUpgradeLevel = tmp;
 			}			
 		}
+		
+		if (command === 'setRequiredFUBLevel') {
+			var tmp = parseInt(args[0]);
+			if(!isNaN(tmp)){
+				$gameSystem.requiredFUBLevel = tmp;
+			}			
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -1220,6 +1228,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 	Game_System.prototype.startIntermission = function(){
 		this._availableUnits = $gameParty.allMembers();
 		this._availableUnits.forEach(function(actor){
+			actor.isSubPilot = false;
 			$statCalc.initSRWStats(actor);
 		});
 		this._isIntermission = true;
@@ -7733,6 +7742,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					if($statCalc.getConsumables(_this._actor).length){
 						 _this.addCommand(APPSTRINGS.MAPMENU.cmd_item, 'item');
 					}
+					if($statCalc.getAbilityCommands(_this._actor).length){
+						 _this.addCommand(APPSTRINGS.MAPMENU.cmd_ability, 'ability');
+					}
 					if($statCalc.canFly(_this._actor) && $statCalc.getCurrentTerrain(_this._actor) != "space"){
 						if($statCalc.isFlying(_this._actor)){
 							if(($statCalc.getTileType(_this._actor) == "land" && $statCalc.canBeOnLand(_this._actor)) || ($statCalc.getTileType(_this._actor) == "water" && $statCalc.canBeOnWater(_this._actor))){
@@ -8087,6 +8099,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.createPauseWindow();
 		this.createConditionsWindow();
 		this.createItemWindow();
+		this.createAbilityWindow();
 		this.createDeploymentWindow();
 		this.createEndTurnConfirmWindow();
 		this.createDeploymentInStageWindow();
@@ -8440,6 +8453,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         this._mapSrpgActorCommandWindow.setHandler('attack', this.commandAttack.bind(this));
         this._mapSrpgActorCommandWindow.setHandler('skill',  this.commandSkill.bind(this));
         this._mapSrpgActorCommandWindow.setHandler('item',   this.commandItem.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('ability',   this.commandAbility.bind(this));
         this._mapSrpgActorCommandWindow.setHandler('equip',   this.commandEquip.bind(this));
         this._mapSrpgActorCommandWindow.setHandler('wait',  this.commandWait.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('land',  this.commandLand.bind(this));
@@ -8700,6 +8714,21 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         this._itemWindow.setHandler('cancel', this.onItemCancel.bind(this));
         this.addWindow(this._itemWindow);
     };
+	
+	Scene_Map.prototype.createAbilityWindow = function() {
+        var wy = this._helpWindow.y + this._helpWindow.height;
+        var wh = Graphics.boxHeight - wy - this._mapSrpgActorCommandStatusWindow.windowHeight();
+        this._abilityWindow = new Window_SRWAbilityCommand(0, wy, 200, 180);
+		this._abilityWindow.x = this._mapSrpgActorCommandWindow.x - this._mapSrpgActorCommandWindow.windowWidth() + 120;
+		this._abilityWindow.y = this._mapSrpgActorCommandWindow.y - this._mapSrpgActorCommandWindow.windowHeight()/2;
+        //this._itemWindow.setHelpWindow(this._helpWindow);
+        this._abilityWindow.setHandler('ok',     this.onAbilityOk.bind(this));
+        this._abilityWindow.setHandler('cancel', this.onAbilityCancel.bind(this));
+        this.addWindow(this._abilityWindow);
+    };
+	
+	
+	
 
     // 戦闘開始ウィンドウを作る
     Scene_Map.prototype.createSrpgBattleWindow = function() {
@@ -10264,6 +10293,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         this._itemWindow.show();
         this._itemWindow.activate();
     };
+	
+	 Scene_Map.prototype.commandAbility = function() {
+        this._abilityWindow.refresh();
+        this._abilityWindow.show();
+        this._abilityWindow.activate();
+    };
+	
+	
 
     //アクターコマンド・装備
     Scene_Map.prototype.commandEquip = function() {
@@ -10594,6 +10631,26 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     //アイテムコマンド・キャンセル
     Scene_Map.prototype.onItemCancel = function() {
         this._itemWindow.hide();
+        this._mapSrpgActorCommandWindow.activate();
+    };
+	
+	Scene_Map.prototype.onAbilityOk = function() {
+        var item = this._abilityWindow.item();		
+		var itemDef = $abilityCommandManger.getAbilityDef(item);
+		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		if(itemDef && itemDef.isActiveHandler(actor)){			
+			$statCalc.setAbilityUsed(actor, item);
+			itemDef.statmodHandler(actor);
+       
+			this._abilityWindow.hide();
+			this._mapSrpgActorCommandWindow.setup(actor);
+		} else {
+			this._abilityWindow.activate();
+		}
+    };
+	
+	Scene_Map.prototype.onAbilityCancel = function() {
+        this._abilityWindow.hide();
         this._mapSrpgActorCommandWindow.activate();
     };
 	Scene_Map.prototype.getMapAttackTargets = function(originEvent, attack, type, direction) {
@@ -12371,6 +12428,61 @@ Scene_Gameover.prototype.gotoTitle = function() {
 	Window_SRWItemBattle.prototype.isEnabled = function(item) {
 		return true;
 	};	
+	
+	function Window_SRWAbilityCommand() {
+		this._parent = Window_BattleItem.prototype;
+		this.initialize.apply(this, arguments);	
+    }
+
+    Window_SRWAbilityCommand.prototype = Object.create(Window_BattleItem.prototype);
+    Window_SRWAbilityCommand.prototype.constructor = Window_SRWAbilityCommand;
+	
+	Window_SRWAbilityCommand.prototype.maxCols = function(){
+		return 1;
+	}
+	
+	Window_SRWAbilityCommand.prototype.windowWidth = function() {
+        return 240;
+    };
+
+    Window_SRWAbilityCommand.prototype.windowHeight = function() {
+        return this.fittingHeight(4);
+    };
+	
+	Window_SRWAbilityCommand.prototype.refresh = function(){
+		this._parent.refresh.call(this);
+	}
+	
+	Window_SRWAbilityCommand.prototype.drawItem = function(index) {
+		var item = this._data[index];
+		if (item != null) {
+			item = $abilityCommandManger.getAbilityDisplayInfo(item);
+			var numberWidth = 0;//this.numberWidth();
+			var rect = this.itemRect(index);
+			//rect.width -= this.textPadding();
+			this.drawItemName(item, rect.x, rect.y, rect.width - numberWidth);
+		}
+	};
+	
+	Window_SRWAbilityCommand.prototype.drawItemName = function(item, x, y, width) {
+		width = width || 312;
+		if (item) {
+			this.resetTextColor();
+			this.drawText(item.name, x + 10, y, width - 20);
+		}
+	};
+	
+	Window_SRWAbilityCommand.prototype.makeItemList = function() {
+		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		this._data = $statCalc.getAbilityCommands(actor);
+	};
+	
+	Window_SRWAbilityCommand.prototype.isEnabled = function(item) {
+		return true;
+	};	
+	
+	
+	
 	
 	
 	function Window_StageInfo() {

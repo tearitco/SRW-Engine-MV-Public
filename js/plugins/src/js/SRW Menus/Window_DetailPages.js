@@ -547,7 +547,7 @@ Window_DetailPages.prototype.redraw = function() {
 		var displayInfo = $mechAbilityManager.getAbilityDisplayInfo(FUB.idx);
 		FUBContent+=displayInfo.desc;
 	} else {
-		FUBContent+=APPSTRINGS.DETAILPAGES.label_FUB_hint;
+		FUBContent+=APPSTRINGS.DETAILPAGES.label_FUB_hint.replace("{LEVEL_NEEDED}", $gameSystem.requiredFUBLevel || $statCalc.getMaxUpgradeLevel());
 	}
 	FUBContent+="</div>";
 	this._FUBContainer.innerHTML = FUBContent;
