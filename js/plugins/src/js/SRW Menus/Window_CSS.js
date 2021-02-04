@@ -251,6 +251,13 @@ Window_CSS.prototype.getAvailableUnits = function(){
 			}
 		}
 	}		
+	var tmp = [];
+	this._availableUnits.forEach(function(unit){
+		if($statCalc.isActorSRWInitialized(unit)){
+			tmp.push(unit);
+		}
+	});
+	this._availableUnits = tmp; 
 	/*this._availableUnits.forEach(function(unit){
 		$statCalc.initSRWStats(unit);
 	});*/
