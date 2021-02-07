@@ -3553,7 +3553,9 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 						if(targetList){
 							targetList.push(statMod);
 						}
-						result.list.push(statMod);
+						var listEntry = JSON.parse(JSON.stringify(statMod));
+						listEntry.name = abilityManager.getAbilityDisplayInfo(abilityDef.idx).name;
+						result.list.push(listEntry);
 					});			
 				}			
 			});	

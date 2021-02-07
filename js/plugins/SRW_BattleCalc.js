@@ -367,19 +367,51 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			}				
 		}
 		
+		result.barrierNames = [];
 		if(!noBarrier && !$statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["pierce_barrier"])){			
 			var totalBarrierCost = 0;
 			
-			var percentBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["percent_barrier"]);
+			
+			var percentBarrierAmount = 1;
+			var percentBarrierCost = 0;
+			var barrierName = "";
+			
+			var percentEffect = $statCalc.getModDefinitions(defenderInfo.actor, ["percent_barrier"]); 
+			
+			var type = weaponInfo.particleType;
+			if(!type){
+				type = "typeless";
+			}
+			
+			percentEffect.forEach(function(effect){
+				if(effect.subType == type || effect.subType == "all"){
+					if(effect.value < percentBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
+						percentBarrierAmount = effect.value;
+						percentBarrierCost = effect.cost;
+						barrierName = effect.name;
+					}
+				}
+			});
+			
+			if(percentBarrierAmount < 1){				
+				totalBarrierCost+=percentBarrierCost;
+				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
+					result.hasPercentBarrier = true;
+					finalDamage = Math.floor(finalDamage * percentBarrierAmount);
+					result.barrierNames.push(barrierName);
+				} 			
+			}
+			
+			/*var percentBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["percent_barrier"]);
 			if(percentBarrierAmount) {
 				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["percent_barrier_cost"]);
 				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
 					result.hasPercentBarrier = true;
 					finalDamage = Math.floor(finalDamage * percentBarrierAmount);
 				}
-			}				
+			}	*/			
 			
-			var rangeReductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ranged_reduction_barrier"]);
+			/*var rangeReductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ranged_reduction_barrier"]);
 			if(rangeReductionBarrierAmount && weaponInfo.type != "M") {
 				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ranged_reduction_barrier_cost"]);
 				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
@@ -389,9 +421,9 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 						finalDamage = 0;
 					}
 				}
-			}
+			}*/
 			
-			var reductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier"]);
+			/*var reductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier"]);
 			if(weaponInfo.particleType == "beam"){
 				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["beam_reduction_barrier"])
 			}
@@ -409,26 +441,82 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			}
 			if(weaponInfo.particleType == ""){
 				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["typeless_reduction_barrier"])
+			}*/
+			var reductionBarrierAmount = 0;
+			var reductionBarrierCost = 0;
+			var barrierName = "";
+			
+			var reductionEffects = $statCalc.getModDefinitions(defenderInfo.actor, ["reduction_barrier"]); 
+			
+			var type = weaponInfo.type == "M" ? "melee" : "ranged";			
+			
+			reductionEffects.forEach(function(effect){
+				if(effect.statType == type){
+					if(effect.value > reductionBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
+						reductionBarrierAmount = effect.value;
+						reductionBarrierCost = effect.cost || 0;
+						barrierName = effect.name;
+					}
+				}
+			});				
+			
+			var type = weaponInfo.particleType;
+			if(!type){
+				type = "typeless";
 			}
+			
+			reductionEffects.forEach(function(effect){
+				if(effect.subType == type || effect.subType == "all"){
+					if(effect.value > reductionBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
+						reductionBarrierAmount = effect.value;
+						reductionBarrierCost = effect.cost;
+					}
+				}
+			});
+			
 			if(reductionBarrierAmount) {
-				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier_cost"]);
+				//totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier_cost"]);
+				totalBarrierCost+=reductionBarrierCost;
 				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
 					result.hasReductionBarrier = true;
 					finalDamage-=reductionBarrierAmount;
+					result.barrierNames.push(barrierName);
 					if(finalDamage < 0){
 						finalDamage = 0;
 					}
 				}
 			}
 			
-			var thresholdBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["threshold_barrier"]);
+			//var thresholdBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["threshold_barrier"]);
+			var thresholdBarrierAmount = 0;
+			var thresholdBarrierCost = 0;
+			var barrierName = "";
+			
+			var tresholdEffects = $statCalc.getModDefinitions(defenderInfo.actor, ["threshold_barrier"]); 
+			
+			var type = weaponInfo.particleType;
+			if(!type){
+				type = "typeless";
+			}
+			
+			tresholdEffects.forEach(function(effect){
+				if(effect.subType == type || effect.subType == "all"){
+					if(effect.value > thresholdBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
+						thresholdBarrierAmount = effect.value;
+						thresholdBarrierCost = effect.cost;
+						barrierName = effect.name;
+					}
+				}
+			});
+			
 			if(thresholdBarrierAmount) {				
-				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["threshold_barrier_cost"]);
+				totalBarrierCost+=thresholdBarrierCost;
 				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
 					result.hasThresholdBarrier = true;
+					result.barrierNames.push(barrierName);
 					if(finalDamage < thresholdBarrierAmount) {
 						finalDamage = 0;
-					}	else {
+					} else {
 						result.thresholdBarrierBroken = true;
 					}
 				} 			

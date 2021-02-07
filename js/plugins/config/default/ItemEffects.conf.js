@@ -335,7 +335,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "threshold_barrier", modType: "addFlat", value: 800},{type: "threshold_barrier_cost", modType: "addFlat", value: 5}];
+			return [{type: "threshold_barrier", subType: "all", value: 800, cost: 5}];
 		},
 		function(actor, level){
 			return true;
@@ -348,7 +348,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "threshold_barrier", modType: "addFlat", value: 1800},{type: "threshold_barrier_cost", modType: "addFlat", value: 15}];
+			return [{type: "threshold_barrier", subType: "all", value: 1800, cost: 15}];
 		},
 		function(actor, level){
 			return true;
@@ -689,7 +689,7 @@ $SRWConfig.itemEffects = function(){
 		function(actor, level){
 			return [				
 				{type: "ignore_evasion_decay", modType: "addFlat", value: 1},
-				{type: "reduction_barrier", modType: "addFlat", value: 1000}
+				{type: "reduction_barrier", subType: "all", value: 1000, cost: 0}
 			];
 		},
 		function(actor, level){

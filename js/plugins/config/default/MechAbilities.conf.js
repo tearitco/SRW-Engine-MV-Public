@@ -123,7 +123,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "threshold_barrier", modType: "addFlat", value: 800},{type: "threshold_barrier_cost", modType: "addFlat", value: 5}];
+			return [{type: "threshold_barrier", subType: "all", value: 800, cost: 5}];
 		},
 		function(actor, level){
 			return true;
@@ -136,7 +136,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "threshold_barrier", modType: "addFlat", value: 1800},{type: "threshold_barrier_cost", modType: "addFlat", value: 15}];
+			return [{type: "threshold_barrier", subType: "all", value: 1800, cost: 15}];
 		},
 		function(actor, level){
 			return true;
@@ -149,7 +149,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "reduction_barrier", modType: "addFlat", value: 1000},{type: "reduction_barrier_cost", modType: "addFlat", value: 10}];
+			return [{type: "reduction_barrier", subType: "all", value: 1000, cost: 10}];
 		},
 		function(actor, level){
 			return true;
@@ -188,7 +188,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		true,
 		function(actor, level){
-			return [{type: "percent_barrier", modType: "addFlat", value: 1/8}];
+			return [{type: "percent_barrier", subType: "all", value: 1/8, cost: 0}];
 		},
 		function(actor, level){
 			return !$statCalc.isStatModActiveOnAnyActor("noise_cancel", {14: true});
@@ -256,7 +256,7 @@ $SRWConfig.mechAbilties = function(){
 			if(typeof effectTable[magicianLevel-1] != "undefined"){
 				boost = effectTable[magicianLevel-1];
 			}
-			return [{type: "ranged_reduction_barrier", modType: "addFlat", value: 500 + boost}];
+			return [{type: "reduction_barrier", statType: "melee", value: 500 + boost, cost: 5}];
 		},
 		function(actor, level){
 			return true;
@@ -269,7 +269,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		true,
 		function(actor, level){
-			return [{type: "percent_barrier", modType: "addFlat", value: 1/2}];
+			return [{type: "percent_barrier", subType: "all", value: 1/2, cost: 0}];
 		},
 		function(actor, level){
 			return true;
@@ -345,7 +345,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "reduction_barrier", modType: "addFlat", value: 1000},{type: "reduction_barrier_cost", modType: "addFlat", value: 15}];
+			return [{type: "reduction_barrier", subType: "all", value: 1500, cost: 15}];
 		},
 		function(actor, level){
 			return $statCalc.getCurrentWill(actor) >= 120;
@@ -359,7 +359,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "beam_reduction_barrier", modType: "addFlat", value: 1200},{type: "reduction_barrier_cost", modType: "addFlat", value: 10}];
+			return [{type: "reduction_barrier", subType: "beam", value: 1200, cost: 10}];
 		},
 		function(actor, level){
 			return true;
@@ -373,7 +373,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "beam_reduction_barrier", modType: "addFlat", value: 1100},{type: "reduction_barrier_cost", modType: "addFlat", value: 5}];
+			return [{type: "reduction_barrier", subType: "beam", value: 1100, cost: 5}];
 		},
 		function(actor, level){
 			return true;
@@ -387,7 +387,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "beam_reduction_barrier", modType: "addFlat", value: 900},{type: "reduction_barrier_cost", modType: "addFlat", value: 5}];
+			return [{type: "reduction_barrier", subType: "beam", value: 900, cost: 5}];
 		},
 		function(actor, level){
 			return true;
@@ -401,7 +401,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "reduction_barrier", modType: "addFlat", value: 1000},{type: "beam_reduction_barrier", modType: "addFlat", value: 2000},{type: "gravity_reduction_barrier", modType: "addFlat", value: 2000},{type: "reduction_barrier_cost", modType: "addFlat", value: 10}];
+			return [{type: "reduction_barrier", subType: "all", value: 1000, cost: 10}, {type: "reduction_barrier", subType: "beam", value: 3000, cost: 10}, {type: "reduction_barrier", subType: "gravity", value: 3000, cost: 10}];
 		},
 		function(actor, level){
 			return true;
@@ -515,12 +515,11 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		function(actor, level){
 			return [
-				{type: "gravity_reduction_barrier", modType: "addFlat", value: 1000},
-				{type: "missile_reduction_barrier", modType: "addFlat", value: 1000},
-				{type: "funnel_reduction_barrier", modType: "addFlat", value: 1000},
-				{type: "physical_reduction_barrier", modType: "addFlat", value: 1000},
-				{type: "typeless_reduction_barrier", modType: "addFlat", value: 1000},
-				{type: "reduction_barrier_cost", modType: "addFlat", value: 10}
+				{type: "reduction_barrier", subType: "gravity", value: 1000, cost: 10},
+				{type: "reduction_barrier", subType: "missile", value: 1000, cost: 10},
+				{type: "reduction_barrier", subType: "funnel", value: 1000, cost: 10},
+				{type: "reduction_barrier", subType: "physical", value: 1000, cost: 10},
+				{type: "reduction_barrier", subType: "typeless", value: 1000, cost: 10},			
 			];
 		},
 		function(actor, level){
