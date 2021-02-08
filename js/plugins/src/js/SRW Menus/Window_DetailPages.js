@@ -478,7 +478,7 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 		detailContent+="</div>";
 	} else {
 		detailContent+="<div class='ace_desc scaled_text'>";
-		detailContent+=APPSTRINGS.DETAILPAGES.label_ace_hint;
+		detailContent+=APPSTRINGS.DETAILPAGES.label_ace_hint.replace("{KILLS_NEEDED}", ENGINE_SETTINGS.ACE_REQUIREMENT);
 		detailContent+="</div>";
 	}	
 	

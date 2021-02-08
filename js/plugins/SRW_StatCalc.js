@@ -3103,6 +3103,7 @@ StatCalc.prototype.applyHPRegen = function(type, factionId){
 			} else {
 				_this.recoverHPPercent(actor, _this.applyStatModsToValue(actor, 0, ["HP_regen"]));			
 				_this.recoverHPPercent(actor, _this.getCurrentTerrainMods(actor).hp_regen);	
+				_this.recoverHPPercent(actor, ENGINE_SETTINGS.DEFAULT_HP_REGEN || 0);	
 			}
 		}		
 	});
@@ -3165,7 +3166,7 @@ StatCalc.prototype.getKills = function(actor){
 
 StatCalc.prototype.isAce = function(actor){
 	if(this.isActorSRWInitialized(actor)){		
-		return this.getKills(actor) >= 50;
+		return this.getKills(actor) >= (ENGINE_SETTINGS.ACE_REQUIREMENT || 50);
 	} else {
 		return false;
 	}
@@ -3246,6 +3247,7 @@ StatCalc.prototype.applyENRegen = function(type, factionId){
 			} else {
 				_this.recoverENPercent(actor, _this.applyStatModsToValue(actor, 0, ["EN_regen"]));	
 				_this.recoverENPercent(actor, _this.getCurrentTerrainMods(actor).en_regen);	
+				_this.recoverENPercent(actor, ENGINE_SETTINGS.DEFAULT_EN_REGEN || 0);			
 				_this.recoverEN(actor, 5);	
 			}	
 		}	

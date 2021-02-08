@@ -1885,6 +1885,9 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				if(ENGINE_SETTINGS.VXT_SP){
 					SPRegen+=5;
 				}
+				if(ENGINE_SETTINGS.DEFAULT_SP_REGEN){
+					SPRegen+=ENGINE_SETTINGS.DEFAULT_SP_REGEN;
+				}
 				if($gameVariables.value(_turnVarID) != 1){
 					$statCalc.recoverSP(battlerArray[1], SPRegen);
 				}
@@ -3809,7 +3812,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 									
                                 }
                                 return;
-                            } else if (event.isType() === 'enemy' || $statCalc.isAI(battlerArray[1])) {
+                            } else if (event.isType() === 'enemy' || (battlerArray && $statCalc.isAI(battlerArray[1]))) {
                                /* SoundManager.playOk();
                                 $gameTemp.setActiveEvent(event);
                                 $gameSystem.srpgMakeMoveTable(event);

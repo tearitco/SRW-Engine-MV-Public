@@ -31,5 +31,9 @@ var ENGINE_SETTINGS_DEFAULT = {
 	WEAPON_UPGRADE_TYPES: {
 		0: [100, 100, 100, 150, 150, 150, 200, 200, 200, 250, 200, 200, 200, 200, 200],
 		1: [100, 150, 150, 150, 150, 200, 200, 200, 200, 250, 200, 200, 200, 200, 200]		
-	}
+	},
+	ACE_REQUIREMENT: 50, //amount of kills required to unlocked the Ace Bonus
+	DEFAULT_SP_REGEN: 0, //default SP regen in points of SP
+	DEFAULT_HP_REGEN: 0, //default HP regen in percent of total(10,50,etc.)
+	DEFAULT_EN_REGEN: 0 //default EN regen in percent of total(10,50,etc.)
 }

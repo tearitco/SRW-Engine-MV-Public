@@ -175,7 +175,7 @@ APPSTRINGS.DETAILPAGES = {
 	label_weapon_info: "Weapon Info",
 	label_FUB: "Full Upgrade Bonus",
 	label_FUB_hint: "Upgrade all of this mech's stats to at least Level {LEVEL_NEEDED} to unlock this ability.",
-	label_ace_hint: "Get at least 50 kills with this unit to unlock this bonus.",
+	label_ace_hint: "Get at least {KILLS_NEEDED} kills with this unit to unlock this bonus.",
 	label_pilot_spirits: "Pilot Spirits",
 	label_pilot_stats: "Pilot Stats",
 	label_ability: "Ability",
