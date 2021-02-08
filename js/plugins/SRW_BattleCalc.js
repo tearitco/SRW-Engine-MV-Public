@@ -402,46 +402,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 				} 			
 			}
 			
-			/*var percentBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["percent_barrier"]);
-			if(percentBarrierAmount) {
-				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["percent_barrier_cost"]);
-				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
-					result.hasPercentBarrier = true;
-					finalDamage = Math.floor(finalDamage * percentBarrierAmount);
-				}
-			}	*/			
 			
-			/*var rangeReductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ranged_reduction_barrier"]);
-			if(rangeReductionBarrierAmount && weaponInfo.type != "M") {
-				totalBarrierCost+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ranged_reduction_barrier_cost"]);
-				if(totalBarrierCost <= $statCalc.getCurrenEN(defenderInfo.actor)){
-					result.hasReductionBarrier = true;
-					finalDamage-=rangeReductionBarrierAmount;
-					if(finalDamage < 0){
-						finalDamage = 0;
-					}
-				}
-			}*/
-			
-			/*var reductionBarrierAmount = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["reduction_barrier"]);
-			if(weaponInfo.particleType == "beam"){
-				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["beam_reduction_barrier"])
-			}
-			if(weaponInfo.particleType == "gravity"){
-				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["gravity_reduction_barrier"])
-			}
-			if(weaponInfo.particleType == "missile"){
-				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["missile_reduction_barrier"])
-			}
-			if(weaponInfo.particleType == "funnel"){
-				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["funnel_reduction_barrier"])
-			}
-			if(weaponInfo.particleType == "physical"){
-				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["physical_reduction_barrier"])
-			}
-			if(weaponInfo.particleType == ""){
-				reductionBarrierAmount+=$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["typeless_reduction_barrier"])
-			}*/
 			var reductionBarrierAmount = 0;
 			var reductionBarrierCost = 0;
 			var barrierName = "";
@@ -470,6 +431,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 					if(effect.value > reductionBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
 						reductionBarrierAmount = effect.value;
 						reductionBarrierCost = effect.cost;
+						barrierName = effect.name;
 					}
 				}
 			});
@@ -770,6 +732,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 			activeDefenderCache.hasBarrier = damageResult.hasThresholdBarrier || damageResult.hasReductionBarrier || damageResult.hasPercentBarrier;
 			activeDefenderCache.hasThresholdBarrier = damageResult.hasThresholdBarrier;
 			activeDefenderCache.barrierBroken = damageResult.thresholdBarrierBroken;
+			
+			dCache.barrierNames = damageResult.barrierNames;
 			
 			if(this._side == "actor"){
 				if(dCache){

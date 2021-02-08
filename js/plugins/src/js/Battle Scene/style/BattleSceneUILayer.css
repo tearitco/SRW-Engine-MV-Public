@@ -256,3 +256,77 @@
 	left: 0;
 	text-align: left;
 }
+
+#battle_scene_ui_layer .barrier_notification {
+	position: absolute;
+	top: 25%;
+	color: #FFFFFF;
+	font-size: 2.5px;
+	text-shadow: 0.1vw 0.1vw 0 #222222;
+}
+
+#battle_scene_ui_layer_ally_barrier_notification {
+	right: 0;
+	text-align: left;
+}
+
+#battle_scene_ui_layer_enemy_barrier_notification {
+	left: 0;
+	text-align: right;
+}
+
+#battle_scene_ui_layer .barrier_name {
+	--widthpixels: 200;
+	--heightpixels: 24;
+	border: 0.1vw solid #ffc400;
+	color: #fffbec;
+	background-color: rgba(255, 196, 0, 0.5);
+	padding: 5%;
+	font-size: 2px;
+	display: flex;
+    align-items: center;
+	/*width: fit-content;*/
+	justify-content: center;
+	/*border-radius: 9999px;*/
+	white-space: nowrap;
+}
+
+#battle_scene_ui_layer_ally_barrier_notification .barrier_name{
+	border-top-left-radius: 9999px;
+	border-bottom-left-radius: 9999px;
+	border-right: 0;
+	margin-top: 5%;
+	margin-bottom: 5%;
+	
+	animation-name: slide_in_right;
+	animation-duration: 0.5s;
+	animation-fill-mode: forwards;
+	margin-left: 150%;
+	/*justify-content: flex-start;*/
+	/*justify-content: flex-end;*/
+}
+
+@keyframes slide_in_right {
+	0% { margin-left: 150%;}
+	100% { margin-left: 0%;}
+}
+
+#battle_scene_ui_layer_enemy_barrier_notification .barrier_name{
+	border-top-right-radius: 9999px;
+	border-bottom-right-radius: 9999px;
+	/*border-left: 0;*/
+	margin-top: 5%;
+	margin-bottom: 5%;
+	
+	animation-name: slide_in_left;
+	animation-duration: 0.5s;
+	animation-fill-mode: forwards;
+	margin-left: -150%;
+	/*justify-content: flex-end;*/
+}
+
+@keyframes slide_in_left {
+	0% { margin-left: -150%;}
+	100% { margin-left: 0%;}
+}
+

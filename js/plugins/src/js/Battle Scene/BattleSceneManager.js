@@ -1882,7 +1882,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 			HPProvider.animatedHP-=originalAction.damageInflicted;
 			if(originalAction.inflictedCritical){
-				_this._UILayerManager.setNotification(action.isActor ? "actor" : "enemy", "CRITICAL!");
+				_this._UILayerManager.setNotification(action.isActor ? "enemy" : "actor", "CRITICAL!");
+			}
+			if(action.barrierNames){
+				_this._UILayerManager.setBarrierNotification(action.isActor ? "actor" : "enemy", action.barrierNames);
 			}
 		},
 		drain_hp_bar: function(target, params){			

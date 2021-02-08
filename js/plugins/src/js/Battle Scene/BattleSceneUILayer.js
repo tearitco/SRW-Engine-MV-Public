@@ -62,6 +62,18 @@ BattleSceneUILayer.prototype.createComponents = function() {
 	this._enemyNotification.classList.add("notification");
 	this._enemyNotification.classList.add("scaled_text");
 	windowNode.appendChild(this._enemyNotification);
+	
+	this._allyBarrierNotification = document.createElement("div");
+	this._allyBarrierNotification.id = this.createId("ally_barrier_notification");
+	this._allyBarrierNotification.classList.add("barrier_notification");
+	this._allyBarrierNotification.classList.add("scaled_text");
+	windowNode.appendChild(this._allyBarrierNotification);
+	
+	this._enemyBarrierNotification = document.createElement("div");
+	this._enemyBarrierNotification.id = this.createId("enemy_barrier_notification");
+	this._enemyBarrierNotification.classList.add("barrier_notification");
+	this._enemyBarrierNotification.classList.add("scaled_text");
+	windowNode.appendChild(this._enemyBarrierNotification);
 }	
 
 BattleSceneUILayer.prototype.createStatsRowContent = function(label, labelFirst) {
@@ -281,6 +293,34 @@ BattleSceneUILayer.prototype.setNotification = function(side, text){
 	}
 }
 
+BattleSceneUILayer.prototype.showAllyBarrierNotification = function(barriers){
+	this.setNotification("actor", barriers);
+}
+
+BattleSceneUILayer.prototype.showEnemyBarrierNotification = function(barriers){
+	this.setNotification("enemy", barriers);
+}
+
+BattleSceneUILayer.prototype.setBarrierNotification = function(side, barriers){
+	var _this = this;
+	var text = "";
+	var ctr = 0;
+	barriers.forEach(function(name){
+		text+="<div style='animation-delay:"+((ctr++ * 0.1))+"s' class='barrier_name scaled_text fitted_text'>"+name+"</div>";
+	});
+	if(side == "actor"){
+		this._allyBarrierNotification.innerHTML = text;
+		setTimeout(function(){_this._allyBarrierNotification.innerHTML = "";}, 3000);
+	} else {
+		this._enemyBarrierNotification.innerHTML = text;
+		setTimeout(function(){_this._enemyBarrierNotification.innerHTML = "";}, 3000);
+	}
+	var barrierNames = this._container.querySelectorAll(".barrier_name");
+	barrierNames.forEach(function(barrierName){
+		_this.updateScaledDiv(barrierName);
+	});
+}
+
 BattleSceneUILayer.prototype.showDamage = function(entityType, amount){
 	var _this = this;
 	this._damageDisplay.innerHTML = amount;
@@ -455,5 +495,11 @@ BattleSceneUILayer.prototype.redraw = function() {
 	this.setStat("enemy", "EN", _this._enemyStatData.EN.max, _this._enemyStatData.EN.current, isHidden);*/
 	
 	_this.updateScaledDiv(this._damageDisplay);
+	
+	//_this.updateScaledDiv(this._allyBarrierNotification);
+	//_this.updateScaledDiv(this._enemyBarrierNotification);
+	
+	
+	
 	Graphics._updateCanvas();
 }
