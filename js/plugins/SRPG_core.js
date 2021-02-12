@@ -3913,10 +3913,18 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										var supporterSelected = -1;
 										var minDamage = -1;
 										for(var i = 0; i < supporters.length; i++){
-											supporters[i].action = {type: "defend", attack: null};
-											var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo);
-											if(minDamage == -1 || weaponResult.damage < minDamage){
-												minDamage = weaponResult.damage;
+											supporters[i].action = {type: "defend", attack: null};											
+											
+											var damageResult = $battleCalc.performDamageCalculation(
+												{actor: actorInfo.actor, action: $gameTemp.actorAction},
+												supporters[i],
+												true,
+												false,
+												true	
+											);
+											
+											if(minDamage == -1 || damageResult.damage < minDamage){
+												minDamage = damageResult.damage;
 												supporterSelected = i;
 											}
 										}
@@ -11672,11 +11680,19 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var supporterSelected = -1;
 		var minDamage = -1;
 		for(var i = 0; i < supporters.length; i++){
-			supporters[i].action = {type: "defend", attack: null};
-			var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo);
-			if(minDamage == -1 || weaponResult.damage < minDamage){
-				minDamage = weaponResult.damage;
-				supporterSelected = i;
+			supporters[i].action = {type: "defend", attack: null};			
+			var damageResult = $battleCalc.performDamageCalculation(
+				{actor: enemyInfo.actor, action: $gameTemp.enemyAction},
+				supporters[i],
+				true,
+				false,
+				true	
+			);				
+			if(minDamage == -1 || damageResult.damage < minDamage){
+				if(damageResult.damage < $statCalc.getCalculatedMechStats(supporters[i].actor).currentHP){
+					minDamage = damageResult.damage;
+					supporterSelected = i;
+				}				
 			}
 		}
 		$gameTemp.supportDefendCandidates = supporters;
