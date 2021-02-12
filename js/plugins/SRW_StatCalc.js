@@ -2871,13 +2871,25 @@ StatCalc.prototype.getSupportRecipientCandidates = function(type, position, all)
 	return result;
 }
 
-StatCalc.prototype.getSupportAttackCandidates = function(factionId, position){
+StatCalc.prototype.getSupportAttackCandidates = function(factionId, position, terrain){
+	var _this = this;
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
 			var maxSupportAttacks = $statCalc.applyStatModsToValue(actor, 0, ["support_attack"]);
 			if(maxSupportAttacks > actor.SRWStats.battleTemp.supportAttackCount && (!actor.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT)){
-				if($gameSystem.isFriendly(actor, factionId)){
+				var validTerrain = true;
+				if(terrain == "air"){
+					validTerrain = _this.canFly(actor)
+				} else if(terrain == "land"){
+					validTerrain = _this.canBeOnLand(actor)
+				} else if(terrain == "water"){
+					validTerrain = _this.canBeOnWater(actor)
+				} else if(terrain == "space"){
+					validTerrain = _this.canBeOnSpace(actor)
+				}
+				
+				if($gameSystem.isFriendly(actor, factionId) && validTerrain){
 					result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});	
 				}				
 			}			
@@ -2892,13 +2904,24 @@ StatCalc.prototype.incrementSupportAttackCounter = function(actor){
 	}
 }
 	
-StatCalc.prototype.getSupportDefendCandidates = function(factionId, position){
+StatCalc.prototype.getSupportDefendCandidates = function(factionId, position, terrain){
+	var _this = this;
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){
 		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
 			var maxSupportDefends = $statCalc.applyStatModsToValue(actor, 0, ["support_defend"]);			
 			if(maxSupportDefends > actor.SRWStats.battleTemp.supportDefendCount){
-				if($gameSystem.isFriendly(actor, factionId)){
+				var validTerrain = true;
+				if(terrain == "air"){
+					validTerrain = _this.canFly(actor)
+				} else if(terrain == "land"){
+					validTerrain = _this.canBeOnLand(actor)
+				} else if(terrain == "water"){
+					validTerrain = _this.canBeOnWater(actor)
+				} else if(terrain == "space"){
+					validTerrain = _this.canBeOnSpace(actor)
+				}
+				if($gameSystem.isFriendly(actor, factionId) && validTerrain){
 					result.push({actor: actor, pos: {x: event.posX(), y: event.posY()}});
 				}				
 			}

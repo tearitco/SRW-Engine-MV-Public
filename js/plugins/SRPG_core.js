@@ -3884,7 +3884,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 											x: $gameTemp.activeEvent().posX(),
 											y: $gameTemp.activeEvent().posY(),
 										};
-										var supporters = $statCalc.getSupportAttackCandidates("player", position);
+										var supporters = $statCalc.getSupportAttackCandidates("player", position, $statCalc.getCurrentTerrain($gameTemp.currentBattleActor));
 										
 										var aSkill = $statCalc.getPilotStat($gameTemp.currentBattleActor, "skill");
 										var dSkill = $statCalc.getPilotStat($gameTemp.currentBattleEnemy, "skill");
@@ -3909,7 +3909,11 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										$gameTemp.supportAttackCandidates = supporterInfo;
 										$gameTemp.supportAttackSelected = supporterSelected;
 										
-										var supporters = $statCalc.getSupportDefendCandidates($gameSystem.getFactionId($gameTemp.currentBattleEnemy), {x: event.posX(), y: event.posY()});
+										var supporters = $statCalc.getSupportDefendCandidates(
+											$gameSystem.getFactionId($gameTemp.currentBattleEnemy), 
+											{x: event.posX(), y: event.posY()},
+											$statCalc.getCurrentTerrain($gameTemp.currentBattleEnemy)
+										);
 										var supporterSelected = -1;
 										var minDamage = -1;
 										for(var i = 0; i < supporters.length; i++){
@@ -11676,7 +11680,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			};
 		}
 		
-		var supporters = $statCalc.getSupportDefendCandidates($gameSystem.getFactionId(actorInfo.actor), actorInfo.pos);
+		var supporters = $statCalc.getSupportDefendCandidates(
+			$gameSystem.getFactionId(actorInfo.actor), 
+			actorInfo.pos,
+			$statCalc.getCurrentTerrain(actorInfo.actor)
+		);
+		
 		var supporterSelected = -1;
 		var minDamage = -1;
 		for(var i = 0; i < supporters.length; i++){
@@ -11698,7 +11707,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$gameTemp.supportDefendCandidates = supporters;
 		$gameTemp.supportDefendSelected = supporterSelected;
 		
-		var supporters = $statCalc.getSupportAttackCandidates($gameSystem.getFactionId(enemyInfo.actor), {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
+		var supporters = $statCalc.getSupportAttackCandidates(
+			$gameSystem.getFactionId(enemyInfo.actor), 
+			{x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()},
+			$statCalc.getCurrentTerrain($gameTemp.currentBattleEnemy)
+		);
 		
 		var aSkill = $statCalc.getPilotStat(enemyInfo.actor, "skill");
 		var dSkill = $statCalc.getPilotStat(actorInfo.actor, "skill");
