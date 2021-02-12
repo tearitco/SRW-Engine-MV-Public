@@ -1036,6 +1036,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	
 * setRequiredFUBLevel level
 	Sets the minimum level to which each stat should be upgraded before the Full Upgrade Bonus of mechs unlocks.
+	
+* setEventCounterAction event\_id type
+	Sets the counter action of the unit for the specified event to the provided type. Possible values are: "attack", "defend", "evade", "defend\_low" and "evade\_low". The defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking.	
 
 ## Script commands
 

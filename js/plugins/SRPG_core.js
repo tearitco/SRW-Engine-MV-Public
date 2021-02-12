@@ -679,6 +679,11 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				$gameSystem.requiredFUBLevel = tmp;
 			}			
 		}
+		
+		if (command === 'setEventCounterAction') {	
+			var actor = $gameSystem.EventToUnit(args[0])[1];
+			actor.counterBehavior = args[1];
+		}
     };		
 //====================================================================
 // ●Game_Temp

@@ -1036,6 +1036,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	
 * setRequiredFUBLevel level
 	Sets the minimum level to which each stat should be upgraded before the Full Upgrade Bonus of mechs unlocks.
+	
+* setEventCounterAction event\_id type
+	Sets t	
 
 ## Script commands
 
