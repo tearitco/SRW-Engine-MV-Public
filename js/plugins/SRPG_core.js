@@ -3866,20 +3866,56 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										//var availableWeapons = $statCalc.getActorMechWeapons();
 										var enemyInfo = {actor: $gameTemp.currentBattleEnemy, pos: {x: event.posX(), y: event.posY()}};
 										var actorInfo = {actor: $gameTemp.currentBattleActor, pos: {x: $gameTemp.activeEvent()._x, y: $gameTemp.activeEvent()._y}};
-										var weapon = $battleCalc.getBestWeapon(enemyInfo, actorInfo);
-										if($gameTemp.currentBattleEnemy.battleMode() !== 'disabled' && weapon){
+										$gameTemp.enemyAction = null;
+										if(enemyInfo.actor.counterBehavior == "defend"){
 											$gameTemp.enemyAction = {
-												type: "attack",
-												attack: weapon,
-												target: 0
-											};
-										} else {
-											$gameTemp.enemyAction = {
-												type: "none",
+												type: "defend",
 												attack: 0,
 												target: 0
 											};
-										}	
+										} else if(enemyInfo.actor.counterBehavior == "evade"){
+											$gameTemp.enemyAction = {
+												type: "evade",
+												attack: 0,
+												target: 0
+											};
+										} else if(enemyInfo.actor.counterBehavior == "defend_low"){
+											var stats = $statCalc.getCalculatedMechStats(enemyInfo.actor);
+											if(stats.currentHP / stats.maxHP <= 0.25){
+												$gameTemp.enemyAction = {
+													type: "defend",
+													attack: 0,
+													target: 0
+												};	
+											} 										
+										} else if(enemyInfo.actor.counterBehavior == "evade_low"){
+											var stats = $statCalc.getCalculatedMechStats(enemyInfo.actor);
+											if(stats.currentHP / stats.maxHP <= 0.25){
+												$gameTemp.enemyAction = {
+													type: "evade",
+													attack: 0,
+													target: 0
+												};
+											}
+										}
+										
+										if(enemyInfo.actor.counterBehavior == "attack" || $gameTemp.enemyAction == null){
+											var weapon = $battleCalc.getBestWeapon(enemyInfo, actorInfo);
+											if($gameTemp.currentBattleEnemy.battleMode() !== 'disabled' && weapon){
+												$gameTemp.enemyAction = {
+													type: "attack",
+													attack: weapon,
+													target: 0
+												};
+											} else {
+												$gameTemp.enemyAction = {
+													type: "none",
+													attack: 0,
+													target: 0
+												};
+											}
+										}
+											
 										var position = {
 											x: $gameTemp.activeEvent().posX(),
 											y: $gameTemp.activeEvent().posY(),
@@ -4849,12 +4885,13 @@ Game_Interpreter.prototype.addEnemyFromObj = function(params){
 		params.items, 
 		params.squadId, 
 		params.targetRegion,
-		params.factionId
+		params.factionId,
+		params.counterBehavior
 	);
 }
 
 // 新規エネミーを追加する（増援）
-Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId) {
+Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior) {
     var enemy_unit = new Game_Enemy(enemyId, 0, 0);
     var event = $gameMap.event(eventId);
 	if(typeof squadId == "undefined" || squadId == ""){
@@ -4872,6 +4909,7 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 		enemy_unit.targetRegion = targetRegion;	
 		enemy_unit.factionId = factionId;	
 		enemy_unit.targetUnitId = targetId || "";
+		enemy_unit.counterBehavior = counterBehavior || "attack";
 		if (enemy_unit) {
 			enemy_unit.event = event;
 			if (mode) {

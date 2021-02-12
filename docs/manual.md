@@ -632,7 +632,7 @@ Some pilot or mech abilities can grant the unit use of special Ability Commands.
 		},
 		42 //the animation that should be played when the ability is used, -1 if none
 	);	
-
+F
 ```
 
 The abilities that grant use of Ability Commands use the special "ability\_command" type. These can be any type of Ability, this is an example of a Mech ability that grants use of an Ability Command as a Full Upgrade Bonus:
@@ -1100,7 +1100,7 @@ They can also be used as conditionals in IF statements.
 	To be used in the before_destruction event.<br>
 	This can be used for bosses that run away when destroyed etc.
 
-* this.addEnemy(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId)
+* this.addEnemy(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior)
 
 	Spawn an enemy on the map, the event that will be used must already exist.<br>
 	The following can be set:<br>
@@ -1123,6 +1123,7 @@ They can also be used as conditionals in IF statements.
 		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated <br>
 		* targetRegion: the id of the region that the enemy should move towards<br>	
 		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
+		* counterBehavior: Determines how an enemy will react to being attack. Possible values are: "attack", "defend", "evade", "defend\_low" and "evade\_low". The defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking.
 
 A setting can be left blank by entering "" as its value.	
 	
