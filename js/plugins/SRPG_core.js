@@ -4946,6 +4946,7 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 				$gameTemp.enemyAppearQueue = [];
 			}	
 			if(toAnimQueue){				
+				event.erase();
 				$gameTemp.enemyAppearQueue.push(event);
 			} else {
 				$gameMap.setEventImages();
@@ -11127,10 +11128,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.srpgMakeMoveTable(event);
 				var targetInfo;
 				var optimalPos;
-				if(enemy._currentTarget && !enemy._currentTarget.isErased()){
+				/*if(enemy._currentTarget && !enemy._currentTarget.isErased()){
 					targetInfo = {target: enemy._currentTarget};
 					optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
-				} else if(enemy.targetRegion != -1 && enemy.targetRegion != null){
+				} else */
+				if(enemy.targetRegion != -1 && enemy.targetRegion != null){
 					var candidatePositions = $gameMap.getRegionTiles(enemy.targetRegion);
 					var currentBestDist = -1;
 					var xRef = event.posX();
@@ -11172,9 +11174,23 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					targetInfo = this.srpgDecideTarget($statCalc.getAllActorEvents("actor"), event); //ターゲットの設定
 					if(targetInfo.target){
 						enemy._currentTarget = targetInfo.target;
-						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range, fullRange.minRange);
+						var minRange = fullRange.minRange;
+						if(minRange == -1){
+							minRange = 0;
+						}
+						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range || -1, minRange);
 					}
 				}
+				
+				//check for targets on map without factoring in useable weapons
+				/*if(!optimalPos){
+				
+					targetInfo = this.srpgDecideTarget($statCalc.getAllActorEvents("actor"), event); //ターゲットの設定
+					if(targetInfo.target){
+						enemy._currentTarget = targetInfo.target;
+						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, 0, 0);
+					}
+				}*/
 				
 				if(optimalPos){
 					$gameTemp.isPostMove = true;
@@ -11528,11 +11544,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				} else {
 					bestPath = path;
 					currentBestDist = dist;
-				}
-				targetTileCounter++;
+				}				
 			} else {
 				improves = false;
 			}
+			targetTileCounter++;
 		}	
 
 		if(bestPath){
