@@ -169,7 +169,12 @@ SRWBattleTextManager.prototype.getTextCandidate = function(definitions, target, 
 				if(type == "attacks"){
 					var ctr = 0;
 					while(ctr < options.length && idx == -1){
-						if(options[ctr].quoteId == targetIdx){
+						//HACK: coerce into new format
+						if(!Array.isArray(options[ctr])){
+							options[ctr] = [options[ctr]];
+						}
+						//HACK: the lines are assumed to all have the same quote id and the first line's id is used
+						if(options[ctr] && options[ctr][0].quoteId == targetIdx){
 							idx = ctr;
 						}					
 						ctr++;

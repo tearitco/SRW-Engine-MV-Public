@@ -105,6 +105,7 @@ BattleTextBuilder.prototype.updateText = function(params, updateValues){
 			line[key] = updateValues[key];
 		});		
 		options[params.targetIdx] = lines;	
+		
 	} catch(e){
 		console.log(e.message);
 	}
@@ -227,6 +228,39 @@ BattleTextBuilder.prototype.setUnitId = function(params, id){
 		
 		lines[params.lineIdx].unitId = id;
 		options[params.targetIdx] = lines;	
+	} catch(e){
+		console.log(e.message);
+	}
+}
+
+BattleTextBuilder.prototype.setQuoteId = function(params, id){
+	try {
+		var def = this.getDefinitions()[params.sceneType];		
+		if(params.sceneType == "event"){			
+			def = def[params.eventId].data;
+		}		
+		var entityDef = def[params.entityType][params.entityId];
+		var hookDef = entityDef[params.type];
+		if(params.type == "attacks"){
+			hookDef = hookDef[params.weaponId];			
+		}
+		var options = hookDef[params.subType];		
+		var lines = options[params.targetIdx];
+		if(!Array.isArray(lines)){
+			lines = [lines];
+		}
+		
+		//lines[params.lineIdx].unitId = id;
+		
+		
+		//hack to ensure the quoteId is the same for all lines in a quote
+		if(params.type == "attacks"){
+			lines.forEach(function(line){
+				line.quoteId = id;
+			});
+		}
+		options[params.targetIdx] = lines;	
+		
 	} catch(e){
 		console.log(e.message);
 	}

@@ -361,7 +361,11 @@ BattleSceneUILayer.prototype.showTextLines = function(lines, callback) {
 		textDisplayContent+="</div>";
 		
 		textDisplayContent+="<div id='name_container' class='text_container scaled_text'>";	
-		textDisplayContent+=_this._currentName;
+		if(line.displayName){
+			textDisplayContent+=line.displayName;
+		} else {
+			textDisplayContent+=_this._currentName;
+		}		
 		textDisplayContent+="</div>";
 		textDisplayContent+="<div id='text_container' class='text_container scaled_text'>";	
 		textDisplayContent+="\u300C "+(line.text || "")+" \u300D";

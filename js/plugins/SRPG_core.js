@@ -11182,16 +11182,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					}
 				}
 				
-				//check for targets on map without factoring in useable weapons
-				/*if(!optimalPos){
-				
-					targetInfo = this.srpgDecideTarget($statCalc.getAllActorEvents("actor"), event); //ターゲットの設定
-					if(targetInfo.target){
-						enemy._currentTarget = targetInfo.target;
-						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, 0, 0);
-					}
-				}*/
-				
 				if(optimalPos){
 					$gameTemp.isPostMove = true;
 					var route = $gameTemp.MoveTable(optimalPos[0], optimalPos[1])[1];

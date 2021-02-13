@@ -1149,6 +1149,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				var attackText = this.closest(".attack_text");
 				if(attackText){
 					attackId = attackText.getAttribute("data-weaponid");
+					targetIdx = this.closest(".quote").querySelector(".quote_id").value;
 				}
 				var actor = new Game_Actor(entityId, 0, 0);
 				$statCalc.initSRWStats(actor);
@@ -1242,6 +1243,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 				text: this.closest(".quote_line").querySelector(".quote_text").value,
 				faceName: this.closest(".quote_line").querySelector(".quote_face_name").value,
 				faceIndex: this.closest(".quote_line").querySelector(".quote_face_index").value,
+				displayName: this.closest(".quote_line").querySelector(".quote_display_name").value
 			}
 			var params = getLocatorInfo(this);
 			if(params.type == "attacks"){
@@ -1266,10 +1268,19 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			input.addEventListener("change", updateQuote);
 		});
 		
-		var inputs = containerNode.querySelectorAll(".quote_id");
+		var inputs = containerNode.querySelectorAll(".quote_display_name");
 		inputs.forEach(function(input){
 			input.addEventListener("change", updateQuote);
 		});		
+		
+		var inputs = containerNode.querySelectorAll(".quote_id");
+		inputs.forEach(function(input){
+			input.addEventListener("change", function(){				
+				var params = getLocatorInfo(this);
+				_this._battleTextBuilder.setQuoteId(params, this.value);
+				_this._modified = true;
+			});
+		});			
 		
 		var inputs = containerNode.querySelectorAll(".add_category_quote");
 		inputs.forEach(function(input){
@@ -1372,12 +1383,11 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 	});
 }
 
-SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, mechInfo, targetMechInfo){
+SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitBaseInfo, mechBaseInfo, targetMechBaseInfo){
+	var _this = this;
 	var content = "";
 	var targetUnitId;
-	if(unitInfo){
-		targetUnitId = unitInfo.id;
-	}
+
 	var lines = [];
 	if(!Array.isArray(quote)){
 		lines = [quote];
@@ -1386,9 +1396,37 @@ SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, me
 	}
 	
 	var lineCounter = 0;
-	content+="<div data-subtype='"+type+"' data-idx='"+idx+"' data-targetunit='"+(targetUnitId)+"' class='quote'>";
-	lines.forEach(function(quote){	
-		content+="<div data-lineidx='"+(lineCounter++)+"' class='quote_line'>";
+	content+="<div data-subtype='"+type+"' data-idx='"+idx+"'class='quote'>";
+	lines.forEach(function(quote){			
+		var mechInfo;
+		if(mechBaseInfo){
+			mechInfo = {
+				id: quote.mechId
+			};
+		}	
+		
+		var unitInfo;
+		if(unitBaseInfo){
+			unitInfo = {
+				id: quote.unitId,
+				type: unitBaseInfo.type	
+			};
+		}
+		var targetMechInfo;
+		if(targetMechBaseInfo){
+			targetMechInfo = {
+				id: quote.mechId
+			};
+		}
+		
+		//hack to pretend that the quote id is stored for an entire quote instead of for each line of the quote		
+		if(quote.quoteId != null && lineCounter == 0){		
+			content+="<div class='command_label quote_id_label'>Quote ID:</div>";
+			content+="<input class='quote_id' value='"+quote.quoteId+"'></input>";		
+		}	
+		
+		
+		content+="<div data-lineidx='"+(lineCounter++)+"'  data-targetunit='"+(quote.unitId)+"'  class='quote_line'>";
 		 
 		content+="<div class='quote_config'>";
 		
@@ -1397,20 +1435,19 @@ SRWEditor.prototype.createQuoteContent = function(type, idx, quote, unitInfo, me
 		content+="<div class='command_label '>Face index:</div>";
 		content+="<input class='quote_face_index' value='"+quote.faceIndex+"'></input>";
 		
-		
+		content+="<div class='command_label '>Disp. Name:</div>";
+		content+="<input class='quote_display_name' value='"+(quote.displayName || "")+"'></input>";
+				
 		content+="<div title='View this quote' class='view_text_btn'><img src='js/plugins/editor/svg/eye-line.svg'></div>"
 		content+="<div title='Delete this quote' class='delete_text_btn'><img src='js/plugins/editor/svg/close-line.svg'></div>"
 		content+="</div>";
 		
 		content+="<div class='quote_id_container'>";
-		if(quote.quoteId != null){		
-			content+="<div class='command_label '>Quote ID:</div>";
-			content+="<input class='quote_id' value='"+quote.quoteId+"'></input>";		
-		}	
+		
 		
 		if(unitInfo){
 			content+="<div class='command_label '>Other unit:</div>";
-			content+=this.createUnitSelect(unitInfo.id, unitInfo.type);
+			content+=_this.createUnitSelect(unitInfo.id, unitInfo.type);
 		}
 		
 		if(mechInfo){

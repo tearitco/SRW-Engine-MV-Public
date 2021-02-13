@@ -228,6 +228,12 @@
 	width: 65px;
 }
 
+#srw_editor .quote_id_label {
+	display: inline-block;
+	width: 80px;
+	font-size: 14px;
+}
+
 #srw_editor .param_label {
 	display: inline-block;
 	width: 100px;
