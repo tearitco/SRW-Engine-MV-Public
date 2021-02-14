@@ -13,6 +13,7 @@
     top: 0;
     left: 0;
 	font-family: Trebuchet MS;
+	flex-wrap: wrap;
 }
 
 #srw_editor button {
@@ -81,7 +82,7 @@
 	height: 100%;	
     width: 70%;
 	background-color: #3a3b55;
-	
+	overflow-y: auto;
 }
 
 #srw_editor #attack_editor .preview_window_container {
@@ -159,6 +160,7 @@
 	padding-left: 5px;
 	padding-right: 5px;
 	border-bottom: 1px solid #3a3b55;
+	flex-wrap: wrap;
 }
 
 #srw_editor .selection_control_buttons {
@@ -213,6 +215,7 @@
 	border-radius: 10px;
 	background-color: #576082;
 	color: #FFFFFF;
+	overflow: auto;
 }
 
 #srw_editor .cmd_block_inner {
@@ -263,6 +266,7 @@
 	border: 1px solid #FFFFFF;
 	border-radius: 999px;
 	margin-left: 4px;
+	width: fit-content;
 }
 
 #srw_editor .command_param[data-param="cleanUpCommands"]{
@@ -420,6 +424,8 @@
 	display: flex;
 	align-items: center;
 	padding: 2px;
+	overflow: auto;
+    white-space: nowrap;
 }
 
 #srw_editor #text_editor_section_tools select {

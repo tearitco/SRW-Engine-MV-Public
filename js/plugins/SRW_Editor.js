@@ -6,6 +6,10 @@ function SRWEditor(){
 		environment_editor: {title: "Environment Editor", func: this.showEnvironmentEditor},
 		battle_text_editor: {title: "Battle Text", func: this.showBattleTextEditor},
 	}
+	
+	window.addEventListener("resize", function(){
+		Graphics.updatePreviewWindowWidth();	
+	});
 }
 
 SRWEditor.prototype.init = function(){
@@ -699,6 +703,8 @@ SRWEditor.prototype.show = function(){
 		
 		_this._contentDiv.innerHTML = content;
 		
+		//Graphics.updatePreviewWindowWidth();
+		
 		_this._contentDiv.querySelector("#editor_selector").addEventListener("change", function(){
 			$battleSceneManager.endScene();
 			_this._currentDefinition = 0;
@@ -708,6 +714,7 @@ SRWEditor.prototype.show = function(){
 		});
 		
 		currentEditorInfo.func.call(_this);
+		Graphics.updatePreviewWindowWidth()
 	}
 }
 

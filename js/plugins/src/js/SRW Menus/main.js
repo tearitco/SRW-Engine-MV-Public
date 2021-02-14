@@ -79,11 +79,33 @@ import "./style/SRW_Menus.css";
 
 import Window_CSS from "./Window_CSS.js";
 
+Graphics.getPreviewWindowWidth = function(){
+	if($gameTemp && $gameTemp.editMode){
+		var previewWindow = document.querySelector("#attack_editor .preview_window");
+		if(previewWindow){
+			return previewWindow.getBoundingClientRect().width;
+		}
+	}
+	return 1110;
+}
+
+Graphics.updatePreviewWindowWidth = function(){
+	if($gameTemp && $gameTemp.editMode){
+		var previewWindow = document.querySelector("#attack_editor .preview_window");
+		var previewWindowContainer = document.querySelector("#attack_editor .preview_window_container");
+		if(previewWindowContainer && previewWindow){
+			var targetWidth = Math.min(previewWindowContainer.getBoundingClientRect().width, 1110);
+			previewWindow.style.width = targetWidth + "px";
+			previewWindow.style.height = 624 * (targetWidth / 1110) + "px";
+		}
+	}	
+}
+
 Graphics._getCurrentWidth = function(){
 	if(!$gameTemp || !$gameTemp.editMode){
 		return this._width * this._realScale;
 	} else {
-		return 1110;
+		return Graphics.getPreviewWindowWidth();
 	}	
 }
 
@@ -95,7 +117,7 @@ Graphics.getScale = function(){
 	if(!$gameTemp || !$gameTemp.editMode){
 		return this._realScale * (this.getOriginalWidth() / 1110);
 	} else {
-		return 1;
+		return 1 * (Graphics.getPreviewWindowWidth() / 1110);
 	}
 }
 
