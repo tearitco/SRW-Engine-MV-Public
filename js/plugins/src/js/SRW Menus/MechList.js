@@ -11,7 +11,7 @@ export default function MechList(container, pages, unitProvider){
 	}	
 	this._currentPage = 0;	
 	this._currentSelection = 0;
-	this._maxPageSize = 7;
+	this._maxPageSize = 5;
 	this._currentSortIdx = -1;
 	
 	this.defineContent();
