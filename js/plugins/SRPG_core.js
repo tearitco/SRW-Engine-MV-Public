@@ -11153,7 +11153,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 							}
 						}
 					}
-					optimalPos = this.srpgSearchOptimalPos(optimalPos, enemy, type, -1, 0);
+					if(optimalPos){
+						optimalPos = this.srpgSearchOptimalPos(optimalPos, enemy, type, -1, 0);
+					}					
 				} 
 				
 				

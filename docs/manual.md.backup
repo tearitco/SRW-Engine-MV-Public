@@ -1041,6 +1041,45 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * setEventCounterAction event\_id type
 
 	Sets the counter action of the unit for the specified event to the provided type. Possible values are: "attack", "defend", "evade", "defend\_low" and "evade\_low". The defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking.	
+	
+## External Plugin commands	
+
+These are plugin commands provided by external plugins.
+
+### Tile Changer (Shaz_TileChanger.js)
+
+```
+Z-layers:
+
+* 0 - ground layer (most A tiles)
+* 1 - ground cover layer (A1 tiles with transparent areas, and right 4 columns of A2 tiles)
+* 2 - upper layer 1
+* 3 - upper layer 2
+* 4 - shadow layer
+* 5 - region layer
+```
+
+* CopyTiles dx dy source sx1 sy1 sx2 sy2 z-list
+
+	Copies tiles from another (or the same) map, where:
+
+	 *   dx      is the x-coordinate of the top left destination area
+	 *   dy      is the y-coordinate of the top left destination area
+	 *   source  is the 'name' of the source map in the map note or 'self' if you want to copy a section of the current map
+	 *   sx1     is the x-coordinate of the top left source area
+	 *   sy1     is the y-coordinate of the top left source area
+	 *   sx2     is the x-coordinate of the bottom right source area
+	 *   sy2     is the y-coordinate of the bottom right source area
+	 *   z-list  is an optional series of z values indicating which layers to copy. if more than one, just use spaces between. if omitted, all layers will be copied
+	 
+
+
+* ChangeTile x y z tileId
+
+	 Changes the tile at the specified coordinates and layer to the tileId
+	 indicated.  Note - no auto-formatting of autotiles happens here.
+	 
+
 
 ## Script commands
 

@@ -49,5 +49,6 @@ var $plugins =
 {"name":"render-ctx2d","status":true,"description":"","parameters":{}},
 {"name":"render-webgl","status":true,"description":"","parameters":{}},
 {"name":"spriter","status":true,"description":"","parameters":{}},
-{"name":"RiP_UnlockedCamera","status":true,"description":"Unlock the camera from map edges keeping it centered on the player.","parameters":{"Default Camera":"true"}}
+{"name":"RiP_UnlockedCamera","status":true,"description":"Unlock the camera from map edges keeping it centered on the player.","parameters":{"Default Camera":"true"}},
+{"name":"Shaz_TileChanger","status":true,"description":"Change tiles on map or copy tiles from another map","parameters":{}}
 ];
