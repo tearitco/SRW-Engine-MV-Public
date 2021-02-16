@@ -1042,6 +1042,27 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 	Sets the counter action of the unit for the specified event to the provided type. Possible values are: "attack", "defend", "evade", "defend\_low" and "evade\_low". The defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking.	
 	
+* hidePilotAbility actor\_id ability\_id
+
+	Set the specified ability to hidden for the specified actor. A hidden ability will not have its name displayed.
+		
+* lockPilotAbility actor\_id ability\_id
+
+	Set the specified ability to locked for the specified actor. A locked ability will not have its name displayed and its effect will not activate.	
+		
+* unlockPilotAbility actor\_id ability\_id
+		
+* hideMechAbility actor\_id ability\_id
+
+	Set the specified ability to hidden for the specified mech/class. A hidden ability will not have its name displayed.
+		
+* lockMechAbility actor\_id ability\_id
+
+	Set the specified ability to locked for the specified mech/class. A locked ability will not have its name displayed and its effect will not activate.	
+		
+* unlockMechAbility actor\_id ability\_id
+	
+	
 ## External Plugin commands	
 
 These are plugin commands provided by external plugins.

@@ -405,7 +405,7 @@ this.addDefinition(
 	0, //the id of the definition
 	[[1,0],[1,1],[1,-1],[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], //the tiles for the range of the attack as seen when the attack is targeted to the right of the user
 	{
-		offset: { // the offset for the animation for each direction
+		offset: { // the offset for the animation for each direction. Note: a tile is 48x48
 			up: {x: 0, y: -48},
 			down: {x: 0, y: 0},
 			left: {x: -24, y: -24},
@@ -1041,6 +1041,27 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * setEventCounterAction event\_id type
 
 	Sets the counter action of the unit for the specified event to the provided type. Possible values are: "attack", "defend", "evade", "defend\_low" and "evade\_low". The defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking.	
+	
+* hidePilotAbility actor\_id ability\_id
+
+	Set the specified ability to hidden for the specified actor. A hidden ability will not have its name displayed.
+		
+* lockPilotAbility actor\_id ability\_id
+
+	Set the specified ability to locked for the specified actor. A locked ability will not have its name displayed and its effect will not activate.	
+		
+* unlockPilotAbility actor\_id ability\_id
+		
+* hideMechAbility actor\_id ability\_id
+
+	Set the specified ability to hidden for the specified mech/class. A hidden ability will not have its name displayed.
+		
+* lockMechAbility actor\_id ability\_id
+
+	Set the specified ability to locked for the specified mech/class. A locked ability will not have its name displayed and its effect will not activate.	
+		
+* unlockMechAbility actor\_id ability\_id
+	
 	
 ## External Plugin commands	
 
