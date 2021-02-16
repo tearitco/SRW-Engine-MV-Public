@@ -12,7 +12,10 @@ $SRWConfig.pilotAbilties = function(){
 			return $statCalc.getCurrentWill(actor) >= 130;
 		},
 		[0],
-		1
+		1,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		},
 	);
 	this.addDefinition(
 		1, 
@@ -27,7 +30,10 @@ $SRWConfig.pilotAbilties = function(){
 			return $statCalc.getCurrentWill(actor) >= 130;
 		},
 		[150],
-		1
+		1,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		},
 	);
 	this.addDefinition(
 		2, 
@@ -123,7 +129,12 @@ $SRWConfig.pilotAbilties = function(){
 			return (targetSlice + 1) <= level;
 		},
 		[20,30,40,50,60,70,80,90,100],
-		9
+		9,
+		function(actor, level){
+			var mechStats = $statCalc.getCalculatedMechStats(actor);	
+			var targetSlice = Math.floor(mechStats.currentHP / mechStats.maxHP * 10);
+			return (targetSlice + 1) <= level ? "on" : "off";
+		},
 	);
 	this.addDefinition(
 		5, 
@@ -326,7 +337,10 @@ $SRWConfig.pilotAbilties = function(){
 			return true;
 		},
 		[250],
-		1
+		1,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) > 150 ? "on" : "";
+		}
 	);
 	this.addDefinition(
 		16, 
@@ -431,7 +445,10 @@ $SRWConfig.pilotAbilties = function(){
 			return $statCalc.getCurrentWill(actor) >= 130;
 		},
 		[150],
-		1
+		1,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		},
 	);
 	this.addDefinition(
 		23, 

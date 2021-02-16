@@ -411,9 +411,14 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 		}		
 		
 		var displayName = "---";
+		var displayClass = "";
 		var uniqueString = "";
 		if(typeof abilityList[i] != "undefined" && abilityList[i].requiredLevel <= currentLevel){
 			var displayInfo = $pilotAbilityManager.getAbilityDisplayInfo(abilityList[i].idx);
+			
+			if(displayInfo.isHighlightedHandler){
+				displayClass = displayInfo.isHighlightedHandler(actor, abilityList[i].level);
+			}
 			
 			if($gameSystem.isHiddenActorAbility(actor, abilityList[i].idx)){
 				displayName = "?????";
@@ -430,7 +435,7 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 			}
 		}
 		
-		detailContent+="<div class='pilot_stat_container scaled_text scaled_width fitted_text'>";
+		detailContent+="<div class='pilot_stat_container scaled_text scaled_width fitted_text "+displayClass+"'>";
 		detailContent+="<div class='unique_skill_mark scaled_width'>"+uniqueString+"</div>";
 		detailContent+="<div class='stat_value'>"+displayName+"</div>";
 		detailContent+="</div>";		

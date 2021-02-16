@@ -10,6 +10,9 @@ $SRWConfig.mechAbilties = function(){
 		},
 		function(actor, level){
 			return $statCalc.getCurrentWill(actor) >= 130;
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) > 130 ? "on" : "off";
 		}
 	);
 	this.addDefinition(
@@ -192,6 +195,9 @@ $SRWConfig.mechAbilties = function(){
 		},
 		function(actor, level){
 			return !$statCalc.isStatModActiveOnAnyActor("noise_cancel", {14: true});
+		},
+		function(actor, level){
+			return !$statCalc.isStatModActiveOnAnyActor("noise_cancel", {14: true}) ? "on" : "off";
 		}
 	);
 	this.addDefinition(

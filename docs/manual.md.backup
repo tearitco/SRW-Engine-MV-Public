@@ -522,6 +522,10 @@ The format of a Pilot Ability definition is as follows:
 		},
 		[20,30,40,50,60,70,80,90,100],// the cost for upgrading each level of the ability.
 		9// the max level of the ability.
+		, // the function that determines how the ability's name should be displayed. If a value of "on" is returned the ability's name will be displayed with a blue highlight, if a value of "off" is returned the name will be grayed out. For any other returned value the name will be displayed with the default color.
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		}
 	)
 ```
 
@@ -549,6 +553,9 @@ The format of a Mech Ability definition is as follows:
 		},
 		function(actor, level){ // the function that determines if the ability is current active.
 			return $statCalc.getCurrentWill(actor) >= 130;
+		}, // the function that determines how the ability's name should be displayed. If a value of "on" is returned the ability's name will be displayed with a blue highlight, if a value of "off" is returned the name will be grayed out. For any other returned value the name will be displayed with the default color.
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
 		}
 	);
 
@@ -1052,15 +1059,15 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 		
 * unlockPilotAbility actor\_id ability\_id
 		
-* hideMechAbility actor\_id ability\_id
+* hideMechAbility mech\_id ability\_id
 
 	Set the specified ability to hidden for the specified mech/class. A hidden ability will not have its name displayed.
 		
-* lockMechAbility actor\_id ability\_id
+* lockMechAbility mech\_id ability\_id
 
 	Set the specified ability to locked for the specified mech/class. A locked ability will not have its name displayed and its effect will not activate.	
 		
-* unlockMechAbility actor\_id ability\_id
+* unlockMechAbility mech\_id ability\_id
 	
 	
 ## External Plugin commands	

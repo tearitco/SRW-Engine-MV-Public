@@ -121,6 +121,14 @@
 	border: 0px;
 }
 
+#detail_pages .pilot_stat_container.on {
+	color: var(--text-color-highlight2);	
+}
+
+#detail_pages .pilot_stat_container.off {
+	color: #888888;	
+}
+
 #detail_pages .stat_section_terrain .stat_label {
 	color: var(--text-color-highlight2);	
 }

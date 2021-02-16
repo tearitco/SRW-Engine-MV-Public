@@ -116,6 +116,11 @@ DetailBarMechDetail.prototype.redraw = function(){
 		if(typeof abilityList[i] != "undefined"){
 			displayClass = "";
 			var displayInfo = $mechAbilityManager.getAbilityDisplayInfo(abilityList[i].idx);
+			
+			if(displayInfo.isHighlightedHandler){
+				displayClass = displayInfo.isHighlightedHandler(actor, abilityList[i].level);
+			}
+			
 			if($gameSystem.isHiddenMechAbility(actor, abilityList[i].idx)){
 				displayName = "??????????";
 			} else {

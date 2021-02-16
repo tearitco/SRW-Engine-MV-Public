@@ -3,7 +3,7 @@ function AbilityManager(){
 	this.initDefinitions();	
 }
 
-AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, cost, maxLevel){
+AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, cost, maxLevel, isHighlightedHandler){
 	var _this = this;
 	this._abilityDefinitions[idx] = {
 		name: name,
@@ -24,7 +24,12 @@ AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isU
 		this._abilityDefinitions[idx].isActiveHandler = isActiveHandler;
 	} else {
 		this._abilityDefinitions[idx].isActiveHandler = function(){return true;}
-	}
+	}	
+	if(isHighlightedHandler){
+		this._abilityDefinitions[idx].isHighlightedHandler = isHighlightedHandler;
+	} else {
+		this._abilityDefinitions[idx].isHighlightedHandler = function(){return false;}
+	}	
 }
 
 AbilityManager.prototype.getDefinitionCount = function(){
@@ -50,6 +55,7 @@ AbilityManager.prototype.getAbilityDisplayInfo = function(idx){
 		result.isActiveHandler = abilityDef.isActiveHandler;
 		result.cost = abilityDef.cost;
 		result.maxLevel = abilityDef.maxLevel;
+		result.isHighlightedHandler = abilityDef.isHighlightedHandler;
 	}
 	return result;
 }
@@ -85,6 +91,33 @@ function MechAbilityManager(){
 
 MechAbilityManager.prototype = Object.create(AbilityManager.prototype);
 MechAbilityManager.prototype.constructor = MechAbilityManager;
+
+MechAbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, isHighlightedHandler){
+	var _this = this;
+	this._abilityDefinitions[idx] = {
+		name: name,
+		desc: desc,
+		hasLevel: hasLevel,
+		isUnique: isUnique,
+		statmodHandler: statmodHandler,
+		isActiveHandler: isActiveHandler
+	};
+	if(statmodHandler){
+		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
+	} else {
+		this._abilityDefinitions[idx].statmodHandler = function(){return {}}
+	}
+	if(isActiveHandler){
+		this._abilityDefinitions[idx].isActiveHandler = isActiveHandler;
+	} else {
+		this._abilityDefinitions[idx].isActiveHandler = function(){return true;}
+	}	
+	if(isHighlightedHandler){
+		this._abilityDefinitions[idx].isHighlightedHandler = isHighlightedHandler;
+	} else {
+		this._abilityDefinitions[idx].isHighlightedHandler = function(){return false;}
+	}	
+}
 
 MechAbilityManager.prototype.initDefinitions = function(){
 	$SRWConfig.mechAbilties.call(this);
