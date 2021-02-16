@@ -586,14 +586,18 @@ Window_UpgradePilot.prototype.redraw = function() {
 		var uniqueString = "";
 		if(typeof abilityList[i] != "undefined" && abilityList[i].requiredLevel <= currentLevel){
 			var displayInfo = $pilotAbilityManager.getAbilityDisplayInfo(abilityList[i].idx);
-			displayName = displayInfo.name;
-			if(displayInfo.hasLevel){
-				displayName+="L"+abilityList[i].level;
-			}
-			if(displayInfo.isUnique){
-				uniqueString = "*";
-			} else {
-				uniqueString = "&nbsp;";
+			if($gameSystem.isHiddenActorAbility(pilotData, abilityList[i].idx)){
+				displayName = "?????";
+			} else {	
+				displayName = displayInfo.name;
+				if(displayInfo.hasLevel){
+					displayName+="L"+abilityList[i].level;
+				}
+				if(displayInfo.isUnique){
+					uniqueString = "*";
+				} else {
+					uniqueString = "&nbsp;";
+				}
 			}
 		}
 		var displayClass = "";

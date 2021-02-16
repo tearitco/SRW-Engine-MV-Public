@@ -103,15 +103,21 @@ DetailBarPilotDetail.prototype.redraw = function(){
 		var uniqueString = "";
 		if(typeof abilityList[i] != "undefined" && abilityList[i].requiredLevel <= currentLevel){
 			var displayInfo = $pilotAbilityManager.getAbilityDisplayInfo(abilityList[i].idx);
-			displayName = displayInfo.name;
-			if(displayInfo.hasLevel){
-				displayName+="L"+abilityList[i].level;
-			}
-			if(displayInfo.isUnique){
-				uniqueString = "*";
+			
+			if($gameSystem.isHiddenActorAbility(actor, abilityList[i].idx)){
+				displayName = "?????";
 			} else {
-				uniqueString = "&nbsp;";
+				displayName = displayInfo.name;
+				if(displayInfo.hasLevel){
+					displayName+="L"+abilityList[i].level;
+				}
+				if(displayInfo.isUnique){
+					uniqueString = "*";
+				} else {
+					uniqueString = "&nbsp;";
+				}
 			}
+			
 		}
 		
 		detailContent+="<div class='pilot_stat_container scaled_text scaled_width fitted_text'>";

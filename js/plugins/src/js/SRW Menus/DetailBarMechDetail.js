@@ -116,8 +116,11 @@ DetailBarMechDetail.prototype.redraw = function(){
 		if(typeof abilityList[i] != "undefined"){
 			displayClass = "";
 			var displayInfo = $mechAbilityManager.getAbilityDisplayInfo(abilityList[i].idx);
-			displayName = displayInfo.name;
-			
+			if($gameSystem.isHiddenMechAbility(actor, abilityList[i].idx)){
+				displayName = "??????????";
+			} else {
+				displayName = displayInfo.name;
+			}			
 		}		
 		detailContent+="<div class='pilot_stat_container scaled_text scaled_width fitted_text "+displayClass+"'>";
 		detailContent+="<div class='stat_value'>"+displayName+"</div>";

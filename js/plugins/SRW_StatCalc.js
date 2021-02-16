@@ -3587,8 +3587,18 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 		}
 	}
 	
-	if(_this.isActorSRWInitialized(actor)){						
-		accumulateFromAbilityList(this.getPilotAbilityList(actor), $pilotAbilityManager);
+	if(_this.isActorSRWInitialized(actor)){		
+		var abilities  = this.getPilotAbilityList(actor);
+		if(abilities){
+			var tmp = [];
+			for(var i = 0; i < abilities.length; i++){
+				if(!$gameSystem.isLockedActorAbility(actor, abilities[i].idx)){
+					tmp.push(abilities[i]);
+				}
+			}
+			abilities = tmp;
+		}
+		accumulateFromAbilityList(abilities, $pilotAbilityManager);
 		
 		var aceAbility = actor.SRWStats.pilot.aceAbility;	
 		if(typeof aceAbility != "undefined" && aceAbility != -1){
@@ -3596,7 +3606,18 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 		}		
 
 		if(actor.SRWStats.mech){			
-			var abilities = actor.SRWStats.mech.abilities;		
+			var abilities = actor.SRWStats.mech.abilities;	
+			
+			if(abilities){
+				var tmp = [];
+				for(var i = 0; i < abilities.length; i++){
+					if(!$gameSystem.isLockedMechAbility(actor, abilities[i].idx)){
+						tmp.push(abilities[i]);
+					}
+				}
+				abilities = tmp;
+			}			
+			
 			accumulateFromAbilityList(abilities, $mechAbilityManager);
 			
 			var FUBAbility = actor.SRWStats.mech.fullUpgradeAbility;	

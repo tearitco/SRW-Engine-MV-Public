@@ -684,6 +684,30 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			var actor = $gameSystem.EventToUnit(args[0])[1];
 			actor.counterBehavior = args[1];
 		}
+		
+		if (command === 'hidePilotAbility') {	
+			$gameSystem.setPilotAbilityStatus(args[0], args[1], "hidden");
+		}
+		
+		if (command === 'lockPilotAbility') {	
+			$gameSystem.setPilotAbilityStatus(args[0], args[1], "locked");
+		}
+		
+		if (command === 'unlockPilotAbility') {	
+			$gameSystem.setPilotAbilityStatus(args[0], args[1], "");
+		}
+		
+		if (command === 'hideMechAbility') {	
+			$gameSystem.setMechAbilityStatus(args[0], args[1], "hidden");
+		}
+		
+		if (command === 'lockMechAbility') {	
+			$gameSystem.setMechAbilityStatus(args[0], args[1], "locked");
+		}
+		
+		if (command === 'unlockMechAbility') {	
+			$gameSystem.setMechAbilityStatus(args[0], args[1], "");
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -2134,6 +2158,88 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			return $gameSystem.defaultBattleEnv;						
 		}
     };
+	
+	Game_System.prototype.validateAbilityLockInfo = function(actorId, abilityId) {
+		if(!this.abilityLockInfo){
+			this.abilityLockInfo = {
+				actor: {},
+				mech: {}
+			}
+		}
+	}
+	
+	Game_System.prototype.setAbilityStatus = function(abilityInfo, id, abilityId, status) {
+		//status: hidden, locked, ""
+		if(!abilityInfo[id]){
+			abilityInfo[id] = {};
+		}
+		abilityInfo[id][abilityId] = status;
+	}
+	
+	Game_System.prototype.getAbilityStatus = function(abilityInfo, id, abilityId) {
+		//status: hidden, locked, ""		
+		var result = "";
+		if(abilityInfo[id] && abilityInfo[id][abilityId]){
+			result = abilityInfo[id][abilityId];
+		}		
+		return result;
+	}
+	
+	Game_System.prototype.setPilotAbilityStatus = function(actorId, abilityId, status) {		
+		this.validateAbilityLockInfo();
+		this.setAbilityStatus(this.abilityLockInfo.actor, actorId, abilityId, status);
+	}
+	
+	Game_System.prototype.getPilotAbilityStatus = function(actorId, abilityId) {	
+		this.validateAbilityLockInfo();
+		return this.getAbilityStatus(this.abilityLockInfo.actor, actorId, abilityId);
+	}
+	
+	Game_System.prototype.isHiddenActorAbility = function(actor, abilityId) {
+		var result = false;
+		if(actor.isActor()){
+			var status = this.getPilotAbilityStatus(actor.actorId(), abilityId);
+			result = status == "hidden" || status == "locked";
+		}		
+		return result;
+	}
+	
+	Game_System.prototype.isLockedActorAbility = function(actor, abilityId) {
+		var result = false;
+		if(actor.isActor()){
+			var status = this.getPilotAbilityStatus(actor.actorId(), abilityId);
+			result = status == "locked";
+		}		
+		return result;
+	}
+	
+	Game_System.prototype.setMechAbilityStatus = function(mechId, abilityId, status) {		
+		this.validateAbilityLockInfo();
+		this.setAbilityStatus(this.abilityLockInfo.mech, mechId, abilityId, status);
+	}
+	
+	Game_System.prototype.getMechAbilityStatus = function(mechId, abilityId) {	
+		this.validateAbilityLockInfo();
+		return this.getAbilityStatus(this.abilityLockInfo.mech, mechId, abilityId);
+	}
+	
+	Game_System.prototype.isHiddenMechAbility = function(actor, abilityId) {
+		var result = false;
+		if(actor.SRWStats && actor.SRWStats.mech){
+			var status = this.getMechAbilityStatus(actor.SRWStats.mech.id, abilityId);
+			result = status == "hidden" || status == "locked";
+		}		
+		return result;
+	}
+	
+	Game_System.prototype.isLockedMechAbility = function(actor, abilityId) {
+		var result = false;
+		if(actor.SRWStats && actor.SRWStats.mech){
+			var status = this.getMechAbilityStatus(actor.SRWStats.mech.id, abilityId);
+			result = status == "locked";
+		}		
+		return result;
+	}
 
 //==================================================================
 // ●Game_Action
