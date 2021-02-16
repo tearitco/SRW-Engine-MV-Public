@@ -283,7 +283,10 @@ Window_SpiritActivation.prototype.update = function() {
 						var endPercent = Math.floor((Math.max(stats.currentHP - effectDef.parameters.damage, 0) / stats.maxHP) * 100);						
 						_this.animateHP(_this._HPBar, _this._HPBarFill, startPercent, endPercent);
 						_this.setMessage(effectDef.parameters.damage, "#FF2222");
-						_this._actor.classList.add("damage");
+						if(effectDef.parameters.damage > 0){
+							_this._actor.classList.add("damage");
+						}
+						
 						setTimeout(function(){ 
 							_this.clearMessage();
 						}, 400 * this.getAnimTimeRatio());	

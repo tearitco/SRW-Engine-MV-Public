@@ -86,13 +86,7 @@ $SRWConfig.spirits = function(){
 		null,
 		null,
 		{
-			src: "Disrupt",	
-			name: "Disrupt",	
-			frameSize: 512, 
-			sheetHeight: 8,
-			sheetWidth: 5,
-			frames: 40,
-			duration: 100
+			animId: 56
 		}
 	);
 	this.addDefinition(
@@ -174,13 +168,7 @@ $SRWConfig.spirits = function(){
 		}, 
 		null,
 		{	
-			src: "Bonds",	
-			name: "Bonds",	
-			frameSize: 512, 
-			sheetHeight: 8,
-			sheetWidth: 5,
-			frames: 40,
-			duration: 100
+			animId: 44,				
 		}
 	);
 	this.addDefinition(

@@ -405,14 +405,14 @@ this.addDefinition(
 	0, //the id of the definition
 	[[1,0],[1,1],[1,-1],[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], //the tiles for the range of the attack as seen when the attack is targeted to the right of the user
 	{
-		name: "Explosion",
-		frameSize: 136, //the size of each frame of the sprite sheet for the attack's animation
-		sheetHeight: 1, //the number of rows in the sprite sheet
-		sheetWidth: 7, //the number of columns in the sprite sheet
-		frames: 7, //the number of frames in the animation
-		offset: {x: 96, y: 0},//the offset for the animation relative to the user, as seen when the MAP attack is targeted to the right of the user(a tile is 48x48)
-		duration: 50,//the duration of the attack animation
-		se: "SRWExplosion"//the sound effect to play with the animation
+		offset: { // the offset for the animation for each direction
+			up: {x: 0, y: -48},
+			down: {x: 0, y: 0},
+			left: {x: -24, y: -24},
+			right: {x: 24, y: -24},
+		},	
+		animId: 72, // the id of the RPG maker animation to play
+		scale: 0.7 // rescale the animation for display
 	},
 	false, //if true the player will not be able to rotate the map attack
 	{faceName: "Actor3", faceIdx: 7, text: "Marsha\nGet a load of this!"} // specifies a text box to show before the map attack animation plays. 
@@ -1048,16 +1048,7 @@ These are plugin commands provided by external plugins.
 
 ### Tile Changer (Shaz_TileChanger.js)
 
-```
-Z-layers:
 
-* 0 - ground layer (most A tiles)
-* 1 - ground cover layer (A1 tiles with transparent areas, and right 4 columns of A2 tiles)
-* 2 - upper layer 1
-* 3 - upper layer 2
-* 4 - shadow layer
-* 5 - region layer
-```
 
 * CopyTiles dx dy source sx1 sy1 sx2 sy2 z-list
 
@@ -1079,7 +1070,16 @@ Z-layers:
 	 Changes the tile at the specified coordinates and layer to the tileId
 	 indicated.  Note - no auto-formatting of autotiles happens here.
 	 
-
+```	
+	Additional info:
+		Z-layers:		
+			* 0 - ground layer (most A tiles)
+			* 1 - ground cover layer (A1 tiles with transparent areas, and right 4 columns of A2 tiles)
+			* 2 - upper layer 1
+			* 3 - upper layer 2
+			* 4 - shadow layer
+			* 5 - region layer
+```
 
 ## Script commands
 

@@ -2,15 +2,23 @@ $SRWConfig.mapAttacks = function(){
 	this.addDefinition(
 		0, 
 		[[1,0],[1,1],[1,-1],[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], 
-		{
-			name: "Explosion",	
-			frameSize: 136, 
-			sheetHeight: 1,
-			sheetWidth: 7,
-			frames: 7,
-			offset: {x: 96, y: 0},
-			duration: 50,
-			se: "SRWExplosion"
+		{			
+			/*offset: {
+				up: {x: 0, y: -96},
+				down: {x: 0, y: 96},
+				left: {x: -96, y: 0},
+				right: {x: 96, y: 0},
+			},	
+			animId: 107,
+			scale: 0.5*/
+			offset: {
+				up: {x: 0, y: -48},
+				down: {x: 0, y: 0},
+				left: {x: -24, y: -24},
+				right: {x: 24, y: -24},
+			},	
+			animId: 72,
+			scale: 0.7
 		},
 		false,
 		{faceName: "Actor3", faceIdx: 7, text: "Marsha\nGet a load of this!"}
@@ -20,14 +28,14 @@ $SRWConfig.mapAttacks = function(){
 		1, 
 		[[1,0],[1,1],[1,-1],[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], 
 		{
-			name: "Explosion",	
-			frameSize: 136, 
-			sheetHeight: 1,
-			sheetWidth: 7,
-			frames: 7,
-			offset: {x: 96, y: 0},
-			duration: 50,
-			se: "SRWExplosion"
+			offset: {
+				up: {x: 0, y: -48},
+				down: {x: 0, y: 0},
+				left: {x: -24, y: -24},
+				right: {x: 24, y: -24},
+			},	
+			animId: 72,
+			scale: 0.7
 		}
 	);	
 }

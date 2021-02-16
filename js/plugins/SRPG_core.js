@@ -3628,6 +3628,69 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		value+=this._floatOffset;
 		return Math.round(value);
 	};
+	
+	/*Extensions to character map animations*/
+	
+	Game_CharacterBase.prototype.requestAnimation = function(animationId, options) {
+		this._animationId = animationId;
+		this._animationOptions = options;
+	};
+	
+	Sprite_Character.prototype.setupAnimation = function() {
+		if (this._character.animationId() > 0) {
+			var animation = $dataAnimations[this._character.animationId()];
+			var animOptions = this._character._animationOptions;
+			if(animOptions){
+				Object.keys(animOptions).forEach(function(key){
+					animation[key] = animOptions[key];
+				});
+			}
+			this.startAnimation(animation, false, 0);
+			this._character.startAnimation();
+		}
+	};
+	
+	Sprite_Animation.prototype.update = function() {
+		Sprite.prototype.update.call(this);
+		this.updateMain();
+		this.updateFlash();
+		this.updateScreenFlash();
+		this.updateHiding();
+		Sprite_Animation._checker1 = {};
+		Sprite_Animation._checker2 = {};		
+		
+		this.scale.x = 1;
+		this.scale.y = 1;	
+		this.rotation = 0;
+		if(this._animation.direction){			
+			
+			if(this._animation.direction == "down"){
+				this.scale.y = -1;	
+			}
+			if(this._animation.direction == "left" || this._animation.direction == "right"){				
+				this.scale.x = -1;		
+				this.rotation = 90 * Math.PI / 180;				
+			}
+			
+			if(this._animation.direction == "left"){
+				this.scale.y = -1;	
+			}			
+			
+			if(this._animation.offset){
+				var offset = this._animation.offset[this._animation.direction];	
+				if(offset){
+					this.x+=offset.x;
+					this.y+=offset.y;
+				}	
+			}			
+		}
+		
+		if(this._animation.scale){
+			this.scale.y*=this._animation.scale;
+			this.scale.x*=this._animation.scale;
+		}
+		
+	};
 
 //====================================================================
 // ●Game_Player
@@ -8720,7 +8783,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$spiritManager.applyEffect(spiritInfo.idx, caster, initialTargetingResult.targets, spiritInfo.cost);
 			
 			this.applyAdditionalSpiritEffects(spiritInfo, target, caster);
-			if(initialTargetingResult.targets.length == 1){
+			if(initialTargetingResult.type != "enemy_all" && initialTargetingResult.type != "ally_all"){
 				$gameTemp.spiritTargetActor = initialTargetingResult.targets[0];
 				$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: initialTargetingResult.targets[0], idx: spiritInfo.idx}}];					
 				$gameSystem.setSubBattlePhase('spirit_activation');
@@ -9679,12 +9742,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					x: activeEvent.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
 					y: activeEvent.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
 				};
-				if(!$gameTemp.tempSprites){
+				/*if(!$gameTemp.tempSprites){
 					$gameTemp.tempSprites = [];
 				}
-				$gameTemp.tempSprites.push(new Sprite_MapEffect(spiritInfo, spritePosition));
+				$gameTemp.tempSprites.push(new Sprite_MapEffect(spiritInfo, spritePosition));*/
+				$gameTemp.animCharacter = activeEvent;
+				activeEvent.requestAnimation(spiritInfo.animId);
 			} else {
-				if($gameTemp.mapSpiritAnimationDuration <= 0){
+				if(!$gameTemp.animCharacter.isAnimationPlaying()){
+					$gameTemp.animCharacter = null;
 					$gameTemp.mapSpiritAnimationStarted = false;
 					//_this.srpgBattlerDeadAfterBattle();
 					$gameSystem.setSubBattlePhase("actor_command_window");
@@ -9804,7 +9870,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 							x: activeEvent.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
 							y: activeEvent.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
 						};
-						if(!$gameTemp.tempSprites){
+						/*if(!$gameTemp.tempSprites){
 							$gameTemp.tempSprites = [];
 						}
 						if(mapAttackDef.animInfo.se){
@@ -9815,14 +9881,20 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 							se.volume = 90;
 							AudioManager.playSe(se);
 						}
-						$gameTemp.tempSprites.push(new Sprite_MapAttack(mapAttackDef.animInfo, spritePosition));
+						$gameTemp.tempSprites.push(new Sprite_MapAttack(mapAttackDef.animInfo, spritePosition));*/
+						
+						
+						$gameTemp.animCharacter = activeEvent;
+						var options = JSON.parse(JSON.stringify(mapAttackDef.animInfo));
+						options.direction = $gameTemp.mapTargetDirection;
+						activeEvent.requestAnimation(mapAttackDef.animInfo.animId, options);
 					} else {
-						if($gameTemp.mapAttackAnimationDuration <= 0){
+						if(!$gameTemp.animCharacter.isAnimationPlaying()){
+							$gameTemp.animCharacter = null;
 							$gameTemp.mapAttackAnimationStarted = false;
 							//_this.srpgBattlerDeadAfterBattle();
 							_this.startMapAttackResultDisplay();
 						}
-						$gameTemp.mapAttackAnimationDuration--;
 					}					
 				}				
 			}				
