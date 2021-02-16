@@ -524,7 +524,9 @@ The format of a Pilot Ability definition is as follows:
 		9// the max level of the ability.
 		, // the function that determines how the ability's name should be displayed. If a value of "on" is returned the ability's name will be displayed with a blue highlight, if a value of "off" is returned the name will be grayed out. For any other returned value the name will be displayed with the default color.
 		function(actor, level){
-			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+			var mechStats = $statCalc.getCalculatedMechStats(actor);	
+			var targetSlice = Math.floor(mechStats.currentHP / mechStats.maxHP * 10);
+			return (targetSlice + 1) <= level ? "on" : "off";
 		}
 	)
 ```
