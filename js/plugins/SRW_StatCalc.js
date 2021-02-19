@@ -1084,6 +1084,9 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
 		result.transformRestores = mechProperties.mechTransformRestores * 1 || 0;	
 		
+		result.destroyTransformInto = mechProperties.mechDestroyTransformInto * 1 || null;		
+		result.destroyTransformedActor = mechProperties.mechDestroyTransformedActor * 1 || null;		
+		
 		result.transformedActor = mechProperties.mechTransformedActor;
 
 		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;		
@@ -1177,6 +1180,31 @@ StatCalc.prototype.transform = function(actor, force){
 			actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 			actor.event.refreshImage();			
 		}		
+	}
+}
+
+StatCalc.prototype.transformOnDestruction = function(actor, force){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){		
+		var transformIntoId = actor.SRWStats.mech.destroyTransformInto;
+		var targetActorId = actor.SRWStats.mech.destroyTransformedActor;
+		if(targetActorId != null){
+			var targetActor = $gameActors.actor(targetActorId);
+			if(targetActor.actorId() != actor.actorId()){
+				if(this.isActorSRWInitialized(targetActor)){
+					targetActor.event = actor.event;
+					actor.event = null;
+					actor.isSubPilot = true;
+					actor.SRWStats.mech = null;
+					$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
+					actor = targetActor;
+				}
+			}
+		}		
+		actor.isSubPilot = false;
+		actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
+		this.calculateSRWMechStats(actor.SRWStats.mech);					
+		actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+		actor.event.refreshImage();							
 	}
 }
 
@@ -3343,15 +3371,17 @@ StatCalc.prototype.clearSpirit = function(actor, spirit){
 	var _this = this;
 	if(_this.isActorSRWInitialized(actor)){			
 		actor.SRWStats.pilot.activeSpirits[spirit] = false;
-		var subPilots = actor.SRWStats.mech.subPilots;
-		if(subPilots){
-			subPilots.forEach(function(subPilotId){
-				var subActor = $gameActors.actor(subPilotId);
-				if(_this.isActorSRWInitialized(subActor)){
-					subActor.SRWStats.pilot.activeSpirits[spirit] = false;
-				}				
-			});
-		}
+		if(actor.SRWStats.mech){
+			var subPilots = actor.SRWStats.mech.subPilots;
+			if(subPilots){
+				subPilots.forEach(function(subPilotId){
+					var subActor = $gameActors.actor(subPilotId);
+					if(_this.isActorSRWInitialized(subActor)){
+						subActor.SRWStats.pilot.activeSpirits[spirit] = false;
+					}				
+				});
+			}
+		}		
 	} 	
 }
 

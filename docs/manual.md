@@ -288,12 +288,20 @@ Swapping sub-pilots is not supported.
 
 ### Transform
 
+Note: Transformation functionality is currently only available for Ally units.
+
 Units can be given the ability to transform into other units.
 
 \<mechTransformsInto:1\>: The id of the mech into which the mech can transform.<br>
 \<mechTransformWill:0\>: The required will for transformation.<br>
 \<mechTransformRestores:0\> If 1 the mech will recover all HP and EN after transforming. If 0 the old HP and EN will carry over.<br>
 \<mechTransformedActor:1\> If specified the unit's pilot will be set to the actor with the specified id after transforming.
+
+Units can be given the ability to automatically transform into other units when they are destroyed.
+
+\<mechDestroyTransformInto:2\>: The id of the mech into which the mech will transform.<br>
+\<mechDestroyTransformedActor:2\>: If specified the unit's pilot will be set to the actor with the specified id after transforming.
+
 
 ### Combining Units
 

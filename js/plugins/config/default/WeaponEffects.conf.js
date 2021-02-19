@@ -143,4 +143,17 @@ $SRWConfig.weaponEffects = function(){
 			return true;
 		}
 	);
+	this.addDefinition(
+		11, 
+		"Self-destruct(Hit)", 
+		"The unit will be destroyed after using this attack and hitting its target.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "self_destruct_hit", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
 }

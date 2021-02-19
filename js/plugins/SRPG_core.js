@@ -4289,7 +4289,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				$gameSystem.isSubBattlePhase() === 'confirm_end_turn'	||
 				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_attack' ||
-				$gameSystem.isSubBattlePhase() === 'await_character_anim'
+				$gameSystem.isSubBattlePhase() === 'await_character_anim' ||
+				$gameSystem.isSubBattlePhase() === 'process_destroy_transform_queue'
 				
 				
 				
@@ -9062,6 +9063,41 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				return;
 			}
 			
+			if($gameSystem.isSubBattlePhase() === 'process_destroy_transform_queue'){
+				if($gameMap.isEventRunning()){
+					return;
+				}
+				if($gameTemp.destroyTransformQueue.length){
+					_this._currentDeath = $gameTemp.destroyTransformQueue.shift();
+					_this._deathTimer = 60;
+					_this._startDeath = true;
+					$statCalc.transformOnDestruction(_this._currentDeath.actor);
+						var se = {};
+						se.name = 'SRWTransform';
+						se.pan = 0;
+						se.pitch = 100;
+						se.volume = 80;
+						AudioManager.playSe(se);
+					$gameSystem.setSubBattlePhase("process_destroy_transform");
+				} else {
+					$gameSystem.setSubBattlePhase("process_death_queue");
+				}
+				return;
+			}
+			
+			if($gameSystem.isSubBattlePhase() === 'process_destroy_transform'){
+				if(_this._startDeath){
+					_this._startDeath = false;
+				}
+				if(_this._deathTimer <= 0){
+					
+					$gameSystem.setSubBattlePhase("process_death_queue");
+				}				
+				_this._deathTimer--;
+				return;
+			}
+			
+			
 			if ($gameSystem.isSubBattlePhase() === 'rewards_display') {
 				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled() || ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
 					 //this._rewardsWindow.close();
@@ -9124,7 +9160,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_attack' ||
 				$gameSystem.isSubBattlePhase() === 'enemy_range_display' ||
-				$gameSystem.isSubBattlePhase() === 'await_character_anim'
+				$gameSystem.isSubBattlePhase() === 'await_character_anim' ||
+				$gameSystem.isSubBattlePhase() === 'process_destroy_transform_queue'
 				
 				) {
                 this.menuCalling = false;
@@ -10084,21 +10121,30 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
     Scene_Map.prototype.srpgBattlerDeadAfterBattle = function() {
 		var _this = this;
 		$gameTemp.deathQueue = [];
+		$gameTemp.destroyTransformQueue = [];
 		
 		Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 			var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 			if(battleEffect.isDestroyed){
-				//battleEffect.ref.event._erased = true;
-				$gameTemp.deathQueue.push({actor: battleEffect.ref, event: battleEffect.ref.event});
-				if($statCalc.isShip(battleEffect.ref)){
-					var boardedUnits = $statCalc.getBoardedUnits(battleEffect.ref)
-					for(var i = 0; i < boardedUnits.length; i++){
-						$gameTemp.deathQueue.push({actor: boardedUnits[i], event: boardedUnits[i].event});
+				if(battleEffect.ref.SRWStats.mech.destroyTransformInto != null){
+					//$statCalc.transformOnDestruction(battleEffect.ref);
+					$gameTemp.destroyTransformQueue.push({actor: battleEffect.ref, event: battleEffect.ref.event});
+				} else {
+					//battleEffect.ref.event._erased = true;
+					$gameTemp.deathQueue.push({actor: battleEffect.ref, event: battleEffect.ref.event});
+					if($statCalc.isShip(battleEffect.ref)){
+						var boardedUnits = $statCalc.getBoardedUnits(battleEffect.ref)
+						for(var i = 0; i < boardedUnits.length; i++){
+							$gameTemp.deathQueue.push({actor: boardedUnits[i], event: boardedUnits[i].event});
+						}
 					}
-				}
+				}				
 			}			
 		});
-		if($gameTemp.deathQueue.length){
+		if($gameTemp.destroyTransformQueue.length){
+			$gameSystem.setSubBattlePhase("process_destroy_transform_queue");
+			this.eventBeforeDestruction();
+		} else if($gameTemp.deathQueue.length){
 			$gameSystem.setSubBattlePhase("process_death_queue");
 			this.eventBeforeDestruction();
 		} else {
@@ -10116,15 +10162,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					targetActors  = targetActors.concat($statCalc.getCombinationWeaponParticipants(actor, weapon).participants);
 				}
 				targetActors.forEach(function(actor){
-					var ENCost = battleResult.ENUsed;
-					ENCost = $statCalc.applyStatModsToValue(actor, ENCost, ["EN_cost"]);
-					if(battleResult.barrierCost){
-						ENCost+=battleResult.barrierCost;
-					}			
-					actor.setMp(actor.mp - Math.floor(ENCost));
-					if(weapon){
-						weapon.currentAmmo-=battleResult.ammoUsed;
-					}
+					if(actor && actor.SRWStats && actor.SRWStats.mech){
+						var ENCost = battleResult.ENUsed;
+						ENCost = $statCalc.applyStatModsToValue(actor, ENCost, ["EN_cost"]);
+						if(battleResult.barrierCost){
+							ENCost+=battleResult.barrierCost;
+						}			
+						actor.setMp(actor.mp - Math.floor(ENCost));
+						if(weapon){
+							weapon.currentAmmo-=battleResult.ammoUsed;
+						}
+					}					
 				});	
 			}			
 		}
@@ -10366,6 +10414,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		$statCalc.resetCurrentAttack($gameTemp.currentBattleActor);	
 		$statCalc.resetCurrentAttack($gameTemp.currentBattleEnemy);	
 	}	
+	
 	Scene_Map.prototype.srpgPrepareNextAction = function(){
 		$gameTemp.rewardsInfo = null;	
 		var battler = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];

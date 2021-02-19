@@ -758,7 +758,12 @@ BattleCalc.prototype.generateBattleResult = function(){
 				activeDefenderCache.isDestroyed = true;
 			}				
 			
-			if(aCache.action.attack && $statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct"])){
+			if(aCache.action.attack && 
+				(
+					$statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct"]) ||
+					(aCache.hits && $statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct_hit"]))
+				)	
+			){
 				aCache.isDestroyed = true;
 				aCache.selfDestructed = true;
 			}
