@@ -130,4 +130,17 @@ $SRWConfig.weaponEffects = function(){
 			return true;
 		}
 	);
+	this.addDefinition(
+		10, 
+		"Self-destruct", 
+		"The unit will be destroyed after using this attack.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "self_destruct", modType: "addFlat", value: 1}];
+		},
+		function(actor, level){
+			return true;
+		}
+	);
 }
