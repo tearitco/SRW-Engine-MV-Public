@@ -265,7 +265,8 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 					combinationType: combinationType,
 					isLocked: isLocked,
 					isCounter: parseInt(weaponProperties.weaponIsCounter),
-					upgradeType: parseInt(weaponProperties.weaponUpgradeType) || 0
+					upgradeType: parseInt(weaponProperties.weaponUpgradeType) || 0,
+					isSelfDestruct: parseInt(weaponProperties.weaponIsSelfDestruct),
 				});
 			}
 		}

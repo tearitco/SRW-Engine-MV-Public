@@ -583,11 +583,13 @@ BattleSceneManager.prototype.applyAnimationDirection = function(position){
 }
 
 BattleSceneManager.prototype.getBattleTextId = function(action){
-	if(action.ref.isActor()){
-		return {id: action.ref.actorId(), mechId: action.ref.SRWStats.mech.id};
-	} else {
-		return {id: action.ref.enemyId(), mechId: action.ref.SRWStats.mech.id};
-	}
+	if(action){
+		if(action.ref.isActor()){
+			return {id: action.ref.actorId(), mechId: action.ref.SRWStats.mech.id};
+		} else {
+			return {id: action.ref.enemyId(), mechId: action.ref.SRWStats.mech.id};
+		}
+	}	
 }
 
 BattleSceneManager.prototype.setBgScrollDirection = function(direction, immediate){
@@ -2146,7 +2148,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 	Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 		var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 		
-		if(battleEffect.type == "defender" && battleEffect.action.type == "none" && !battleEffect.isDestroyed){
+		if(battleEffect.type == "defender" && battleEffect.action.type == "none" && !battleEffect.isDestroyed && !battleEffect.targetSelfDestructed){
 			_this._noCounter = true;
 			_this._defenderCache = battleEffect;
 		}

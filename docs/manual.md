@@ -371,7 +371,8 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponTerrain:AA-A\>If a terrain value is "-" the weapon cannot be used on enemies who are currently on a tile of that terrain.<br>
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
 \<weaponCategory:missile\> The particle type of the weapon: missile, funnel, beam, gravity, physical or  "".	
-\<weaponIsCounter:1\> If set to one the weapon will always trigger a Counter on the enemy turn. <br>
+\<weaponIsCounter:1\> If set to 1 the weapon will always trigger a Counter on the enemy turn. <br>
+\<weaponIsSelfDestruct:1\>L If the to 1 the weapon's user will be destroyed after using the attack. <br>
  
  
 Weapons can have up to two special effects.
@@ -768,6 +769,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * 0061 - lastActorAttackId: The ID of the attack used by the actor in the most recent battle.
 * 0062 - lastActorSupportAttackId: The ID of the attack used by the actor support attacker in the most recent battle.
 * 0063 - lastEnemyAttackId: The ID of the attack used by the enemy in the most recent battle.
+
 * 0064 - lastEnemySupportAttackId: The ID of the attack used by the enemy support attacker in the most recent battle.
 
 ## Switches

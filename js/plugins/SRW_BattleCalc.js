@@ -758,6 +758,11 @@ BattleCalc.prototype.generateBattleResult = function(){
 				activeDefenderCache.isDestroyed = true;
 			}				
 			
+			if(aCache.action.attack && aCache.action.attack.isSelfDestruct){
+				aCache.isDestroyed = true;
+				aCache.selfDestructed = true;
+			}
+			
 			
 			var ENCost = weaponref.ENCost;
 			if(ENCost != -1){
@@ -776,9 +781,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 			}			
 			$statCalc.clearSpirit(this._attacker.actor, "mercy");
 			$statCalc.clearSpirit(this._attacker.actor, "snipe");				
-			
-			
-		}						
+		}	
+		if(dCache && dCache.selfDestructed){
+			aCache.targetSelfDestructed = true;
+		}	
 	}
 	
 	
