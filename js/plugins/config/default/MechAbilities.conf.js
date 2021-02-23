@@ -6,13 +6,13 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "double_image_rate", modType: "addFlat", value: 0.3}];
+			return [{type: "special_evade", subType: "all", activation: "random", name: "DOUBLE IMAGE", value: 1, dodgePattern: 1}];
 		},
 		function(actor, level){
 			return $statCalc.getCurrentWill(actor) >= 130;
 		},
 		function(actor, level){
-			return $statCalc.getCurrentWill(actor) > 130 ? "on" : "off";
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
 		}
 	);
 	this.addDefinition(
@@ -309,9 +309,7 @@ $SRWConfig.mechAbilties = function(){
 		},
 		function(actor, level){
 			return true;
-		},
-		[0],
-		1
+		}
 	);
 	this.addDefinition(
 		22, 
@@ -324,9 +322,7 @@ $SRWConfig.mechAbilties = function(){
 		},
 		function(actor, level){
 			return true;
-		},
-		[0],
-		1
+		}
 	);	
 	this.addDefinition(
 		23, 
@@ -335,13 +331,11 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "jamming_rate", modType: "addFlat", value: 0.5}];
+			return [{type: "special_evade", subType: "missile", activation: "random", name: "JAMMING", value: 0.5, dodgePattern: 3}];
 		},
 		function(actor, level){
 			return true;
-		},
-		[0],
-		1
+		}
 	);	
 	
 	this.addDefinition(

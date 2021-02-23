@@ -35,5 +35,11 @@ var ENGINE_SETTINGS_DEFAULT = {
 	ACE_REQUIREMENT: 50, //amount of kills required to unlocked the Ace Bonus
 	DEFAULT_SP_REGEN: 0, //default SP regen in points of SP
 	DEFAULT_HP_REGEN: 0, //default HP regen in percent of total(10,50,etc.)
-	DEFAULT_EN_REGEN: 0 //default EN regen in percent of total(10,50,etc.)
+	DEFAULT_EN_REGEN: 0, //default EN regen in percent of total(10,50,etc.)
+	DODGE_PATTERNS: {//defines what animations should be used when performing special dodges in the basic and full battle scene
+		1: {basic_anim: "double_image", full_anim: 3, full_anim_return: 4, se: "SRWDoubleImage"},
+		2: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWParry"},
+		3: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWJamming"},
+		4: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWShootDown"},		
+	}
 }

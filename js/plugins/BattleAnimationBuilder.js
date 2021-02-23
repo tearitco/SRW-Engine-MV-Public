@@ -324,14 +324,17 @@ BattleAnimationBuilder.prototype.processDefinition = function(data){
 					}
 					if(param == "commands"){
 						var innerCommands = params[param];
-						innerCommands.forEach(function(command){
-							var params = command.params;
-							Object.keys(params).forEach(function(param){
-								if(paramHandlers[param]){
-									params[param] = paramHandlers[param](params[param]);
-								}
+						if(innerCommands && Array.isArray(innerCommands)){
+							innerCommands.forEach(function(command){
+								var params = command.params;
+								Object.keys(params).forEach(function(param){
+									if(paramHandlers[param]){
+										params[param] = paramHandlers[param](params[param]);
+									}
+								});
 							});
-						});
+						}
+						
 					}
 				});
 			});

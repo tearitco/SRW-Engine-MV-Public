@@ -553,7 +553,7 @@
 	display: none;
 }
 
-#battle_basic_actor_double_image {
+#battle_basic_actor_special_evade {
 	color: #FFFFFF;
 	font-size: 1.6px;
 	top: var(--double-image-main-vert);
@@ -562,7 +562,7 @@
 	display: none;
 }
 
-#battle_basic_actor_support_double_image {
+#battle_basic_actor_support_special_evade {
 	color: #FFFFFF;
 	font-size: 1.6px;
 	top: var(--double-image-support-vert);
@@ -571,7 +571,7 @@
 	display: none;
 }
 
-#battle_basic_enemy_double_image {
+#battle_basic_enemy_special_evade {
 	color: #FFFFFF;
 	font-size: 1.6px;
 	top: var(--double-image-main-vert);
@@ -580,7 +580,7 @@
 	display: none;
 }
 
-#battle_basic_enemy_support_double_image {
+#battle_basic_enemy_support_special_evade {
 	color: #FFFFFF;
 	font-size: 1.6px;
 	top: var(--double-image-support-vert);

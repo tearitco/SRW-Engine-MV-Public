@@ -301,12 +301,12 @@ BattleSceneUILayer.prototype.showEnemyBarrierNotification = function(barriers){
 	this.setNotification("enemy", barriers);
 }
 
-BattleSceneUILayer.prototype.setBarrierNotification = function(side, barriers){
+BattleSceneUILayer.prototype.setPopupNotification = function(side, barriers, additionalClass){
 	var _this = this;
 	var text = "";
 	var ctr = 0;
 	barriers.forEach(function(name){
-		text+="<div style='animation-delay:"+((ctr++ * 0.1))+"s' class='barrier_name scaled_text fitted_text'>"+name+"</div>";
+		text+="<div style='animation-delay:"+((ctr++ * 0.1))+"s' class='barrier_name "+(additionalClass || "")+" scaled_text fitted_text'>"+name+"</div>";
 	});
 	if(side == "actor"){
 		this._allyBarrierNotification.innerHTML = text;
@@ -315,10 +315,13 @@ BattleSceneUILayer.prototype.setBarrierNotification = function(side, barriers){
 		this._enemyBarrierNotification.innerHTML = text;
 		setTimeout(function(){_this._enemyBarrierNotification.innerHTML = "";}, 3000);
 	}
+	
+	
 	var barrierNames = this._container.querySelectorAll(".barrier_name");
 	barrierNames.forEach(function(barrierName){
 		_this.updateScaledDiv(barrierName);
 	});
+	Graphics._updateCanvas();
 }
 
 BattleSceneUILayer.prototype.showDamage = function(entityType, amount){

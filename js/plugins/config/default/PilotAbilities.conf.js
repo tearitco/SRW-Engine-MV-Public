@@ -709,15 +709,15 @@ $SRWConfig.pilotAbilties = function(){
 		true,
 		function(actor, level){
 			var effectTable = [
-				[{type: "parry_rate", modType: "addFlat", value: 0.5}], //1
-				[{type: "parry_rate", modType: "addFlat", value: 0.10}], //2
-				[{type: "parry_rate", modType: "addFlat", value: 0.15}], //3
-				[{type: "parry_rate", modType: "addFlat", value: 0.20}], //4
-				[{type: "parry_rate", modType: "addFlat", value: 0.25}], //5
-				[{type: "parry_rate", modType: "addFlat", value: 0.30}], //6
-				[{type: "parry_rate", modType: "addFlat", value: 0.35}], //7
-				[{type: "parry_rate", modType: "addFlat", value: 0.40}], //8
-				[{type: "parry_rate", modType: "addFlat", value: 0.45}], //9				
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.05, dodgePattern: 2}], //1
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.10, dodgePattern: 2}], //2
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.15, dodgePattern: 2}], //3
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.20, dodgePattern: 2}], //4
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.25, dodgePattern: 2}], //5
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.30, dodgePattern: 2}], //6
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.35, dodgePattern: 2}], //7
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.40, dodgePattern: 2}], //8
+				[{type: "special_evade", subType: "physical", activation: "random", name: "PARRY", value: 0.45, dodgePattern: 2}], //9				
 			];
 			if(effectTable[level-1]){
 				return effectTable[level-1];
@@ -739,7 +739,7 @@ $SRWConfig.pilotAbilties = function(){
 		true,
 		function(actor, level){
 			return [
-				{type: "shoot_down", modType: "addFlat", value: 1}
+				{type: "special_evade", subType: "missile", activation: "skill", name: "SHOOT DOWN", dodgePattern: 4},{type: "special_evade", subType: "funnel", activation: "skill", name: "SHOOT DOWN", dodgePattern: 4}
 			];
 		},
 		function(actor, level){

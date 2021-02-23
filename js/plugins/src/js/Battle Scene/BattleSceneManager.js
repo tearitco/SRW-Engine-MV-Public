@@ -1191,7 +1191,15 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				} else {
 					startPosition = targetObj.position;
 				}
-				_this.registerMatrixAnimation("translate", targetObj, startPosition, params.position, startTick, params.duration, params.easingFunction, params.easingMode, params.hide, params.catmullRom);
+				var targetPosition = params.position;				
+				targetPosition = JSON.parse(JSON.stringify(targetPosition));
+				if(params.relative == 1){
+					startPosition = JSON.parse(JSON.stringify(targetObj.position));					
+					targetPosition.x+=startPosition.x;
+					targetPosition.y+=startPosition.y;
+					targetPosition.z+=startPosition.z;
+				}
+				_this.registerMatrixAnimation("translate", targetObj, new BABYLON.Vector3(startPosition.x, startPosition.y, startPosition.z), new BABYLON.Vector3(targetPosition.x, targetPosition.y, targetPosition.z), startTick, params.duration, params.easingFunction, params.easingMode, params.hide, params.catmullRom);
 			}			
 		},
 		rotate: function(target, params){
@@ -1467,16 +1475,43 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "evade", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 			
-			if(action.isDoubleImage){
+			var hasSpecialEvasion = false;
+			if(action.specialEvasion){
+				_this._UILayerManager.setPopupNotification(action.isActor ? "actor" : "enemy", [action.specialEvasion.name], "evasion");
+				var patternId = action.specialEvasion.dodgePattern;
+				var animDef = {
+					full_anim: "null"
+				};
+				if(patternId != null && ENGINE_SETTINGS.DODGE_PATTERNS[patternId]){
+					animDef =  ENGINE_SETTINGS.DODGE_PATTERNS[patternId];
+				}
+				if(animDef.full_anim != null){
+					hasSpecialEvasion = true;
+					var animData = _this._animationBuilder.buildAnimation(animDef.full_anim, _this).mainAnimation;
+					var additions = [];
+					Object.keys(animData).forEach(function(tick){
+						additions[startTick * 1 + tick * 1 + 1] = animData[tick];
+					});
+					_this.mergeAnimList(additions);		
+					
+				} 
+			} 
+
+			if(!hasSpecialEvasion){
+				if(params.commands){
+					var additions = [];
+					Object.keys(params.commands).forEach(function(tick){
+						additions[startTick * 1 + tick * 1 + 1] = params.commands[tick];
+					});
+					_this.mergeAnimList(additions);
+				}
+			}
+			
+			/*if(action.isDoubleImage){
 				_this._doubleImageActive = true;
 				var additions = [];
 				var position = _this._defaultPositions.enemy_main_idle;
-				/*additions[startTick + 1] = [
-					{type: "translate", target: "active_target", params:{startPosition: position, position: new BABYLON.Vector3(position.x + 2, position.y, position.z), duration: 2}},
-				];
-				additions[startTick + 4] = [
-					{type: "translate", target: "active_target", params:{startPosition: position,position: new BABYLON.Vector3(position.x - 2, position.y, position.z), duration: 2}},
-				];*/
+				
 				var moveCount = 15;
 				var moveTicks = 30;
 				var moveStep = Math.floor(moveTicks / moveCount);
@@ -1498,7 +1533,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(params.commands){
 					_this._animationList[startTick + 1] = params.commands;	
 				}
-			}
+			}*/
 				
 		},
 		spawn_sprite: function(target, params){
@@ -1817,7 +1852,31 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				} else if(targetObj == _this._enemySprite.sprite || targetObj == _this._enemySupporterSprite.sprite) {
 					_this.registerMatrixAnimation("translate", targetObj, targetObj.position, targetPostion, startTick, params.duration);
 				}*/
-				_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
+				var action = _this._currentAnimatedAction.attacked;
+				var entityType = action.isActor ? "actor" : "enemy";
+				var hasSpecialEvasion = false;
+				if(action.specialEvasion){		
+					var patternId = action.specialEvasion.dodgePattern;
+					var animDef = {
+						full_anim: "null"
+					};
+					if(patternId != null && ENGINE_SETTINGS.DODGE_PATTERNS[patternId]){
+						animDef =  ENGINE_SETTINGS.DODGE_PATTERNS[patternId];
+					}
+					if(animDef.full_anim_return != null){
+						hasSpecialEvasion = true;
+						var animData = _this._animationBuilder.buildAnimation(animDef.full_anim_return, _this).mainAnimation;
+						var additions = [];
+						Object.keys(animData).forEach(function(tick){
+							additions[startTick * 1 + tick * 1 + 1] = animData[tick];
+						});
+						_this.mergeAnimList(additions);
+					} 
+				} 
+				
+				if(!hasSpecialEvasion){
+					_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
+				}
 				
 				_this._animationList[startTick + params.duration] = [				
 					{type: "show_damage", target: "", params:{}},
@@ -1886,8 +1945,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(originalAction.inflictedCritical){
 				_this._UILayerManager.setNotification(action.isActor ? "enemy" : "actor", "CRITICAL!");
 			}
-			if(action.barrierNames){
-				_this._UILayerManager.setBarrierNotification(action.isActor ? "actor" : "enemy", action.barrierNames);
+			if(action.isHit && action.barrierNames){
+				_this._UILayerManager.setPopupNotification(action.isActor ? "actor" : "enemy", action.barrierNames);
 			}
 		},
 		drain_hp_bar: function(target, params){			

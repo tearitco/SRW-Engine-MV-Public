@@ -357,29 +357,31 @@ Window_CSS.prototype.updateScaledImage = function(img) {
 }
 
 Window_CSS.prototype.updateScaledDiv = function(div, noWidth, noHeight) {
-	var computedStyle = getComputedStyle(div);
-	var originalWidth = div.getAttribute("original-width");
-	if(!originalWidth){
-		originalWidth = computedStyle.getPropertyValue('--widthpixels');
+	if(div){
+		var computedStyle = getComputedStyle(div);
+		var originalWidth = div.getAttribute("original-width");
 		if(!originalWidth){
-			originalWidth = computedStyle.width.replace("px", "");
-		}		
-		div.setAttribute("original-width", originalWidth);
-	}
-	var originalHeight = div.getAttribute("original-height");
-	if(!originalHeight){
-		originalHeight = computedStyle.getPropertyValue('--heightpixels');
-		if(!originalHeight){
-			originalHeight = computedStyle.height.replace("px", "");
+			originalWidth = computedStyle.getPropertyValue('--widthpixels');
+			if(!originalWidth){
+				originalWidth = computedStyle.width.replace("px", "");
+			}		
+			div.setAttribute("original-width", originalWidth);
 		}
-		div.setAttribute("original-height", originalHeight);
+		var originalHeight = div.getAttribute("original-height");
+		if(!originalHeight){
+			originalHeight = computedStyle.getPropertyValue('--heightpixels');
+			if(!originalHeight){
+				originalHeight = computedStyle.height.replace("px", "");
+			}
+			div.setAttribute("original-height", originalHeight);
+		}
+		if(!noWidth){
+			div.style.width = (originalWidth * Graphics.getScale()) + "px";
+		}
+		if(!noHeight){
+			div.style.height = (originalHeight * Graphics.getScale()) + "px";
+		}	
 	}
-	if(!noWidth){
-		div.style.width = (originalWidth * Graphics.getScale()) + "px";
-	}
-	if(!noHeight){
-		div.style.height = (originalHeight * Graphics.getScale()) + "px";
-	}	
 }
 
 

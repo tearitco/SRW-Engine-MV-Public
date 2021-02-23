@@ -181,22 +181,22 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._enemyCounter.innerHTML = "COUNTER";
 	
 	this._actorDoubleImage = document.createElement("div");
-	this._actorDoubleImage.id = this.createId("actor_double_image");	
+	this._actorDoubleImage.id = this.createId("actor_special_evade");	
 	this._actorDoubleImage.classList.add("scaled_text");
 	this._actorDoubleImage.innerHTML = "DOUBLE IMAGE";
 	
 	this._enemyDoubleImage = document.createElement("div");
-	this._enemyDoubleImage.id = this.createId("enemy_double_image");
+	this._enemyDoubleImage.id = this.createId("enemy_special_evade");
 	this._enemyDoubleImage.classList.add("scaled_text");
 	this._enemyDoubleImage.innerHTML = "DOUBLE IMAGE";	
 	
 	this._actorSupportDoubleImage = document.createElement("div");
-	this._actorSupportDoubleImage.id = this.createId("actor_support_double_image");	
+	this._actorSupportDoubleImage.id = this.createId("actor_support_special_evade");	
 	this._actorSupportDoubleImage.classList.add("scaled_text");
 	this._actorSupportDoubleImage.innerHTML = "DOUBLE IMAGE";
 	
 	this._enemySupportDoubleImage = document.createElement("div");
-	this._enemySupportDoubleImage.id = this.createId("enemy_support_double_image");
+	this._enemySupportDoubleImage.id = this.createId("enemy_support_special_evade");
 	this._enemySupportDoubleImage.classList.add("scaled_text");
 	this._enemySupportDoubleImage.innerHTML = "DOUBLE IMAGE";
 	
@@ -487,8 +487,8 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			special_targetSupportDestroy:  "enemy_support_destroyed",
 			anim_mainReturn: "actor_return",
 			special_counterNotification: "actor_counter",
-			special_targetDoubleImage: "enemy_double_image",
-			special_targetSupportDoubleImage: "enemy_support_double_image",
+			special_specialEvade: "enemy_special_evade",
+			special_supportSpecialEvade: "enemy_support_special_evade",
 			special_targetBarrier: "enemy_barrier",
 			special_targetSupportBarrier: "enemy_support_barrier",
 			
@@ -520,8 +520,8 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			special_targetSupportDestroy:  "actor_support_destroyed",
 			anim_mainReturn: "enemy_return",
 			special_counterNotification: "enemy_counter",
-			special_targetDoubleImage: "actor_double_image",
-			special_targetSupportDoubleImage: "actor_support_double_image",
+			special_specialEvade: "actor_special_evade",
+			special_supportSpecialEvade: "actor_support_special_evade",
 			special_targetBarrier: "actor_barrier",
 			special_targetSupportBarrier: "actor_support_barrier",
 			
@@ -626,70 +626,37 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 		}
 	} else {
 		var evadeAnimation;
-		if(nextAction.attacked.isDoubleImage){
+		
+		if(nextAction.attacked.specialEvasion){
+			var patternId = nextAction.attacked.specialEvasion.dodgePattern;
+			var animDef = {
+				basic_anim: "no_damage",
+				se: "SRWMiss"
+			};
+			if(patternId != null && ENGINE_SETTINGS.DODGE_PATTERNS[patternId]){
+				animDef =  ENGINE_SETTINGS.DODGE_PATTERNS[patternId];
+			}
+			
+			animDef.name = nextAction.attacked.specialEvasion.name;
+			
+			var evadeAnimation = animDef.basic_anim;
+			
+			
 			if(nextAction.attacked.type == "support defend"){				
 				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportDefend}]);			
 			 
-				evadeAnimation = {target: target, type: "double_image"};
+				evadeAnimation = {target: target, type: evadeAnimation};
 				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetSupportDoubleImage] = true;
+				evadeAnimation.special[currentInfo.special_supportSpecialEvade] = animDef;
 				this._animationQueue.push([evadeAnimation]);
 						
 				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);			
 			} else {
-				evadeAnimation = {target: target, type: "double_image"};
+				evadeAnimation = {target: target, type: evadeAnimation};
 				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetDoubleImage] = true;
+				evadeAnimation.special[currentInfo.special_specialEvade] = animDef;
 				this._animationQueue.push([evadeAnimation]);
-			}					
-		} if(nextAction.attacked.isParry){
-			if(nextAction.attacked.type == "support defend"){				
-				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportDefend}]);			
-			 
-				evadeAnimation = {target: target, type: "no_damage"};
-				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetSupportParry] = true;
-				this._animationQueue.push([evadeAnimation]);
-						
-				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);			
-			} else {
-				evadeAnimation = {target: target, type: "no_damage"};
-				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetParry] = true;
-				this._animationQueue.push([evadeAnimation]);
-			}					
-		} else if(nextAction.attacked.isJamming){
-			if(nextAction.attacked.type == "support defend"){				
-				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportDefend}]);			
-			 
-				evadeAnimation = {target: target, type: "no_damage"};
-				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetSupportJamming] = true;
-				this._animationQueue.push([evadeAnimation]);
-						
-				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);			
-			} else {
-				evadeAnimation = {target: target, type: "no_damage"};
-				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetJamming] = true;
-				this._animationQueue.push([evadeAnimation]);
-			}					
-		} else if(nextAction.attacked.isShootDown){
-			if(nextAction.attacked.type == "support defend"){				
-				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportDefend}]);			
-			 
-				evadeAnimation = {target: target, type: "no_damage"};
-				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetSupportShootDown] = true;
-				this._animationQueue.push([evadeAnimation]);
-						
-				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);			
-			} else {
-				evadeAnimation = {target: target, type: "no_damage"};
-				evadeAnimation.special = {};
-				evadeAnimation.special[currentInfo.special_targetShootDown] = true;
-				this._animationQueue.push([evadeAnimation]);
-			}					
+			}
 		} else {
 			evadeAnimation = {target: currentInfo.targetMain, type: currentInfo.anim_targetEvade};
 			evadeAnimation.special = {};
@@ -833,196 +800,53 @@ Window_BattleBasic.prototype.update = function() {
 								setTimeout(function(){ _this._actorCounter.style.display = "none" }, 200 * _this.getAnimTimeRatio());		
 							}
 														
-							if(nextAnimation.special.enemy_double_image){
+							if(nextAnimation.special.enemy_special_evade){
+								var def = nextAnimation.special.enemy_special_evade;
 								_this._enemyDoubleImage.style.display = "block";
-								_this._enemyDoubleImage.innerHTML = "DOUBLE IMAGE";
+								_this._enemyDoubleImage.innerHTML = def.name;
 								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
-								se.name = 'SRWDoubleImage';
+								se.name = def.se;
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
 								AudioManager.playSe(se);		
 							}
-							if(nextAnimation.special.actor_double_image){
+							if(nextAnimation.special.actor_special_evade){
+								var def = nextAnimation.special.actor_special_evade;
 								_this._actorDoubleImage.style.display = "block";
-								_this._actorDoubleImage.innerHTML = "DOUBLE IMAGE";
+								_this._actorDoubleImage.innerHTML = def.name;
 								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
-								se.name = 'SRWDoubleImage';
+								se.name = def.se;
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
 								AudioManager.playSe(se);								
 							}
-							if(nextAnimation.special.enemy_support_double_image){
+							if(nextAnimation.special.enemy_support_special_evade){
+								var def = nextAnimation.special.enemy_support_special_evade;
 								_this._enemySupportDoubleImage.style.display = "block";
-								_this._enemySupportDoubleImage.innerHTML = "DOUBLE IMAGE";
+								_this._enemySupportDoubleImage.innerHTML = def.name;
 								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
-								se.name = 'SRWDoubleImage';
+								se.name = def.se;
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
 								AudioManager.playSe(se);		
 							}
-							if(nextAnimation.special.actor_support_double_image){
+							if(nextAnimation.special.actor_support_special_evade){
+								var def = nextAnimation.special.actor_support_special_evade;
 								_this._actorSupportDoubleImage.style.display = "block";
-								_this._actorSupportDoubleImage.innerHTML = "DOUBLE IMAGE";
+								_this._actorSupportDoubleImage.innerHTML = def.name;
 								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
-								se.name = 'SRWDoubleImage';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);									
-							}
-							
-							if(nextAnimation.special.enemy_parry){
-								_this._enemyDoubleImage.style.display = "block";
-								_this._enemyDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWParry';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_parry){
-								_this._actorDoubleImage.style.display = "block";
-								_this._actorDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWParry';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);								
-							}
-							if(nextAnimation.special.enemy_support_parry){
-								_this._enemySupportDoubleImage.style.display = "block";
-								_this._enemySupportDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWParry';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_support_parry){
-								_this._actorSupportDoubleImage.style.display = "block";
-								_this._actorSupportDoubleImage.innerHTML = "PARRY";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWParry';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);									
-							}
-							
-							if(nextAnimation.special.enemy_jamming){
-								_this._enemyDoubleImage.style.display = "block";
-								_this._enemyDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWJamming';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_jamming){
-								_this._actorDoubleImage.style.display = "block";
-								_this._actorDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWJamming';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);								
-							}
-							if(nextAnimation.special.enemy_support_jamming){
-								_this._enemySupportDoubleImage.style.display = "block";
-								_this._enemySupportDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWJamming';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_support_jamming){
-								_this._actorSupportDoubleImage.style.display = "block";
-								_this._actorSupportDoubleImage.innerHTML = "JAMMING";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWJamming';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);									
-							}
-							
-							if(nextAnimation.special.enemy_shoot_down){
-								_this._enemyDoubleImage.style.display = "block";
-								_this._enemyDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWShootDown';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_shoot_down){
-								_this._actorDoubleImage.style.display = "block";
-								_this._actorDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWShootDown';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);								
-							}
-							if(nextAnimation.special.enemy_support_shoot_down){
-								_this._enemySupportDoubleImage.style.display = "block";
-								_this._enemySupportDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWShootDown';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_support_shoot_down){
-								_this._actorSupportDoubleImage.style.display = "block";
-								_this._actorSupportDoubleImage.innerHTML = "SHOOT DOWN";
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = 'SRWShootDown';
+								se.name = def.se;
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;

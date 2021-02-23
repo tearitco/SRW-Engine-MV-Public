@@ -664,6 +664,30 @@ BattleCalc.prototype.generateBattleResult = function(){
 			};
 			var isSupportDefender = false;
 			if(isHit){
+				var specialEvadeInfo = $statCalc.getModDefinitions(this._defender.actor, ["special_evade"]);
+				var weaponType = weaponref.particleType;
+				var aSkill = $statCalc.getPilotStat(aCache.ref, "skill");
+				var dSkill = $statCalc.getPilotStat(dCache.ref, "skill");		
+				
+				var ctr = 0;
+				
+				while(isHit && ctr < specialEvadeInfo.length){
+					var evasionType = specialEvadeInfo[ctr].subType;
+					if(evasionType == weaponType || evasionType == "all"){
+						if(specialEvadeInfo[ctr].activation == "skill"){
+							isHit = dSkill < aSkill;
+						} else if(specialEvadeInfo[ctr].activation == "random"){
+							isHit = Math.random() > specialEvadeInfo[ctr].value;
+						}
+						if(!isHit){
+							dCache.specialEvasion = specialEvadeInfo[ctr];
+						}
+					}
+					ctr++;
+				}
+				
+				/*
+				
 				if(Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["double_image_rate"])){
 					dCache.isDoubleImage = true;
 					isHit = 0;
@@ -684,7 +708,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 				if((weaponref.particleType == "funnel" || weaponref.particleType == "missile") && $statCalc.applyStatModsToValue(this._defender.actor, 0, ["shoot_down"]) && dSkill > aSkill){
 					dCache.isShootDown = true;
 					isHit = 0;
-				}
+				}*/
 				
 				if(isHit && sCache && !sCache.hasActed){
 					isHit = 1;

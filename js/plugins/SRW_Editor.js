@@ -107,7 +107,7 @@ SRWEditor.prototype.init = function(){
 		},
 		translate: {
 			hasTarget: true,
-			params: ["startPosition", "position", "duration", "easingFunction", "easingMode", "hide", "catmullRom"],
+			params: ["relative", "startPosition", "position", "duration", "easingFunction", "easingMode", "hide", "catmullRom"],
 			desc: "Move an object from the start position to the end position."
 		},
 		rotate: {
@@ -357,6 +357,7 @@ SRWEditor.prototype.init = function(){
 		position: "A position defined by an x, y and z coordinate.",
 		parent: "The id of the object that will be the parent of this object.",
 		rotation: "A rotation defined by an x, y and z component. The rotations are described with radian values.",
+		relative: "If 1 the animation positions will be relative to the target's current position. The specified start position will be ignored!",
 		startPosition: "A position defined by an x, y and z coordinate.",
 		duration: "The duration of the command in animation ticks.",
 		easingFunction: "Describes how an object moves from point a to point b. If not specified the object will move linearly.",
@@ -448,6 +449,9 @@ SRWEditor.prototype.init = function(){
 			return _this._paramDisplayHandlers.position(value);
 		},
 		duration: function(value){
+			
+		},
+		relative: function(value){
 			
 		},
 		easingFunction: function(value){

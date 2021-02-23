@@ -291,6 +291,11 @@
 	white-space: nowrap;
 }
 
+#battle_scene_ui_layer .barrier_name.evasion{
+	background-color: rgba(110, 234, 165, 0.5);
+	border: 0.1vw solid rgb(110, 234, 165);
+}
+
 #battle_scene_ui_layer_ally_barrier_notification .barrier_name{
 	border-top-left-radius: 9999px;
 	border-bottom-left-radius: 9999px;
