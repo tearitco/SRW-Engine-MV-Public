@@ -671,19 +671,21 @@ BattleCalc.prototype.generateBattleResult = function(){
 				
 				var ctr = 0;
 				
-				while(isHit && ctr < specialEvadeInfo.length){
-					var evasionType = specialEvadeInfo[ctr].subType;
-					if(evasionType == weaponType || evasionType == "all"){
-						if(specialEvadeInfo[ctr].activation == "skill"){
-							isHit = dSkill < aSkill;
-						} else if(specialEvadeInfo[ctr].activation == "random"){
-							isHit = Math.random() > specialEvadeInfo[ctr].value;
+				if(!$statCalc.getActiveSpirits(this._attacker.actor).strike){
+					while(isHit && ctr < specialEvadeInfo.length){
+						var evasionType = specialEvadeInfo[ctr].subType;
+						if(evasionType == weaponType || evasionType == "all"){
+							if(specialEvadeInfo[ctr].activation == "skill"){
+								isHit = dSkill < aSkill;
+							} else if(specialEvadeInfo[ctr].activation == "random"){
+								isHit = Math.random() > specialEvadeInfo[ctr].value;
+							}
+							if(!isHit){
+								dCache.specialEvasion = specialEvadeInfo[ctr];
+							}
 						}
-						if(!isHit){
-							dCache.specialEvasion = specialEvadeInfo[ctr];
-						}
+						ctr++;
 					}
-					ctr++;
 				}
 				
 				/*
