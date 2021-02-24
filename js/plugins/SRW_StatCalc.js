@@ -2270,11 +2270,15 @@ StatCalc.prototype.setFlying = function(actor, newVal){
 }	
 
 StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
-	var _this = this;
+	var _this = this;	
 	var result = {
 		isValid: false,
 		participants: []
 	};
+	
+	if(actor || !actor.event){
+		return result;
+	}
 	
 	if(weapon.isCombination){
 		var requiredWeaponsLookup = {};
