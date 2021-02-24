@@ -817,4 +817,259 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		4
 	);
+	
+	this.addDefinition(
+		45, 
+		"Pavise", 
+		"At 130+ Will, 50% chance to reduce damage taken from Melee weapons by 50%.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "percent_barrier", subType: "melee", value: 0.5, cost: 0, success_rate: 0.5}
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130;
+		},
+		[0],
+		4,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		}
+	);
+	
+	this.addDefinition(
+		46, 
+		"Aegis", 
+		"At 130+ Will, 50% chance to reduce damage taken from Ranged weapons by 50%.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "percent_barrier", subType: "ranged", value: 0.5, cost: 0, success_rate: 0.5}
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130;
+		},
+		[0],
+		4,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		}
+	);
+	
+	this.addDefinition(
+		47, 
+		"Wrath", 
+		"At 130+ Will, +50 to Crit.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "crit", modType: "addFlat", value: 50}
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130;
+		},
+		[0],
+		4,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		}
+	);
+	
+	this.addDefinition(
+		48, 
+		"Melee Mastery", 
+		"At 120+ Will, +500 damage for Melee weapons.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "weapon_melee", modType: "addFlat", value: 500}
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 120;
+		},
+		[0],
+		4,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 120 ? "on" : "off";
+		}
+	);
+	
+	this.addDefinition(
+		49, 
+		"Ranged Mastery", 
+		"At 120+ Will, +500 damage for Ranged weapons.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "weapon_ranged", modType: "addFlat", value: 500}
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 120;
+		},
+		[0],
+		4,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 120 ? "on" : "off";
+		}
+	);
+	
+	this.addDefinition(
+		50, 
+		"Death blow", 
+		"+15 to pilot's Melee/Ranged stat when attacking.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "stat_ranged_init", modType: "addFlat", value: 15},{type: "stat_melee_init", modType: "addFlat", value: 15}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		50, 
+		"Death blow", 
+		"+15 to pilot's Melee/Ranged stat when attacking.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "stat_ranged_init", modType: "addFlat", value: 15},{type: "stat_melee_init", modType: "addFlat", value: 15}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		51, 
+		"Armored blow", 
+		"+15 to pilot's Defense stat when attacking.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "stat_defense_init", modType: "addFlat", value: 15}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		52, 
+		"Certain blow", 
+		"+15 to pilot's Hit stat when attacking.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "stat_hit_init", modType: "addFlat", value: 15}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		53, 
+		"Duelist's blow", 
+		"+15 to pilot's Evade stat when attacking.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "stat_evade_init", modType: "addFlat", value: 15}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		54, 
+		"Vengeance", 
+		"Unit deals additional damage equal to 100% of unit's missing HP.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "vengeance", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		55, 
+		"Luna", 
+		"At 140+ Will, attacks ignore enemy Armor.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "ignore_armor", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 140;
+		},
+		[0],
+		4,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 140 ? "on" : "off";
+		}
+	);
+	
+	this.addDefinition(
+		56, 
+		"Sol", 
+		"At 130+ Will, attacks recover 30% of damage dealt as HP.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "hp_drain", modType: "addFlat", value: 0.3}
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130;
+		},
+		[0],
+		4,
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
+		}
+	);
 }

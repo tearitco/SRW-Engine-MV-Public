@@ -333,7 +333,7 @@ Window_BattleBasic.prototype.readBattleCache = function() {
 	Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 		var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 		_this._actionQueue[battleEffect.actionOrder] = battleEffect;
-		battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP;
+		battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP - (battleEffect.HPRestored || 0);
 		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.actor.participating = true;
@@ -399,6 +399,21 @@ Window_BattleBasic.prototype.getHPAnimInfo = function(action) {
 		endPercent = 0;
 	}
 	return {startPercent: startPercent, endPercent: endPercent};
+}
+
+Window_BattleBasic.prototype.getHPRecoveredAnimInfo = function(action) {
+	var result = null;
+	if(action.HPRestored){
+		var targetMechStats = $statCalc.getCalculatedMechStats(action.ref);
+
+		var startPercent = Math.floor((action.currentAnimHP / targetMechStats.maxHP)*100);
+		var endPercent = Math.floor(((action.currentAnimHP + action.HPRestored) / targetMechStats.maxHP)*100);
+		if(endPercent < 0){
+			endPercent = 0;
+		}
+		result = {startPercent: startPercent, endPercent: endPercent};
+	}	
+	return result;
 }
 
 Window_BattleBasic.prototype.animateHP = function(elem, fillElem, startPercent, endPercent) {
@@ -480,6 +495,8 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			anim_targetSupportReturn: "enemy_support_defend_return",
 			anim_targetDamage: "enemy_damage",
 			special_targetHP: "hp_bar_enemy",
+			special_initiatorHP: "hp_bar_actor",
+			special_initiatorSupportHP: "hp_bar_actor_support",
 			anim_targetEvade: "evade_enemy",
 			special_targetEvade: "enemy_evade",
 			anim_targetDestroy: "destroyed_participant",
@@ -513,6 +530,8 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			anim_targetSupportReturn: "actor_support_defend_return",
 			anim_targetDamage: "actor_damage",
 			special_targetHP: "hp_bar_actor",
+			special_initiatorHP: "hp_bar_enemy",
+			special_initiatorSupportHP: "hp_bar_enemy_support",
 			anim_targetEvade: "evade_actor",
 			special_targetEvade: "actor_evade",
 			anim_targetDestroy:  "destroyed_participant",
@@ -537,10 +556,13 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	};
 	var currentInfo = typeInfo[type];
 	var initiator;
+	var initiatorIsSupport;
 	if(nextAction.type == "support attack"){
 		initiator = currentInfo.support;
+		initiatorIsSupport = true;
 	} else {
 		initiator = currentInfo.main;
+		initiatorIsSupport = false;
 	}
 	var target;
 	if(nextAction.attacked.type == "support defend"){							
@@ -564,7 +586,13 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 		}							
 							
 		var animInfo = _this.getHPAnimInfo(nextAction);
+		var hpRecoveredAnimInfo = _this.getHPRecoveredAnimInfo(nextAction);
+		
 		nextAction.attacked.currentAnimHP = nextAction.attacked.currentAnimHP - nextAction.damageInflicted;
+		if(nextAction.HPRestored){
+			nextAction.currentAnimHP = nextAction.currentAnimHP + nextAction.HPRestored;
+		}
+		
 		if(nextAction.attacked.type == "support defend"){			
 			var damageAnimation;
 			if(nextAction.damageInflicted > 0){
@@ -583,7 +611,16 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			var hpBarAnimation = {target: target, type: "hp_bar"}
 			hpBarAnimation.special =  {};
 			hpBarAnimation.special[currentInfo.special_targetSupportHP] =  {startPercent: animInfo.startPercent, endPercent: animInfo.endPercent};
+			
+			if(hpRecoveredAnimInfo){
+				//var hpBarAnimation = {target:initiator, type: "hp_bar"}
+				//hpBarAnimation.special =  {};
+				hpBarAnimation.special[initiatorIsSupport ? currentInfo.special_initiatorSupportHP : currentInfo.special_initiatorHP] =  {startPercent: hpRecoveredAnimInfo.startPercent, endPercent: hpRecoveredAnimInfo.endPercent};
+				
+				//this._animationQueue.push([hpBarAnimation]);
+			}
 			this._animationQueue.push([hpBarAnimation]);
+			
 			if(nextAction.attacked.currentAnimHP <= 0){
 				var destroyAnimation = {target: target, type: currentInfo.anim_targetDestroy};
 				destroyAnimation.special = {};
@@ -615,7 +652,17 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			var hpBarAnimation = {target: target, type: "hp_bar"}
 			hpBarAnimation.special =  {};
 			hpBarAnimation.special[currentInfo.special_targetHP] =  {startPercent: animInfo.startPercent, endPercent: animInfo.endPercent};
-			this._animationQueue.push([hpBarAnimation]);	
+				
+			
+			if(hpRecoveredAnimInfo){
+				//var hpBarAnimation = {target:initiator, type: "hp_bar"}
+				//hpBarAnimation.special =  {};
+				hpBarAnimation.special[initiatorIsSupport ? currentInfo.special_initiatorSupportHP : currentInfo.special_initiatorHP] =  {startPercent: hpRecoveredAnimInfo.startPercent, endPercent: hpRecoveredAnimInfo.endPercent};
+				
+				//this._animationQueue.push([hpBarAnimation]);
+			}
+			
+			this._animationQueue.push([hpBarAnimation]);
 			
 			if(nextAction.attacked.currentAnimHP <= 0){
 				var destroyAnimation = {target: target, type: currentInfo.anim_targetDestroy};

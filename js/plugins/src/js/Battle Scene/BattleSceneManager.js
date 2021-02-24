@@ -1928,6 +1928,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._UILayerManager.showDamage(target, originalAction.damageInflicted);
 			
 			var HPProvider;
+			
 			if(action.side == "actor"){
 				if(action.type == "support defend"){
 					HPProvider = _this._participantInfo.actor_supporter;
@@ -1948,6 +1949,39 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(action.isHit && action.barrierNames){
 				_this._UILayerManager.setPopupNotification(action.isActor ? "actor" : "enemy", action.barrierNames);
 			}
+			
+			var recoveryTarget;
+			if(originalAction.side == "actor"){
+				if(originalAction.type == "support defend"){
+					recoveryTarget = _this._participantInfo.actor_supporter;
+				} else {
+					recoveryTarget = _this._participantInfo.actor;
+				}				
+			} else {
+				if(originalAction.type == "support defend"){
+					recoveryTarget = _this._participantInfo.enemy_supporter;
+				} else {
+					recoveryTarget = _this._participantInfo.enemy;
+				}
+			}
+			
+			if(originalAction.HPRestored){
+				var stats = $statCalc.getCalculatedMechStats(originalAction.ref);
+				var recovered = originalAction.HPRestored;
+			
+				var startValue = recoveryTarget.animatedHP;
+				var endValue = recoveryTarget.animatedHP + recovered;
+				
+				var startPercent = (startValue / stats.maxHP * 100);
+				var endPercent = (endValue / stats.maxHP * 100);
+				if(endPercent < 0){
+					endPercent = 0;
+				}
+				recoveryTarget.animatedHP = endValue;
+				_this._barDrainInfo[originalAction.side].HP = endPercent;
+				_this._UILayerManager.animateHP(originalAction.side, startPercent, endPercent, params.duration || 500);
+				_this._UILayerManager.setNotification(originalAction.side, "HP DRAIN");
+			}			
 		},
 		drain_hp_bar: function(target, params){			
 			var originalAction = _this._currentAnimatedAction;
@@ -1990,6 +2024,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		drain_en_bar: function(target, params){			
 			var action = _this._currentAnimatedAction;
 			if(action.ENUsed != -1){
+				action.ENDrainShown = true;
 				var target = action.side;
 				var stats = $statCalc.getCalculatedMechStats(action.ref);
 				if(!_this._barDrainInfo[target]) {
@@ -2007,6 +2042,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				}
 				_this._barDrainInfo[target].EN = params.percent;
 				_this._UILayerManager.animateEN(target, startPercent, endPercent, params.duration || 500);
+				
 			}			
 		},
 		play_se: function(target, params){
@@ -2236,7 +2272,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.actor.img = imgPath;
 				_this.updateMainSprite("actor", "ally_main", spriteInfo, _this._defaultPositions.ally_main_idle, imgSize, false, shadowInfo);
 				_this._participantInfo.actor.tempHP = mechStats.currentHP;
-				_this._participantInfo.actor.animatedHP = mechStats.currentHP;
+				_this._participantInfo.actor.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
 				_this._participantInfo.actor_supporter.participating = true;
@@ -2244,7 +2280,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.actor_supporter.img = imgPath;
 				_this.updateMainSprite("actor_supporter", "ally_support", spriteInfo, _this._defaultPositions.ally_support_idle, imgSize, false, shadowInfo);	
 				_this._participantInfo.actor_supporter.tempHP = mechStats.currentHP;
-				_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP;
+				_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 		} else {
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
@@ -2253,7 +2289,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.enemy.img = imgPath;
 				_this.updateMainSprite("enemy", "enemy_main", spriteInfo, _this._defaultPositions.enemy_main_idle, imgSize, true, shadowInfo);	
 				_this._participantInfo.enemy.tempHP = mechStats.currentHP;
-				_this._participantInfo.enemy.animatedHP = mechStats.currentHP;
+				_this._participantInfo.enemy.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
 				_this._participantInfo.enemy_supporter.participating = true;
@@ -2261,7 +2297,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.enemy_supporter.img = imgPath;
 				_this.updateMainSprite("enemy_supporter", "enemy_support", spriteInfo, _this._defaultPositions.enemy_support_idle, imgSize, true, shadowInfo);	
 				_this._participantInfo.enemy_supporter.tempHP = mechStats.currentHP;
-				_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP;
+				_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 		}
 			

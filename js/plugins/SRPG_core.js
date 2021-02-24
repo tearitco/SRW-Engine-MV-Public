@@ -10289,6 +10289,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			var actorIsDestroyed = false;
 			Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 				var battleEffect = $gameTemp.battleEffectCache[cacheRef];
+				
 				if(battleEffect.ref && !battleEffect.ref.isActor()){
 					battleEffect.ref.setSquadMode("normal");
 				}

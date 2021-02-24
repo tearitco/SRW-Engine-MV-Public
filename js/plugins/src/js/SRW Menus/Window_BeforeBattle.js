@@ -450,8 +450,8 @@ Window_BeforeBattle.prototype.createParticipantBlock = function(ref, action, isS
 					}
 				} else {
 					hitRate = $battleCalc.performHitCalculation(
-						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
-						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
+						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction, isInitiator: !$gameTemp.isEnemyAttack},
+						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction, isInitiator: $gameTemp.isEnemyAttack}
 					);
 				}
 				
@@ -466,8 +466,8 @@ Window_BeforeBattle.prototype.createParticipantBlock = function(ref, action, isS
 					}
 				} else {
 					hitRate = $battleCalc.performHitCalculation(				
-						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction},
-						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction}
+						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction, isInitiator: $gameTemp.isEnemyAttack},
+						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction, isInitiator: !$gameTemp.isEnemyAttack}
 					);
 				}
 			}

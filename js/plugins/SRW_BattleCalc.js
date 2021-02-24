@@ -137,7 +137,15 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		var weaponInfo = attackerAction.attack;			
 		var attackerTerrainMod = $statCalc.getTerrainMod(attackerInfo.actor);
 		
-		var baseHit = (attackerPilotStats.hit/2 + accuracy) * attackerTerrainMod + weaponInfo.hitMod;
+		var attackerHit = attackerPilotStats.hit;
+		
+		attackerHit = $statCalc.applyStatModsToValue(attackerInfo.actor, attackerHit, ["stat_hit"]);
+		if(attackerInfo.isInitiator){
+			attackerHit = $statCalc.applyStatModsToValue(attackerInfo.actor, attackerHit, ["stat_hit_init"]);
+		}
+		
+		
+		var baseHit = (attackerHit/2 + accuracy) * attackerTerrainMod + weaponInfo.hitMod;
 		
 		
 		var defenderPilotStats = $statCalc.getCalculatedPilotStats(defenderInfo.actor);
@@ -150,7 +158,15 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		
 		var defenderTerrainMod = $statCalc.getTerrainMod(defenderInfo.actor);
 		
-		var baseEvade = (defenderPilotStats.evade/2 + mobility) * defenderTerrainMod;
+		var defenderEvade = defenderPilotStats.evade;
+		
+		defenderEvade = $statCalc.applyStatModsToValue(defenderInfo.actor, defenderEvade, ["stat_evade"]);
+		if(defenderInfo.isInitiator){
+			defenderEvade = $statCalc.applyStatModsToValue(defenderInfo.actor, defenderEvade, ["stat_evade_init"]);
+		}
+		
+		
+		var baseEvade = (defenderEvade/2 + mobility) * defenderTerrainMod;
 		
 		var terrainEvadeFactor = $statCalc.getCurrentTerrainMods(defenderInfo.actor).evasion || 0;
 		
@@ -266,9 +282,17 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			
 		if(weaponInfo.type == "M"){ //melee
 			attackerPilotOffense = attackerPilotStats.melee;
+			attackerPilotOffense = $statCalc.applyStatModsToValue(attackerInfo.actor, attackerPilotOffense, ["stat_melee"]);
+			if(attackerInfo.isInitiator){
+				attackerPilotOffense = $statCalc.applyStatModsToValue(attackerInfo.actor, attackerPilotOffense, ["stat_melee_init"]);
+			}
 			weaponPower = $statCalc.applyStatModsToValue(attackerInfo.actor, weaponPower, ["weapon_melee"]);
 		} else { //ranged
 			attackerPilotOffense = attackerPilotStats.ranged;
+			attackerPilotOffense = $statCalc.applyStatModsToValue(attackerInfo.actor, attackerPilotOffense, ["stat_ranged"]);
+			if(attackerInfo.isInitiator){
+				attackerPilotOffense = $statCalc.applyStatModsToValue(attackerInfo.actor, attackerPilotOffense, ["stat_ranged_init"]);
+			}
 			weaponPower = $statCalc.applyStatModsToValue(attackerInfo.actor, weaponPower, ["weapon_ranged"]);
 		}
 		if($statCalc.isAttackDown(attackerInfo.actor)){
@@ -283,7 +307,11 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		if($statCalc.isArmorDown(defenderInfo.actor)){
 			armor-=500;
 		}
-		armor = $statCalc.applyStatModsToValue(defenderInfo.actor, armor, ["armor"]);			
+		armor = $statCalc.applyStatModsToValue(defenderInfo.actor, armor, ["armor"]);	
+
+		if($statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["ignore_armor"])){
+			armor = 1;
+		}	
 		
 		var defenderTerrainRating = this._mechTerrainValues[defenderMechStats.terrain[$statCalc.getCurrentTerrain(defenderInfo.actor)]];
 		
@@ -295,7 +323,14 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			sizeFactor = 1;
 		}
 		
-		var initialDefend = armor * defenderTerrainRating * (defenderPilotStats.defense + $statCalc.getCurrentWill(defenderInfo.actor)) / 200 * sizeFactor;
+		var defenderDefense = defenderPilotStats.defense;
+		
+		defenderDefense = $statCalc.applyStatModsToValue(defenderInfo.actor, defenderDefense, ["stat_defense"]);
+		if(defenderInfo.isInitiator){
+			defenderDefense = $statCalc.applyStatModsToValue(defenderInfo.actor, defenderDefense, ["stat_defense_init"]);
+		}
+		
+		var initialDefend = armor * defenderTerrainRating * (defenderDefense + $statCalc.getCurrentWill(defenderInfo.actor)) / 200 * sizeFactor;
 		
 		var finalDamage = (initialAttack - initialDefend) * (1 - terrainDefenseFactor/100);
 		var isCritical = false;
@@ -350,6 +385,12 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			finalDamage*=1.1;
 		}
 		
+		var vengeanceRatio = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["vengeance"]);
+		if(vengeanceRatio){
+			var missingHP = attackerMechStats.maxHP - attackerMechStats.currentHP;		
+			finalDamage+=Math.floor(missingHP * vengeanceRatio);
+		}		
+		
 		if(isSupportDefender){
 			var supportDefendMod = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["support_defend_armor"]) || 0;		
 			finalDamage = finalDamage - (finalDamage / 100 * supportDefendMod);
@@ -380,6 +421,20 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			
 			var percentEffect = $statCalc.getModDefinitions(defenderInfo.actor, ["percent_barrier"]); 
 			
+			var type = weaponInfo.type == "M" ? "melee" : "ranged";	
+			
+			percentEffect.forEach(function(effect){
+				if(effect.subType == type){
+					if(effect.value < percentBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
+						if(!effect.success_rate || Math.random() < effect.success_rate){
+							percentBarrierAmount = effect.value;
+							percentBarrierCost = effect.cost;
+							barrierName = effect.name;
+						}						
+					}
+				}
+			});
+			
 			var type = weaponInfo.particleType;
 			if(!type){
 				type = "typeless";
@@ -388,9 +443,11 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			percentEffect.forEach(function(effect){
 				if(effect.subType == type || effect.subType == "all"){
 					if(effect.value < percentBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
-						percentBarrierAmount = effect.value;
-						percentBarrierCost = effect.cost;
-						barrierName = effect.name;
+						if(!effect.success_rate || Math.random() < effect.success_rate){
+							percentBarrierAmount = effect.value;
+							percentBarrierCost = effect.cost;
+							barrierName = effect.name;
+						}						
 					}
 				}
 			});
@@ -416,9 +473,11 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			reductionEffects.forEach(function(effect){
 				if(effect.statType == type){
 					if(effect.value > reductionBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
-						reductionBarrierAmount = effect.value;
-						reductionBarrierCost = effect.cost || 0;
-						barrierName = effect.name;
+						if(!effect.success_rate || Math.random() < effect.success_rate){
+							reductionBarrierAmount = effect.value;
+							reductionBarrierCost = effect.cost || 0;
+							barrierName = effect.name;
+						}
 					}
 				}
 			});				
@@ -431,9 +490,11 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			reductionEffects.forEach(function(effect){
 				if(effect.subType == type || effect.subType == "all"){
 					if(effect.value > reductionBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
-						reductionBarrierAmount = effect.value;
-						reductionBarrierCost = effect.cost;
-						barrierName = effect.name;
+						if(!effect.success_rate || Math.random() < effect.success_rate){
+							reductionBarrierAmount = effect.value;
+							reductionBarrierCost = effect.cost;
+							barrierName = effect.name;
+						}
 					}
 				}
 			});
@@ -466,9 +527,11 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			tresholdEffects.forEach(function(effect){
 				if(effect.subType == type || effect.subType == "all"){
 					if(effect.value > thresholdBarrierAmount && ((totalBarrierCost + effect.cost) <= $statCalc.getCurrenEN(defenderInfo.actor))){
-						thresholdBarrierAmount = effect.value;
-						thresholdBarrierCost = effect.cost;
-						barrierName = effect.name;
+						if(!effect.success_rate || Math.random() < effect.success_rate){
+							thresholdBarrierAmount = effect.value;
+							thresholdBarrierCost = effect.cost;
+							barrierName = effect.name;
+						}
 					}
 				}
 			});
@@ -579,7 +642,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 	if($gameTemp.isEnemyAttack){
 		attackerSide = "enemy";
 		defenderSide = "actor";
-		attacker = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
+		attacker = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction, isInitiator: true};
 		defender = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
 		if(supportAttacker){			
 			$gameVariables.setValue(_lastEnemySupportAttackId, supportAttacker.action.attack.id);
@@ -588,7 +651,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 	} else {
 		attackerSide = "actor";
 		defenderSide = "enemy";
-		attacker = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction};
+		attacker = {actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction, isInitiator: true};
 		defender = {actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction};
 		if(supportAttacker){
 			$gameVariables.setValue(_lastActorSupportAttackId, supportAttacker.action.attack.id);
@@ -780,6 +843,13 @@ BattleCalc.prototype.generateBattleResult = function(){
 			}
 			
 			aCache.damageInflicted = damageResult.damage;
+			
+			var drainRatio = $statCalc.applyMaxStatModsToValue(this._attacker.actor, 0, ["hp_drain"]);
+			if(drainRatio){
+				aCache.HPRestored = Math.floor(aCache.damageInflicted * drainRatio);
+				$statCalc.recoverHP(this._attacker.actor, aCache.HPRestored);
+			}
+			
 			activeDefenderCache.damageTaken+=damageResult.damage;
 			
 			if(activeDefenderCache.damageTaken >= activeDefender.actor.hp){

@@ -227,10 +227,13 @@ BattleSceneUILayer.prototype.setStat = function(effect, type) {
 	}
 	if(type == "HP"){
 		maxValue = stats.maxHP;
-		value = stats.currentHP;
+	value = stats.currentHP - (effect.HPRestored || 0);
 	} else {
 		maxValue = stats.maxEN;
 		value = stats.currentEN;
+		if(effect.ENDrainShown){
+			value-=effect.ENUsed;
+		}
 	}
 	isHidden = !$statCalc.isRevealed(effect.ref);
 	var elems = _this.getStatElements(target, type);	
