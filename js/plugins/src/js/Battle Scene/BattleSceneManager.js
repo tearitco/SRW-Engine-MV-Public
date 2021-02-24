@@ -1943,7 +1943,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 			HPProvider.animatedHP-=originalAction.damageInflicted;
 			if(originalAction.inflictedCritical){
-				_this._UILayerManager.setNotification(action.isActor ? "enemy" : "actor", "CRITICAL!");
+				_this._UILayerManager.setNotification(action.isActor ? "actor" : "enemy", "CRITICAL!");
 			}
 			if(action.isHit && action.barrierNames){
 				_this._UILayerManager.setPopupNotification(action.isActor ? "actor" : "enemy", action.barrierNames);

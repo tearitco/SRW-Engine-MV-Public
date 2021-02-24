@@ -261,6 +261,8 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		/*if(weaponInfo.particleType == "beam" && $statCalc.getCurrentTerrain(defenderInfo.actor) == "water"){
 			weaponTerrainRating = this._weaponTerrainValues["D"];
 		}*/
+		
+		var activeAttackerSpirits = $statCalc.getActiveSpirits(attackerInfo.actor);
 			
 		if(weaponInfo.type == "M"){ //melee
 			attackerPilotOffense = attackerPilotStats.melee;
@@ -288,7 +290,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		//final damage
 		var terrainDefenseFactor = $statCalc.getCurrentTerrainMods(defenderInfo.actor).defense || 0; 
 		var sizeFactor = 1 + this._mechSizeValues[defenderMechStats.size] - this._mechSizeValues[attackerMechStats.size];
-		var attackerHasIgnoreSize = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["ignore_size"]);
+		var attackerHasIgnoreSize = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["ignore_size"]) || activeAttackerSpirits.fury;
 		if(attackerHasIgnoreSize && sizeFactor > 1){
 			sizeFactor = 1;
 		}
@@ -317,7 +319,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			finalDamage*=0.7;
 		}
 		
-		var activeAttackerSpirits = $statCalc.getActiveSpirits(attackerInfo.actor);
+		
 		if(activeAttackerSpirits.soul){				
 			finalDamage*=2.2;
 			noCrit = true;
@@ -368,7 +370,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		}
 		
 		result.barrierNames = [];
-		if(!noBarrier && !$statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["pierce_barrier"])){			
+		if(!noBarrier && !$statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["pierce_barrier"]) && !activeAttackerSpirits.fury){			
 			var totalBarrierCost = 0;
 			
 			
@@ -671,7 +673,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 				
 				var ctr = 0;
 				
-				if(!$statCalc.getActiveSpirits(this._attacker.actor).strike){
+				if(!$statCalc.getActiveSpirits(this._attacker.actor).strike && !$statCalc.getActiveSpirits(this._attacker.actor).fury){
 					while(isHit && ctr < specialEvadeInfo.length){
 						var evasionType = specialEvadeInfo[ctr].subType;
 						if(evasionType == weaponType || evasionType == "all"){
@@ -810,6 +812,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			} else {
 				$statCalc.clearSpirit(this._attacker.actor, "valor");
 			}			
+			$statCalc.clearSpirit(this._attacker.actor, "fury");
 			$statCalc.clearSpirit(this._attacker.actor, "mercy");
 			$statCalc.clearSpirit(this._attacker.actor, "snipe");				
 		}	

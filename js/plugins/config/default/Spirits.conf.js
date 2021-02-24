@@ -781,4 +781,21 @@ $SRWConfig.spirits = function(){
 			duration: 800
 		}
 	);	
+	this.addDefinition(
+		36, 
+		"Fury", 
+		"Ignores the target's barrier, defensive abilites and size advantage for one attack.", 
+		function(target){
+			$statCalc.setSpirit(target, "fury");
+		},
+		"self",
+		function(actor){
+			return !$statCalc.getActiveSpirits(actor).fury;
+		}, 
+		null,
+		{
+			src: "Focus",
+			duration: 800
+		}
+	);	
 }

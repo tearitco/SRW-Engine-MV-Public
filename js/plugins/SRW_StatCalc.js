@@ -669,6 +669,7 @@ StatCalc.prototype.getAvailableSpiritStates = function(type){
 		"disrupt",
 		"focus",
 		"fortune",
+		"fury",
 		"gain",
 		"mercy",
 		"persist",
