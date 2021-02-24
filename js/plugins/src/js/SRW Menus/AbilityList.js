@@ -8,41 +8,7 @@ export default function AbilityList(container, selectionProvider, excludeUnique)
 	this._maxPageSize = 8;
 	this._selectionProvider = selectionProvider;
 	this._excludeUnique = excludeUnique;
-	this._orderedAbilityIdxs = [
-		11, //support attack
-		12, //support defend
-		4, //prevail	
-		24, //ignore size
-		21, //revenge
-		13, //meditate
-		14, //SP UP
-		28, //resolve
-		29, //morale
-		30, //will+ evade
-		31, //will+ damage
-		32, //will+ hit
-		33, //will+ destroy
-		15, //will limit break
-		17, //counter
-		18, //E save
-		19, //B save 
-		20, //EXP UP
-		25, //hit and away
-		22, //instinct
-		1, //guard
-		23, //dash
-		16, //continuous action
-		//unique abilities: 
-		0, //attacker
-		2, //in-fight 
-		3, //gun-fight
-		5, //attuned
-		6, //SP Regen
-		7, //genius
-		8, //supreme
-		9, //magician
-		10, //fortune
-	];
+	this._orderedAbilityIdxs = ENGINE_SETTINGS.PURCHASABLE_ABILITIES;
 	this._abilityDisplayInfo = [];
 	this.initDisplayInfo();
 }

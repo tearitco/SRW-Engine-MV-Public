@@ -922,25 +922,7 @@ $SRWConfig.pilotAbilties = function(){
 			return $statCalc.getCurrentWill(actor) >= 120 ? "on" : "off";
 		}
 	);
-	
-	this.addDefinition(
-		50, 
-		"Death blow", 
-		"+15 to pilot's Melee/Ranged stat when attacking.", 
-		false,
-		false,
-		function(actor, level){
-			return [
-				{type: "stat_ranged_init", modType: "addFlat", value: 15},{type: "stat_melee_init", modType: "addFlat", value: 15}
-			];
-		},
-		function(actor, level){
-			return true;
-		},
-		[0],
-		4
-	);
-	
+		
 	this.addDefinition(
 		50, 
 		"Death blow", 
@@ -1071,5 +1053,23 @@ $SRWConfig.pilotAbilties = function(){
 		function(actor, level){
 			return $statCalc.getCurrentWill(actor) >= 130 ? "on" : "off";
 		}
+	);
+	
+	this.addDefinition(
+		57, 
+		"Wary Fighter", 
+		"Unit and target cannot receive offensive/defensive support.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "disable_support", modType: "addFlat", value: 1}, {type: "disable_target_support", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
 	);
 }

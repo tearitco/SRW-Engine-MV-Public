@@ -41,5 +41,30 @@ var ENGINE_SETTINGS_DEFAULT = {
 		2: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWParry"},
 		3: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWJamming"},
 		4: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWShootDown"},		
-	}
+	},
+	PURCHASABLE_ABILITIES: [
+		11, //support attack
+		12, //support defend
+		4, //prevail	
+		24, //ignore size
+		21, //revenge
+		13, //meditate
+		14, //SP UP
+		28, //resolve
+		29, //morale
+		30, //will+ evade
+		31, //will+ damage
+		32, //will+ hit
+		33, //will+ destroy
+		15, //will limit break
+		17, //counter
+		18, //E save
+		19, //B save 
+		20, //EXP UP
+		25, //hit and away
+		22, //instinct
+		1, //guard
+		23, //dash
+		16, //continuous action		
+	]
 }

@@ -4102,6 +4102,12 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										if((aSkill - dSkill >= 20) && $statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["attack_again"])){
 											supporters.push({actor: $gameTemp.currentBattleActor, pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}});
 										}
+										
+										if($statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_support"]) || 
+											$statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_target_support"])){
+											supporters = [];
+										}
+										
 										var supporterInfo = [];
 										var supporterSelected = -1;
 										var bestDamage = 0;
@@ -4124,6 +4130,12 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 											{x: event.posX(), y: event.posY()},
 											$statCalc.getCurrentTerrain($gameTemp.currentBattleEnemy)
 										);
+										
+										if($statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_support"]) || 
+											$statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_target_support"])){
+											supporters = [];
+										}
+										
 										var supporterSelected = -1;
 										var minDamage = -1;
 										for(var i = 0; i < supporters.length; i++){
@@ -11965,6 +11977,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			$statCalc.getCurrentTerrain(actorInfo.actor)
 		);
 		
+		if($statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_support"]) || 
+			$statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_target_support"])){
+			supporters = [];
+		}
+		
 		var supporterSelected = -1;
 		var minDamage = -1;
 		for(var i = 0; i < supporters.length; i++){
@@ -11997,6 +12014,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		
 		if((aSkill - dSkill >= 20) && $statCalc.applyStatModsToValue(enemyInfo.actor, 0, ["attack_again"])){
 			supporters.push({actor:enemyInfo.actor, pos: {x: enemyInfo.actor.event.posX(), y: enemyInfo.actor.event.posY()}});
+		}
+		
+		if($statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_support"]) || 
+			$statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_target_support"])){
+			supporters = [];
 		}
 		
 		var supporterInfo = [];
