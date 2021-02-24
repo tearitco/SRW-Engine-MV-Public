@@ -1246,14 +1246,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction.attacked;
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
-			var tempData;
-			if(entityType == "actor"){
-				tempData = _this._participantInfo.actor;
-			} else {
-				tempData = _this._participantInfo.enemy;
-			}	
+			
 			var type;
-			if(tempData.animatedHP / $statCalc.getCalculatedMechStats(action.ref).maxHP < 0.25){
+			if(action.currentAnimHP / $statCalc.getCalculatedMechStats(action.ref).maxHP < 0.25){
 				type = "damage_critical";
 			} else {
 				type = "damage";
@@ -1927,57 +1922,28 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var target = action.side;			
 			_this._UILayerManager.showDamage(target, originalAction.damageInflicted);
 			
-			var HPProvider;
 			
-			if(action.side == "actor"){
-				if(action.type == "support defend"){
-					HPProvider = _this._participantInfo.actor_supporter;
-				} else {
-					HPProvider = _this._participantInfo.actor;
-				}				
-			} else {
-				if(action.type == "support defend"){
-					HPProvider = _this._participantInfo.enemy_supporter;
-				} else {
-					HPProvider = _this._participantInfo.enemy;
-				}
-			}
-			HPProvider.animatedHP-=originalAction.damageInflicted;
+			action.currentAnimHP-=originalAction.damageInflicted;
 			if(originalAction.inflictedCritical){
 				_this._UILayerManager.setNotification(action.isActor ? "actor" : "enemy", "CRITICAL!");
 			}
 			if(action.isHit && action.barrierNames){
 				_this._UILayerManager.setPopupNotification(action.isActor ? "actor" : "enemy", action.barrierNames);
 			}
-			
-			var recoveryTarget;
-			if(originalAction.side == "actor"){
-				if(originalAction.type == "support defend"){
-					recoveryTarget = _this._participantInfo.actor_supporter;
-				} else {
-					recoveryTarget = _this._participantInfo.actor;
-				}				
-			} else {
-				if(originalAction.type == "support defend"){
-					recoveryTarget = _this._participantInfo.enemy_supporter;
-				} else {
-					recoveryTarget = _this._participantInfo.enemy;
-				}
-			}
-			
+						
 			if(originalAction.HPRestored){
 				var stats = $statCalc.getCalculatedMechStats(originalAction.ref);
 				var recovered = originalAction.HPRestored;
 			
-				var startValue = recoveryTarget.animatedHP;
-				var endValue = recoveryTarget.animatedHP + recovered;
+				var startValue = originalAction.currentAnimHP;
+				var endValue = originalAction.currentAnimHP + recovered;
 				
 				var startPercent = (startValue / stats.maxHP * 100);
 				var endPercent = (endValue / stats.maxHP * 100);
 				if(endPercent < 0){
 					endPercent = 0;
 				}
-				recoveryTarget.animatedHP = endValue;
+				originalAction.currentAnimHP = endValue;
 				_this._barDrainInfo[originalAction.side].HP = endPercent;
 				_this._UILayerManager.animateHP(originalAction.side, startPercent, endPercent, params.duration || 500);
 				_this._UILayerManager.setNotification(originalAction.side, "HP DRAIN");
@@ -1994,24 +1960,11 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(typeof _this._barDrainInfo[target].HP == "undefined"){
 				_this._barDrainInfo[target].HP = 0;
 			}
-			var HPProvider;
-			if(action.side == "actor"){
-				if(action.type == "support defend"){
-					HPProvider = _this._participantInfo.actor_supporter;
-				} else {
-					HPProvider = _this._participantInfo.actor;
-				}				
-			} else {
-				if(action.type == "support defend"){
-					HPProvider = _this._participantInfo.enemy_supporter;
-				} else {
-					HPProvider = _this._participantInfo.enemy;
-				}
-			}
-			var totalDamage = Math.min(originalAction.damageInflicted, HPProvider.animatedHP);
 			
-			var startValue = HPProvider.animatedHP - (_this._barDrainInfo[target].HP /100 * totalDamage);
-			var endValue = HPProvider.animatedHP - (params.percent /100 * totalDamage);
+			var totalDamage = Math.min(originalAction.damageInflicted, action.currentAnimHP);
+			
+			var startValue = action.currentAnimHP - (_this._barDrainInfo[target].HP /100 * totalDamage);
+			var endValue = action.currentAnimHP - (params.percent /100 * totalDamage);
 			
 			var startPercent = (startValue / stats.maxHP * 100);
 			var endPercent = (endValue / stats.maxHP * 100);
@@ -2033,8 +1986,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(typeof _this._barDrainInfo[target].EN == "undefined"){
 					_this._barDrainInfo[target].EN = 0;
 				}
-				var startValue = stats.currentEN;
-				var endValue = stats.currentEN - action.ENUsed;
+				var startValue = action.currentAnimEN;
+				var endValue = action.currentAnimEN - action.ENUsed;
+				action.currentAnimEN = endValue;
 				var startPercent = (startValue / stats.maxEN * 100);
 				var endPercent = (endValue / stats.maxEN * 100);
 				if(endPercent < 0){
@@ -2249,7 +2203,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 		}
 		
 		_this._actionQueue[battleEffect.actionOrder] = battleEffect;
-		battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP;
+		//battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP;
 		var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
 		var imgSize = $statCalc.getBattleSceneImageSize(battleEffect.ref) || _this._defaultSpriteSize;
 		var shadowInfo = $statCalc.getBattleSceneShadowInfo(battleEffect.ref);
@@ -2272,7 +2226,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.actor.img = imgPath;
 				_this.updateMainSprite("actor", "ally_main", spriteInfo, _this._defaultPositions.ally_main_idle, imgSize, false, shadowInfo);
 				_this._participantInfo.actor.tempHP = mechStats.currentHP;
-				_this._participantInfo.actor.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+				//_this._participantInfo.actor.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
 				_this._participantInfo.actor_supporter.participating = true;
@@ -2280,7 +2234,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.actor_supporter.img = imgPath;
 				_this.updateMainSprite("actor_supporter", "ally_support", spriteInfo, _this._defaultPositions.ally_support_idle, imgSize, false, shadowInfo);	
 				_this._participantInfo.actor_supporter.tempHP = mechStats.currentHP;
-				_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+				//_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 		} else {
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
@@ -2289,7 +2243,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.enemy.img = imgPath;
 				_this.updateMainSprite("enemy", "enemy_main", spriteInfo, _this._defaultPositions.enemy_main_idle, imgSize, true, shadowInfo);	
 				_this._participantInfo.enemy.tempHP = mechStats.currentHP;
-				_this._participantInfo.enemy.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+				//_this._participantInfo.enemy.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
 				_this._participantInfo.enemy_supporter.participating = true;
@@ -2297,7 +2251,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 				_this._participantInfo.enemy_supporter.img = imgPath;
 				_this.updateMainSprite("enemy_supporter", "enemy_support", spriteInfo, _this._defaultPositions.enemy_support_idle, imgSize, true, shadowInfo);	
 				_this._participantInfo.enemy_supporter.tempHP = mechStats.currentHP;
-				_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+				//_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 		}
 			

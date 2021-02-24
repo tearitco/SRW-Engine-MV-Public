@@ -333,7 +333,7 @@ Window_BattleBasic.prototype.readBattleCache = function() {
 	Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 		var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 		_this._actionQueue[battleEffect.actionOrder] = battleEffect;
-		battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP - (battleEffect.HPRestored || 0);
+		//battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP - (battleEffect.HPRestored || 0);
 		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.actor.participating = true;

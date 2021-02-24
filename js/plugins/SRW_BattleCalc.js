@@ -592,6 +592,8 @@ BattleCalc.prototype.getSupportDamageTaken = function(){
 
 BattleCalc.prototype.prepareBattleCache = function(actionObject, type){
 	var actor = actionObject.actor;
+	
+
 	/*if(actor.isActor()){
 		actor._cacheReference = "a_"+actor.actorId();
 	} else {
@@ -615,7 +617,9 @@ BattleCalc.prototype.prepareBattleCache = function(actionObject, type){
 		ownRef: actor._cacheReference,
 		ENUsed: 0,
 		ammoUsed: 0,
-		hasActed: false
+		hasActed: false,
+		currentAnimHP: $statCalc.getCalculatedMechStats(actor).currentHP,
+		currentAnimEN: $statCalc.getCalculatedMechStats(actor).currentEN,
 	};
 }
 
@@ -846,8 +850,13 @@ BattleCalc.prototype.generateBattleResult = function(){
 			
 			var drainRatio = $statCalc.applyMaxStatModsToValue(this._attacker.actor, 0, ["hp_drain"]);
 			if(drainRatio){
-				aCache.HPRestored = Math.floor(aCache.damageInflicted * drainRatio);
-				$statCalc.recoverHP(this._attacker.actor, aCache.HPRestored);
+				if(!aCache.HPRestored){
+					aCache.HPRestored = 0;
+				}
+				var amount = Math.floor(aCache.damageInflicted * drainRatio);
+				aCache.HPRestored+=amount;
+				$statCalc.recoverHP(this._attacker.actor, amount);
+				//aCache.currentAnimHP+=amount;
 			}
 			
 			activeDefenderCache.damageTaken+=damageResult.damage;
@@ -1062,7 +1071,7 @@ BattleCalc.prototype.generateMapBattleResult = function(){
 		
 		dCache.damageTaken+=damageResult.damage;
 		
-		if(dCache.damageTaken >= dCache.ref.hp){
+		if(dCache.damageTaken >= dCache.currentAnimHP){
 			dCache.isDestroyed = true;
 		}	
 		gainRecipient = attacker.actor;
