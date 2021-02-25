@@ -2796,10 +2796,14 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 				_this._actorSprite.sprite.setEnabled(false);
 				_this._actorSupporterSprite.sprite.setEnabled(true);
 				_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_main_idle;
+				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
+				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
 			} else {		
 				_this._lastActionWasSupportAttack = false;
 				_this._actorSprite.sprite.setEnabled(true);		
 				_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_support_idle;
+				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
 			}			
 		} else {
 			_this._animationDirection = -1;
@@ -2813,10 +2817,14 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 				_this._enemySprite.sprite.setEnabled(false);
 				_this._enemySupporterSprite.sprite.setEnabled(true);
 				_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_main_idle;
+				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
+				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
 			} else {			
 				_this._lastActionWasSupportAttack = false;
 				_this._enemySprite.sprite.setEnabled(true);	
 				_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_support_idle;
+				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
 			}
 		}
 		if(action.attacked){

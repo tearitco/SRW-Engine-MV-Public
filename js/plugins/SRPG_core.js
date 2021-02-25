@@ -10302,6 +10302,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 				var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 				
+				if(battleEffect.ref){
+					if(battleEffect.HPRestored){
+						$statCalc.recoverHP(battleEffect.ref, battleEffect.HPRestored);
+					}					
+				}
+				
 				if(battleEffect.ref && !battleEffect.ref.isActor()){
 					battleEffect.ref.setSquadMode("normal");
 				}

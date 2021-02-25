@@ -855,13 +855,13 @@ BattleCalc.prototype.generateBattleResult = function(){
 				}
 				var amount = Math.floor(aCache.damageInflicted * drainRatio);
 				aCache.HPRestored+=amount;
-				$statCalc.recoverHP(this._attacker.actor, amount);
+				//$statCalc.recoverHP(this._attacker.actor, amount);
 				//aCache.currentAnimHP+=amount;
 			}
 			
 			activeDefenderCache.damageTaken+=damageResult.damage;
 			
-			if(activeDefenderCache.damageTaken >= activeDefender.actor.hp){
+			if(activeDefenderCache.damageTaken >= aCache.currentAnimHP + (aCache.HPRestored || 0)){
 				activeDefenderCache.isDestroyed = true;
 			}				
 			
