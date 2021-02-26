@@ -66,5 +66,6 @@ var ENGINE_SETTINGS_DEFAULT = {
 		1, //guard
 		23, //dash
 		16, //continuous action		
-	]
+	],
+	STAT_GROWTH_FORMULA: "min + Math.floor((1 - rate) * Math.ceil((max-min) * (level-1)/98.0) + rate * Math.ceil((max-min) * ((level-1)/98.0)^2))"
 }

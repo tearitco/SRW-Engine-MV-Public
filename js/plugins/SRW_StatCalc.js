@@ -188,6 +188,44 @@ StatCalc.prototype.parseTerrainString = function(terrainString){
 	}
 }
 
+StatCalc.prototype.getPilotStatInfo = function(actorProperties){
+	function parseGrowthRate(raw){
+		var result = {};
+		var parts = raw.split(",");
+		if(parts.length == 1){
+			result.type = "flat";
+			result.rate = parseFloat(parts[0]);
+		} else {
+			result.type = "curve";
+			result.target = parseInt(parts[0]);
+			result.rate = parseFloat(parts[1]);
+		}
+		return result;
+	}
+	
+	return {
+		base: {
+			SP: parseInt(actorProperties.pilotBaseSP),
+			melee: parseInt(actorProperties.pilotBaseMelee),
+			ranged: parseInt(actorProperties.pilotBaseRanged),
+			skill: parseInt(actorProperties.pilotBaseSkill),
+			defense: parseInt(actorProperties.pilotBaseDefense),
+			evade: parseInt(actorProperties.pilotBaseEvade),
+			hit: parseInt(actorProperties.pilotBaseHit),
+			terrain: this.parseTerrainString(actorProperties.pilotTerrain)
+		},
+		growthRates: {
+			SP: parseGrowthRate(actorProperties.pilotSPGrowth),
+			melee: parseGrowthRate(actorProperties.pilotMeleeGrowth),
+			ranged: parseGrowthRate(actorProperties.pilotRangedGrowth),
+			skill: parseGrowthRate(actorProperties.pilotSkillGrowth),
+			defense: parseGrowthRate(actorProperties.pilotDefenseGrowth),
+			evade: parseGrowthRate(actorProperties.pilotEvadeGrowth),
+			hit: parseGrowthRate(actorProperties.pilotHitGrowth)
+		}
+	}
+}
+
 StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeapons){
 	var result = [];
 	var currentWeaponsLookup = {};
@@ -809,22 +847,12 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		actor.SRWStats.pilot.activeEffects = {};
 	}
 	
-	actor.SRWStats.pilot.stats.base.SP = parseInt(actorProperties.pilotBaseSP);
-	actor.SRWStats.pilot.stats.base.melee = parseInt(actorProperties.pilotBaseMelee);
-	actor.SRWStats.pilot.stats.base.ranged = parseInt(actorProperties.pilotBaseRanged);
-	actor.SRWStats.pilot.stats.base.skill = parseInt(actorProperties.pilotBaseSkill);
-	actor.SRWStats.pilot.stats.base.defense = parseInt(actorProperties.pilotBaseDefense);
-	actor.SRWStats.pilot.stats.base.evade = parseInt(actorProperties.pilotBaseEvade);
-	actor.SRWStats.pilot.stats.base.hit = parseInt(actorProperties.pilotBaseHit);
-	actor.SRWStats.pilot.stats.base.terrain = this.parseTerrainString(actorProperties.pilotTerrain);
+	var statInfo = _this.getPilotStatInfo(actorProperties);
 	
-	actor.SRWStats.pilot.stats.growthRates.SP = parseFloat(actorProperties.pilotSPGrowth);
-	actor.SRWStats.pilot.stats.growthRates.melee = parseFloat(actorProperties.pilotMeleeGrowth);
-	actor.SRWStats.pilot.stats.growthRates.ranged = parseFloat(actorProperties.pilotRangedGrowth);
-	actor.SRWStats.pilot.stats.growthRates.skill = parseFloat(actorProperties.pilotSkillGrowth);
-	actor.SRWStats.pilot.stats.growthRates.defense = parseFloat(actorProperties.pilotDefenseGrowth);
-	actor.SRWStats.pilot.stats.growthRates.evade = parseFloat(actorProperties.pilotEvadeGrowth);
-	actor.SRWStats.pilot.stats.growthRates.hit = parseFloat(actorProperties.pilotHitGrowth);
+	actor.SRWStats.pilot.stats.base = statInfo.base;	
+	actor.SRWStats.pilot.stats.growthRates = statInfo.growthRates;
+	
+	
 
 	this.calculateSRWActorStats(actor, preserveVolatile);// calculate stats to ensure level is set before fetching abilities
 	
@@ -1437,7 +1465,15 @@ StatCalc.prototype.calculateSRWActorStats = function(actor, preserveVolatile){
 		var growthRates = actor.SRWStats.pilot.stats.growthRates;
 		var calculatedStats = actor.SRWStats.pilot.stats.calculated;
 		Object.keys(growthRates).forEach(function(baseStateName){
-			calculatedStats[baseStateName] = baseStats[baseStateName] + Math.floor(level * growthRates[baseStateName]);				
+			var growthInfo = growthRates[baseStateName];
+			if(growthInfo.type == "flat"){
+				calculatedStats[baseStateName] = baseStats[baseStateName] + Math.floor(level * growthInfo.rate);	
+			} else {				
+				var min = baseStats[baseStateName];
+				var max = growthInfo.target;
+				var rate = growthInfo.rate;				
+				calculatedStats[baseStateName] = eval(ENGINE_SETTINGS.STAT_GROWTH_FORMULA);
+			}						
 		});
 		var upgrades = actor.SRWStats.pilot.stats.upgrades;
 		Object.keys(upgrades).forEach(function(baseStateName){

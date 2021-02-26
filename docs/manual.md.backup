@@ -155,10 +155,11 @@ The rest of the pilot properties are set using metadata tags in the note field. 
 
 #### Stat growth rates
 
-The stats for a pilot at any given level is calculated as: base\_stat + floor(level * growth\_rate)
 
-\<pilotSPGrowth:2\><br>
-\<pilotMeleeGrowth:0.8\><br>
+
+\<pilotSPGrowth:2\> A flat rate stat growth, at any given level the stat is calculated as: base\_stat + floor(level * growth\_rate) <br>
+\<pilotMeleeGrowth:300,0.8\> A curve stat growth. The first parameter defines the stat's value at level 99 and the second parameter defines the growth rate. Growth rate is a value between -1 and 1, where -1 is fast growth and 
+1 slow growth. <br>
 \<pilotRangedGrowth:1.2\><br>
 \<pilotSkillGrowth:0.9\><br>
 \<pilotDefenseGrowth:1.4\><br>
