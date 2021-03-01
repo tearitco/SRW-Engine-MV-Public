@@ -6,7 +6,7 @@ $SRWConfig.mechAbilties = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "special_evade", subType: "all", activation: "random", name: "DOUBLE IMAGE", value: 1, dodgePattern: 1}];
+			return [{type: "special_evade", subType: "all", activation: "random", name: "DOUBLE IMAGE", value: 0.3, dodgePattern: 1}];
 		},
 		function(actor, level){
 			return $statCalc.getCurrentWill(actor) >= 130;
