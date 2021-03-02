@@ -1921,9 +1921,11 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 					$statCalc.recoverSP(battlerArray[1], SPRegen);
 				}
 				
-				if($statCalc.applyStatModsToValue(battlerArray[1], 0, ["auto_wall"])){
-					spiritActivations.push({actor: battlerArray[1], spirit: 22});
-				}
+				var autoSpirits = $statCalc.getModDefinitions(battlerArray[1], ["auto_spirit"]);
+				
+				autoSpirits.forEach(function(autoSpirit){					
+					spiritActivations.push({actor: battlerArray[1], spirit: autoSpirit.value});				
+				});				
 				
 				if($statCalc.isAI(battlerArray[1])){
 					AIActors.push(event);
@@ -1979,6 +1981,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 
     //エネミーターンの開始
     Game_System.prototype.srpgStartEnemyTurn = function(factionId) {
+		var _this = this;
 		$gameTemp.currentFaction = factionId;
 		if(factionId > 2){
 			$gameSystem.srpgTurnEnd();
@@ -1991,7 +1994,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			return;
 		}		
 		$songManager.playStageSong();
-		
+		var spiritActivations = [];
+		$gameTemp.AIActors = [];
         $gameMap.events().forEach(function(event) {
             if (event.isType() === 'enemyTurn') {
                 if (event.pageIndex() >= 0) event.start();
@@ -2003,6 +2007,14 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				var SPRegen = 0;
 				SPRegen = $statCalc.applyStatModsToValue(battlerArray[1], SPRegen, ["SP_regen"]);
 				$statCalc.recoverSP(battlerArray[1], SPRegen);
+				
+				$gameTemp.AIActors.push(event);
+				
+				var autoSpirits = $statCalc.getModDefinitions(battlerArray[1], ["auto_spirit"]);
+				
+				autoSpirits.forEach(function(autoSpirit){					
+					spiritActivations.push({actor: battlerArray[1], spirit: autoSpirit.value});				
+				});	
             }
         });
 		
@@ -2018,8 +2030,18 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		$statCalc.resetAllBattleTemp(null, factionId);
 		$statCalc.resetAllStatus("actor");
 		$gameTemp.AIWaitTimer = 0;
-        this.setBattlePhase('AI_phase');
-        this.setSubBattlePhase('enemy_command');
+		
+		$gameTemp.autoSpirits = spiritActivations;
+		$gameTemp.autoSpiritsDelay = 150;
+		
+		if(spiritActivations.length){					
+			_this.setSubBattlePhase('auto_spirits');
+		} else if($gameTemp.AIActors.length){
+			_this.setBattlePhase('AI_phase');
+			_this.setSubBattlePhase('enemy_command');
+		}
+		
+        //this.setSubBattlePhase('enemy_command');
     };
 
     //ターン終了
@@ -9549,11 +9571,23 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				function handleAutoSpirits(){
 					$gameTemp.popMenu = true;
 					if($gameTemp.autoSpirits.length){
-						var activation = $gameTemp.autoSpirits.shift();				
+						/*var activation = $gameTemp.autoSpirits.shift();				
 						$gameTemp.spiritTargetActor = activation.actor;
 						$spiritManager.applyEffect(activation.spirit, activation.actor, [activation.actor], 0);
 						$gamePlayer.locate(activation.actor.event.posX(), activation.actor.event.posY());
-						$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {idx: activation.spirit}}];					
+						$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {idx: activation.spirit}}];	*/
+
+						$gameTemp.queuedActorEffects = [];
+						$gameTemp.autoSpirits.forEach(function(autoSpirit){
+							$gameTemp.spiritTargetActor = autoSpirit.actor;
+							$gamePlayer.locate(autoSpirit.actor.event.posX(), autoSpirit.actor.event.posY());
+							$spiritManager.applyEffect(autoSpirit.spirit, autoSpirit.actor, [autoSpirit.actor], 0);
+							$gameTemp.queuedActorEffects.push({type: "spirit", parameters: {idx: autoSpirit.spirit}})
+						});
+						
+						$gameTemp.autoSpirits = [];
+						
+						
 						$gameSystem.setSubBattlePhase('spirit_activation');				
 						$gameTemp.pushMenu = "spirit_activation";		
 					} else {

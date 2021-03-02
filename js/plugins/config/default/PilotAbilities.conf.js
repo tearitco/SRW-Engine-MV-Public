@@ -656,7 +656,7 @@ $SRWConfig.pilotAbilties = function(){
 		true,
 		function(actor, level){
 			return [
-				{type: "auto_wall", modType: "addFlat", value: 1}
+				{type: "auto_spirit", modType: "addFlat", value: 22}
 			];
 		},
 		function(actor, level){
@@ -1064,6 +1064,26 @@ $SRWConfig.pilotAbilties = function(){
 		function(actor, level){
 			return [
 				{type: "disable_support", modType: "addFlat", value: 1}, {type: "disable_target_support", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		58, 
+		"Auto Spirit Sample", 
+		"An example ability for auto spirits.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "auto_spirit", modType: "addFlat", value: 22}, //wall
+				{type: "auto_spirit", modType: "addFlat", value: 36}, //fury
+				{type: "auto_spirit", modType: "addFlat", value: 34}, //enable
 			];
 		},
 		function(actor, level){

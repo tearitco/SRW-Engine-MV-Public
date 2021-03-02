@@ -861,7 +861,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			
 			activeDefenderCache.damageTaken+=damageResult.damage;
 			
-			if(activeDefenderCache.damageTaken >= aCache.currentAnimHP + (aCache.HPRestored || 0)){
+			if(activeDefenderCache.damageTaken >= activeDefenderCache.currentAnimHP + (activeDefenderCache.HPRestored || 0)){
 				activeDefenderCache.isDestroyed = true;
 			}				
 			
