@@ -250,12 +250,40 @@ Window_BeforeBattle.prototype.update = function() {
 			
 		}
 		
+		function quickUpdateActorAction(){
+			if(_this._currentActionSelection == 0){
+				$gameTemp.actorAction.type = "attack";				
+			}
+			if(_this._currentActionSelection == 1){
+				$gameTemp.actorAction.type = "defend";					
+			}
+			if(_this._currentActionSelection == 2){
+				$gameTemp.actorAction.type = "evade";
+			}
+		}		
+		
 		if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
 			this.requestRedraw();
-			
+			if(this._currentUIState == "main_selection"){
+				if($gameTemp.currentBattleActor.isActor() && $gameTemp.isEnemyAttack){
+					_this._currentActionSelection--;
+					if(_this._currentActionSelection < 0){
+						_this._currentActionSelection = 2;
+					}
+					quickUpdateActorAction();
+				}
+			}
 		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
 			this.requestRedraw();
-			
+			if(this._currentUIState == "main_selection"){
+				if($gameTemp.currentBattleActor.isActor() && $gameTemp.isEnemyAttack){
+					_this._currentActionSelection++;
+					if(_this._currentActionSelection > 2){
+						_this._currentActionSelection = 0;
+					}
+					quickUpdateActorAction();
+				}
+			}			
 		}
 		
 		if(Input.isTriggered('L3')){
