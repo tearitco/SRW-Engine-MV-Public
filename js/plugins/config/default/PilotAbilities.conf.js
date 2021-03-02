@@ -1084,6 +1084,7 @@ $SRWConfig.pilotAbilties = function(){
 				{type: "auto_spirit", modType: "addFlat", value: 22}, //wall
 				{type: "auto_spirit", modType: "addFlat", value: 36}, //fury
 				{type: "auto_spirit", modType: "addFlat", value: 34}, //enable
+				{type: "auto_spirit", modType: "addFlat", value: 15}, //trust
 			];
 		},
 		function(actor, level){

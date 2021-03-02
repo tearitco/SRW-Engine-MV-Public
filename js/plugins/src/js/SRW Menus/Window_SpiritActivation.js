@@ -258,9 +258,8 @@ Window_SpiritActivation.prototype.update = function() {
 							_this._processingAnimation = false;
 						}, spiritAnimInfo.duration * this.getAnimTimeRatio());							
 						
-						var se = spiritAnimInfo.se || "SRWPowerUp";
 						var se = {};
-						se.name = 'SRWPowerUp';
+						se.name = spiritAnimInfo.se || "SRWPowerUp";
 						se.pan = 0;
 						se.pitch = 100;
 						se.volume = 90;

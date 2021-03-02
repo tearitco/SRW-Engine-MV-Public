@@ -9582,7 +9582,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 							$gameTemp.spiritTargetActor = autoSpirit.actor;
 							$gamePlayer.locate(autoSpirit.actor.event.posX(), autoSpirit.actor.event.posY());
 							$spiritManager.applyEffect(autoSpirit.spirit, autoSpirit.actor, [autoSpirit.actor], 0);
-							$gameTemp.queuedActorEffects.push({type: "spirit", parameters: {idx: autoSpirit.spirit}})
+							$gameTemp.queuedActorEffects.push({type: "spirit", parameters: {idx: autoSpirit.spirit, target: autoSpirit.actor}})
 						});
 						
 						$gameTemp.autoSpirits = [];
