@@ -67,5 +67,10 @@ var ENGINE_SETTINGS_DEFAULT = {
 		23, //dash
 		16, //continuous action		
 	],
-	STAT_GROWTH_FORMULA: "min + Math.floor((1 - rate) * Math.ceil((max-min) * (level-1)/98.0) + rate * Math.ceil((max-min) * ((level-1)/98.0)^2))"
+	STAT_GROWTH_FORMULA: "min + Math.floor((1 - rate) * Math.ceil((max-min) * (level-1)/98.0) + rate * Math.ceil((max-min) * ((level-1)/98.0)^2))",
+	EXP_YIELD: {
+		MIN: 10,
+		MAX: 50000, //500 EXP per level, this is 100 levels so basically unlimited,
+		LEVEL_SCALING_FORMULA: "defenderTotalYield * ((defenderLevel-attackerLevel) < 0 ? Math.pow((1/10), (Math.log10(attackerLevel-defenderLevel + 1))) : Math.log10(0.09*(defenderLevel-attackerLevel) + 1) * 20 + 1)"		
+	}
 }

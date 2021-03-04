@@ -51,17 +51,15 @@ BattleCalc.prototype.performExpCalculation = function(attacker, defender){
 	var attackerLevel = attacker.SRWStats.pilot.level;
 	var defenderLevel = defender.SRWStats.pilot.level;
 	var defenderTotalYield = defender.SRWStats.pilot.expYield + defender.SRWStats.mech.expYield ;
-	var totalExp = defenderTotalYield * (defenderLevel/attackerLevel);
-	if(totalExp < 10){
-		totalExp = 10;
+	
+	var totalExp = eval(ENGINE_SETTINGS.EXP_YIELD.LEVEL_SCALING_FORMULA);
+	if(totalExp < ENGINE_SETTINGS.EXP_YIELD.MIN){
+		totalExp = ENGINE_SETTINGS.EXP_YIELD.MIN;
 	}
-	if(totalExp > 800){
-		totalExp = 800;
+	if(totalExp > ENGINE_SETTINGS.EXP_YIELD.MAX){
+		totalExp = ENGINE_SETTINGS.EXP_YIELD.MAX;
 	}
-	if($statCalc.getActiveSpirits(attacker).gain){
-		totalExp*=2;
-		$statCalc.clearSpirit(attacker, "gain");
-	}
+	
 	return Math.floor(totalExp);
 }
 
@@ -931,32 +929,57 @@ BattleCalc.prototype.generateBattleResult = function(){
 	
 	var gainRecipient = $gameTemp.currentBattleActor;	
 	var aCache = $gameTemp.battleEffectCache[gainRecipient._cacheReference];
+	aCache.expGain = 0;
+	aCache.ppGain = 0;
+	aCache.fundGain = 0;
 	
-	var gainDonor = $gameTemp.currentBattleEnemy;
-	var dCache = $gameTemp.battleEffectCache[gainDonor._cacheReference];	
-
-	aCache.gainDonor = dCache;
-	
-	if(aCache && dCache){			
-		var expGain = _this.performExpCalculation(gainRecipient, gainDonor);
-		expGain = $statCalc.applyStatModsToValue(gainRecipient, expGain, ["exp"]);
-		var ppGain = _this.performPPCalculation(gainRecipient, gainDonor);
-		var fundGain = $statCalc.getAwardedFunds(gainDonor);
-		if($statCalc.getActiveSpirits(gainRecipient).fortune){
-			fundGain*=2;
-			$statCalc.clearSpirit(gainRecipient, "fortune");
-		}
-		if(!dCache.isDestroyed){
-			expGain = Math.floor(expGain / 10);
-			ppGain = 0;
-			fundGain = 0;
-		} else {
-			fundGain = $statCalc.applyStatModsToValue(gainRecipient, fundGain, ["fund_gain_destroy"]);
+	var gainDonors = [];
+	gainDonors.push($gameTemp.currentBattleEnemy);
+	if(supportDefender){
+		gainDonors.push(supportDefender.actor);
+	}
+	aCache.gainDonors = [];
+	gainDonors.forEach(function(gainDonor){		
+		//var gainDonor = $gameTemp.currentBattleEnemy;
+		var dCache = $gameTemp.battleEffectCache[gainDonor._cacheReference];			
+		if(!dCache){
+			dCache = $gameTemp.battleEffectCache[gainDonor._supportCacheReference];	
 		}
 		
-		aCache.expGain = expGain;
-		aCache.ppGain = ppGain;
-		aCache.fundGain = fundGain;
+		if(aCache && dCache){	
+			aCache.gainDonors.push(dCache);
+		
+			var expGain = _this.performExpCalculation(gainRecipient, gainDonor);
+			expGain = $statCalc.applyStatModsToValue(gainRecipient, expGain, ["exp"]);
+			if($statCalc.getActiveSpirits(gainRecipient).gain){
+				totalExp*=2;
+			}
+			
+			var ppGain = _this.performPPCalculation(gainRecipient, gainDonor);
+			var fundGain = $statCalc.getAwardedFunds(gainDonor);
+			if($statCalc.getActiveSpirits(gainRecipient).fortune){
+				fundGain*=2;
+			}
+			if(!dCache.isDestroyed){
+				expGain = Math.floor(expGain / 10);
+				ppGain = 0;
+				fundGain = 0;
+			} else {
+				fundGain = $statCalc.applyStatModsToValue(gainRecipient, fundGain, ["fund_gain_destroy"]);
+			}
+			
+			aCache.expGain+= expGain;
+			aCache.ppGain+= ppGain;
+			aCache.fundGain+= fundGain;
+			
+			
+		}
+	});
+	if($statCalc.getActiveSpirits(gainRecipient).gain){
+		$statCalc.clearSpirit(gainRecipient, "gain");
+	}
+	if($statCalc.getActiveSpirits(gainRecipient).fortune){
+		$statCalc.clearSpirit(gainRecipient, "fortune");
 	}
 	
 	$gameTemp.unitHitInfo = {
@@ -1080,6 +1103,9 @@ BattleCalc.prototype.generateMapBattleResult = function(){
 		if(aCache && dCache){			
 			var expGain = _this.performExpCalculation(gainRecipient, gainDonor);
 			expGain = $statCalc.applyStatModsToValue(gainRecipient, expGain, ["exp"]);
+			if($statCalc.getActiveSpirits(gainRecipient).gain){
+				totalExp*=2;
+			}
 			var ppGain = _this.performPPCalculation(gainRecipient, gainDonor);
 			var fundGain = $statCalc.getAwardedFunds(gainDonor);
 			if($statCalc.getActiveSpirits(gainRecipient).fortune){
@@ -1103,6 +1129,10 @@ BattleCalc.prototype.generateMapBattleResult = function(){
 	if($statCalc.getActiveSpirits(aCache).fortune){
 		$statCalc.clearSpirit(aCache, "fortune");
 	}	
+	
+	if($statCalc.getActiveSpirits(gainRecipient).gain){
+		$statCalc.clearSpirit(gainRecipient, "gain");
+	}
 	
 	var activeAttackerSpirits = $statCalc.getActiveSpirits(aCache.actor);
 	if(activeAttackerSpirits.soul){

@@ -10398,7 +10398,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					if(battleEffect.isDestroyed) {
 						actorIsDestroyed = true;
 					} else {
-						if(battleEffect.gainDonor){	
+						/*if(battleEffect.gainDonor){	
 							var result = $statCalc.addExp(battleEffect.ref, battleEffect.expGain);
 							$statCalc.addPP(battleEffect.ref, battleEffect.ppGain);
 							if(battleEffect.gainDonor.isDestroyed){
@@ -10422,7 +10422,35 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 								itemDrops: [itemDrop],
 								fundGain: battleEffect.fundGain
 							};
-						}
+						}*/
+						var gainDonors = battleEffect.gainDonors;
+						var itemDrops = [];
+						gainDonors.forEach(function(gainDonor){
+							if(gainDonor.isDestroyed){
+								$statCalc.addKill(battleEffect.ref);
+							}				
+							var itemDrop = -1;
+							if(gainDonor.isDestroyed){
+								var items = $statCalc.getEquipInfo(gainDonor.ref);
+								if(items[0]){
+									itemDrop = items[0].idx;
+								}
+							}						
+							if(itemDrop != -1){
+								$inventoryManager.addItem(itemDrop);
+								itemDrops.push(itemDrop);
+							}	
+						});					
+						
+						var result = $statCalc.addExp(battleEffect.ref, battleEffect.expGain);
+						$gameTemp.rewardsInfo = {
+							actor: battleEffect.ref,
+							levelResult: result,
+							expGain: battleEffect.expGain,
+							ppGain: battleEffect.ppGain,
+							itemDrops: itemDrops,
+							fundGain: battleEffect.fundGain
+						};
 					}						
 				}
 				
