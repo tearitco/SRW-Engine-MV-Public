@@ -1081,6 +1081,10 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	Set the specified ability to locked for the specified mech/class. A locked ability will not have its name displayed and its effect will not activate.	
 		
 * unlockMechAbility mech\_id ability\_id
+
+* setMechUpgradeLevel mech\_id level force
+
+	Set the upgrade level for all stats of the specified mech/class to the specified level. By default the upgrade level will not be applied if the mech already has a better upgrade level for a stat but if force is 1 all previous upgrades will be overwritten. 
 	
 	
 ## External Plugin commands	
@@ -1191,6 +1195,7 @@ They can also be used as conditionals in IF statements.
 	The following can be set:<br>
 		* toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
 		<br>	
+
 		* eventId: the id number of the event
 		<br>
 		* enemyId: the id number of the enemy pilot 

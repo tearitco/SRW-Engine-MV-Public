@@ -435,6 +435,23 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			$gameSystem.enemyUpgradeLevel = args[0];
 		}
 		
+		if (command === 'setMechUpgradeLevel') {
+			var mechId = args[0]*1;
+			var targetLevel = args[1]*1;
+			var force = args[2]*1;
+			var mechData = $statCalc.getMechData($dataClasses[mechId], true);
+			if(mechData && mechData.id != -1){
+				var upgradeLevels = mechData.stats.upgradeLevels;
+				var targetUpgrades = ["maxHP","maxEN","armor","mobility","accuracy","weapons"];
+				targetUpgrades.forEach(function(upgrade){
+					if(upgradeLevels[upgrade] < targetLevel || force){
+						upgradeLevels[upgrade] = targetLevel;
+					}
+				});
+			}
+			$statCalc.storeMechData(mechData);
+		}
+		
 		if (command === 'addPersuadeOption') {
 			//args[0] = actorId
 			//args[1] = eventId
