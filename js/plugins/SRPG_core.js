@@ -1309,6 +1309,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
     Game_System.prototype.startSRPG = function() {
         this._SRPGMode = true;
 		this.enableGrid = true;
+		$gameTemp.listContext = "actor";
         $gameSwitches.setValue(_srpgBattleSwitchID, true);
         this._isBattlePhase = 'start_srpg';
         this._isSubBattlePhase = 'start_srpg';
@@ -2152,6 +2153,16 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 	
 	Game_System.prototype.setDeployInfo = function(info) {
 		$gameVariables.setValue(_nextMapDeployVariable, JSON.stringify(info));
+    };
+	
+	Game_System.prototype.clearActorDeployInfo = function(actorId) {
+		var deployInfo = this.getDeployInfo();
+		Object.keys(deployInfo.assigned).forEach(function(slot){
+			if(deployInfo.assigned[slot] == actorId){
+				delete deployInfo.assigned[slot];
+			}
+		});
+		this.setDeployInfo(deployInfo);
     };
 	
 	Game_System.prototype.getPersuadeOption = function(actor) {
@@ -8367,6 +8378,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.createIntermissionWindow();
 		this.createMechListWindow();
 		this.createMechListDeployedWindow();
+		this.createMechReassignSelectWindow();
+		this.createPilotReassignSelectWindow();
 		this.createUpgradeUnitSelectionWindow();
 		this.createUpgradeMechWindow();
 		this.createPilotListWindow();
@@ -8547,6 +8560,26 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._mechListDeployedWindow.hide();
 		this.idToMenu["mech_list_deployed"] = this._mechListDeployedWindow;
     };
+	
+	Scene_Map.prototype.createMechReassignSelectWindow = function() {
+		var _this = this;
+		this._mechReassignSelectWindow = new Window_SelectReassignMech(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		this._mechReassignSelectWindow.close();
+		this.addWindow(this._mechReassignSelectWindow);
+		
+		this._mechReassignSelectWindow.hide();
+		this.idToMenu["mech_reassign_select"] = this._mechReassignSelectWindow;
+    };
+	
+	Scene_Map.prototype.createPilotReassignSelectWindow = function() {
+		var _this = this;
+		this._pilotReassignSelectWindow = new Window_SelectReassignPilot(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		this._pilotReassignSelectWindow.close();
+		this.addWindow(this._pilotReassignSelectWindow);
+		
+		this._pilotReassignSelectWindow.hide();
+		this.idToMenu["pilot_reassign_select"] = this._pilotReassignSelectWindow;
+    };	
 	
 	Scene_Map.prototype.createDeploySelectionWindow = function() {
 		var _this = this;

@@ -308,7 +308,14 @@ Window_Deployment.prototype.updateDeployInfo = function(deployInfo) {
 }
 
 Window_Deployment.prototype.getAvailableUnits = function() {
-	return $gameSystem.getAvailableUnits();	
+	var candidates = $gameSystem.getAvailableUnits();	
+	var tmp = [];
+	candidates.forEach(function(candidate){
+		if($statCalc.isValidForDeploy(candidate)){
+			tmp.push(candidate);
+		}
+	});
+	return tmp;
 }
 
 Window_Deployment.prototype.getSlotLookup = function() {
@@ -347,7 +354,7 @@ Window_Deployment.prototype.redraw = function() {
 		}		
 		deployedContent+="<div class='entry "+displayClass+"'>"
 		var actorId = deployInfo.assigned[i];
-		if(actorId != null){
+		if(actorId != null && $statCalc.isValidForDeploy($gameActors.actor(actorId))){
 			var battleSpriteFolder = $statCalc.getBattleSceneImage($gameActors.actor(actorId));
 			deployedContent+="<img class='actor_img' src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'/>";	
 
@@ -371,9 +378,10 @@ Window_Deployment.prototype.redraw = function() {
 			availableContent+="</div>";
 			availableContent+="<div class='list_row'>"
 		}
-		availableContent+="<div class='entry "+(this._UIState == "select_deploy_slot" && _this._deployedSelection == i ? "active" : "")+"'>"
+		if(availableUnits[i] && $statCalc.isValidForDeploy(availableUnits[i])) {
+			availableContent+="<div class='entry "+(this._UIState == "select_deploy_slot" && _this._deployedSelection == i ? "active" : "")+"'>"
 		
-		if(availableUnits[i]) {	
+			
 			var battleSpriteFolder = $statCalc.getBattleSceneImage(availableUnits[i]);
 			availableContent+="<img class='actor_img' src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'/>";	
 			var actorId = availableUnits[i].actorId()
@@ -394,9 +402,10 @@ Window_Deployment.prototype.redraw = function() {
 			if($statCalc.isShip($gameActors.actor(actorId))){
 				availableContent+="<img class='ship_icon' src='svg/anchor.svg'/>";
 			}
-		}
 		
-		availableContent+="</div>";
+		
+			availableContent+="</div>";
+		}
 	}
 	availableContent+="</div>";
 	_this._availableList.innerHTML = availableContent;
@@ -459,7 +468,7 @@ Window_Deployment.prototype.redraw = function() {
 	
 	_this._pilotInfoDisplay.innerHTML = pilotInfoContent;
 	
-	if(pilotData){
+	if(pilotData && $statCalc.isValidForDeploy(pilotData)){
 		var actorIcon = this._container.querySelector("#deploy_pilot_icon");
 		this.loadActorFace(pilotData.actorId(), actorIcon);
 	}

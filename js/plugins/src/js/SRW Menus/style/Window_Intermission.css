@@ -21,14 +21,14 @@
 
 #intermission_menu_section_pilot {
 	width: 15%;
-	top: 27%;
+	top: 26%;
 	left: 23%;
 	display: none;
 }
 
 #intermission_menu_section_data {
 	width: 15%;
-	top: 34%;
+	top: 50%;
 	left: 23%;
 	display: none;
 }

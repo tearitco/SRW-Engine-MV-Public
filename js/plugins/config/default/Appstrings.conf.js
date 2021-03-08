@@ -140,7 +140,8 @@ APPSTRINGS.INTERMISSION = {
 	cleared_label: "Cleared",
 	turns_label: "Turns",
 	options: "Options",
-	deployment: "Deployment"
+	deployment: "Deployment",
+	reassign: "Swap Pilots",
 };
 
 APPSTRINGS.MECHLIST = {	
@@ -277,4 +278,9 @@ APPSTRINGS.DEPLOYMENT = {
 	label_selected: "selected",
 	title_selection: "Deploy a unit",
 	label_in_stage: "Press start to deploy"
+}
+
+APPSTRINGS.REASSIGN = {
+	mech_title: "Select Mech",
+	pilot_title: "Select Pilot"
 }

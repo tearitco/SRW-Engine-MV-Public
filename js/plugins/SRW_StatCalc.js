@@ -580,7 +580,7 @@ StatCalc.prototype.clearBoarded = function(actor){
 
 StatCalc.prototype.isRevealed = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.isActor() || actor.SRWStats.stageTemp.isRevealed;
+		return actor.isEmpty || actor.isActor() || actor.SRWStats.stageTemp.isRevealed;
 	} else {
 		return true;
 	}
@@ -743,6 +743,85 @@ StatCalc.prototype.softRefreshUnits = function(){
 	});
 }
 
+StatCalc.prototype.createEmptyActor = function(level){
+	var _this = this;
+	var result = {
+		SRWStats: _this.createEmptySRWStats()
+	}	
+	
+	result.isEmpty = true;
+	result.SRWInitialized = true;
+	_this.resetStageTemp(result);
+	_this.resetSpiritsAndEffects(result);
+	return result;
+}
+
+StatCalc.prototype.createEmptySRWStats = function(level){
+	level = level || 0;
+	return {
+		pilot: {
+			race: "",
+			id: -1,
+			level: level,
+			will: 100,
+			PP: 0,
+			exp: level * 500,
+			kills: 0,	
+			expYield: 0,	
+			PPYield: 0,
+			stats: {
+				base: {},
+				growthRates: {},
+				calculated: {},
+				upgrades: {
+					melee: 0,
+					ranged: 0,
+					skill: 0,
+					defense: 0,
+					evade: 0,
+					hit: 0,
+					terrain: {
+						air: 0,
+						land: 0,
+						water: 0,
+						space: 0
+					},
+				}
+			},
+			spirits: [],
+			abilities: null,
+			aceAbility: -1
+		}, mech: {}
+		
+	};
+}
+
+StatCalc.prototype.resetSpiritsAndEffects = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.pilot.activeSpirits = {
+			"accel": false,
+			"alert": false,
+			"analyse": false,
+			"charge": false,
+			"disrupt": false,
+			"focus": false,
+			"fortune": false,
+			"gain": false,
+			"mercy": false,
+			"persist": false,
+			"snipe": false,
+			"soul": false,
+			"strike": false,
+			"valor": false,
+			"vigor": false,
+			"wall": false,
+			"zeal": false
+		};
+
+		actor.SRWStats.pilot.activeEffects = {};
+	}
+}
+
 StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolatile){
 	var _this = this;
 	if(!level){
@@ -756,42 +835,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	}
 	
 	if(!actor.SRWStats){
-		actor.SRWStats = {
-			pilot: {
-				race: "",
-				id: -1,
-				level: level,
-				will: 100,
-				PP: 0,
-				exp: level * 500,
-				kills: 0,	
-				expYield: 0,	
-				PPYield: 0,
-				stats: {
-					base: {},
-					growthRates: {},
-					calculated: {},
-					upgrades: {
-						melee: 0,
-						ranged: 0,
-						skill: 0,
-						defense: 0,
-						evade: 0,
-						hit: 0,
-						terrain: {
-							air: 0,
-							land: 0,
-							water: 0,
-							space: 0
-						},
-					}
-				},
-				spirits: [],
-				abilities: null,
-				aceAbility: -1
-			}, mech: {}
-			
-		};
+		actor.SRWStats = _this.createEmptySRWStats(level);
 	}
 	actor.SRWInitialized = true;
 	if(!preserveVolatile){
@@ -824,27 +868,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	actor.SRWStats.pilot.species = actorProperties.pilotSpecies;
 	
 	if(!preserveVolatile){
-		actor.SRWStats.pilot.activeSpirits = {
-			"accel": false,
-			"alert": false,
-			"analyse": false,
-			"charge": false,
-			"disrupt": false,
-			"focus": false,
-			"fortune": false,
-			"gain": false,
-			"mercy": false,
-			"persist": false,
-			"snipe": false,
-			"soul": false,
-			"strike": false,
-			"valor": false,
-			"vigor": false,
-			"wall": false,
-			"zeal": false
-		};
-	
-		actor.SRWStats.pilot.activeEffects = {};
+		_this.resetSpiritsAndEffects(actor);
 	}
 	
 	var statInfo = _this.getPilotStatInfo(actorProperties);
@@ -927,9 +951,9 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 				actor.SRWStats.mech.unitsOnBoard = previousBoarded;
 			}
 		}
-	}
-	
-		
+	} else {
+		actor.SRWStats.mech = this.getMechData();
+	}			
 	
 	if(!preserveVolatile){		
 		if(!isForActor){
@@ -1011,7 +1035,9 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		equips:[],
 		abilities: [],
 		fullUpgradeAbility: -1,
-		basicBattleSpriteName: ""
+		basicBattleSpriteName: "",
+		allowedPilots: [],
+		items: []
 	};
 	if(mech){		
 		var mechProperties = mech.meta;
@@ -1026,6 +1052,19 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.expYield = parseInt(mechProperties.mechExpYield);
 		result.PPYield = parseInt(mechProperties.mechPPYield);
 		result.fundYield = parseInt(mechProperties.mechFundYield);
+		
+		if(mechProperties.mechAllowedPilots){
+			var parts = mechProperties.mechAllowedPilots.split(",");
+			var tmp = [];
+			parts.forEach(function(id){
+				id = parseInt(id);
+				if(!isNaN(id)){
+					tmp.push(id);
+				}
+			});
+			result.allowedPilots = tmp;
+		}
+		
 		/*result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
 		
@@ -1432,13 +1471,15 @@ StatCalc.prototype.storeActorData = function(actor){
 		var classId;
 		if(actor.SRWStats.mech.inheritsUpgradesFrom != null){
 			classId = actor.SRWStats.mech.inheritsUpgradesFrom;
-		} else {
+		} else if(actor.currentClass()){
 			classId = actor.currentClass().id;
 		}
-		$SRWSaveManager.storeMechData(classId, {
-			mechUpgrades: actor.SRWStats.mech.stats.upgradeLevels,
-			genericFUBAbilityIdx: actor.SRWStats.mech.genericFUBAbilityIdx
-		});		
+		if(classId){
+			$SRWSaveManager.storeMechData(classId, {
+				mechUpgrades: actor.SRWStats.mech.stats.upgradeLevels,
+				genericFUBAbilityIdx: actor.SRWStats.mech.genericFUBAbilityIdx
+			});	
+		}			
 	}	
 }
 
@@ -2020,7 +2061,7 @@ StatCalc.prototype.getMechTerrain = function(actor, terrain){
 StatCalc.prototype.getCurrentPilot = function(mechId){
 	var result;
 	this.iterateAllActors("actor", function(actor){
-		if(actor.currentClass().id == mechId){
+		if(actor.currentClass() && actor.currentClass().id == mechId){
 			result = actor;
 		}
 	});
@@ -2124,15 +2165,15 @@ StatCalc.prototype.getPersonalityInfo = function(actor){
 
 StatCalc.prototype.getSpiritList = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.pilot.spirits;
+		return actor.SRWStats.pilot.spirits || [];
 	} else {
-		return 0;
+		return [];
 	}	
 }	
 
 StatCalc.prototype.getActiveSpirits = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.pilot.activeSpirits;
+		return actor.SRWStats.pilot.activeSpirits || {};
 	} else {
 		return {};
 	}	
@@ -2140,7 +2181,7 @@ StatCalc.prototype.getActiveSpirits = function(actor){
 
 StatCalc.prototype.getLearnedPilotAbilities = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.SRWStats.pilot.abilities;
+		return actor.SRWStats.pilot.abilities || {};
 	} else {
 		return {};
 	}
@@ -3852,4 +3893,12 @@ StatCalc.prototype.getCommanderAuraLookup = function(actor){
 		});
 	} 
 	return result;		
+}
+
+StatCalc.prototype.isValidForDeploy = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return !actor.isEmpty && actor.SRWStats.pilot.id != -1 && actor.SRWStats.mech.id != -1;
+	} else {
+		return false;
+	}
 }

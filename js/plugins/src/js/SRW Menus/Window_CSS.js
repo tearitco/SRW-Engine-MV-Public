@@ -147,34 +147,36 @@ Window_CSS.prototype.loadFaceByParams = function(faceName, faceIndex, elem) {
 }
 
 Window_CSS.prototype.loadMechMiniSprite = function(mechClass, elem) {
-	var overworldSpriteData = $dataClasses[mechClass].meta.srpgOverworld.split(",");
-	var characterName = overworldSpriteData[0];
-	var characterIndex = overworldSpriteData[1];
-	
-	elem.innerHTML = "";	
+	if($dataClasses[mechClass] && $dataClasses[mechClass].meta){	
+		var overworldSpriteData = $dataClasses[mechClass].meta.srpgOverworld.split(",");
+		var characterName = overworldSpriteData[0];
+		var characterIndex = overworldSpriteData[1];
+		
+		elem.innerHTML = "";	
 
-    var bitmap = ImageManager.loadCharacter(characterName);   
-	
-	bitmap.addLoadListener(function(){
-		var big = ImageManager.isBigCharacter(characterName);
-		var pw = bitmap.width / (big ? 3 : 12);
-		var ph = bitmap.height / (big ? 4 : 8);
+		var bitmap = ImageManager.loadCharacter(characterName);   
 		
-		var targetBitmap = new Bitmap(pw, ph);
-		
-		var n = big ? 0: characterIndex;
-		var sx = (n % 4 * 3 + 1) * pw;
-		var sy = (Math.floor(n / 4) * 4) * ph;
-		
-		targetBitmap.blt(bitmap, sx, sy, pw, ph, 0, 0); 
-		var mechPicContainer = document.createElement("div");
-		mechPicContainer.classList.add("mech_pic_container");
-		var mechPic = document.createElement("img");
-		mechPic.style.width = "100%";
-		mechPic.setAttribute("src", targetBitmap.canvas.toDataURL());
-		mechPicContainer.appendChild(mechPic);	
-		elem.appendChild(mechPicContainer);	
-	});	
+		bitmap.addLoadListener(function(){
+			var big = ImageManager.isBigCharacter(characterName);
+			var pw = bitmap.width / (big ? 3 : 12);
+			var ph = bitmap.height / (big ? 4 : 8);
+			
+			var targetBitmap = new Bitmap(pw, ph);
+			
+			var n = big ? 0: characterIndex;
+			var sx = (n % 4 * 3 + 1) * pw;
+			var sy = (Math.floor(n / 4) * 4) * ph;
+			
+			targetBitmap.blt(bitmap, sx, sy, pw, ph, 0, 0); 
+			var mechPicContainer = document.createElement("div");
+			mechPicContainer.classList.add("mech_pic_container");
+			var mechPic = document.createElement("img");
+			mechPic.style.width = "100%";
+			mechPic.setAttribute("src", targetBitmap.canvas.toDataURL());
+			mechPicContainer.appendChild(mechPic);	
+			elem.appendChild(mechPicContainer);	
+		});	
+	}
 }
 
 Window_CSS.prototype.getMechDisplayData = function(unit) {
@@ -221,21 +223,16 @@ Window_CSS.prototype.createUpgradeBarScaled = function(level, pending) {
 }
 
 Window_CSS.prototype.createReferenceData = function(mech){
-	return {
-		SRWStats: {
-			pilot: {
-				name: "",
-				abilities: []
-			},
-			mech: mech
-		},
-		SRWInitialized: true,
-		isEmpty: true
-	}	
+	var result = $statCalc.createEmptyActor();
+	result.SRWStats.mech = mech;
+	return result;
 }
 
-Window_CSS.prototype.getAvailableUnits = function(){
-	if(this._unitMode == "actor"){
+Window_CSS.prototype.getAvailableUnits = function(unitMode){
+	if(!unitMode){
+		unitMode = this._unitMode;
+	}
+	if(unitMode == "actor"){
 		this._availableUnits = $gameSystem._availableUnits;
 	} else {
 		var tmp = Object.keys($SRWSaveManager.getUnlockedUnits());			
@@ -245,7 +242,7 @@ Window_CSS.prototype.getAvailableUnits = function(){
 			if(currentPilot){
 				this._availableUnits.push(currentPilot);
 			} else {
-				var mechData = $statCalc.getMechData($dataClasses[tmp[i]]);
+				var mechData = $statCalc.getMechData($dataClasses[tmp[i]], true);
 				$statCalc.calculateSRWMechStats(mechData);		
 				this._availableUnits.push(this.createReferenceData(mechData));
 			}
@@ -288,6 +285,9 @@ Window_CSS.prototype.getNextAvailableUnitGlobal = function(currentUnitId){
 	var currentMech = availableUnits[currentIdx];
 	var mechData = this.getMechDisplayData(currentMech);
 	var currentPilot = $statCalc.getCurrentPilot(currentMech.SRWStats.mech.id);		
+	if(!currentPilot){
+		currentPilot = this.createReferenceData(mechData);
+	}
 	return {mech: mechData, actor: currentPilot};
 }
 
@@ -308,11 +308,14 @@ Window_CSS.prototype.getPreviousAvailableUnitGlobal = function(currentUnitId){
 	var currentMech = availableUnits[currentIdx];
 	var mechData = this.getMechDisplayData(currentMech);
 	var currentPilot = $statCalc.getCurrentPilot(currentMech.SRWStats.mech.id);	
+	if(!currentPilot){
+		currentPilot = this.createReferenceData(mechData);
+	}
 	return {mech: mechData, actor: currentPilot};
 }
 
 Window_CSS.prototype.getNextAvailablePilotGlobal = function(currentUnitId){
-	var availableUnits = this.getAvailableUnits();
+	var availableUnits = this.getAvailableUnits("actor");
 	var currentIdx = -1;
 	var ctr = 0;
 	while(ctr < availableUnits.length && currentIdx == -1){
@@ -330,7 +333,7 @@ Window_CSS.prototype.getNextAvailablePilotGlobal = function(currentUnitId){
 }
 
 Window_CSS.prototype.getPreviousAvailablePilotGlobal = function(currentUnitId){
-	var availableUnits = this.getAvailableUnits();
+	var availableUnits = this.getAvailableUnits("actor");
 	var currentIdx = -1;
 	var ctr = 0;
 	while(ctr < availableUnits.length && currentIdx == -1){

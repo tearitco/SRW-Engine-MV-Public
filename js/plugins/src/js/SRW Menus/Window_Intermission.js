@@ -34,6 +34,7 @@ Window_Intermission.prototype.initialize = function() {
 			//{name: "Search", key: "pilot_search"}
 		]},
 		{name: APPSTRINGS.INTERMISSION.deployment, key: "deployment"},
+		{name: APPSTRINGS.INTERMISSION.reassign, key: "reassign"},
 		{name: APPSTRINGS.INTERMISSION.options, key: "options"},
 		{name: APPSTRINGS.INTERMISSION.data_label, key: "data", subCommands: [
 			{name: APPSTRINGS.INTERMISSION.data_save_label, key: "data_save"},
@@ -115,6 +116,9 @@ Window_Intermission.prototype.initialize = function() {
 		},	
 		"deployment": function(){
 			$gameTemp.pushMenu = "deployment";
+		},	
+		"reassign": function(){
+			$gameTemp.pushMenu = "mech_reassign_select";
 		}		
 	};	
 };
@@ -159,7 +163,7 @@ Window_Intermission.prototype.createComponents = function() {
 	windowNode.appendChild(this._menuSectionPilot);
 	
 	this._menuSectionData = document.createElement("div");
-	this.createEntryList(this._menuSectionData, this._commands[4].subCommands, "section_data");	
+	this.createEntryList(this._menuSectionData, this._commands[5].subCommands, "section_data");	
 	windowNode.appendChild(this._menuSectionData);
 	
 	this._deployCount = document.createElement("div");
@@ -329,7 +333,7 @@ Window_Intermission.prototype.redraw = function() {
 		if(this._menuLevels[0] == 1){
 			this._menuSectionPilot.style.display = "block";
 		}
-		if(this._menuLevels[0] == 4){
+		if(this._menuLevels[0] == 5){
 			this._menuSectionData.style.display = "block";
 		}
 	}

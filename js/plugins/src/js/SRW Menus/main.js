@@ -73,6 +73,12 @@ window.Window_ConfirmEndTurn = Window_ConfirmEndTurn;
 import Window_MechListDeployed from "./Window_MechListDeployed.js";
 window.Window_MechListDeployed = Window_MechListDeployed;
 
+import Window_SelectReassignMech from "./Window_SelectReassignMech.js";
+window.Window_SelectReassignMech = Window_SelectReassignMech;
+
+import Window_SelectReassignPilot from "./Window_SelectReassignPilot.js";
+window.Window_SelectReassignPilot = Window_SelectReassignPilot;
+
 
 import "./style/SRW_Menus.css";
 

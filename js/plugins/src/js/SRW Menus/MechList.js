@@ -69,9 +69,15 @@ MechList.prototype.defineContent = function(){
 		}	
 	}
 	function mechIcon(pilot, mech){
+		if(!mech.classData){
+			return "";
+		}
 		return "<div class='list_mech_icon' data-mech='"+mech.classData.id+"'></div>";
 	}
 	function mechName(pilot, mech){
+		if(!mech.classData){
+			return "";
+		}
 		return mech.classData.name;
 	}
 	function mechTeam(pilot, mech){
@@ -91,8 +97,19 @@ MechList.prototype.defineContent = function(){
 		return {pilot: unit, mech: unit.SRWStats.mech};
 	}
 	function compareMechName(a, b){
-		var nameA = getUnitData(a).mech.classData.name;
-		var nameB = getUnitData(b).mech.classData.name;
+		var nameA;
+		if(!getUnitData(a).mech.classData){
+			nameA = "";
+		} else {
+			nameA = getUnitData(a).mech.classData.name;
+		}
+		
+		var nameB;
+		if(!getUnitData(b).mech.classData){
+			nameB = "";
+		} else {
+			nameB = getUnitData(b).mech.classData.name;
+		}
 		return nameA.localeCompare(nameB) * _this._sortDirection;
 	}
 	function compareMechTeam(a, b){

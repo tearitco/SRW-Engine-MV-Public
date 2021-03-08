@@ -30,9 +30,16 @@ Window_DetailPages.prototype.initialize = function() {
 	});	
 }
 
+
+Window_DetailPages.prototype.resetSelection = function(){
+	this._currentSelection = 0;
+	this._currentPage = 0;
+	this._selectedTab = 0;
+	this.validateTab();
+}
+
 Window_DetailPages.prototype.getCurrentSelection = function(){
-	return $gameTemp.currentMenuUnit;
-	
+	return $gameTemp.currentMenuUnit;	
 }
 
 Window_DetailPages.prototype.createComponents = function() {
@@ -188,6 +195,12 @@ Window_DetailPages.prototype.update = function() {
 				if(this._selectedTab < 0){
 					this._selectedTab = this._tabInfo.length - 1;
 				}
+				
+				if(this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
+					if(this._selectedTab == 0){
+						this._selectedTab = this._tabInfo.length - 1;
+					}
+				}				
 			}
 			
 		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
@@ -201,6 +214,12 @@ Window_DetailPages.prototype.update = function() {
 					this._selectedTab = 0;
 				}
 			}
+			
+			if(this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
+				if(this._selectedTab == 0){
+					this._selectedTab = 1;
+				}
+			}	
 		}
 		
 		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger')){
@@ -214,14 +233,24 @@ Window_DetailPages.prototype.update = function() {
 		if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
 			this.requestRedraw();
 			if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
-				$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				if($gameTemp.listContext == "actor"){
+					$gameTemp.currentMenuUnit = this.getPreviousAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
+				} else {
+					$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				}
+				
 				this._attackList.resetSelection();
 			}
 			
 		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
 			this.requestRedraw();
 			if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
-				$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				if($gameTemp.listContext == "actor"){
+					$gameTemp.currentMenuUnit = this.getNextAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
+				} else {
+					$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				}
+				
 				this._attackList.resetSelection();
 			}
 		}
@@ -243,10 +272,27 @@ Window_DetailPages.prototype.update = function() {
 			}	
 		}		
 		
+		
+		this.validateTab();
+		
 		this.refresh();
 	}		
 };
 
+Window_DetailPages.prototype.validateTab = function() {
+	if(this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
+		if(this._selectedTab == 0){
+			this._selectedTab = 1;
+			this.requestRedraw();
+		}
+	}		
+	if(this.getCurrentSelection().mech.id == -1){
+		if(this._selectedTab != 0){
+			this._selectedTab = 0;
+			this.requestRedraw();
+		}
+	}
+}
 
 Window_DetailPages.prototype.drawPilotStats1 = function() {
 	var detailContent = "";
@@ -504,10 +550,13 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 Window_DetailPages.prototype.redraw = function() {
 	//this._mechList.redraw();
 	
-	this._detailBarMechDetail.redraw();		
-	this._detailBarMechUpgrades.redraw();	
-	this._attackList.redraw();
-	this._attackSummary.redraw();
+	if(this.getCurrentSelection().mech.id != -1){
+		this._detailBarMechDetail.redraw();		
+		this._detailBarMechUpgrades.redraw();	
+		this._attackList.redraw();
+		this._attackSummary.redraw();
+	}
+	
 	
 	for(var i = 0; i < this._tabInfo.length; i++){
 		var tab = this._tabInfo[i].elem;
@@ -530,23 +579,23 @@ Window_DetailPages.prototype.redraw = function() {
 		activeTabButton.classList.add("selected");
 	}	
 	
-	var mechNameContent = "";
-	mechNameContent+="<div id='detail_pages_upgrade_name_icon'></div>";//icon 
-	mechNameContent+="<div class='upgrade_mech_name_value scaled_text'>"+this.getCurrentSelection().mech.classData.name+"</div>";//icon 	
-	this._mechNameDisplay.innerHTML = mechNameContent;	
-	
-	var mechIcon = this._container.querySelector("#detail_pages_upgrade_name_icon");
-	this.loadMechMiniSprite(this.getCurrentSelection().mech.id, mechIcon);
-	
-	var mechNameContent = "";
-	mechNameContent+="<div id='detail_pages_weapons_name_icon'></div>";//icon 
-	mechNameContent+="<div class='upgrade_mech_name_value scaled_text'>"+this.getCurrentSelection().mech.classData.name+"</div>";//icon 	
-	this._mechNameDisplayWeapons.innerHTML = mechNameContent;	
-	
-	var mechIcon = this._container.querySelector("#detail_pages_weapons_name_icon");
-	this.loadMechMiniSprite(this.getCurrentSelection().mech.id, mechIcon);
-	
-	
+	if(this.getCurrentSelection().mech.id != -1){
+		var mechNameContent = "";
+		mechNameContent+="<div id='detail_pages_upgrade_name_icon'></div>";//icon 
+		mechNameContent+="<div class='upgrade_mech_name_value scaled_text'>"+this.getCurrentSelection().mech.classData.name+"</div>";//icon 	
+		this._mechNameDisplay.innerHTML = mechNameContent;	
+		
+		var mechIcon = this._container.querySelector("#detail_pages_upgrade_name_icon");
+		this.loadMechMiniSprite(this.getCurrentSelection().mech.id, mechIcon);
+		
+		var mechNameContent = "";
+		mechNameContent+="<div id='detail_pages_weapons_name_icon'></div>";//icon 
+		mechNameContent+="<div class='upgrade_mech_name_value scaled_text'>"+this.getCurrentSelection().mech.classData.name+"</div>";//icon 	
+		this._mechNameDisplayWeapons.innerHTML = mechNameContent;	
+		
+		var mechIcon = this._container.querySelector("#detail_pages_weapons_name_icon");
+		this.loadMechMiniSprite(this.getCurrentSelection().mech.id, mechIcon);
+	}	
 	
 	var FUBContent = "";
 	FUBContent+="<div class='FUB_label scaled_text'>"+APPSTRINGS.DETAILPAGES.label_FUB+"</div>"
@@ -562,15 +611,18 @@ Window_DetailPages.prototype.redraw = function() {
 	FUBContent+="</div>";
 	this._FUBContainer.innerHTML = FUBContent;
 	
-	this.drawPilotStats1();
-	this.drawPilotStats2();
-	
+	if(this.getCurrentSelection().actor.SRWStats.pilot.id != -1){
+		this.drawPilotStats1();
+		this.drawPilotStats2();	
+	}
 	
 	
 	this.updateScaledDiv(this._actorBattleImg);
 	
-	var battleSpriteFolder = $statCalc.getBattleSceneImage(this.getCurrentSelection().actor);
-	this._actorBattleImg.innerHTML = "<img src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'>";
+	if(this.getCurrentSelection().mech.id != -1){	
+		var battleSpriteFolder = $statCalc.getBattleSceneImage(this.getCurrentSelection().actor);
+		this._actorBattleImg.innerHTML = "<img src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'>";	
+	}
 
 	Graphics._updateCanvas();
 }

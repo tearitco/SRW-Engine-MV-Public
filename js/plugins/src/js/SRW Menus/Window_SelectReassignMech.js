@@ -1,34 +1,61 @@
 import Window_CSS from "./Window_CSS.js";
 import MechList from "./MechList.js"
-import DetailBarPilotStats from "./DetailBarPilotStats.js";
-import DetailBarPilotSpirits from "./DetailBarPilotSpirits.js";
+import DetailBarMech from "./DetailBarMech.js";
+import DetailBarPilot from "./DetailBarPilot.js";
 
-export default function Window_PilotList() {
+export default function Window_SelectReassignMech() {
 	this.initialize.apply(this, arguments);	
 }
 
-Window_PilotList.prototype = Object.create(Window_CSS.prototype);
-Window_PilotList.prototype.constructor = Window_PilotList;
+Window_SelectReassignMech.prototype = Object.create(Window_CSS.prototype);
+Window_SelectReassignMech.prototype.constructor = Window_SelectReassignMech;
 
-Window_PilotList.prototype.initialize = function() {
-	
-	this._layoutId = "pilot_list";	
+Window_SelectReassignMech.prototype.initialize = function() {
+	this._availableUnits = [];
+	this._layoutId = "mech_reassign_select";	
 	this._pageSize = 1;
+	this._unitMode = "mech";
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
 }
 
-Window_PilotList.prototype.getCurrentSelection = function(){
+Window_SelectReassignMech.prototype.getAvailableUnits = function(){
+	var _this = this;
+	
+	var availableMechs = Window_CSS.prototype.getAvailableUnits.call(this);
+	var tmp = [];	
+	
+	availableMechs.forEach(function(unit){
+		if(unit.SRWStats.mech.allowedPilots.length){
+			tmp.push(unit);
+		}
+	});
+	
+	return tmp;
+}
+
+Window_SelectReassignMech.prototype.rowEnabled = function(actor){
+	var lockedMechs = {};
+	var deployInfo = $gameSystem.getDeployInfo();
+	
+	Object.keys(deployInfo.assigned).forEach(function(slot){
+		if(deployInfo.lockedSlots[slot]){
+			lockedMechs[$gameActors.actor(deployInfo.assigned[slot]).SRWStats.mech.id] = true;
+		}
+	});
+	
+	return !lockedMechs[actor.SRWStats.mech.id];
+}
+
+Window_SelectReassignMech.prototype.getCurrentSelection = function(){
 	return this._mechList.getCurrentSelection();
 	
 }
 
-Window_PilotList.prototype.resetSelection = function(){
-	this._currentSelection = 0;
-	this._currentPage = 0;
-	$gameTemp.listContext = "actor";
+Window_SelectReassignMech.prototype.setCurrentSelection = function(value){
+	this._mechList.setCurrentSelection(value);
 }
 
-Window_PilotList.prototype.createComponents = function() {
+Window_SelectReassignMech.prototype.createComponents = function() {
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -39,7 +66,7 @@ Window_PilotList.prototype.createComponents = function() {
 	this._header.classList.add("menu_header");	
 	this._header.classList.add("scaled_text");
 	this._headerText = document.createElement("div");
-	this._headerText.innerHTML = APPSTRINGS.PILOTLIST.title;	
+	this._headerText.innerHTML =  APPSTRINGS.REASSIGN.mech_title;	
 	this._header.appendChild(this._headerText);
 	windowNode.appendChild(this._header);
 	
@@ -55,15 +82,14 @@ Window_PilotList.prototype.createComponents = function() {
 	this._detailPilotContainer.classList.add("list_detail");
 	windowNode.appendChild(this._detailPilotContainer);	
 	
-	this._mechList = new MechList(this._listContainer, [5, 6, 7, 8]); //
-	this._mechList.setUnitModeActor();
+	this._mechList = new MechList(this._listContainer, [0], this);
 	this._mechList.createComponents();
-	this._detailBarPilotStats = new DetailBarPilotStats(this._detailContainer, this);
-	this._detailBarPilotStats.createComponents();
-	this._detailBarPilotSpirits = new DetailBarPilotSpirits(this._detailPilotContainer, this);	
+	this._detailBarMech = new DetailBarMech(this._detailContainer, this);
+	this._detailBarMech.createComponents();
+	this._detailBarPilot = new DetailBarPilot(this._detailPilotContainer, this);
 }	
 
-Window_PilotList.prototype.update = function() {
+Window_SelectReassignMech.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
@@ -77,7 +103,7 @@ Window_PilotList.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left')){			
 			this.requestRedraw();
 			this._mechList.decrementPage();
 		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
@@ -110,33 +136,40 @@ Window_PilotList.prototype.update = function() {
 			/*if(this._internalHandlers[this._currentKey]){
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
-			}*/
-			SoundManager.playOk();
-			$gameTemp.currentMenuUnit = this.getCurrentSelection();
-			$gameTemp.pushMenu = "detail_pages";	
+			}*/		
+			if(this.rowEnabled(this.getCurrentSelection().actor)){
+				SoundManager.playOk();
+				$gameTemp.reassignTargetMech = {type: "main", id: this.getCurrentSelection().mech.id};
+				$gameTemp.pushMenu = "pilot_reassign_select";
+			} else {
+				SoundManager.playBuzzer();
+			}			
 		}
-		if(Input.isTriggered('cancel')){	
-			SoundManager.playCancel();
+		if(Input.isTriggered('cancel')){		
+			SoundManager.playCancel();		
 			$gameTemp.popMenu = true;	
+			$gameTemp.reassignTargetMech = null;
 		}		
 		
 		this.refresh();
 	}		
 };
 
-Window_PilotList.prototype.redraw = function() {
+Window_SelectReassignMech.prototype.redraw = function() {
 	this._mechList.redraw();
-	this._detailBarPilotStats.redraw();		
-	this._detailBarPilotSpirits.redraw();
+	this._detailBarMech.redraw();		
+	this._detailBarPilot.redraw();
 	
-	var infoPage = this._mechList.getCurrentInfoPage();
-	if(infoPage == 5 || infoPage == 8){
-		this._detailBarPilotSpirits.hide();
-		this._detailBarPilotStats.show();
+	if(this._mechList.getCurrentInfoPage() == 0){
+		this._detailBarPilot.hide();
+		this._detailBarMech.show();
 	} else {
-		this._detailBarPilotSpirits.show();
-		this._detailBarPilotStats.hide();
+		this._detailBarPilot.show();
+		this._detailBarMech.hide();
 	}
+	
+	
+	
 
 	Graphics._updateCanvas();
 }
