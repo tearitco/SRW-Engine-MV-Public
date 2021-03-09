@@ -3221,6 +3221,14 @@ StatCalc.prototype.addExp = function(actor, amount){
 			}			
 		}
 		this.storeActorData(actor);
+		
+		if(!actor.isSubPilot){
+			var subPilots = _this.getSubPilots(actor);
+			subPilots.forEach(function(id){
+				_this.addExp($gameActors.actor(id), amount);
+			});
+		}
+		
 		return {
 			hasLevelled: oldLevel != newLevel,
 			oldLevel: oldLevel,
