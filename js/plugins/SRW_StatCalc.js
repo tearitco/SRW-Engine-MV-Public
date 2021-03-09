@@ -1039,7 +1039,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		allowedPilots: [],
 		items: []
 	};
-	if(mech){		
+	if(mech && mech.name){		
 		var mechProperties = mech.meta;
 		result.classData = mech;
 		result.isShip = mechProperties.mechIsShip;
@@ -1064,6 +1064,12 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			});
 			result.allowedPilots = tmp;
 		}
+		
+		result.notDeployable = parseInt(mechProperties.mechNotDeployable || 0);
+		
+		result.deployConditions = JSON.parse(mechProperties.mechDeployConditions || "{}");
+		
+		result.fixedSubPilots = parseInt(mechProperties.mechFixedSubPilots || 0);
 		
 		/*result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
@@ -3895,9 +3901,46 @@ StatCalc.prototype.getCommanderAuraLookup = function(actor){
 	return result;		
 }
 
+StatCalc.prototype.getCurrentVariableSubPilotMech = function(actorId){
+	var _this = this;
+	var result = -1;
+	for(var i = 0; i < $dataClasses.length; i++){
+		var mechData = _this.getMechDataById(i, true);
+		if(mechData.id != -1 && !mechData.fixedSubPilots){
+			if(mech.subPilots.indexOf(actorId) != -1){
+				result = mech.id;
+			}
+		}
+	}
+	return result;
+}
+
 StatCalc.prototype.isValidForDeploy = function(actor){
+	var _this = this;
 	if(this.isActorSRWInitialized(actor)){
-		return !actor.isEmpty && actor.SRWStats.pilot.id != -1 && actor.SRWStats.mech.id != -1;
+		var deployConditionsMet = true;
+		var deployConditions = actor.SRWStats.mech.deployConditions;
+		if(deployConditions.assigned){
+			Object.keys(deployConditions.assigned).forEach(function(actorId){
+				var mechId = deployConditions.assigned[actorId];
+				var actor = $gameActors.actor(actorId);
+				if(_this.isActorSRWInitialized(actor)){
+					if(actor.SRWStats.mech.id != mechId){
+						deployConditionsMet = false;
+					}
+				} else {
+					deployConditionsMet = false;
+				}
+			});
+		}
+		if(deployConditions.free){
+			deployConditions.free.forEach(function(actorId){
+				if(_this.getCurrentVariableSubPilotMech(actorId) != -1){
+					deployConditionsMet = false;
+				}
+			});
+		}
+		return deployConditionsMet && !actor.isEmpty && actor.SRWStats.pilot.id != -1 && actor.SRWStats.mech.id != -1 && !actor.SRWStats.mech.notDeployable;
 	} else {
 		return false;
 	}

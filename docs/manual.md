@@ -280,12 +280,7 @@ The values listed above are the default values used when the tags are not presen
 
 For weapons the upgrade amount per level is defined in the Weapon definition.
 
-### Sub-pilots
 
-A mech can have any number of sub-pilots. The spirit commands of the sub-pilots are usable by the unit as a whole.
-Swapping sub-pilots is not supported.
-
-\<mechSubPilots:\[3,5\]\>: The ids of the sub-pilots.
 
 ### Transform
 
@@ -323,6 +318,29 @@ Units can be given the ability to combine into other units. Combined units have 
 When working with transforming or combining mechs it usually desirable for the upgrade levels of the transformed or combined mech to match those of the base mech.
 
 \<mechInheritsUpgradesFrom:1\>: The id of the mech from which the mech will inherit upgrade levels.
+
+### Managing (Sub)Pilot Assignments 
+
+Some mechs may be pilot-able by multiple pilots:
+
+\<mechAllowedPilots:1,2,5\>: Lists the ids of the pilot that can pilot this mech.
+
+A mech can have any number of sub-pilots. The spirit commands of the sub-pilots are usable by the unit as a whole.
+The pilots listed in the database definition are the default sub-pilots for a unit.
+
+\<mechSubPilots:\[3,5\]\>: The ids of the sub-pilots.
+
+\<mechFixedSubPilots:1\>: If set to 1 the sub-pilots of the mech will always be set to the ones defined by the \<mechSubPilots\> tag. This property should be set on mechs that have sub-pilots that can be assigned to different units so that it will always have the correct sub-pilots when deployed.
+
+### Deployment
+
+Some mechs can only be deployed if the correct pilots are present.
+
+\<mechDeployConditions:{"assigned": {"1":7, "3":8}, "free": \[2\]}\>: For units with deployment requirements this tag should contain a JSON string defining those requirements. The "assigned" property maps actor\_id to mech\_id and the unit will only be able to be deployed if each actor is assigned as the main pilot of the mapped mech. The "free" property is a list of actor\_ids that should not currently be assigned as a sub-pilot to any other mech. Assignments to mechs with \<mechFixedSubPilots:1\> will not be considered for this check. 
+
+Some mechs can not be deployed directly, these are usually mechs that other mechs transform into.
+
+\<mechNotDeployable:1\>
 
 ### Attacks
 
