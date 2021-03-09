@@ -93,19 +93,21 @@ Window_Rewards.prototype.redraw = function() {
 		content+="</div>";
 		content+="</div>";	
 		
-		content+="<div class='row'>";
+		var gainResults = $gameTemp.rewardsInfo.gainResults;
 		
-		content+="<div class='column'>";
-		content+=$gameTemp.rewardsInfo.actor.name();
-		content+="</div>";	
-		content+="<div class='column'>";
-		content+=$gameTemp.rewardsInfo.expGain;
-		content+="</div>";
-		content+="<div class='column'>";
-		content+=$gameTemp.rewardsInfo.ppGain;
-		content+="</div>";
-		
-		content+="</div>";	
+		for(var i = 0; i < Math.min(gainResults.length, 4); i++){
+			content+="<div class='row'>";			
+			content+="<div class='column'>";
+			content+=gainResults[i].actor.name();
+			content+="</div>";	
+			content+="<div class='column'>";
+			content+=gainResults[i].expGain;
+			content+="</div>";
+			content+="<div class='column'>";
+			content+=gainResults[i].ppGain;
+			content+="</div>";			
+			content+="</div>";
+		}		
 		
 		content+="</div>";	
 		content+="<div class='items_block scaled_text'>";

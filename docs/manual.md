@@ -344,11 +344,49 @@ Each sub pilot slot can be assigned a list of valid pilots. Up to 10 slots are s
 
 ### Deployment
 
+#### Requirements
 Some mechs can only be deployed if the correct pilots are present.
 
-\<mechDeployConditions:\[{"assigned": {"1":7, "3":8}, "free": \[2\]}\]\>: For units with deployment requirements this tag should contain a JSON string defining those requirements. The definition is a list of valid configurations. For each entry in the list the "assigned" property maps actor\_id to mech\_id and the unit will only be able to be deployed if each actor is assigned as the main pilot of the mapped mech. The "free" property is a list of actor\_ids that should not currently be assigned as a sub-pilot to any other mech. Assignments to mechs with \<mechFixedSubPilots:1\> will not be considered for this check. 
+\<mechDeployConditions:\[{"assigned": {"1":7, "3":8}, "free": \[2\]}\]\>
 
-Some mechs can not be deployed directly, these are usually mechs that other mechs transform into.
+The \<mechDeployConditions\> tag allows several different valid deployment configurations to be defined for a mech. If omitted no additional deployment checks will be done for the mech.
+
+This tag should contain a JSON string defining a list of those valid configurations.
+
+
+For each entry in the list the "assigned" property maps actor\_id to mech\_id and the unit will only be able to be deployed if each actor is assigned as the main pilot of the mapped mech. 
+
+An additional check can be done using the "free" property. This property is a list of actor\_ids that should not currently be assigned as a sub-pilot to any other mech. Assignments to mechs with \<mechFixedSubPilots:1\> will not be considered for this check. 
+
+If an "assigned" or "free" property is not present in a configuration entry those checks will not be performed and considered valid by default.
+
+A unit will be deployable if all the checks for one of the configurations in the list is valid.
+
+A more neatly formatted example:
+
+```
+[
+	{
+		"assigned": {
+			"1":7, 
+			"3":8
+		}, 
+		"free": [2]
+	},
+	{
+		"assigned": {
+			"5":10, 
+			"6":11
+		}
+	}
+]
+```
+
+This example contains 2 entries. The first entry requires that actor 1 is currently assigned to mech 7 and actor 3 is assigned to mech 8. It also requires that actor 2 is current free, which means it is not assigned as a subpilot to any other mech.
+The second entry requires that actor 5 is currently assigned to mech 10 and actor 6 to mech 11, with no additional requirements for any free actors.
+
+#### Undeployable mechs
+Some mechs can not be deployed directly, these are usually mechs that other mechs transform into:
 
 \<mechNotDeployable:1\>
 
