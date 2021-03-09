@@ -237,7 +237,9 @@ Window_SpiritSelection.prototype.getAvailableActors = function() {
 	var subPilotIds = $statCalc.getSubPilots(actor);
 	var subPilots = [];
 	for(var i = 0; i < subPilotIds.length; i++){
-		subPilots.push($gameActors.actor(subPilotIds[i]));
+		if(subPilotIds[i]){
+			subPilots.push($gameActors.actor(subPilotIds[i]));
+		}		
 	}
 	return [actor].concat(subPilots);
 }	
