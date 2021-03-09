@@ -30,7 +30,7 @@ Window_SelectReassignMech.prototype.initialize = function() {
 Window_SelectReassignMech.prototype.resetSelection = function(){
 	this._currentSelection = 0;
 	this._currentPage = 0;
-	this._currentSlotSelection = 0;
+	this._currentSlotSelection = 0;	
 	this._currentSlotCount = 0;
 	this._currentUIState = "main_selection";
 }
@@ -124,6 +124,9 @@ Window_SelectReassignMech.prototype.update = function() {
 				if(this._currentSlotSelection >= this._currentSlotCount){
 					this._currentSlotSelection = 0;
 				}
+				if(this._currentSlotSelection == 0 && !this.getCurrentSelection().mech.allowedPilots.length){
+					this._currentSlotSelection = 1;
+				}
 			}
 		} else if (Input.isTriggered('up') || Input.isRepeated('up')) {
 			SoundManager.playCursor();
@@ -133,6 +136,9 @@ Window_SelectReassignMech.prototype.update = function() {
 			} else {
 				this._currentSlotSelection--;
 				if(this._currentSlotSelection < 0){
+					this._currentSlotSelection = this._currentSlotCount - 1;
+				}
+				if(this._currentSlotSelection == 0 && !this.getCurrentSelection().mech.allowedPilots.length){
 					this._currentSlotSelection = this._currentSlotCount - 1;
 				}
 			}
@@ -178,6 +184,9 @@ Window_SelectReassignMech.prototype.update = function() {
 					SoundManager.playOk();
 					if(this.getCurrentSelection().mech.hasVariableSubPilots){
 						this._currentSlotSelection = 0;
+						if(!this.getCurrentSelection().mech.allowedPilots.length){
+							this._currentSlotSelection = 1;
+						}
 						this._currentUIState = "slot_selection";
 						this._currentSlotCount = this.getCurrentSelection().mech.subPilots.length + 1;
 						this.requestRedraw();

@@ -328,7 +328,17 @@ Some mechs may be pilot-able by multiple pilots:
 A mech can have any number of sub-pilots. The spirit commands of the sub-pilots are usable by the unit as a whole.
 The pilots listed in the database definition are the default sub-pilots for a unit.
 
-\<mechSubPilots:\[3,5\]\>: The ids of the sub-pilots.
+\<mechSubPilots:\[3,5\]\>: The ids of the sub-pilots. If a slot should be empty by default the value should be 0.
+
+Each sub pilot slot can be assigned a list of valid pilots. Up to 10 slots are supported:
+
+\<mechAllowedSubPilots1:6,7\><br>
+\<mechAllowedSubPilots2:6,7\><br>
+...<br>
+\<mechAllowedSubPilots10:6,7\><br>
+
+\<mechAllowedSubPilots1\> defines the valid pilots for the first entry of \<mechSubPilots\>, \<mechAllowedSubPilots2\> for the second entry, etc.
+
 
 \<mechFixedSubPilots:1\>: If set to 1 the sub-pilots of the mech will always be set to the ones defined by the \<mechSubPilots\> tag. This property should be set on mechs that have sub-pilots that can be assigned to different units so that it will always have the correct sub-pilots when deployed.
 
@@ -340,7 +350,7 @@ Some mechs can only be deployed if the correct pilots are present.
 
 Some mechs can not be deployed directly, these are usually mechs that other mechs transform into.
 
-
+\<mechNotDeployable:1\>
 
 ### Attacks
 
