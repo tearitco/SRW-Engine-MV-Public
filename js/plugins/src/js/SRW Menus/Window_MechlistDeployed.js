@@ -19,12 +19,7 @@ Window_MechListDeployed.prototype.initialize = function() {
 
 Window_MechListDeployed.prototype.getAvailableUnits = function(){
 	var _this = this;
-	var deployInfo = $gameSystem.getDeployInfo()
-	this._availableUnits = [];
-	Object.keys(deployInfo.assigned).forEach(function(slot){
-		_this._availableUnits.push($gameActors.actor(deployInfo.assigned[slot]));
-	});
-	return this._availableUnits;
+	return $statCalc.getAllActors("actor");
 }
 
 Window_MechListDeployed.prototype.rowEnabled = function(actor){

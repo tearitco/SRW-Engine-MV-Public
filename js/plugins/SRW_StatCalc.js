@@ -898,7 +898,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		} else if(preserveVolatile && actor.SRWStats.mech){
 			mech = $dataClasses[actor.SRWStats.mech.id];
 		}
-		if(!mech && !actor.isSubPilot){//sub pilots should not be linked to mechs
+		if(!mech){// && !actor.isSubPilot sub pilots should not be linked to mechs
 			mech = actor.currentClass();
 
 		}		

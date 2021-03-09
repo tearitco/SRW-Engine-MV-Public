@@ -1604,6 +1604,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		var oldValue = $gameVariables.value(_existActorVarID);
 		$gameVariables.setValue(_existActorVarID, oldValue + 1);
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
+		actor_unit.isSubPilot = false;
 		$statCalc.initSRWStats(actor_unit);
 		$statCalc.applyBattleStartWill(actor_unit);
 		actor_unit.SRPGActionTimesSet($statCalc.applyStatModsToValue(actor_unit, 1, ["extra_action"]));
