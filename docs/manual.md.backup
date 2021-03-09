@@ -346,7 +346,7 @@ Each sub pilot slot can be assigned a list of valid pilots. Up to 10 slots are s
 
 Some mechs can only be deployed if the correct pilots are present.
 
-\<mechDeployConditions:{"assigned": {"1":7, "3":8}, "free": \[2\]}\>: For units with deployment requirements this tag should contain a JSON string defining those requirements. The "assigned" property maps actor\_id to mech\_id and the unit will only be able to be deployed if each actor is assigned as the main pilot of the mapped mech. The "free" property is a list of actor\_ids that should not currently be assigned as a sub-pilot to any other mech. Assignments to mechs with \<mechFixedSubPilots:1\> will not be considered for this check. 
+\<mechDeployConditions:\[{"assigned": {"1":7, "3":8}, "free": \[2\]}\]\>: For units with deployment requirements this tag should contain a JSON string defining those requirements. The definition is a list of valid configurations. For each entry in the list the "assigned" property maps actor\_id to mech\_id and the unit will only be able to be deployed if each actor is assigned as the main pilot of the mapped mech. The "free" property is a list of actor\_ids that should not currently be assigned as a sub-pilot to any other mech. Assignments to mechs with \<mechFixedSubPilots:1\> will not be considered for this check. 
 
 Some mechs can not be deployed directly, these are usually mechs that other mechs transform into.
 

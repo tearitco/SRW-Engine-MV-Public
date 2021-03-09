@@ -3946,27 +3946,35 @@ StatCalc.prototype.isValidForDeploy = function(actor){
 	var _this = this;
 	if(this.isActorSRWInitialized(actor)){
 		var deployConditionsMet = true;
-		var deployConditions = actor.SRWStats.mech.deployConditions;
-		if(deployConditions){
-			if(deployConditions.assigned){
-				Object.keys(deployConditions.assigned).forEach(function(actorId){
-					var mechId = deployConditions.assigned[actorId];
-					var actor = $gameActors.actor(actorId);
-					if(_this.isActorSRWInitialized(actor)){
-						if(actor.SRWStats.mech.id != mechId){
-							deployConditionsMet = false;
+		var deployConditionsList = actor.SRWStats.mech.deployConditions;
+		if(deployConditionsList && deployConditionsList.length){
+			deployConditionsMet = false;
+			var ctr = 0;
+			while(!deployConditionsMet && ctr < deployConditionsList.length){	
+				var deployConditions = deployConditionsList[ctr++];
+				var assignedMatch = true;
+				if(deployConditions.assigned){
+					Object.keys(deployConditions.assigned).forEach(function(actorId){
+						var mechId = deployConditions.assigned[actorId];
+						var actor = $gameActors.actor(actorId);
+						if(_this.isActorSRWInitialized(actor)){
+							if(actor.SRWStats.mech.id != mechId){
+								assignedMatch = false;
+							}
+						} else {
+							assignedMatch = false;
 						}
-					} else {
-						deployConditionsMet = false;
-					}
-				});
-			}
-			if(deployConditions.free){
-				deployConditions.free.forEach(function(actorId){
-					if(_this.getCurrentVariableSubPilotMechs(actorId).length){
-						deployConditionsMet = false;
-					}
-				});
+					});
+				}
+				var freeMatch = true;
+				if(deployConditions.free){
+					deployConditions.free.forEach(function(actorId){
+						if(_this.getCurrentVariableSubPilotMechs(actorId).length){
+							freeMatch = false;
+						}
+					});
+				}
+				deployConditionsMet = assignedMatch && freeMatch;
 			}
 		}		
 		return deployConditionsMet && !actor.isEmpty && actor.SRWStats.pilot.id != -1 && actor.SRWStats.mech.id != -1 && !actor.SRWStats.mech.notDeployable;
