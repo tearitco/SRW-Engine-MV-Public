@@ -4564,7 +4564,11 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
             var type = battlerArray[0];
             var unit = battlerArray[1];
             if (type === 'actor') {
-                this.setImage(unit.characterName(), unit.characterIndex());
+				var mechClass = unit._classId;
+				var overworldSpriteData = $dataClasses[mechClass].meta.srpgOverworld.split(",");
+				characterName = overworldSpriteData[0];
+				characterIndex = overworldSpriteData[1];
+                this.setImage(characterName, characterIndex);
             } else if (type === 'enemy') {
 				var characterName;
 				var characterIndex;        
