@@ -976,8 +976,10 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	if(!actor.isSubPilot){
 		subPilots.forEach(function(pilotId){
 			var actor = $gameActors.actor(pilotId);
-			actor.isSubPilot = true;
-			_this.initSRWStats(actor, 1, [], preserveVolatile);
+			if(actor){
+				actor.isSubPilot = true;
+				_this.initSRWStats(actor, 1, [], preserveVolatile);
+			}			
 		});	
 	}	
 }
@@ -1053,8 +1055,8 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.PPYield = parseInt(mechProperties.mechPPYield);
 		result.fundYield = parseInt(mechProperties.mechFundYield);
 		
-		if(mechProperties.mechAllowedPilots){
-			var parts = mechProperties.mechAllowedPilots.split(",");
+		function parsePilotList(raw){
+			var parts = raw.split(",");
 			var tmp = [];
 			parts.forEach(function(id){
 				id = parseInt(id);
@@ -1062,7 +1064,19 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 					tmp.push(id);
 				}
 			});
-			result.allowedPilots = tmp;
+			return tmp;
+		}
+		
+		if(mechProperties.mechAllowedPilots){
+			result.allowedPilots = parsePilotList(mechProperties.mechAllowedPilots);
+		}
+		result.hasVariableSubPilots = false;
+		result.allowedSubPilots = {};
+		for(var i = 0; i < 10; i++){
+			if(mechProperties["mechAllowedSubPilots"+(i+1)]){
+				result.hasVariableSubPilots = true;
+				result.allowedSubPilots[i] = parsePilotList(mechProperties["mechAllowedSubPilots"+(i+1)]);
+			}
 		}
 		
 		result.notDeployable = parseInt(mechProperties.mechNotDeployable || 0);
@@ -1172,11 +1186,15 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			if(result.inheritsUpgradesFrom){
 				result.stats.upgradeLevels = this.getStoredMechData(result.inheritsUpgradesFrom).mechUpgrades;
 				result.genericFUBAbilityIdx = this.getStoredMechData(result.inheritsUpgradesFrom).genericFUBAbilityIdx;	
-				result.unlockedWeapons = this.getStoredMechData(result.inheritsUpgradesFrom).unlockedWeapons;	
+				result.unlockedWeapons = this.getStoredMechData(result.inheritsUpgradesFrom).unlockedWeapons;					
 			} else {
 				result.stats.upgradeLevels = this.getStoredMechData(mech.id).mechUpgrades;
 				result.genericFUBAbilityIdx = this.getStoredMechData(result.id).genericFUBAbilityIdx;
 				result.unlockedWeapons = this.getStoredMechData(result.id).unlockedWeapons;	
+			}			
+			var storedSubPilots = this.getStoredMechData(result.id).subPilots;
+			if(storedSubPilots){
+				result.subPilots = storedSubPilots;
 			}			
 			result.items = this.getActorMechItems(mech.id);
 		} else {
@@ -1499,7 +1517,8 @@ StatCalc.prototype.storeMechData = function(mech){
 	$SRWSaveManager.storeMechData(classId, {
 		mechUpgrades: mech.stats.upgradeLevels,
 		genericFUBAbilityIdx: mech.genericFUBAbilityIdx,
-		unlockedWeapons: mech.unlockedWeapons
+		unlockedWeapons: mech.unlockedWeapons,
+		subPilots: mech.subPilots
 	});	
 }
 
@@ -3901,14 +3920,14 @@ StatCalc.prototype.getCommanderAuraLookup = function(actor){
 	return result;		
 }
 
-StatCalc.prototype.getCurrentVariableSubPilotMech = function(actorId){
+StatCalc.prototype.getCurrentVariableSubPilotMechs = function(actorId){
 	var _this = this;
-	var result = -1;
+	var result = [];
 	for(var i = 0; i < $dataClasses.length; i++){
 		var mechData = _this.getMechDataById(i, true);
 		if(mechData.id != -1 && !mechData.fixedSubPilots){
-			if(mech.subPilots.indexOf(actorId) != -1){
-				result = mech.id;
+			if(mechData.subPilots && mechData.subPilots.indexOf(actorId) != -1){
+				result.push(mechData.id);
 			}
 		}
 	}
@@ -3920,26 +3939,28 @@ StatCalc.prototype.isValidForDeploy = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		var deployConditionsMet = true;
 		var deployConditions = actor.SRWStats.mech.deployConditions;
-		if(deployConditions.assigned){
-			Object.keys(deployConditions.assigned).forEach(function(actorId){
-				var mechId = deployConditions.assigned[actorId];
-				var actor = $gameActors.actor(actorId);
-				if(_this.isActorSRWInitialized(actor)){
-					if(actor.SRWStats.mech.id != mechId){
+		if(deployConditions){
+			if(deployConditions.assigned){
+				Object.keys(deployConditions.assigned).forEach(function(actorId){
+					var mechId = deployConditions.assigned[actorId];
+					var actor = $gameActors.actor(actorId);
+					if(_this.isActorSRWInitialized(actor)){
+						if(actor.SRWStats.mech.id != mechId){
+							deployConditionsMet = false;
+						}
+					} else {
 						deployConditionsMet = false;
 					}
-				} else {
-					deployConditionsMet = false;
-				}
-			});
-		}
-		if(deployConditions.free){
-			deployConditions.free.forEach(function(actorId){
-				if(_this.getCurrentVariableSubPilotMech(actorId) != -1){
-					deployConditionsMet = false;
-				}
-			});
-		}
+				});
+			}
+			if(deployConditions.free){
+				deployConditions.free.forEach(function(actorId){
+					if(_this.getCurrentVariableSubPilotMechs(actorId).length){
+						deployConditionsMet = false;
+					}
+				});
+			}
+		}		
 		return deployConditionsMet && !actor.isEmpty && actor.SRWStats.pilot.id != -1 && actor.SRWStats.mech.id != -1 && !actor.SRWStats.mech.notDeployable;
 	} else {
 		return false;

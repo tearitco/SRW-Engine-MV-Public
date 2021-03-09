@@ -3,6 +3,8 @@ import MechList from "./MechList.js"
 import DetailBarMech from "./DetailBarMech.js";
 import DetailBarPilot from "./DetailBarPilot.js";
 
+import "./style/Window_SelectReassignMech.css";
+
 export default function Window_SelectReassignMech() {
 	this.initialize.apply(this, arguments);	
 }
@@ -11,11 +13,26 @@ Window_SelectReassignMech.prototype = Object.create(Window_CSS.prototype);
 Window_SelectReassignMech.prototype.constructor = Window_SelectReassignMech;
 
 Window_SelectReassignMech.prototype.initialize = function() {
+	var _this = this;
 	this._availableUnits = [];
 	this._layoutId = "mech_reassign_select";	
 	this._pageSize = 1;
 	this._unitMode = "mech";
+	this._currentUIState = "main_selection";
+	this._currentSlotSelection = 0;
+	this._currentSlotCount = 0;
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
+	window.addEventListener("resize", function(){
+		_this.requestRedraw();
+	});
+}
+
+Window_SelectReassignMech.prototype.resetSelection = function(){
+	this._currentSelection = 0;
+	this._currentPage = 0;
+	this._currentSlotSelection = 0;
+	this._currentSlotCount = 0;
+	this._currentUIState = "main_selection";
 }
 
 Window_SelectReassignMech.prototype.getAvailableUnits = function(){
@@ -25,7 +42,7 @@ Window_SelectReassignMech.prototype.getAvailableUnits = function(){
 	var tmp = [];	
 	
 	availableMechs.forEach(function(unit){
-		if(unit.SRWStats.mech.allowedPilots.length){
+		if(unit.SRWStats.mech.allowedPilots.length || unit.SRWStats.mech.hasVariableSubPilots){
 			tmp.push(unit);
 		}
 	});
@@ -82,6 +99,10 @@ Window_SelectReassignMech.prototype.createComponents = function() {
 	this._detailPilotContainer.classList.add("list_detail");
 	windowNode.appendChild(this._detailPilotContainer);	
 	
+	this._slotSelectionContainer = document.createElement("div");
+	this._slotSelectionContainer.id = this.createId("slot_selection_container");
+	windowNode.appendChild(this._slotSelectionContainer);	
+	
 	this._mechList = new MechList(this._listContainer, [0], this);
 	this._mechList.createComponents();
 	this._detailBarMech = new DetailBarMech(this._detailContainer, this);
@@ -96,11 +117,25 @@ Window_SelectReassignMech.prototype.update = function() {
 		if(Input.isTriggered('down') || Input.isRepeated('down')){
 			SoundManager.playCursor();
 			this.requestRedraw();
-			this._mechList.incrementSelection();
+			if(this._currentUIState == "main_selection"){
+				this._mechList.incrementSelection();
+			} else {
+				this._currentSlotSelection++;
+				if(this._currentSlotSelection >= this._currentSlotCount){
+					this._currentSlotSelection = 0;
+				}
+			}
 		} else if (Input.isTriggered('up') || Input.isRepeated('up')) {
 			SoundManager.playCursor();
 			this.requestRedraw();
-		    this._mechList.decrementSelection();
+			if(this._currentUIState == "main_selection"){
+				this._mechList.decrementSelection();
+			} else {
+				this._currentSlotSelection--;
+				if(this._currentSlotSelection < 0){
+					this._currentSlotSelection = this._currentSlotCount - 1;
+				}
+			}
 		}			
 
 		if(Input.isTriggered('left') || Input.isRepeated('left')){			
@@ -137,18 +172,44 @@ Window_SelectReassignMech.prototype.update = function() {
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
 			}*/		
+			
 			if(this.rowEnabled(this.getCurrentSelection().actor)){
-				SoundManager.playOk();
-				$gameTemp.reassignTargetMech = {type: "main", id: this.getCurrentSelection().mech.id};
-				$gameTemp.pushMenu = "pilot_reassign_select";
+				if(this._currentUIState == "main_selection"){
+					SoundManager.playOk();
+					if(this.getCurrentSelection().mech.hasVariableSubPilots){
+						this._currentSlotSelection = 0;
+						this._currentUIState = "slot_selection";
+						this._currentSlotCount = this.getCurrentSelection().mech.subPilots.length + 1;
+						this.requestRedraw();
+					} else {
+						$gameTemp.reassignTargetMech = {type: "main", id: this.getCurrentSelection().mech.id};
+						$gameTemp.pushMenu = "pilot_reassign_select";
+					}					
+				} else {
+					SoundManager.playOk();
+					if(this._currentSlotSelection == 0){
+						$gameTemp.reassignTargetMech = {type: "main", id: this.getCurrentSelection().mech.id};
+					} else {
+						$gameTemp.reassignTargetMech = {type: "sub", slot: this._currentSlotSelection -1, id: this.getCurrentSelection().mech.id};
+					}				
+					
+					this._currentSlotSelection = 0;
+					$gameTemp.pushMenu = "pilot_reassign_select";
+				}
 			} else {
 				SoundManager.playBuzzer();
-			}			
+			}						
 		}
 		if(Input.isTriggered('cancel')){		
-			SoundManager.playCancel();		
-			$gameTemp.popMenu = true;	
-			$gameTemp.reassignTargetMech = null;
+			if(this._currentUIState == "main_selection"){
+				SoundManager.playCancel();		
+				$gameTemp.popMenu = true;	
+				$gameTemp.reassignTargetMech = null;
+			} else {
+				SoundManager.playCancel();	
+				this._currentUIState = "main_selection";
+				this.requestRedraw();
+			}
 		}		
 		
 		this.refresh();
@@ -156,6 +217,7 @@ Window_SelectReassignMech.prototype.update = function() {
 };
 
 Window_SelectReassignMech.prototype.redraw = function() {
+	var _this = this;
 	this._mechList.redraw();
 	this._detailBarMech.redraw();		
 	this._detailBarPilot.redraw();
@@ -167,9 +229,50 @@ Window_SelectReassignMech.prototype.redraw = function() {
 		this._detailBarPilot.show();
 		this._detailBarMech.hide();
 	}
+	if(this._currentUIState == "slot_selection"){
+		var slotSelectionContent = "";
+		slotSelectionContent+="<div class='content'>";
+		
+		var current = this.getCurrentSelection();
+		
+		if(current.mech.allowedPilots.length){
+			slotSelectionContent+="<div data-type='main' class='entry scaled_text fitted_text "+(_this._currentSlotSelection == 0 ? "selected" : "")+"'>";
+			slotSelectionContent+="<div class='slot_label'>"+APPSTRINGS.REASSIGN.label_main+"</div>";
+			slotSelectionContent+="<div class='slot_value'>"+(current.actor.SRWStats.pilot.name || "")+"</div>";
+			slotSelectionContent+="<div data-actor='"+(current.actor.SRWStats.pilot.id)+"' class='slot_icon'></div>";
+			slotSelectionContent+="</div>";	
+		}
+			
+		var subPilots = current.mech.subPilots;
+		for(var i = 0; i < subPilots.length; i++){
+			slotSelectionContent+="<div data-type='main' class='entry scaled_text fitted_text "+(_this._currentSlotSelection == (i + 1) ? "selected" : "")+"'>";
+			slotSelectionContent+="<div class='slot_label'>"+APPSTRINGS.REASSIGN.label_slot+" "+(i + 1)+"</div>";
+			var actor = $gameActors.actor(subPilots[i]);
+			var name = "---"
+			if(actor){
+				name = actor.SRWStats.pilot.name || "";
+			}
+			slotSelectionContent+="<div class='slot_value'>"+(name)+"</div>";
+			slotSelectionContent+="<div data-actor='"+subPilots[i]+"' class='slot_icon'></div>";
+			slotSelectionContent+="</div>";		
+		}
+		
+		
+		slotSelectionContent+="</div>";
+		this._slotSelectionContainer.innerHTML = slotSelectionContent;
+		
+		var slotIcons = this.getWindowNode().querySelectorAll(".slot_icon");
+		slotIcons.forEach(function(slotIcon){
+			var actorId = slotIcon.getAttribute("data-actor")*1;
+			if(actorId && actorId != -1){
+				_this.loadActorFace(actorId, slotIcon);
+			}			
+		});		
+		
+		this.updateScaledDiv(this._slotSelectionContainer);
+	} else {
+		this._slotSelectionContainer.innerHTML = "";
+	}	
 	
-	
-	
-
 	Graphics._updateCanvas();
 }

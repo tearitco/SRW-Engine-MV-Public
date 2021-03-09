@@ -282,5 +282,7 @@ APPSTRINGS.DEPLOYMENT = {
 
 APPSTRINGS.REASSIGN = {
 	mech_title: "Select Mech",
-	pilot_title: "Select Pilot"
+	pilot_title: "Select Pilot",
+	label_main: "Main",
+	label_slot: "Sub"
 }

@@ -1,7 +1,6 @@
 import Window_CSS from "./Window_CSS.js";
 import MechList from "./MechList.js"
-import DetailBarMech from "./DetailBarMech.js";
-import DetailBarPilot from "./DetailBarPilot.js";
+import DetailBarPilotStats from "./DetailBarPilotStats.js";
 
 export default function Window_SelectReassignPilot() {
 	this.initialize.apply(this, arguments);	
@@ -27,14 +26,21 @@ Window_SelectReassignPilot.prototype.getAvailableUnits = function(){
 	var tmp = [];	
 	
 	if($gameTemp.reassignTargetMech){
-		var target = $gameTemp.reassignTargetMech;
+		var target = $gameTemp.reassignTargetMech;	
 		var mechId = target.id;
-
 		var mechData = $statCalc.getMechData($dataClasses[mechId], true);
-		mechData.allowedPilots.forEach(function(id){
-			assignablePilotLookup[id] = true;
-		});
-		
+		if(target.type == "main"){				
+			mechData.allowedPilots.forEach(function(id){
+				assignablePilotLookup[id] = true;
+			});
+		} else {
+			var allowedSubPilots = mechData.allowedSubPilots[$gameTemp.reassignTargetMech.slot];
+			if(allowedSubPilots){
+				allowedSubPilots.forEach(function(id){
+					assignablePilotLookup[id] = true;
+				});
+			}			
+		}	
 		/*var currentPilot = $statCalc.getCurrentPilot(mechId);
 		if(currentPilot){
 			assignablePilotLookup[currentPilot.SRWStats.pilot.id] = false;
@@ -95,15 +101,15 @@ Window_SelectReassignPilot.prototype.createComponents = function() {
 	this._detailContainer.classList.add("list_detail");
 	windowNode.appendChild(this._detailContainer);	
 	
-	this._detailPilotContainer = document.createElement("div");
+	/*this._detailPilotContainer = document.createElement("div");
 	this._detailPilotContainer.classList.add("list_detail");
-	windowNode.appendChild(this._detailPilotContainer);	
+	windowNode.appendChild(this._detailPilotContainer);	*/
 	
 	this._mechList = new MechList(this._listContainer, [5], this);
 	this._mechList.createComponents();
-	this._detailBarMech = new DetailBarMech(this._detailContainer, this);
+	this._detailBarMech = new DetailBarPilotStats(this._detailContainer, this);
 	this._detailBarMech.createComponents();
-	this._detailBarPilot = new DetailBarPilot(this._detailPilotContainer, this);
+	//this._detailBarPilot = new DetailBarPilot(this._detailPilotContainer, this);
 }	
 
 Window_SelectReassignPilot.prototype.update = function() {
@@ -166,10 +172,60 @@ Window_SelectReassignPilot.prototype.update = function() {
 						$statCalc.initSRWStats(currentPilot);						
 						$gameSystem.clearActorDeployInfo(currentPilot.actorId());
 					}					
+					
+					var previousMechs = $statCalc.getCurrentVariableSubPilotMechs(targetPilot.actorId());
+					previousMechs.forEach(function(previousMechId){		
+						var previousMech = $statCalc.getMechData($dataClasses[previousMechId], true);
+						if(previousMech && previousMech.id != -1){
+							previousMech.subPilots[previousMech.subPilots.indexOf(targetPilot.actorId())] = 0;
+							$statCalc.storeMechData(previousMech);
+							
+							//ensure the live copy of the unit is also updated
+							var currentPilot = $statCalc.getCurrentPilot(previousMech.id);
+							if(currentPilot){
+								currentPilot.SRWStats.mech.subPilots[currentPilot.SRWStats.mech.subPilots.indexOf(targetPilot.actorId())] = 0;
+							}
+						}	
+					});	
+					
 					targetPilot._classId = mechId;
+					targetPilot.isSubPilot = false;
 					$statCalc.initSRWStats(targetPilot);
 					$gameSystem.clearActorDeployInfo(targetPilot.actorId());
-					$gameTemp.popMenu = true;	
+					$gameTemp.popMenu = true;
+				} else {
+					var targetPilot = this.getCurrentSelection().actor;
+					if(targetPilot){
+						targetPilot._classId = 0;
+						targetPilot.isSubPilot = true;
+						$statCalc.initSRWStats(targetPilot);						
+						$gameSystem.clearActorDeployInfo(targetPilot.actorId());
+					}
+					var previousMechs = $statCalc.getCurrentVariableSubPilotMechs(targetPilot.actorId());
+					previousMechs.forEach(function(previousMechId){		
+						var previousMech = $statCalc.getMechData($dataClasses[previousMechId], true);
+						if(previousMech && previousMech.id != -1){
+							previousMech.subPilots[previousMech.subPilots.indexOf(targetPilot.actorId())] = 0;
+							$statCalc.storeMechData(previousMech);
+							
+							//ensure the live copy of the unit is also updated
+							var currentPilot = $statCalc.getCurrentPilot(previousMech.id);
+							if(currentPilot){
+								currentPilot.SRWStats.mech.subPilots[currentPilot.SRWStats.mech.subPilots.indexOf(targetPilot.actorId())] = 0;
+							}
+						}	
+					});	
+					var targetMech = $statCalc.getMechData($dataClasses[$gameTemp.reassignTargetMech.id], true);
+					targetMech.subPilots[$gameTemp.reassignTargetMech.slot] = targetPilot.actorId();
+					$statCalc.storeMechData(targetMech);
+					
+					//ensure the live copy of the unit is also updated
+					var currentPilot = $statCalc.getCurrentPilot(mechId);
+					if(currentPilot){
+						currentPilot.SRWStats.mech.subPilots[$gameTemp.reassignTargetMech.slot] = targetPilot.actorId();
+					}
+					
+					$gameTemp.popMenu = true;						
 				}
 			} else {
 				SoundManager.playBuzzer();
@@ -188,17 +244,8 @@ Window_SelectReassignPilot.prototype.update = function() {
 Window_SelectReassignPilot.prototype.redraw = function() {
 	this._mechList.redraw();
 	this._detailBarMech.redraw();		
-	this._detailBarPilot.redraw();
 	
-	if(this._mechList.getCurrentInfoPage() == 0){
-		this._detailBarPilot.hide();
-		this._detailBarMech.show();
-	} else {
-		this._detailBarPilot.show();
-		this._detailBarMech.hide();
-	}
-	
-	
+	this._detailBarMech.show();
 	
 
 	Graphics._updateCanvas();
