@@ -44,6 +44,10 @@
 	color: #00a5ff;
 }
 
+#intermission_menu .menu_entry.disabled {
+	opacity: 0.5;
+}
+
 #intermission_menu_tooltip {
 	color: #FFFFFF;
 	font-size: 1.5px;

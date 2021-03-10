@@ -20,6 +20,18 @@ Window_Intermission.prototype.show = function() {
 
 Window_Intermission.prototype.initialize = function() {
 	var _this = this;
+	
+	function validateReassignMenu(){
+		var availableMechs = Window_CSS.prototype.getAvailableUnits.call(_this);
+		var tmp = [];	
+		availableMechs.forEach(function(unit){
+			if(unit.SRWStats.mech.allowedPilots.length || unit.SRWStats.mech.hasVariableSubPilots){
+				tmp.push(unit);
+			}
+		});
+		return tmp.length;	
+	}
+	
 	this._commands = [
 		{name: APPSTRINGS.INTERMISSION.mech_label, key: "mech", subCommands: [
 			{name: APPSTRINGS.INTERMISSION.list_label, key: "mech_list"},
@@ -34,7 +46,7 @@ Window_Intermission.prototype.initialize = function() {
 			//{name: "Search", key: "pilot_search"}
 		]},
 		{name: APPSTRINGS.INTERMISSION.deployment, key: "deployment"},
-		{name: APPSTRINGS.INTERMISSION.reassign, key: "reassign"},
+		{name: APPSTRINGS.INTERMISSION.reassign, key: "reassign", enabled: validateReassignMenu},
 		{name: APPSTRINGS.INTERMISSION.options, key: "options"},
 		{name: APPSTRINGS.INTERMISSION.data_label, key: "data", subCommands: [
 			{name: APPSTRINGS.INTERMISSION.data_save_label, key: "data_save"},
@@ -118,7 +130,12 @@ Window_Intermission.prototype.initialize = function() {
 			$gameTemp.pushMenu = "deployment";
 		},	
 		"reassign": function(){
-			$gameTemp.pushMenu = "mech_reassign_select";
+			if(validateReassignMenu()){
+				$gameTemp.pushMenu = "mech_reassign_select";
+				return false;//isprevented
+			}			
+			_this._handlingInput = false; 
+			return true; //isprevented
 		}		
 	};	
 };
@@ -283,10 +300,14 @@ Window_Intermission.prototype.update = function() {
 		}				
 		
 		if(Input.isTriggered('ok')){
-			SoundManager.playOk();
-			if(this._internalHandlers[this._currentKey]){
-				this._handlingInput = true;
-				this._internalHandlers[this._currentKey].call(this);
+			if(this._internalHandlers[this._currentKey]){		
+				this._handlingInput = true; 
+				var isPrevented = this._internalHandlers[this._currentKey].call(this);
+				if(isPrevented){
+					SoundManager.playBuzzer();
+				} else {
+					SoundManager.playOk();
+				}
 			}
 		}
 		if(Input.isTriggered('cancel')){		

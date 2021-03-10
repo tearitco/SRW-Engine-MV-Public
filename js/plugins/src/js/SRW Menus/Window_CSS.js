@@ -86,6 +86,9 @@ Window_CSS.prototype.createEntryList = function(node, listInfo, id) {
 		if(this._currentKey == listInfo[i].key){
 			div.classList.add("selected");
 		}
+		if(listInfo[i].enabled && !listInfo[i].enabled()){
+			div.classList.add("disabled");
+		}
 		div.setAttribute("data-key", listInfo[i].key);
 		div.innerHTML = listInfo[i].name;
 		node.appendChild(div);

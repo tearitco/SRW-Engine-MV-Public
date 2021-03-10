@@ -130,7 +130,8 @@ APPSTRINGS.INTERMISSION = {
 		"data_save": "Save your current progress",
 		"data_load": "Load previous save data",
 		"options": "Manage Game Settings",
-		"deployment": "Manage Unit Deployment for the next stage"
+		"deployment": "Manage Unit Deployment for the next stage",
+		"reassign": "Manage Pilot assignments to Mechs"
 	},
 	data_label: "Data",
 	data_save_label: "Save",
