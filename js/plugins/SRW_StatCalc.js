@@ -1175,8 +1175,22 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.destroyTransformInto = mechProperties.mechDestroyTransformInto * 1 || null;		
 		result.destroyTransformedActor = mechProperties.mechDestroyTransformedActor * 1 || null;		
 		
-		result.transformedActor = mechProperties.mechTransformedActor;
+		//result.transformedActor = mechProperties.mechTransformedActor;
 
+		var mechOnDeployMain;
+		var mechOnDeployMainRaw = mechProperties.mechOnDeployMain;
+		if(!isNaN(mechOnDeployMainRaw * 1)){
+			mechOnDeployMain = {type: "direct", id: mechOnDeployMainRaw * 1};
+		} else if(mechOnDeployMainRaw){
+			try {
+				mechOnDeployMain = JSON.parse(mechOnDeployMainRaw);
+			} catch(e){
+				
+			}			
+		}
+		
+		result.onDeployMain = mechOnDeployMain || {};
+		
 		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;		
 		
 		result.abilities = this.getMechAbilityInfo(mechProperties);
@@ -1247,8 +1261,31 @@ StatCalc.prototype.transform = function(actor, force){
 			var previousHPRatio = calculatedStats.currentHP / calculatedStats.maxHP;
 			var previousENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
 			var transformIntoId = actor.SRWStats.mech.transformsInto;
-			var targetActorId = actor.SRWStats.mech.transformedActor;
-			if(targetActorId != null){
+			
+			var targetMechData = this.getMechDataById(transformIntoId, true);
+			
+			var targetActorId;
+			var onDeployMain = targetMechData.onDeployMain;
+			if(onDeployMain.type == "direct"){
+				targetActorId = onDeployMain.id;
+			}  else if(onDeployMain.type == "main"){
+				var donorMech = this.getMechDataById(onDeployMain.mech_id, true);
+				if(donorMech){
+					var pilot =  this.getCurrentPilot(donorMech.id);
+					if(pilot){
+						targetActorId = pilot.SRWStats.pilot.id;
+					}
+				}
+			} else if(onDeployMain.type == "sub"){
+				var donorMech = this.getMechDataById(onDeployMain.mech_id, true);				
+				if(donorMech){
+					var subPilots = donorMech.subPilots;
+					if(subPilots[onDeployMain.slot]){
+						targetActorId = subPilots[onDeployMain.slot];												
+					}					
+				}
+			}
+			if(targetActorId != null && targetActorId != -1){
 				var targetActor = $gameActors.actor(targetActorId);
 				if(targetActor.actorId() != actor.actorId()){
 					if(this.isActorSRWInitialized(targetActor)){
