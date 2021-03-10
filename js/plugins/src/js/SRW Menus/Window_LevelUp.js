@@ -53,9 +53,9 @@ Window_LevelUp.prototype.update = function() {
 Window_LevelUp.prototype.redraw = function() {	
 	var _this = this;
 	var content = "";
-	if($gameTemp.rewardsInfo && $gameTemp.rewardsInfo.levelResult){
-		var actor = $gameTemp.rewardsInfo.actor;
-		var levelResult = $gameTemp.rewardsInfo.levelResult;
+	if($gameTemp.currentLevelResult){
+		var actor = $gameTemp.currentLevelResult.actor;
+		var levelResult = $gameTemp.currentLevelResult.details;
 		content+="<div class='level_up_content'>";
 		content+="<div class='level_up_row level_up'>";
 		content+="<div id='level_up_icon'></div>";//icon 	
@@ -203,7 +203,7 @@ Window_LevelUp.prototype.redraw = function() {
 		this.updateScaledDiv(_this._bgFadeContainer);
 		this.updateScaledDiv(_this._bgFadeContainer.querySelector("#level_up_icon"));	
 		var actorIcon = this._bgFadeContainer.querySelector("#level_up_icon");
-		this.loadActorFace($gameTemp.rewardsInfo.actor.actorId(), actorIcon);
+		this.loadActorFace($gameTemp.currentLevelResult.actor.actorId(), actorIcon);
 	}	
 	
 	Graphics._updateCanvas();

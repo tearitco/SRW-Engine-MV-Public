@@ -9193,12 +9193,46 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					 $gameTemp.popMenu = true;	
 					 this._rewardsWindow.hide();
 					 this._rewardsWindow.deactivate();
-					 if($gameTemp.rewardsInfo.levelResult.hasLevelled){
-						$gameTemp.rewardsDisplayTimer = 30;
+					 if($gameTemp.rewardsInfo.levelResult.length){
+						
 						$gameSystem.setSubBattlePhase("level_up_display");
+						$gameTemp.awaitingLevelUpWindow = false;
 						/*this._levelUpWindow.refresh();
 						this._levelUpWindow.show();
 						this._levelUpWindow.activate();		*/
+						
+					} else {
+						 //this.srpgPrepareNextAction();
+					}					 
+					return;
+				 }
+				 $gameTemp.rewardsDisplayTimer--;
+			}
+			if ($gameSystem.isSubBattlePhase() === 'level_up_display') {				
+				if($gameTemp.awaitingLevelUpWindow){
+					if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()|| ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
+						$gameTemp.popMenu = true;
+						this._levelUpWindow.hide();
+						this._levelUpWindow.deactivate();
+						if($gameTemp.rewardsInfo.levelResult.length){
+							$gameTemp.awaitingLevelUpWindow = false;
+						} else {
+							$gameTemp.rewardsInfo = {};					
+							this.srpgPrepareNextAction();
+						}						
+					}
+				}	
+
+				if(!$gameTemp.awaitingLevelUpWindow){
+					$gameTemp.awaitingLevelUpWindow = true;
+					var currentResult = $gameTemp.rewardsInfo.levelResult.shift();
+					while($gameTemp.rewardsInfo.levelResult.length && !currentResult.details.hasLevelled){
+						currentResult = $gameTemp.rewardsInfo.levelResult.shift();
+					}					
+					if(currentResult && currentResult.details.hasLevelled){
+						$gameTemp.currentLevelResult = currentResult;
+						$gameTemp.rewardsDisplayTimer = 30;
+						
 						var se = {};
 						se.name = 'SRWLevelUp';
 						se.pan = 0;
@@ -9207,22 +9241,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						AudioManager.playSe(se);						
 						$gameTemp.pushMenu = "level_up";
 					} else {
-						 this.srpgPrepareNextAction();
-					}					 
-					return;
-				 }
-				 $gameTemp.rewardsDisplayTimer--;
-			}
-			if ($gameSystem.isSubBattlePhase() === 'level_up_display') {
-				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()|| ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
-					$gameTemp.popMenu = true;
-					this._levelUpWindow.hide();
-					this._levelUpWindow.deactivate();
-					$gameTemp.rewardsInfo = {};					
-					this.srpgPrepareNextAction();										 
-					return;
-				 }
-				 $gameTemp.rewardsDisplayTimer--;
+						$gameTemp.rewardsInfo = {};					
+						this.srpgPrepareNextAction();
+					}					
+				} 
+				
+				$gameTemp.rewardsDisplayTimer--;
+				return;
 			}
             if ($gameSystem.srpgWaitMoving() == true ||
                 $gameTemp.isAutoMoveDestinationValid() == true ||
@@ -10282,19 +10307,26 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					itemDrops.push(itemDrop);
 				}							
 				
-				gainResults.forEach(function(entry){						
-					entry.expGain+=$battleCalc.performExpCalculation(entry.actor, gainDonor.ref);
+				gainResults.forEach(function(entry){	
+					var gain = $battleCalc.performExpCalculation(entry.actor, gainDonor.ref);
+					if(!gainDonor.isDestroyed){
+						gain = Math.floor(gain/10);
+					}
+					entry.expGain+=gain;
 				});
-			});					
+			});									
 			
-			$statCalc.addPP(battleEffect.ref, battleEffect.ppGain);					
+			gainResults.unshift({actor: battleEffect.ref, expGain: battleEffect.expGain, ppGain: battleEffect.ppGain});			
 			
-			gainResults.unshift({actor: battleEffect.ref, expGain: battleEffect.expGain, ppGain: battleEffect.ppGain});					
+			var expResults = [];
+			gainResults.forEach(function(entry){						
+				$statCalc.addPP(entry.actor, battleEffect.ppGain);
+				expResults.push({actor: entry.actor, details: $statCalc.addExp(entry.actor, entry.expGain)});				
+			});				
 			
-			var result = $statCalc.addExp(battleEffect.ref, battleEffect.expGain);
 			$gameTemp.rewardsInfo = {
 				//actor: battleEffect.ref,
-				levelResult: result,
+				levelResult: expResults,
 				//expGain: battleEffect.expGain,
 				//ppGain: battleEffect.ppGain,
 				itemDrops: itemDrops,
