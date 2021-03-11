@@ -4731,6 +4731,13 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
             _SRPG_Game_Event_updateStop.call(this);
         }
     };
+	
+	Game_Event.prototype.event = function() {
+		if(!$dataMap.events[this._eventId]){
+			return JSON.parse('{"id":1,"name":"ACTOR_0","note":"<type:actor>","pages":[{"conditions":{"actorId":1,"actorValid":false,"itemId":1,"itemValid":false,"selfSwitchCh":"A","selfSwitchValid":false,"switch1Id":1,"switch1Valid":false,"switch2Id":1,"switch2Valid":false,"variableId":1,"variableValid":false,"variableValue":0},"directionFix":false,"image":{"tileId":0,"characterName":"","direction":2,"pattern":0,"characterIndex":0},"list":[{"code":0,"indent":0,"parameters":[]}],"moveFrequency":3,"moveRoute":{"list":[{"code":0,"parameters":[]}],"repeat":true,"skippable":false,"wait":false},"moveSpeed":3,"moveType":0,"priorityType":0,"stepAnime":false,"through":false,"trigger":0,"walkAnime":true}],"x":17,"y":7,"meta":{"type":"actor"}}');
+		}
+		return $dataMap.events[this._eventId];
+	};
 
 //====================================================================
 // ●Game_Map
@@ -4740,7 +4747,27 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 	var Game_Map_prototype_initialize = Game_Map.prototype.initialize;
 	Game_Map.prototype.initialize = function() {
 		Game_Map_prototype_initialize.call(this);		
+		
 	}
+	
+	Game_Map.prototype.setupEvents = function() {
+		this._events = [];
+		for (var i = 0; i < $dataMap.events.length; i++) {
+			if ($dataMap.events[i]) {
+				this._events[i] = new Game_Event(this._mapId, i);
+			}
+		}
+		this._startOfDynamicEvents = this._events.length;
+		for (var i = this._startOfDynamicEvents; i < this._startOfDynamicEvents + 20; i++) {
+			var event = new Game_Event(this._mapId, i);
+			event.isUnused = true;
+			this._events[i] = event;			
+		}
+		this._commonEvents = this.parallelCommonEvents().map(function(commonEvent) {
+			return new Game_CommonEvent(commonEvent.id);
+		});
+		this.refreshTileEvents();
+	};
 	
 	Game_Map.prototype.getRegionTiles = function(id) {
 		if(!this._regionTilesLookup){
@@ -4817,6 +4844,21 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		}	
 		return result;
 	}
+	
+	Game_Map.prototype.requestDynamicEvent = function() {
+		var event;
+		var ctr = this._startOfDynamicEvents;
+		while(ctr < this._events.length && !event){
+			if(this._events[ctr].isUnused){
+				event = this._events[ctr];
+			}
+			ctr++;
+		}
+		if(event){
+			event.isUnused = false;
+		}		
+		return event;
+	};	
 	
     Game_Map.prototype.setEventImages = function() {
         this.events().forEach(function(event) {
@@ -6950,7 +6992,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         this.x = ($gameMap.adjustX(this._posX) + 0.5) * tileWidth -$gameMap.tileWidth()/2;
         this.y = ($gameMap.adjustY(this._posY) + 0.5) * tileHeight -$gameMap.tileHeight()/2;
 		this.z = 0;
-    };	
+    };
+	
+//====================================================================
+// ●Spriteset_Map
+//====================================================================	
+	
+SceneManager.reloadCharacters = function(startEvent){
+	if(SceneManager._scene){
+		SceneManager._scene.children[0].reloadCharacters(startEvent);
+	}	
+}
 	
 //====================================================================
 // ●Spriteset_Map
@@ -6973,8 +7025,22 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         }		
     };
 	
+	Spriteset_Map.prototype.addCharacterToBaseSprite = function(sprite) {
+		var child = this._baseSprite.addChild(sprite);
+		this._characterLayerSprites.push(child);
+	}
+	
+	Spriteset_Map.prototype.reloadCharacters = function() {
+		var _this = this;
+		this._characterLayerSprites.forEach(function(child){
+			_this._baseSprite.removeChild(child);
+		});
+		this.createCharacters();
+	}
+	
 	var _SRPG_Spriteset_Map_createTilemap_createCharacters = Spriteset_Map.prototype.createCharacters;
 	Spriteset_Map.prototype.createCharacters = function() {
+		this._characterLayerSprites = [];
 		if($gameTemp.intermissionPending){
 			return;
 		}
@@ -7040,7 +7106,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}, this);
 		this._characterSprites.push(new Sprite_Character($gamePlayer));
 		for (var i = 0; i < this._characterSprites.length; i++) {
-			this._baseSprite.addChild(this._characterSprites[i]);
+			this.addCharacterToBaseSprite(this._characterSprites[i]);
 		}
 		$gameMap.events().forEach(function(event) {
 			this.createExplosionSprite(event._eventId, event);
@@ -7050,14 +7116,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		}, this);			
 		
 		this._reticuleSprite = new Sprite_Reticule();
-		this._baseSprite.addChild(this._reticuleSprite);   	
+		this.addCharacterToBaseSprite(this._reticuleSprite);   	
 	};
 	
 	Spriteset_Map.prototype.createExplosionSprite = function(id,character) {
 		if (!character) return;
 		if (!this._explosionSprites[id]) {
 			this._explosionSprites[id] = new Sprite_Destroyed(character);
-			this._baseSprite.addChild(this._explosionSprites[id]);
+			this.addCharacterToBaseSprite(this._explosionSprites[id]);
 			character._explosionSprite = true;
 		};
 	};
@@ -7066,7 +7132,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if (!character) return;
 		if (!this._appearSprites[id]) {
 			this._appearSprites[id] = new Sprite_Appear(character);
-			this._baseSprite.addChild(this._appearSprites[id]);
+			this.addCharacterToBaseSprite(this._appearSprites[id]);
 			character._appearSprite = true;
 		};
 	};
@@ -7075,7 +7141,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if (!character) return;
 		if (!this._disappearSprites[id]) {
 			this._disappearSprites[id] = new Sprite_Disappear(character);
-			this._baseSprite.addChild(this._disappearSprites[id]);
+			this.addCharacterToBaseSprite(this._disappearSprites[id]);
 			character._disappearSprite = true;
 		};
 	};
@@ -7084,7 +7150,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if (!character) return;
 		if (!this._bshadowSprites[id]) {
 			this._bshadowSprites[id] = new Sprite_BasicShadow(character);
-			this._baseSprite.addChild(this._bshadowSprites[id]);
+			this.addCharacterToBaseSprite(this._bshadowSprites[id]);
 			character._shadSprite = true;
 		};
 	};
@@ -7093,7 +7159,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if (!character) return;
 		if (!this._willIndicators[id]) {
 			this._willIndicators[id] = new Sprite_WillIndicator(character);
-			this._baseSprite.addChild(this._willIndicators[id]);
+			this.addCharacterToBaseSprite(this._willIndicators[id]);
 			character._willIndicator = true;
 		};
 	};	

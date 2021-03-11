@@ -1353,7 +1353,15 @@ StatCalc.prototype.split = function(actor){
 			var calculatedStats = this.getCalculatedMechStats(actor);
 			calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
 			calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);
-			var event = actor.event
+			var event = actor.event;
+			if(!event){
+				event = $gameMap.requestDynamicEvent(targetActor.event)
+				actor.event = event;
+				event.setType(targetActor.event.isType());
+				$gameSystem.setEventToUnit(actor.event.eventId(), 'actor', actor.actorId());
+				
+				//SceneManager.reloadCharacters();
+			}
 			if(event){
 				if(actor.actorId() != targetActor.actorId()){
 					var space = this.getAdjacentFreeSpace({x: targetActor.event.posX(), y: targetActor.event.posY()});
@@ -1361,11 +1369,11 @@ StatCalc.prototype.split = function(actor){
 					event.locate(space.x, space.y);
 				}
 				event.refreshImage();
-			}			
+				actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+				actor.event.refreshImage();
+			}					
 			//
-		}		
-		targetActor.initImages(targetActor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
-		targetActor.event.refreshImage();
+		}				
 	}
 }
 

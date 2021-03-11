@@ -49,14 +49,14 @@ DEPLOY_ACTIONS[1] = {
 };
 
 /*
-	Type 3
+	Type 3 (unit 16)
 */
 
 DEPLOY_ACTIONS[2] = {
 	"-1": { //any pilot
-		16: [
-			{target: {type: "main"}, source: {type: "main", mech_id: 17}}, //
-			{target: {type: "sub", slot: 0}, source: {type: "main", mech_id: 18}} //
+		16: [ 
+			{target: {type: "main"}, source: {type: "main", mech_id: 17}}, // assign the main pilot of unit 17(Bird) as main pilot of unit 16(Type 3)
+			{target: {type: "sub", slot: 0}, source: {type: "main", mech_id: 18}} // assign the main pilot of unit 18(Lander) as sub pilot of unit 16(Type 3)
 		]		
 	}
 };
@@ -68,7 +68,7 @@ DEPLOY_ACTIONS[2] = {
 DEPLOY_ACTIONS[3] = {
 	"-1": { //any pilot
 		17: [
-			{target: {type: "main"}, source: {type: "main", mech_id: 16}}, //
+			{target: {type: "main"}, source: {type: "main", mech_id: 16}}, // assign the main pilot of unit 16(Type 3) as main pilot of unit 17(Bird)
 		]		
 	}
 };
@@ -80,7 +80,7 @@ DEPLOY_ACTIONS[3] = {
 DEPLOY_ACTIONS[4] = {
 	"-1": { //any pilot
 		18: [
-			{target: {type: "main"}, source: {type: "sub", slot: 0, mech_id: 16}}, //
+			{target: {type: "main"}, source: {type: "sub", slot: 0, mech_id: 16}}, // assign the sub pilot of unit 16(Type 3) as main pilot of unit 18(Lander)
 		]		
 	}
 };
