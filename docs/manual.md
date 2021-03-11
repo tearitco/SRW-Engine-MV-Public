@@ -443,7 +443,7 @@ This example shows the use of -1 as a pilot id. -1 signifies that the Action wil
 
 This example also uses indirect sources, identified by the type being either "main" or "sub". For these types a mech\_id is specified and for sub pilots a slot as well. The source in this case will be whatever pilot currently exists in the specified spot. In the definition for the Type 3 the Action will take the main pilot of mech 17(Type 3 - Bird) and put them in the main pilot spot of the Type 3 itself. The second action will take the sub-pilot of mech 18(Type 3 - Lander) and put them in the sub-pilot slot of the Type 3. This is used when combining the Bird and Lander into the Type 3.
 
-The definitions for the Bird and Lander takes a slot from the combined Type 3 and puts them into the respective main pilot seat. This is used when splitting the Type 3 into the Bird and Lander.
+The definitions for the Bird and Lander take a slot from the combined Type 3 and puts them into the respective main pilot seat. This is used when splitting the Type 3 into the Bird and Lander.
 
 ##### Checking if a unit can be deployed
 
@@ -451,7 +451,7 @@ In addition to being used to rearrange pilots as needed the Deploy Action defini
 
 ##### Automatically rearranging pilots
 
-If the \<mechForcePilots\> tag is set to 1 the mech will force pilots to be reassigned when assigning main pilots to them in the pilot swap window. The pilots assigned are in accordance with the defined Deployment actions.
+If the \<mechForcePilots\> tag is set to 1 the mech will force pilots to be reassigned when assigning main pilots to them in the pilot swap window. The pilots assigned are in accordance with the defined Deploy Actions.
 
 #### Undeployable mechs
 Some mechs can not be deployed directly, these are usually mechs that other mechs transform into:
