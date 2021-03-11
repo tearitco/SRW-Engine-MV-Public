@@ -62,7 +62,7 @@ DEPLOY_ACTIONS[2] = {
 };
 
 /*
-	Type 3 - Bird
+	Type 3 - Bird(unit 17)
 */
 
 DEPLOY_ACTIONS[3] = {
@@ -74,7 +74,7 @@ DEPLOY_ACTIONS[3] = {
 };
 
 /*
-	Type 3 - Lander
+	Type 3 - Lander(unit 18)
 */
 
 DEPLOY_ACTIONS[4] = {

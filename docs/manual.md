@@ -346,7 +346,110 @@ Each sub pilot slot can be assigned a list of valid pilots. Up to 10 slots are s
 
 #### Actions
 
-Some mechs need to make sure pilots and in the correct spot before they can be used.
+Some mechs need to make sure pilots are in the correct spot before they can be used.
+
+The \<mechDeployActions\> tag allows an id to be configured that refers to an entry in the DeployActions.conf.js file. The definitions in this file will be further explained with some examples.
+
+##### First example
+A Unit that functions like RyuKoOh from Super Robot Wars OG.
+
+In this example RyoKoOh is unit id 14 and KoRyuOh is unit id 15. Kusuha is pilot id 13 and Bullet is pilot id 12.
+
+\<mechDeployActions: 0\> refers to the first definition in DeployActions.conf.js.
+
+In the file itself the definition looks as follows:
+
+```  
+ DEPLOY_ACTIONS[0] = {
+	13: {//pilot 13
+		14: [ //unit 14
+			{target: {type: "sub", slot: 0}, source: {type: "direct", id: 12}}, //assign pilot 12 to sub slot 0 of unit 14
+			{target: {type: "main"}, source: {type: "direct", id: 13}} //assign pilot 13 to the main pilot slot of unit 14
+		],
+		15: [ //unit 15
+			{target: {type: "main"}, source: {type: "direct", id: 12}} //assign pilot 12 to the main pilot slot of unit 15
+		]
+	},
+	12: { // this definition is used when transforming into RyoKoOh on the map, as pilot 12(Bullet) is still the main pilot at the time of transformation
+		14: [ //unit 14
+			{target: {type: "sub", slot: 0}, source: {type: "direct", id: 12}}, //assign pilot 12 to sub slot 0 of unit 14
+			{target: {type: "main"}, source: {type: "direct", id: 13}} //assign pilot 13 to the main pilot slot of unit 14
+		],
+	}
+}; 
+  ```
+
+This definition describes what changes to pilot assignment should occur when a specific pilot becomes the main pilot of the unit this definition is assigned to. These actions are also applied when a unit is deployed, either directly or when it is transformed, combined into or split into.
+
+These are the rules defined by the example above:
+
+* when pilot 13(Kusuha) is set as its main the following pilot changes should happen:
+	* Set pilot 13(Kusuha) as the main of unit 14(RyuKoOh)
+	* Set pilot 12(Bullet) as the sub-pilot of unit 14(RyuKoOh)
+	* Set pilot 12(Bullet) as the main of unit 15(KoRyuOh) (For display in the unit list during the intermission)
+		
+* when pilot 12(Bullet) is set as its main the following pilot changes should happen:
+	* Set pilot 13(Kusuha) as the main of unit 14(RyuKoOh)
+	* Set pilot 12(Bullet) as the sub-pilot of unit 14(RyuKoOh)
+
+The definition with Bullet as the main is there to make transforming into RyuKoOh function properly. When the transformation is triggered Bullet temporarily becomes the main Pilot of RyuKoOh but is then replaced by Kusuha by the Deploy Action.
+
+
+
+##### Second Example
+
+This example creates a unit that functions like the Grungust Type 3 from Super Robot Wars OG. This unit can have variable main and sub pilots and combine/split.
+
+```
+/*
+	Type 3 (unit 16)
+*/
+
+DEPLOY_ACTIONS[2] = {
+	"-1": { //any pilot
+		16: [ 
+			{target: {type: "main"}, source: {type: "main", mech_id: 17}}, // assign the main pilot of unit 17(Bird) as main pilot of unit 16(Type 3)
+			{target: {type: "sub", slot: 0}, source: {type: "main", mech_id: 18}} // assign the main pilot of unit 18(Lander) as sub pilot of unit 16(Type 3)
+		]		
+	}
+};
+
+/*
+	Type 3 - Bird(unit 17)
+*/
+
+DEPLOY_ACTIONS[3] = {
+	"-1": { //any pilot
+		17: [
+			{target: {type: "main"}, source: {type: "main", mech_id: 16}}, // assign the main pilot of unit 16(Type 3) as main pilot of unit 17(Bird)
+		]		
+	}
+};
+
+/*
+	Type 3 - Lander(unit 18)
+*/
+
+DEPLOY_ACTIONS[4] = {
+	"-1": { //any pilot
+		18: [
+			{target: {type: "main"}, source: {type: "sub", slot: 0, mech_id: 16}}, // assign the sub pilot of unit 16(Type 3) as main pilot of unit 18(Lander)
+		]		
+	}
+};
+```
+
+This example shows the use of -1 as a pilot id. -1 signifies that the Action will be used for any pilot, unless there is a specific definition for the pilot in question.
+
+This example also uses indirect sources, identified by the type being either "main" or "sub". For these types a mech\_id is specified and for sub pilots a slot as well. The source in this case will be whatever pilot currently exists in the specified spot. In the definition for the Type 3 the Action will take the main pilot of mech 17(Type 3 - Bird) and put them in the main pilot spot of the Type 3 itself. The second action will take the sub-pilot of mech 18(Type 3 - Lander) and put them in the sub-pilot slot of the Type 3. This is used when combining the Bird and Lander into the Type 3.
+
+The definitions for the Bird and Lander takes a slot from the combined Type 3 and puts them into the respective main pilot seat. This is used when splitting the Type 3 into the Bird and Lander.
+
+##### Checking if a unit can be deployed
+
+In addition to being used to rearrange pilots as needed the Deploy Action definitions are also used to check whether a unit is valid to deploy. For sources that are of the "direct" type a check is performed to see if the specified pilot is in the right place. For sources that are indirect("main" or "sub" type), a check is performed to see if any pilot is available in the target slot for that entry.
+
+##### Automatically rearranging pilots
 
 If the \<mechForcePilots\> tag is set to 1 the mech will force pilots to be reassigned when assigning main pilots to them in the pilot swap window. The pilots assigned are in accordance with the defined Deployment actions.
 
