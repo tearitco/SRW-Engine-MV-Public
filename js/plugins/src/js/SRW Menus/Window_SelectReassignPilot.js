@@ -227,6 +227,10 @@ Window_SelectReassignPilot.prototype.update = function() {
 					
 					$gameTemp.popMenu = true;						
 				}
+				
+				if(this.getCurrentSelection().mech.forcePilots){
+					$statCalc.applyDeployActions(this.getCurrentSelection().actor.actorId(), mechId);
+				}			
 			} else {
 				SoundManager.playBuzzer();
 			}			

@@ -1083,7 +1083,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		
 		result.deployConditions = JSON.parse(mechProperties.mechDeployConditions || "{}");
 		
-		result.fixedSubPilots = parseInt(mechProperties.mechFixedSubPilots || 0);
+		result.forcePilots = parseInt(mechProperties.mechForcePilots || 0);
 		
 		/*result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
@@ -1177,7 +1177,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		
 		//result.transformedActor = mechProperties.mechTransformedActor;
 
-		var mechOnDeployMain;
+		/*var mechOnDeployMain;
 		var mechOnDeployMainRaw = mechProperties.mechOnDeployMain;
 		if(!isNaN(mechOnDeployMainRaw * 1)){
 			mechOnDeployMain = {type: "direct", id: mechOnDeployMainRaw * 1};
@@ -1189,7 +1189,12 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			}			
 		}
 		
-		result.onDeployMain = mechOnDeployMain || {};
+		result.onDeployMain = mechOnDeployMain || {};*/
+		
+		var deployActionsId = parseInt(mechProperties.mechDeployActions);
+		if(!isNaN(deployActionsId)){
+			result.deployActions = DEPLOY_ACTIONS[deployActionsId];
+		}		
 		
 		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;		
 		
@@ -1263,44 +1268,21 @@ StatCalc.prototype.transform = function(actor, force){
 			var transformIntoId = actor.SRWStats.mech.transformsInto;
 			
 			var targetMechData = this.getMechDataById(transformIntoId, true);
-			
-			var targetActorId;
-			var onDeployMain = targetMechData.onDeployMain;
-			if(onDeployMain.type == "direct"){
-				targetActorId = onDeployMain.id;
-			}  else if(onDeployMain.type == "main"){
-				var donorMech = this.getMechDataById(onDeployMain.mech_id, true);
-				if(donorMech){
-					var pilot =  this.getCurrentPilot(donorMech.id);
-					if(pilot){
-						targetActorId = pilot.SRWStats.pilot.id;
-					}
-				}
-			} else if(onDeployMain.type == "sub"){
-				var donorMech = this.getMechDataById(onDeployMain.mech_id, true);				
-				if(donorMech){
-					var subPilots = donorMech.subPilots;
-					if(subPilots[onDeployMain.slot]){
-						targetActorId = subPilots[onDeployMain.slot];												
-					}					
-				}
-			}
-			if(targetActorId != null && targetActorId != -1){
-				var targetActor = $gameActors.actor(targetActorId);
-				if(targetActor.actorId() != actor.actorId()){
-					if(this.isActorSRWInitialized(targetActor)){
-						targetActor.event = actor.event;
-						actor.event = null;
-						actor.isSubPilot = true;
-						actor.SRWStats.mech = null;
-						$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
-						actor = targetActor;
-					}
-				}
-			}		
+		
 			actor.isSubPilot = false;
 			actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
-			this.calculateSRWMechStats(actor.SRWStats.mech);
+			/*this.calculateSRWMechStats(actor.SRWStats.mech);*/
+			
+			this.applyDeployActions(actor.SRWStats.pilot.id, actor.SRWStats.mech.id);
+			
+			var targetActor = this.getCurrentPilot(transformIntoId, true);
+			if(targetActor && targetActor.actorId() != actor.actorId()){
+				targetActor.event = actor.event;
+				actor.event = null;
+				$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
+				actor = targetActor;
+			}			
+			
 			if(!actor.SRWStats.mech.transformRestores){
 				calculatedStats = this.getCalculatedMechStats(actor);
 				calculatedStats.currentHP = Math.round(previousHPRatio * calculatedStats.maxHP);
@@ -1339,28 +1321,48 @@ StatCalc.prototype.transformOnDestruction = function(actor, force){
 
 StatCalc.prototype.split = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		var combineInfo = actor.SRWStats.mech.combineInfo;
-		var targetActor = $gameActors.actor(actor.SRWStats.mech.combinedActor);
+		var combineInfo = actor.combineInfo;
+		var targetActor = actor;
 		var calculatedStats = this.getCalculatedMechStats(actor);
 		var combinedHPRatio = calculatedStats.currentHP / calculatedStats.maxHP;
 		var combinedENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
-		targetActor.SRWStats.mech = this.getMechData(actor.currentClass(), true);
-		this.calculateSRWMechStats(targetActor.SRWStats.mech);		
-		calculatedStats = this.getCalculatedMechStats(targetActor);
+		
+		var subPilots = JSON.parse(JSON.stringify(targetActor.SRWStats.mech.subPilots));
+		
+		/*targetActor.SRWStats.mech = this.getMechData(actor.currentClass(), true);
+		this.calculateSRWMechStats(targetActor.SRWStats.mech);	*/	
+		
+		
+		
+		/*calculatedStats = this.getCalculatedMechStats(targetActor);
 		calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
-		calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);
-		for(var i = 0; i < combineInfo.participants.length; i++){
-			if(combineInfo.participants[i] != targetActor.actorId()){
-				var actor = $gameActors.actor(combineInfo.participants[i]);
-				var space = this.getAdjacentFreeSpace({x: targetActor.event.posX(), y: targetActor.event.posY()});
-				var calculatedStats = this.getCalculatedMechStats(actor);
-				calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
-				calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);
-				var event = actor.event;
-				event.appear();
-				event.locate(space.x, space.y);
-				event.refreshImage();
+		calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);*/
+		var combinesFrom = actor.SRWStats.mech.combinesFrom;
+		for(var i = 0; i < combinesFrom.length; i++){
+			var actor;
+			if(i == 0){
+				actor = targetActor;
+			} else {
+				actor = $gameActors.actor(subPilots[i-1]);	
 			}
+
+					
+
+			this.applyDeployActions(actor.SRWStats.pilot.id, combinesFrom[i]);
+			
+			var calculatedStats = this.getCalculatedMechStats(actor);
+			calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
+			calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);
+			var event = actor.event
+			if(event){
+				if(actor.actorId() != targetActor.actorId()){
+					var space = this.getAdjacentFreeSpace({x: targetActor.event.posX(), y: targetActor.event.posY()});
+					event.appear();
+					event.locate(space.x, space.y);
+				}
+				event.refreshImage();
+			}			
+			//
 		}		
 		targetActor.initImages(targetActor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 		targetActor.event.refreshImage();
@@ -1376,26 +1378,42 @@ StatCalc.prototype.combine = function(actor, forced){
 			var ENRatioSum = 0;
 			var ENRatioCount = 0;
 			var combinesInto = combineResult.combinesInto;
+			
+			for(var i = 0; i < combineResult.participants.length; i++){
+				var actor = $gameActors.actor(combineResult.participants[i]);
+				var calculatedStats = this.getCalculatedMechStats(actor);
+				HPRatioSum+=calculatedStats.currentHP / calculatedStats.maxHP;
+				HPRatioCount++;
+				ENRatioSum+=calculatedStats.currentEN / calculatedStats.maxEN;
+				ENRatioCount++;						
+			}
+			
+			
 			var targetMechData = this.getMechDataById(combinesInto, true);
-			targetMechData.combineInfo = combineResult;
-			var targetActor = $gameActors.actor(targetMechData.combinedActor);
-			var calculatedStats = this.getCalculatedMechStats(targetActor);
-			HPRatioSum+=calculatedStats.currentHP / calculatedStats.maxHP;
-			HPRatioCount++;
-			ENRatioSum+=calculatedStats.currentEN / calculatedStats.maxEN;
-			ENRatioCount++;
-			targetActor.SRWStats.mech = targetMechData;
+			
+			this.applyDeployActions(actor.SRWStats.pilot.id, combinesInto);
+			
+			var targetActor = this.getCurrentPilot(combinesInto, true);
+			targetActor.combineInfo = combineResult;
+			/*if(targetActor && targetActor.actorId() != actor.actorId()){
+				targetActor.event = actor.event;
+				actor.event = null;
+				$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
+				actor = targetActor;
+			}	*/
+			
+			//targetActor.SRWStats.mech = targetMechData;
+			
+			//var targetActor = $gameActors.actor(targetMechData.combinedActor);		
+			
 			this.calculateSRWMechStats(targetActor.SRWStats.mech);
 			//$gameSystem.redeployActor(targetActor, targetActor.event);
 			for(var i = 0; i < combineResult.participants.length; i++){
-				if(combineResult.participants[i] != targetActor.actorId()){
+				if(combineResult.participants[i] != targetActor.actorId()){	
 					var actor = $gameActors.actor(combineResult.participants[i]);
-					var calculatedStats = this.getCalculatedMechStats(actor);
-					HPRatioSum+=calculatedStats.currentHP / calculatedStats.maxHP;
-					HPRatioCount++;
-					ENRatioSum+=calculatedStats.currentEN / calculatedStats.maxEN;
-					ENRatioCount++;					
-					actor.event.erase();
+					if(actor.event)	{
+						actor.event.erase();
+					}					
 				}
 			}
 			
@@ -1439,6 +1457,7 @@ StatCalc.prototype.canCombine = function(actor, forced){
 				if(current.event && !visited[current.event.eventId()]){
 					var currentMechId = current.SRWStats.mech.id;
 					if(!current.event.isErased() && requiredLookup[currentMechId]){
+						current.mechBeforeTransform = currentMechId;
 						candidates.push(current.actorId());
 					}
 					var adjacent;
@@ -2120,13 +2139,23 @@ StatCalc.prototype.getMechTerrain = function(actor, terrain){
 	}
 }
 
-StatCalc.prototype.getCurrentPilot = function(mechId){
+StatCalc.prototype.getCurrentPilot = function(mechId, includeUndeployed){
 	var result;
-	this.iterateAllActors("actor", function(actor){
-		if(actor.currentClass() && actor.currentClass().id == mechId){
-			result = actor;
+	if(includeUndeployed){
+		for(var i = 0; i < $dataActors.length; i++){
+			var actor = $gameActors.actor(i);
+			if(actor && actor.currentClass() && actor.currentClass().id == mechId){
+				result = actor;
+			}
 		}
-	});
+	} else {
+		this.iterateAllActors("actor", function(actor){
+			if(actor.currentClass() && actor.currentClass().id == mechId){
+				result = actor;
+			}
+		});
+	}
+	
 	return result;
 }
 
@@ -3975,39 +4004,162 @@ StatCalc.prototype.isValidForDeploy = function(actor){
 	var _this = this;
 	if(this.isActorSRWInitialized(actor)){
 		var deployConditionsMet = true;
-		var deployConditionsList = actor.SRWStats.mech.deployConditions;
-		if(deployConditionsList && deployConditionsList.length){
-			deployConditionsMet = false;
-			var ctr = 0;
-			while(!deployConditionsMet && ctr < deployConditionsList.length){	
-				var deployConditions = deployConditionsList[ctr++];
-				var assignedMatch = true;
-				if(deployConditions.assigned){
-					Object.keys(deployConditions.assigned).forEach(function(actorId){
-						var mechId = deployConditions.assigned[actorId];
-						var actor = $gameActors.actor(actorId);
-						if(_this.isActorSRWInitialized(actor)){
-							if(actor.SRWStats.mech.id != mechId){
-								assignedMatch = false;
+		
+		var deployActions = this.getDeployActions(actor.SRWStats.pilot.id, actor.SRWStats.mech.id);
+		
+		if(deployActions){
+			Object.keys(deployActions).forEach(function(targetMechId){
+				var actions = deployActions[targetMechId];
+				actions.forEach(function(action){
+					var targetDef = action.target;
+					var sourceDef = action.source;
+					if(sourceDef.type == "direct"){
+						var sourceId = _this.getSourceId(sourceDef);
+					
+						if(targetDef.type == "main"){
+							var currentPilot = _this.getCurrentPilot(targetMechId, true);
+							if(!currentPilot || !currentPilot.actorId() == sourceId){
+								deployConditionsMet = false;
 							}
 						} else {
-							assignedMatch = false;
+							var mechData = _this.getMechDataById(targetMechId, true);
+							if(!mechData || mechData.subPilots[targetDef.slot] != sourceId){
+								deployConditionsMet = false;
+							}
 						}
-					});
-				}
-				var freeMatch = true;
-				if(deployConditions.free){
-					deployConditions.free.forEach(function(actorId){
-						if(_this.getCurrentVariableSubPilotMechs(actorId).length){
-							freeMatch = false;
+					} else {
+						if(targetDef.type == "main"){
+							var currentPilot = _this.getCurrentPilot(targetMechId, true);
+							if(!currentPilot || currentPilot == -1){
+								deployConditionsMet = false;
+							}
+						} else {
+							var mechData = _this.getMechDataById(targetMechId, true);
+							if(!mechData || mechData.subPilots[targetDef.slot] == 0 || mechData.subPilots[targetDef.slot] == -1){
+								deployConditionsMet = false;
+							}
 						}
-					});
-				}
-				deployConditionsMet = assignedMatch && freeMatch;
-			}
-		}		
+					}					
+				});
+			});
+		}
+		
 		return deployConditionsMet && !actor.isEmpty && actor.SRWStats.pilot.id != -1 && actor.SRWStats.mech.id != -1 && !actor.SRWStats.mech.notDeployable;
 	} else {
 		return false;
 	}
+}
+
+StatCalc.prototype.getDeployActions = function(actorId, mechId){
+	var result;
+	var mechData = this.getMechData($dataClasses[mechId], true);
+	if(mechData && mechData.deployActions){
+		result = mechData.deployActions[actorId];
+		if(!result){
+			result = mechData.deployActions[-1];
+		}
+	}	
+	if(!result){
+		return null;
+	} else {
+		return JSON.parse(JSON.stringify(result));
+	}	
+}
+
+StatCalc.prototype.hasDeployActions = function(actorId, mechId){
+	return this.getDeployActions(actorId, mechId) != null;
+}
+
+StatCalc.prototype.getSourceId = function(sourceDef){
+	var sourceId = -1;
+	if(sourceDef.type == "direct"){
+		sourceId = sourceDef.id;
+	} else if(sourceDef.type == "main"){
+		var donorMech = this.getMechDataById(sourceDef.mech_id, true);
+		if(donorMech){
+			var pilot =  this.getCurrentPilot(donorMech.id);
+			if(pilot){
+				sourceId = pilot.SRWStats.pilot.id;
+			}
+		}
+	} else if(sourceDef.type == "sub"){
+		var donorMech = this.getMechDataById(sourceDef.mech_id, true);				
+		if(donorMech){
+			var subPilots = donorMech.subPilots;
+			if(subPilots[sourceDef.slot]){
+				sourceId = subPilots[sourceDef.slot];												
+			}					
+		}
+	}
+	sourceDef.realId = sourceId;
+	return sourceId;
+}
+
+StatCalc.prototype.applyDeployActions = function(actorId, mechId){
+	var _this = this;
+	var deployActions = this.getDeployActions(actorId, mechId);
+	var affectedActors = [];
+	
+	if(deployActions){
+		Object.keys(deployActions).forEach(function(targetMechId){
+			var reservedActors = {};
+			var actions = deployActions[targetMechId];
+			
+			actions.forEach(function(action){		
+				var sourceId = _this.getSourceId(action.source);
+				if(sourceId != 0 && sourceId != -1){
+					reservedActors[sourceId] = true;
+				}
+			});
+			
+			Object.keys(reservedActors).forEach(function(actorId){
+				var previousMechs = $statCalc.getCurrentVariableSubPilotMechs(actorId);
+				previousMechs.forEach(function(previousMechId){		
+					var previousMech = $statCalc.getMechData($dataClasses[previousMechId], true);
+					if(previousMech && previousMech.id != -1){
+						previousMech.subPilots[previousMech.subPilots.indexOf(actorId)] = 0;
+						$statCalc.storeMechData(previousMech);
+						
+						//ensure the live copy of the unit is also updated
+						var currentPilot = $statCalc.getCurrentPilot(previousMech.id);
+						if(currentPilot){
+							$statCalc.initSRWStats(currentPilot);
+						}
+					}	
+				});
+				
+				var actor = $gameActors.actor(actorId);
+				actor._classId = 0;
+				$statCalc.initSRWStats(actor);		
+			});		
+			
+			actions.forEach(function(action){
+				var targetDef = action.target;
+				var sourceDef = action.source;
+				
+				var sourceId = sourceDef.realId;
+				
+				if(sourceId != 0 && sourceId != -1){
+					var targetPilot = $gameActors.actor(sourceId);					
+					if(targetDef.type == "main"){
+						targetPilot._classId = targetMechId;
+						targetPilot.isSubPilot = false;
+						$statCalc.initSRWStats(targetPilot);
+					} else {
+						var targetMech = $statCalc.getMechData($dataClasses[targetMechId], true);
+						targetMech.subPilots[targetDef.slot] = targetPilot.actorId();
+						$statCalc.storeMechData(targetMech);
+						
+						//ensure the live copy of the unit is also updated
+						var currentPilot = $statCalc.getCurrentPilot(targetMechId);
+						if(currentPilot){
+							$statCalc.initSRWStats(currentPilot);
+						}
+					}
+				}
+			});
+		});		
+	}
+	
+	$statCalc.initSRWStats($gameActors.actor(actorId));
 }

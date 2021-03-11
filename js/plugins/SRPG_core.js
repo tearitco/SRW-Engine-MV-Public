@@ -1606,6 +1606,9 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 		actor_unit.isSubPilot = false;
 		$statCalc.initSRWStats(actor_unit);
+		
+		$statCalc.applyDeployActions(actor_unit.SRWStats.pilot.id, actor_unit.SRWStats.mech.id);
+		
 		$statCalc.applyBattleStartWill(actor_unit);
 		actor_unit.SRPGActionTimesSet($statCalc.applyStatModsToValue(actor_unit, 1, ["extra_action"]));
 		actor_unit.setSrpgTurnEnd(false);	
@@ -3986,7 +3989,9 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		}      
     };
 	
-	
+	Game_Player.prototype.updateEncounterCount = function() {
+		
+	};
 	
 /* 戦闘中のイベント起動に関する処理
  * 戦闘中、通常のイベント内容は起動しないようにする
