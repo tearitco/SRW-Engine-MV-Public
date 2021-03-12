@@ -3,14 +3,15 @@ function MapAttackManager(){
 	this.initDefinitions();	
 }
 
-MapAttackManager.prototype.addDefinition = function(idx, shape, animInfo, lockRotation, textInfo){
+MapAttackManager.prototype.addDefinition = function(idx, shape, animInfo, lockRotation, textInfo, retargetInfo){
 	var _this = this;
 	this._definitions[idx] = {
 		name: name,
 		shape: shape,
 		animInfo: animInfo,
 		lockRotation: lockRotation,
-		textInfo: textInfo
+		textInfo: textInfo,
+		retargetInfo: retargetInfo
 	};	
 }
 

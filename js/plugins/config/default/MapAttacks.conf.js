@@ -26,16 +26,22 @@ $SRWConfig.mapAttacks = function(){
 	
 	this.addDefinition(
 		1, 
-		[[1,0],[1,1],[1,-1],[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], 
+		[[2,0],[2,1],[2,-1],[3,0],[3,1],[3,-1]], 
 		{
 			offset: {
-				up: {x: 0, y: -48},
-				down: {x: 0, y: 0},
-				left: {x: -24, y: -24},
-				right: {x: 24, y: -24},
+				x: 0, 
+				y: 0			
 			},	
-			animId: 72,
+			animId: 5,
 			scale: 0.7
+		},
+		false,
+		null,
+		{
+			shape: [[1,0],[2,0],[2,1],[2,-1],[3,0]],
+			center: {x: 2, y: 0},
+			initialPosition: {x: 2, y: 0}
 		}
+		
 	);	
 }

@@ -3984,8 +3984,47 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 					this.moveDiagonally(6, 2);
 				}
 			}
-		} else {			
-			_SRPG_Game_Player_moveByInput.call(this);						
+		} else {	
+		//	mapRetargetLock
+			if (!this.isMoving() && this.canMove()) {
+				var direction = this.getInputDirection();
+				var validDestination = true;
+				if($gameTemp.mapRetargetLock){
+					// up: 8 down: 2 left: 4 right: 6
+					var x = this._realX;
+					var y = this._realY;
+					if(direction == 8){
+						y--;
+					} else if(direction == 2){
+						y++;
+					} else if(direction == 6){
+						x++;
+					} else if(direction == 4){
+						x--;
+					}
+					
+					validDestination = false;
+					ctr = 0;
+					while(!validDestination && ctr < $gameTemp.currentMapTargetTiles.length){
+						var coords = $gameTemp.currentMapTargetTiles[ctr++];
+						if(coords[0] == x && coords[1] == y){
+							validDestination = true;
+						}
+					}					
+				}
+				if(validDestination){
+					if (direction > 0) {
+						$gameTemp.clearDestination();
+					} else if ($gameTemp.isDestinationValid()){
+						var x = $gameTemp.destinationX();
+						var y = $gameTemp.destinationY();
+						direction = this.findDirectionTo(x, y);
+					}
+					if (direction > 0) {
+						this.executeMove(direction);
+					}
+				}				
+			}			
 		}      
     };
 	
@@ -6965,6 +7004,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				}
 			});			
 		}	
+		if($gameSystem.highlightedMapRetargetTiles){
+			for(var i = 0; i < $gameSystem.highlightedMapRetargetTiles.length; i++){
+				var highlight = $gameSystem.highlightedMapRetargetTiles[i];
+				this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), highlight.color);
+			}
+		}
 	}
 
 	Sprite_AreaHighlights.prototype.update = function() {
@@ -9397,6 +9442,9 @@ SceneManager.reloadCharacters = function(startEvent){
                 }
             } else if ($gameSystem.isSubBattlePhase() === 'actor_map_target_confirm') {
 				 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
+					$gameSystem.highlightedMapRetargetTiles = [];
+					$gameSystem.highlightsRefreshed = true;
+					$gameTemp.mapRetargetLock = false;
                     SoundManager.playCancel();
 					var event = $gameTemp.activeEvent();
 					$gamePlayer.locate(event.posX(), event.posY());
@@ -10102,37 +10150,96 @@ SceneManager.reloadCharacters = function(startEvent){
 			}				
 		}
 		
-		if ($gameSystem.isSubBattlePhase() === 'actor_map_target_confirm') {
-			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld	
-				$gameTemp.clearMoveTable();	
-				$gameTemp.setResetMoveList(true);
-				_this.mapAttackStart();
-			}			
+		function updateMapAttackTargets(tiles, attack){
+			var targets = $statCalc.activeUnitsInTileRange(tiles || [], attack.ignoresFriendlies ? "enemy" : null);
+			var tmp = [];
+			for(var i = 0; i < targets.length; i++){
+				var terrain = $statCalc.getCurrentTerrain(targets[i]);					
+				var terrainRank = attack.terrain[terrain];
+				if(terrainRank != "-"){
+					tmp.push(targets[i]);
+				}
+			}
+			targets = tmp;
+			
+			return targets;
 		}
 		
-		if ($gameSystem.isSubBattlePhase() === 'actor_map_target') {
+		
+		if ($gameSystem.isSubBattlePhase() === 'actor_map_target_confirm') {
+			
 			var attack = $gameTemp.actorAction.attack;
-			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld				
-				var targets = $statCalc.activeUnitsInTileRange($gameTemp.currentMapTargetTiles || [], attack.ignoresFriendlies ? "enemy" : null);
-				var tmp = [];
-				for(var i = 0; i < targets.length; i++){
-					var terrain = $statCalc.getCurrentTerrain(targets[i]);					
-					var terrainRank = attack.terrain[terrain];
-					if(terrainRank != "-"){
-						tmp.push(targets[i]);
+			var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
+			if(mapAttackDef.retargetInfo && !$gamePlayer.isMoving()){				
+				$gameTemp.mapRetargetLock = true;	
+				$gameSystem.highlightedMapRetargetTiles = [];
+				
+				var deltaX = $gamePlayer.posX() - mapAttackDef.retargetInfo.center.x;
+				var deltaY = $gamePlayer.posY() - mapAttackDef.retargetInfo.center.y;
+				var tileCoordinates = JSON.parse(JSON.stringify(mapAttackDef.retargetInfo.shape));
+				
+				for(var i = 0; i < tileCoordinates.length; i++){
+					tileCoordinates[i][0]+=deltaX;
+					tileCoordinates[i][1]+=deltaY;
+
+					$gameSystem.highlightedMapRetargetTiles.push({x: tileCoordinates[i][0], y: tileCoordinates[i][1], color: "white"});
+					$gameSystem.highlightsRefreshed = true;					
+				}				
+				
+				$gameTemp.currentMapReTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));
+				
+				var targets = updateMapAttackTargets($gameTemp.currentMapReTargetTiles || [], attack);
+				
+				$gameTemp.currentMapTargets = targets;				
+			}			
+			
+			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld	
+				$gameTemp.mapRetargetLock = false;
+				if(!mapAttackDef.retargetInfo){
+					$gameTemp.clearMoveTable();	
+					$gameTemp.setResetMoveList(true);
+					_this.mapAttackStart();
+				} else {
+					var targets = updateMapAttackTargets($gameTemp.currentMapReTargetTiles, attack);
+					if(targets.length){
+						$gameTemp.currentMapTargets = targets;
+						/*var targetEvent = targets[0].event;
+						if(targetEvent){
+							$gamePlayer.locate(targetEvent.posX(), targetEvent.posY());
+						}*/
+						$gameSystem.highlightedMapRetargetTiles = [];
+						$gameSystem.highlightsRefreshed = true;	
+						_this.mapAttackStart();
 					}
-				}
-				targets = tmp;
-				if(targets.length){
-					$gameTemp.currentMapTargets = targets;
-					var targetEvent = targets[0].event;
-					if(targetEvent){
-						$gamePlayer.locate(targetEvent.posX(), targetEvent.posY());
+				}				
+			}		
+		}	
+		
+		
+		if ($gameSystem.isSubBattlePhase() === 'actor_map_target') {
+			
+			var attack = $gameTemp.actorAction.attack;
+			var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
+			if(Input.isTriggered("ok")){// && !$gameTemp.OKHeld						
+				if(!mapAttackDef.retargetInfo){					
+					var targets = updateMapAttackTargets($gameTemp.currentMapTargetTiles, attack);
+					if(targets.length){
+						$gameTemp.currentMapTargets = targets;
+						var targetEvent = targets[0].event;
+						if(targetEvent){
+							$gamePlayer.locate(targetEvent.posX(), targetEvent.posY());
+						}
+						$gameSystem.setSubBattlePhase('actor_map_target_confirm');
 					}
+				} else {
+					var x = mapAttackDef.retargetInfo.initialPosition.x;
+					var y = mapAttackDef.retargetInfo.initialPosition.y;
+					var adjusted = this.getAdjustedMapAttackCoordinates([[x, y]], $gameTemp.mapTargetDirection);
+					$gamePlayer.locate($gameTemp.activeEvent().posX() + adjusted[0][0], $gameTemp.activeEvent().posY() + adjusted[0][1]);
 					$gameSystem.setSubBattlePhase('actor_map_target_confirm');
-				}
-			} else {				
-				var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
+				}								
+			} else {	
+				
 				var tileCoordinates = mapAttackDef.shape;
 				if(!mapAttackDef.lockRotation){						
 					if(Input.isTriggered("up")){
@@ -10162,16 +10269,68 @@ SceneManager.reloadCharacters = function(startEvent){
 					tileCoordinates[i][0]+=deltaX;
 					tileCoordinates[i][1]+=deltaY;
 					$gameTemp.pushMoveList(tileCoordinates[i]);					
-				}				
-				$gameTemp.currentMapTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));				
+				}							
+				$gameTemp.currentMapTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));										
 			}	
 		}	
+		
+		if ($gameSystem.isSubBattlePhase() === 'before_enemy_map_animation') {
+			if($gameTemp.mapAttackRetargetDelay > 0){
+				$gameTemp.mapAttackRetargetDelay--;
+				return;
+			}
+			
+			if($gameTemp.showBeforeEnemyMapAnimation){
+				$gameTemp.showBeforeEnemyMapAnimation = false;
+				var bestMapAttack = $gameTemp.enemyMapAttackDef;
+				if(bestMapAttack.bestPosition){
+					var mapAttackDef = $mapAttackManager.getDefinition(bestMapAttack.attack.mapId);
+					$gamePlayer.locate(bestMapAttack.bestPosition.x, bestMapAttack.bestPosition.y);
+					
+					$gameSystem.highlightedMapRetargetTiles = [];
+					
+					var deltaX = bestMapAttack.bestPosition.x - mapAttackDef.retargetInfo.center.x;
+					var deltaY = bestMapAttack.bestPosition.y - mapAttackDef.retargetInfo.center.y;
+					var tileCoordinates = JSON.parse(JSON.stringify(mapAttackDef.retargetInfo.shape));
+					
+					for(var i = 0; i < tileCoordinates.length; i++){
+						tileCoordinates[i][0]+=deltaX;
+						tileCoordinates[i][1]+=deltaY;
+
+						$gameSystem.highlightedMapRetargetTiles.push({x: tileCoordinates[i][0], y: tileCoordinates[i][1], color: "white"});
+						$gameSystem.highlightsRefreshed = true;					
+					}				
+					
+					$gameTemp.currentMapReTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));	
+					
+					$gameTemp.showingEnemyMapRetarget = true;
+					$gameTemp.enemyMapRetargetTimer = 30;						
+				} else {
+					$gameSystem.setSubBattlePhase('map_attack_animation');
+				}				
+			}
+			
+			if($gameTemp.showingEnemyMapRetarget){
+				if($gameTemp.enemyMapRetargetTimer < 0){
+					$gameTemp.showingEnemyMapRetarget = false;
+					$gameSystem.setSubBattlePhase('map_attack_animation');
+					$gameTemp.mapAttackAnimationDelay = 30;
+				} 				
+				$gameTemp.enemyMapRetargetTimer--;
+			}
+			
+			return;
+		}
+		
 		
 		if ($gameSystem.isSubBattlePhase() === 'map_attack_animation') {
 			if($gameTemp.mapAttackAnimationDelay > 0){
 				$gameTemp.mapAttackAnimationDelay--;
 				return;
 			}
+			$gameSystem.highlightedMapRetargetTiles = [];
+			$gameSystem.highlightsRefreshed = true;	
+			
 			if(!$gameTemp.mapAttackAnimationStarted){
 				$songManager.playBattleSong($gameTemp.currentBattleActor);
 				$gameTemp.clearMoveTable();
@@ -10203,13 +10362,34 @@ SceneManager.reloadCharacters = function(startEvent){
 						}
 						var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
 						
-						var activeEvent = $gameTemp.activeEvent();
-						var eventX = activeEvent.posX();
+						var options = JSON.parse(JSON.stringify(mapAttackDef.animInfo));					
+						
+						var activeEvent;
+						if(!mapAttackDef.retargetInfo){
+							activeEvent = $gameTemp.activeEvent();
+							options.direction = $gameTemp.mapTargetDirection;
+						} else {
+							activeEvent = $gamePlayer;
+							options.direction = "up";
+							options.offset = {up: options.offset};
+						}
+						
+						
+						/*var eventX = activeEvent.posX();
 						var eventY = activeEvent.posY();
-						var spritePosition = {
-							x: activeEvent.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
-							y: activeEvent.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
-						};
+						var spritePosition;
+
+						if(!mapAttackDef.retargetInfo){
+							spritePosition = {
+								x: $gamePlayer.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
+								y: $gamePlayer.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
+							};
+						} else 	{
+							spritePosition = {
+								x: activeEvent.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
+								y: activeEvent.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
+							};
+						}*/
 						/*if(!$gameTemp.tempSprites){
 							$gameTemp.tempSprites = [];
 						}
@@ -10225,18 +10405,26 @@ SceneManager.reloadCharacters = function(startEvent){
 						
 						
 						$gameTemp.animCharacter = activeEvent;
-						var options = JSON.parse(JSON.stringify(mapAttackDef.animInfo));
-						options.direction = $gameTemp.mapTargetDirection;
+					
 						activeEvent.requestAnimation(mapAttackDef.animInfo.animId, options);
-					} else {
+					} else if(!$gameTemp.awaitingMapAttackAnim){
 						if(!$gameTemp.animCharacter.isAnimationPlaying()){
-							$gameTemp.animCharacter = null;
-							$gameTemp.mapAttackAnimationStarted = false;
-							//_this.srpgBattlerDeadAfterBattle();
-							_this.startMapAttackResultDisplay();
+							$gameTemp.afterMapAttackAnimationDelay = 30;
+							$gameTemp.awaitingMapAttackAnim = true;
 						}
 					}					
 				}				
+			} 
+
+			if($gameTemp.awaitingMapAttackAnim){
+				if($gameTemp.afterMapAttackAnimationDelay < 0){
+					$gameTemp.animCharacter = null;
+					$gameTemp.mapAttackAnimationStarted = false;
+					$gameTemp.awaitingMapAttackAnim = false;
+					//_this.srpgBattlerDeadAfterBattle();
+					_this.startMapAttackResultDisplay();
+				}		
+				$gameTemp.afterMapAttackAnimationDelay--;	
 			}				
 		}		
 		
@@ -11165,29 +11353,58 @@ SceneManager.reloadCharacters = function(startEvent){
         this._abilityWindow.hide();
         this._mapSrpgActorCommandWindow.activate();
     };
+	
 	Scene_Map.prototype.getMapAttackTargets = function(originEvent, attack, type, direction) {
 		var _this = this;	
+		var result = [];
 		var deltaX = originEvent.posX();
 		var deltaY = originEvent.posY();
 		
-		var tileCoordinates = JSON.parse(JSON.stringify($mapAttackManager.getDefinition(attack.mapId).shape));		
+		var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
+		
+		var tileCoordinates = JSON.parse(JSON.stringify(mapAttackDef.shape));		
 		tileCoordinates = _this.getAdjustedMapAttackCoordinates(tileCoordinates, direction);
 		for(var i = 0; i < tileCoordinates.length; i++){
 			tileCoordinates[i].push(true); //is attack range
 			tileCoordinates[i][0]+=deltaX;
 			tileCoordinates[i][1]+=deltaY;
 			//$gameTemp.pushMoveList(tileCoordinates[i]);					
-		}				
-		var targets = $statCalc.activeUnitsInTileRange(tileCoordinates || [], type);
-		var tmp = [];
-		for(var i = 0; i < targets.length; i++){
-			var terrain = $statCalc.getCurrentTerrain(targets[i]);					
-			var terrainRank = attack.terrain[terrain];
-			if(terrainRank != "-"){
-				tmp.push(targets[i]);
+		}			
+		
+		if(mapAttackDef.retargetInfo){
+			for(var i = 0; i < tileCoordinates.length; i++){
+				var deltaX = tileCoordinates[i][0] - mapAttackDef.retargetInfo.center.x;
+				var deltaY = tileCoordinates[i][1] - mapAttackDef.retargetInfo.center.y;
+				var retargetCoordinates = JSON.parse(JSON.stringify(mapAttackDef.retargetInfo.shape));
+				
+				for(var j = 0; j < retargetCoordinates.length; j++){
+					retargetCoordinates[j][0]+=deltaX;
+					retargetCoordinates[j][1]+=deltaY;			
+				}
+				var targets = $statCalc.activeUnitsInTileRange(retargetCoordinates || [], type);
+				var tmp = [];
+				for(var j = 0; j < targets.length; j++){
+					var terrain = $statCalc.getCurrentTerrain(targets[j]);					
+					var terrainRank = attack.terrain[terrain];
+					if(terrainRank != "-"){
+						tmp.push(targets[j]);
+					}
+				}
+				result.push({position: {x: tileCoordinates[i][0], y: tileCoordinates[i][1]}, direction: direction, targets: tmp});
 			}
+		} else {
+			var targets = $statCalc.activeUnitsInTileRange(tileCoordinates || [], type);
+			var tmp = [];
+			for(var i = 0; i < targets.length; i++){
+				var terrain = $statCalc.getCurrentTerrain(targets[i]);					
+				var terrainRank = attack.terrain[terrain];
+				if(terrainRank != "-"){
+					tmp.push(targets[i]);
+				}
+			}
+			result.push({targets: tmp, direction: direction});
 		}
-		return tmp;
+		return result;
 	}
 	
 	Scene_Map.prototype.getBestMapAttackTargets = function(originEvent, attack, type) {
@@ -11196,17 +11413,22 @@ SceneManager.reloadCharacters = function(startEvent){
 		var directions = ["up", "down", "left", "right"];
 		var maxTargets = -1;
 		var bestDirection = "up";
+		var bestPosition;
 		var bestTargets = [];
 		
 		directions.forEach(function(direction){		
-			var targets = _this.getMapAttackTargets(originEvent, attack, type, direction);
-			if(targets.length > maxTargets){
-				maxTargets = targets.length;
-				bestDirection = direction;
-				bestTargets = targets;
-			}
+			var targetResults = _this.getMapAttackTargets(originEvent, attack, type, direction);
+			targetResults.forEach(function(targetResult){
+				if(targetResult.targets.length > maxTargets){
+					maxTargets = targetResult.targets.length;
+					bestDirection = targetResult.direction;
+					bestPosition = targetResult.position;
+					bestTargets = targetResult.targets;
+				}
+			});
+			
 		});
-		return {targets: bestTargets, direction: bestDirection};
+		return {targets: bestTargets, direction: bestDirection, bestPosition: bestPosition};
 	}
     //ターゲットの選択開始
     Scene_Map.prototype.startActorTargeting = function() {
@@ -11489,11 +11711,19 @@ SceneManager.reloadCharacters = function(startEvent){
 			});
 		}
 		if(bestMapAttack){
+			$gameTemp.enemyMapAttackDef = bestMapAttack;
 			var type = "";
 			if(bestMapAttack.attack.ignoresFriendlies){
 				type = $gameSystem.isEnemy(enemy) ? "actor" : "enemy";
 			}
-			$gameTemp.currentMapTargets = _this.getMapAttackTargets(event, bestMapAttack.attack, type, bestMapAttack.direction);
+			var targetInfo = _this.getMapAttackTargets(event, bestMapAttack.attack, type, bestMapAttack.direction);
+			if(bestMapAttack.bestPosition){				
+				targetInfo.forEach(function(candidate){
+					if(candidate.position && candidate.position.x == bestMapAttack.bestPosition.x && candidate.position.y == bestMapAttack.bestPosition.y){
+						$gameTemp.currentMapTargets = candidate.targets;
+					}
+				});				
+			}
 			$gameTemp.mapTargetDirection = bestMapAttack.direction;
 			$gameTemp.currentBattleEnemy = enemy;
 			$gameTemp.enemyAction = {
@@ -11515,6 +11745,9 @@ SceneManager.reloadCharacters = function(startEvent){
 				tileCoordinates[i][1]+=deltaY;
 				$gameTemp.pushMoveList(tileCoordinates[i]);					
 			}
+			
+						
+			
 			$statCalc.setCurrentAttack(enemy, bestMapAttack.attack);
 			_this.enemyMapAttackStart();
 			return true;
@@ -12313,8 +12546,10 @@ SceneManager.reloadCharacters = function(startEvent){
 				
 		$gameTemp.mapAttackOccurred = true;
 		$gameTemp.mapAttackAnimationStarted = false;
-		$gameTemp.mapAttackAnimationDelay = 60;
-		$gameSystem.setSubBattlePhase('map_attack_animation');			
+		$gameTemp.mapAttackAnimationDelay = 30; 
+		$gameTemp.mapAttackRetargetDelay = 30; 
+		$gameTemp.showBeforeEnemyMapAnimation = true;
+		$gameSystem.setSubBattlePhase('before_enemy_map_animation');			
     };
 	
 	Scene_Map.prototype.mapAttackStart = function(actionArray, targetArray) {	
