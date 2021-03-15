@@ -32,20 +32,34 @@ Window_Intermission.prototype.initialize = function() {
 		return tmp.length;	
 	}
 	
+	function validateMechMenu(){
+		var availableMechs = Window_CSS.prototype.getAvailableUnits.call(_this, "mech");
+		return availableMechs.length;	
+	}
+	
+	function validatePilotMenu(){
+		var availablePilots = Window_CSS.prototype.getAvailableUnits.call(_this, "actor");
+		return availablePilots.length;	
+	}
+	
+	function validateDeployMenu(){
+		return validateMechMenu() && validatePilotMenu();
+	}
+	
 	this._commands = [
-		{name: APPSTRINGS.INTERMISSION.mech_label, key: "mech", subCommands: [
+		{name: APPSTRINGS.INTERMISSION.mech_label, key: "mech", enabled: validateMechMenu, subCommands: [
 			{name: APPSTRINGS.INTERMISSION.list_label, key: "mech_list"},
 			{name: APPSTRINGS.INTERMISSION.upgrade_label, key: "mech_upgrade"},
 			{name: APPSTRINGS.INTERMISSION.equip_parts, key: "mech_parts"},
 			//{name: "Sell Parts", key: "mech_parts_sell"},
 			//{name: "Search", key: "mech_search"}
 		]},
-		{name: APPSTRINGS.INTERMISSION.pilot_label, key: "pilot", subCommands: [
+		{name: APPSTRINGS.INTERMISSION.pilot_label, key: "pilot", enabled: validatePilotMenu, subCommands: [
 			{name: APPSTRINGS.INTERMISSION.list_label, key: "pilot_list"},
 			{name:  APPSTRINGS.INTERMISSION.upgrade_label, key: "upgrade_pilot"},
 			//{name: "Search", key: "pilot_search"}
 		]},
-		{name: APPSTRINGS.INTERMISSION.deployment, key: "deployment"},
+		{name: APPSTRINGS.INTERMISSION.deployment, key: "deployment", enabled: validateDeployMenu,},
 		{name: APPSTRINGS.INTERMISSION.reassign, key: "reassign", enabled: validateReassignMenu},
 		{name: APPSTRINGS.INTERMISSION.options, key: "options"},
 		{name: APPSTRINGS.INTERMISSION.data_label, key: "data", subCommands: [
@@ -82,16 +96,26 @@ Window_Intermission.prototype.initialize = function() {
 			}
 		},
 		"mech": function(){
-			this._currentSelection = 0;
-			this._menuLevels.push(0);
-			this.requestRedraw();
 			this._handlingInput = false;
+			if(validateMechMenu()){
+				this._currentSelection = 0;
+				this._menuLevels.push(0);
+				this.requestRedraw();
+				return false;//isprevented
+			}			
+			
+			return true; //isprevented
 		},
 		"pilot": function(){
-			this._currentSelection = 0;
-			this._menuLevels.push(0);
-			this.requestRedraw();
 			this._handlingInput = false;
+			if(validatePilotMenu()){
+				this._currentSelection = 0;
+				this._menuLevels.push(0);
+				this.requestRedraw();
+				return false;//isprevented
+			}			
+			
+			return true; //isprevented
 		},
 		"data": function(){
 			this._currentSelection = 0;
@@ -127,7 +151,13 @@ Window_Intermission.prototype.initialize = function() {
 			SceneManager.push(Scene_Options);
 		},	
 		"deployment": function(){
-			$gameTemp.pushMenu = "deployment";
+			_this._handlingInput = false; 
+			if(validateDeployMenu()){
+				$gameTemp.pushMenu = "deployment";
+				return false;//isprevented
+			} 
+			
+			return true; //isprevented	
 		},	
 		"reassign": function(){
 			if(validateReassignMenu()){
@@ -344,6 +374,13 @@ Window_Intermission.prototype.update = function() {
 Window_Intermission.prototype.redraw = function() {
 	var _this = this;
 	this._redrawRequested = false;
+	
+	this.createEntryList(this._menuSection1, this._commands, "section_1");	
+	this.createEntryList(this._menuSectionMech, this._commands[0].subCommands, "section_mech");	
+	this.createEntryList(this._menuSectionPilot, this._commands[1].subCommands, "section_pilot");	
+	this.createEntryList(this._menuSectionData, this._commands[5].subCommands, "section_data");
+	
+	
 	this._menuSectionMech.style.display = "none";
 	this._menuSectionPilot.style.display = "none";
 	this._menuSectionData.style.display = "none";
@@ -393,10 +430,12 @@ Window_Intermission.prototype.redraw = function() {
 	
 	if(!this._aceFacePicsLoaded && $gameSystem._availableUnits){
 		var ace = $statCalc.getTopAce();
-		this._aceFacePicsLoaded = true;
-		this.loadActorFace(ace.SRWStats.pilot.id, this._acePicContainer);
-		this._aceValue.innerHTML = $statCalc.getKills(ace);
-		this._aceName.innerHTML = ace.name();
+		if(ace){
+			this._aceFacePicsLoaded = true;
+			this.loadActorFace(ace.SRWStats.pilot.id, this._acePicContainer);
+			this._aceValue.innerHTML = $statCalc.getKills(ace);
+			this._aceName.innerHTML = ace.name();
+		}		
 	}
-	
+	Graphics._updateCanvas();
 };	

@@ -76,6 +76,7 @@ Window_CSS.prototype.createComponents = function() {
 }
 
 Window_CSS.prototype.createEntryList = function(node, listInfo, id) {	
+	node.innerHTML = "";
 	node.id = this.createId(id);
 	node.classList.add("menu_section");
 	
@@ -252,11 +253,14 @@ Window_CSS.prototype.getAvailableUnits = function(unitMode){
 		}
 	}		
 	var tmp = [];
-	this._availableUnits.forEach(function(unit){
-		if($statCalc.isActorSRWInitialized(unit)){
-			tmp.push(unit);
-		}
-	});
+	if(this._availableUnits){
+		this._availableUnits.forEach(function(unit){
+			if($statCalc.isActorSRWInitialized(unit)){
+				tmp.push(unit);
+			}
+		});
+	}
+	
 	this._availableUnits = tmp; 
 	/*this._availableUnits.forEach(function(unit){
 		$statCalc.initSRWStats(unit);

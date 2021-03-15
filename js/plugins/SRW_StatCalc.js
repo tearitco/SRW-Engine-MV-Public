@@ -1870,58 +1870,64 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatil
 	var mechUpgrades = targetStats.stats.upgradeLevels;
 	var calculatedStats = targetStats.stats.calculated;
 	var upgradeAmounts = targetStats.stats.upgradeAmounts;
-	calculatedStats.size = mechStats.size;
-	Object.keys(mechUpgrades).forEach(function(upgradedStat){
-		if(upgradedStat == "maxHP"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
-		}
-		if(upgradedStat == "maxEN"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
-		}
-		if(upgradedStat == "armor"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
-		}
-		if(upgradedStat == "mobility"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
-		}
-		if(upgradedStat == "accuracy"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
-		}
-		if(upgradedStat == "move"){
-			calculatedStats[upgradedStat] = mechStats[upgradedStat] + mechUpgrades[upgradedStat];
-		}
-		if(upgradedStat == "terrain"){
-			calculatedStats[upgradedStat] = {};
-			Object.keys(mechStats.terrain).forEach(function(terrainType){
-				calculatedStats[upgradedStat][terrainType] = _this.incrementTerrain(mechStats.terrain[terrainType], mechUpgrades.terrain[terrainType]);
-			});
-		}
-	});
 	
-	var mechData = {
-		SRWStats: {
-			pilot: {
-				abilities: [],
-				level: 0,
-				SRWInitialized: true
-			},			
-			mech: targetStats			
-		},
-		SRWInitialized: true
+	if(mechStats && mechUpgrades && calculatedStats && upgradeAmounts && mechStats.terrain){
+		calculatedStats.size = mechStats.size;
+		Object.keys(mechUpgrades).forEach(function(upgradedStat){
+			if(upgradedStat == "maxHP"){
+				calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
+			}
+			if(upgradedStat == "maxEN"){
+				calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
+			}
+			if(upgradedStat == "armor"){
+				calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
+			}
+			if(upgradedStat == "mobility"){
+				calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
+			}
+			if(upgradedStat == "accuracy"){
+				calculatedStats[upgradedStat] = mechStats[upgradedStat] + (upgradeAmounts[upgradedStat] * mechUpgrades[upgradedStat]);
+			}
+			if(upgradedStat == "move"){
+				calculatedStats[upgradedStat] = mechStats[upgradedStat] + mechUpgrades[upgradedStat];
+			}
+			if(upgradedStat == "terrain"){
+				calculatedStats[upgradedStat] = {};
+				Object.keys(mechStats.terrain).forEach(function(terrainType){
+					calculatedStats[upgradedStat][terrainType] = _this.incrementTerrain(mechStats.terrain[terrainType], mechUpgrades.terrain[terrainType]);
+				});
+			}
+		});
+		
+		var mechData = {
+			SRWStats: {
+				pilot: {
+					abilities: [],
+					level: 0,
+					SRWInitialized: true
+				},			
+				mech: targetStats			
+			},
+			SRWInitialized: true
+		}
+		calculatedStats.maxHP = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxHP, "maxHP");
+		calculatedStats.maxEN = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxEN, "maxEN");
+		
+		calculatedStats.armor = $statCalc.applyStatModsToValue(mechData, calculatedStats.armor, "base_arm");
+		calculatedStats.mobility = $statCalc.applyStatModsToValue(mechData, calculatedStats.mobility, "base_mob");
+		calculatedStats.accuracy = $statCalc.applyStatModsToValue(mechData, calculatedStats.accuracy, "base_acc");
+		
+		calculatedStats.move = $statCalc.applyStatModsToValue(mechData, calculatedStats.move, "base_move");
+		
+		if(!preserveVolatile){
+			calculatedStats.currentHP = calculatedStats.maxHP;
+			calculatedStats.currentEN = calculatedStats.maxEN;
+		}	
+	
+	} else {
+		console.log("Attempted to calculate stats for an undefined mech, please check your unlocks!");
 	}
-	calculatedStats.maxHP = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxHP, "maxHP");
-	calculatedStats.maxEN = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxEN, "maxEN");
-	
-	calculatedStats.armor = $statCalc.applyStatModsToValue(mechData, calculatedStats.armor, "base_arm");
-	calculatedStats.mobility = $statCalc.applyStatModsToValue(mechData, calculatedStats.mobility, "base_mob");
-	calculatedStats.accuracy = $statCalc.applyStatModsToValue(mechData, calculatedStats.accuracy, "base_acc");
-	
-	calculatedStats.move = $statCalc.applyStatModsToValue(mechData, calculatedStats.move, "base_move");
-	
-	if(!preserveVolatile){
-		calculatedStats.currentHP = calculatedStats.maxHP;
-		calculatedStats.currentEN = calculatedStats.maxEN;
-	}	
 }
 
 StatCalc.prototype.incrementTerrain = function(terrain, increment){
