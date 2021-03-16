@@ -90,6 +90,11 @@ SRWEditor.prototype.init = function(){
 	};
 	
 	_this._commandDisplayInfo = {
+		effect_shockwave: {
+			hasTarget: false,
+			params: ["x_fraction", "y_fraction", "shockwave_intensity"],
+			desc: "Play the shockwave effect at the specified screen position."
+		},
 		kill_active_animations: {
 			hasTarget: false,
 			params: [],
@@ -354,6 +359,9 @@ SRWEditor.prototype.init = function(){
 	
 	
 	_this._paramTooltips = {
+		x_fraction: "A screen space position defined by a percentage of the width of the screen.",
+		y_fraction: "A screen space position defined by a percentage of the height of the screen.",
+		shockwave_intensity: "The intensity of the shockwave effect.",
 		position: "A position defined by an x, y and z coordinate.",
 		parent: "The id of the object that will be the parent of this object.",
 		rotation: "A rotation defined by an x, y and z component. The rotations are described with radian values.",
@@ -402,6 +410,15 @@ SRWEditor.prototype.init = function(){
 	}
 	
 	_this._paramDisplayHandlers = {
+		x_fraction: function(value){
+			
+		},
+		y_fraction: function(value){
+			
+		},
+		shockwave_intensity: function(value){
+			
+		},
 		position: function(value){
 			if(!value){
 				value = {};
