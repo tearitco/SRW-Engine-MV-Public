@@ -38,4 +38,15 @@ $SRWConfig.relationShipbonuses = function(){
 			return effects[level];
 		}
 	);
+	this.addDefinition(
+		3, 
+		"Test", 
+		"Increases Crit rate with level.", 
+		function(actor, level){			
+			return [
+				{type: "HP_regen", modType: "addFlat", value: 30},
+				{type: "EN_regen", modType: "addFlat", value: 30}
+			];
+		}
+	);
 }

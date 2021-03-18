@@ -2077,10 +2077,10 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		
 		if(spiritActivations.length){					
 			_this.setSubBattlePhase('auto_spirits');
-		} else if($gameTemp.AIActors.length){
+		} //else if($gameTemp.AIActors.length){
 			_this.setBattlePhase('AI_phase');
 			_this.setSubBattlePhase('enemy_command');
-		}
+		//}
 		
         //this.setSubBattlePhase('enemy_command');
     };

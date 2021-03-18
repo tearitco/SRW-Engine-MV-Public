@@ -221,6 +221,8 @@ A pilot can have up to 50 relationships:
 The format is \<Other pilot id\>,\<Relationship definition\>,\<level\><br>
 \<pilotRelationship1: 3,0,2\>: The pilot will receive the effects of relationship bonus type 0 at level 2 when adjacent to Pilot 3.
 
+**Note that level starts at 0!**
+
 Note that only one bonus type can be assigned per other pilot at a time, if you enter multiple lines for the same pilot only the last entry will apply. If you wish to combine bonuses you need to make a combined bonus effect instead.
 
 The effects of the relationship types are defined in RelationshipBonuses.conf.js
