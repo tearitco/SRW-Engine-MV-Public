@@ -208,6 +208,44 @@ A pilot's personality determines how their Will changes when certain events occu
 \<pilotOnDestroyWill:3\> Applies when a pilot destroys a target.<br>
 
 
+#### Relationships
+
+Pilots can have certain relationships towards other pilots, these relationships will grant bonuses to the pilot when adjacent to those other pilots.
+
+A pilot can have up to 50 relationships:   
+  
+\<pilotRelationship1: 3,0,2\><br>
+...<br>
+\<pilotRelationship50: 2,1,1\><br>
+
+The format is \<Other pilot id\>,\<Relationship definition\>,\<level\><br>
+\<pilotRelationship1: 3,0,2\>: The pilot will receive the effects of relationship bonus type 0 at level 2 when adjacent to Pilot 3.
+
+Note that only one bonus type can be assigned per other pilot at a time, if you enter multiple lines for the same pilot only the last entry will apply. If you wish to combine bonuses you need to make a combined bonus effect instead.
+
+The effects of the relationship types are defined in RelationshipBonuses.conf.js
+
+Ex.:
+
+```
+this.addDefinition(
+	0, //the id of the bonus
+	"Love", //the name of the bonus
+	"Increases damage with level.", //the description of the bonus 
+	function(actor, level){ //a function defining the effects granted by the bonus for each level
+		var effects = [
+			[{type: "final_damage", modType: "mult", value: 1.04}],
+			[{type: "final_damage", modType: "mult", value: 1.08}],
+			[{type: "final_damage", modType: "mult", value: 1.12}],
+		];
+		return effects[level];
+	}
+);
+
+```
+
+The setPilotRelationship plugin command can be used to update a pilot's relationships. 
+
 ## Enemy Pilots
 Enemy Pilots are Enemies in vanilla RPG Maker terms. Of the default RPG Maker properties only the Name is used.<br>
 The rest of the pilot properties are set using metadata tags in the note field. It is recommended to create a new character by copying an existing, fully defined, character and changing the properties as needed.<br>
@@ -1221,7 +1259,10 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 	Set the upgrade level for all stats of the specified mech/class to the specified level. By default the upgrade level will not be applied if the mech already has a better upgrade level for a stat but if force is 1 all previous upgrades will be overwritten. 
 	
-	
+* setPilotRelationship pilot\_id other\_pilot\_id bonus\_id level
+
+	Set the relationship bonus for the pilot specified by pilot\_id to the specified bonus and level when adjacent to the pilot specified by other\_pilot\_id. Note that levels start at 0!
+			 
 ## External Plugin commands	
 
 These are plugin commands provided by external plugins.

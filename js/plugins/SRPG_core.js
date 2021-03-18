@@ -58,6 +58,7 @@ var $mechAbilityManager = new MechAbilityManager();
 var $itemEffectManager = new ItemEffectManager(); 
 var $abilityCommandManger = new AbilityCommandManger();
 var $weaponEffectManager = new WeaponEffectManager();
+var $relationshipBonusManager = new RelationshipBonusManager();
 var $battleCalc = new BattleCalc();
 var $CSSUIManager = new CSSUIManager();
 var $songManager = new SRWSongManager();
@@ -451,6 +452,24 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			}
 			$statCalc.storeMechData(mechData);
 		}
+		
+		if (command === 'setPilotRelationship') {
+			var actorId = parseInt(args[0]);
+			var otherActorId = parseInt(args[1]);
+			var effectId = parseInt(args[2]);
+			var level = parseInt( args[3]);
+			
+			var actor = $gameActors.actor(actorId);
+			if(!actor.SRWStats.pilot.relationships){
+				actor.SRWStats.pilot.relationships = {};
+			}
+			actor.SRWStats.pilot.relationships[otherActorId] = {
+				actor: otherActorId,
+				effectId: effectId,
+				level: level
+			};
+			$statCalc.storeActorData(actor);	
+		}		
 		
 		if (command === 'addPersuadeOption') {
 			//args[0] = actorId

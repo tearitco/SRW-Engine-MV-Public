@@ -217,7 +217,7 @@ AbilityCommandManger.prototype.addDefinition = function(idx, name, desc, useCoun
 	if(statmodHandler){
 		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
 	} else {
-		this._abilityDefinitions[idx].statmodHandler = function(){return {}}
+		this._abilityDefinitions[idx].statmodHandler = function(){return []}
 	}
 	if(isActiveHandler){
 		this._abilityDefinitions[idx].isActiveHandler = isActiveHandler;
@@ -241,4 +241,31 @@ AbilityCommandManger.prototype.getAbilityDisplayInfo = function(idx){
 		result.isActiveHandler = abilityDef.isActiveHandler;
 	}
 	return result;
+}
+
+function RelationshipBonusManager(){
+	this._parent = AbilityManager.prototype;
+	this._parent.constructor.call(this);
+}
+
+RelationshipBonusManager.prototype = Object.create(AbilityManager.prototype);
+RelationshipBonusManager.prototype.constructor = RelationshipBonusManager;
+
+RelationshipBonusManager.prototype.initDefinitions = function(){
+	$SRWConfig.relationShipbonuses.call(this);
+}
+
+RelationshipBonusManager.prototype.addDefinition = function(idx, name, desc, statmodHandler){
+	var _this = this;
+	this._abilityDefinitions[idx] = {
+		name: name,
+		desc: desc,
+		statmodHandler: statmodHandler,
+		isActiveHandler: function(){return true;},
+	};
+	if(statmodHandler){
+		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
+	} else {
+		this._abilityDefinitions[idx].statmodHandler = function(){return []}
+	}
 }

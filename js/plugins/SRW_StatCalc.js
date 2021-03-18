@@ -373,6 +373,26 @@ StatCalc.prototype.getPilotAbilityInfo = function(actorProperties, targetLevel){
 	return result;
 }
 
+StatCalc.prototype.getPilotRelationshipInfo = function(actorProperties){
+	var result = {};
+	var currentListIdx = 0;
+	for(var i = 1; i <= 50; i++){
+		var abilityString = actorProperties["pilotRelationship"+i];
+		if(abilityString){
+			var parts = abilityString.split(",");	
+			var actor = parseInt(parts[0]);
+			var effectId  = parseInt(parts[1]);
+			var level = parseInt(parts[2]);
+			result[actor] = {
+				actor: actor,
+				effectId: effectId,
+				level: level
+			};
+		}
+	}
+	return result;
+}
+
 StatCalc.prototype.getMechAbilityInfo = function(mechProperties){
 	var result = [];
 	for(var i = 1; i <= 6; i++){
@@ -881,11 +901,13 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	this.calculateSRWActorStats(actor, preserveVolatile);// calculate stats to ensure level is set before fetching abilities
 	
 	var dbAbilities = this.getPilotAbilityInfo(actorProperties, this.getCurrentLevel(actor));	
+	var dbRelationships = this.getPilotRelationshipInfo(actorProperties);
 	
 	if(actor.isActor()){
-		this.applyStoredActorData(actor, dbAbilities);
+		this.applyStoredActorData(actor, dbAbilities, dbRelationships);
 	} else {
 		actor.SRWStats.pilot.abilities = dbAbilities;
+		actor.SRWStats.pilot.relationships = dbRelationships;
 	}	
 	
 	this.calculateSRWActorStats(actor, preserveVolatile);// calculate stats again to ensure changes due to abilities are applied
@@ -1495,7 +1517,7 @@ StatCalc.prototype.canCombine = function(actor, forced){
 	return result;
 }
 
-StatCalc.prototype.applyStoredActorData = function(actor, dbAbilities){
+StatCalc.prototype.applyStoredActorData = function(actor, dbAbilities, dbRelationships){
 	if(actor.isActor()){
 		var storedData = $SRWSaveManager.getActorData(actor.actorId());
 		actor.SRWStats.pilot.PP = storedData.PP;
@@ -1540,6 +1562,15 @@ StatCalc.prototype.applyStoredActorData = function(actor, dbAbilities){
 		
 		actor.SRWStats.pilot.abilities = storedAbilities;
 		
+		var storedRelationships = storedData.relationships || {};
+		
+		Object.keys(dbRelationships).forEach(function(targetActor){
+			if(!storedRelationships[targetActor]){
+				storedRelationships[targetActor] = dbRelationships[targetActor];
+			}
+		});
+		
+		actor.SRWStats.pilot.relationships = storedRelationships;
 	}
 }
 
@@ -1555,6 +1586,7 @@ StatCalc.prototype.storeActorData = function(actor){
 			exp: actor.SRWStats.pilot.exp,
 			kills: actor.SRWStats.pilot.kills,
 			abilities: actor.SRWStats.pilot.abilities,
+			relationships: actor.SRWStats.pilot.relationships
 		});
 		var classId;
 		if(actor.SRWStats.mech.inheritsUpgradesFrom != null){
@@ -2326,6 +2358,50 @@ StatCalc.prototype.getMechAbilityList = function(actor){
 	}	
 }	
 
+StatCalc.prototype.getPilotRelationships = function(actor){
+	if(this.isActorSRWInitialized(actor)){			
+		return actor.SRWStats.pilot.relationships || {};
+	} else {
+		return {};
+	}
+}
+
+StatCalc.prototype.getActiveRelationshipBonuses = function(actor){
+	var _this = this;
+	var result = [];
+	if(this.isActorSRWInitialized(actor) && actor.event){	
+		var position = {x: actor.event.posX(), y: actor.event.posY()};
+		var candidateLookup = this.getPilotRelationships(actor);
+		
+		this.iterateAllActors(actor.isActor() ? "actor" : "enemy", function(actor, event){
+			if(event && !event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) <= 1){
+				var def = candidateLookup[actor.SRWStats.pilot.id];
+				if(def){
+					result.push({
+						idx: def.effectId,
+						level: def.level
+					});
+				}
+				if(!actor.isSubPilot){
+					var subPilots = _this.getSubPilots(actor);
+					subPilots.forEach(function(pilotId){
+						var actor = $gameActors.actor(pilotId);
+						if(actor){
+							var def = candidateLookup[actor.SRWStats.pilot.id];
+							if(def){
+								result.push({
+									idx: def.effectId,
+									level: def.level
+								});
+							}
+						}			
+					});	
+				}
+			}					
+		});
+	}
+	return result;
+}
 
 StatCalc.prototype.getMechFUB = function(actor){
 	if(this.isActorSRWInitialized(actor)){			
@@ -3864,6 +3940,11 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 					accumulateFromAbilityList(tmp, $weaponEffectManager);		
 				}
 			}	
+			
+			var relationshipBonuses = this.getActiveRelationshipBonuses(actor);
+			if(relationshipBonuses){
+				accumulateFromAbilityList(relationshipBonuses, $relationshipBonusManager);	
+			}
 		}
 	}
 	return result;
