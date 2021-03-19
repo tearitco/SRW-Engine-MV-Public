@@ -3163,6 +3163,35 @@ StatCalc.prototype.getSupportRecipientCandidates = function(type, position, all)
 	return result;
 }
 
+StatCalc.prototype.hasSupportAttack = function(supportingActor){
+	var maxSupportAttacks = $statCalc.applyStatModsToValue(supportingActor, 0, ["support_attack"]);			
+	return (maxSupportAttacks > supportingActor.SRWStats.battleTemp.supportAttackCount && (!supportingActor.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT));
+}
+
+StatCalc.prototype.canSupportAttack = function(supportedActor, supportingActor){
+	var _this = this;
+	var result = false;
+	var terrain = this.getCurrentTerrain(supportedActor);
+	var maxSupportAttacks = $statCalc.applyStatModsToValue(supportingActor, 0, ["support_attack"]);
+	if(supportedActor != supportingActor && maxSupportAttacks > supportingActor.SRWStats.battleTemp.supportAttackCount && (!supportingActor.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT)){
+		var validTerrain = true;
+		if(terrain == "air"){
+			validTerrain = _this.canFly(supportingActor)
+		} else if(terrain == "land"){
+			validTerrain = _this.canBeOnLand(supportingActor)
+		} else if(terrain == "water"){
+			validTerrain = _this.canBeOnWater(supportingActor)
+		} else if(terrain == "space"){
+			validTerrain = _this.canBeOnSpace(supportingActor)
+		}
+		
+		if($gameSystem.isFriendly(supportingActor, $gameSystem.getFactionId(supportedActor)) && validTerrain){
+			result = true;
+		}				
+	}
+	return result;
+}
+
 StatCalc.prototype.getSupportAttackCandidates = function(factionId, position, terrain){
 	var _this = this;
 	var result = [];
@@ -3194,6 +3223,34 @@ StatCalc.prototype.incrementSupportAttackCounter = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		actor.SRWStats.battleTemp.supportAttackCount++;
 	}
+}
+
+StatCalc.prototype.hasSupportDefend = function(supportingActor){
+	var maxSupportDefends = $statCalc.applyStatModsToValue(supportingActor, 0, ["support_defend"]);			
+	return (maxSupportDefends > supportingActor.SRWStats.battleTemp.supportDefendCount);
+}
+
+StatCalc.prototype.canSupportDefend = function(supportedActor, supportingActor){
+	var _this = this;
+	var result = false;
+	var terrain = this.getCurrentTerrain(supportedActor);
+	var maxSupportDefends = $statCalc.applyStatModsToValue(supportingActor, 0, ["support_defend"]);			
+	if(supportedActor != supportingActor && maxSupportDefends > supportingActor.SRWStats.battleTemp.supportDefendCount){
+		var validTerrain = true;
+		if(terrain == "air"){
+			validTerrain = _this.canFly(supportingActor)
+		} else if(terrain == "land"){
+			validTerrain = _this.canBeOnLand(supportingActor)
+		} else if(terrain == "water"){
+			validTerrain = _this.canBeOnWater(supportingActor)
+		} else if(terrain == "space"){
+			validTerrain = _this.canBeOnSpace(supportingActor)
+		}
+		if($gameSystem.isFriendly(supportingActor, $gameSystem.getFactionId(supportedActor)) && validTerrain){
+			result = true;
+		}				
+	}
+	return result;
 }
 	
 StatCalc.prototype.getSupportDefendCandidates = function(factionId, position, terrain){
@@ -4037,44 +4094,51 @@ StatCalc.prototype.getCommanderBonus = function(actor){
 	return result;
 }
 
+
+StatCalc.prototype.getCommanderAura = function(actor, event, result){
+	var _this = this;
+	var commanderLevel = _this.applyStatModsToValue(actor, 0, "commander_aura");	
+	if(commanderLevel > 0){
+		var sourceX = event.posX();
+		var sourceY = event.posY();
+		for(var i = 0; i <= 10; i++){
+			var x = i - 5;
+			for(var j = 0; j <= 10; j++){
+				var y = j - 5;
+				var distance = Math.abs(x) + Math.abs(y);
+				if(distance <= 5 && distance > 0){
+					var realX = sourceX + x;
+					var realY = sourceY + y;
+					var auraLookup = ENGINE_SETTINGS.COMMANDER_AURA[commanderLevel];
+					if(auraLookup){
+						var amount = auraLookup[distance-1];
+						if(amount){
+							if(!result[realX]){
+								result[realX] = {};
+							}
+							if(!result[realX][realY]){
+								result[realX][realY] = 0;
+							}
+							if(amount > result[realX][realY]){
+								result[realX][realY] = amount;
+							}
+						}
+					}
+				}
+			}	
+		}
+	}
+}
+
 StatCalc.prototype.getCommanderAuraLookup = function(actor){
 	var _this = this;
 	var result = {};
 	var type = $gameSystem.isEnemy(actor);
+	
 	if(this.isActorSRWInitialized(actor)){
 		this.iterateAllActors(null, function(actor, event){			
 			if(!event.isErased() && $gameSystem.isEnemy(actor) == type){
-				var commanderLevel = _this.applyStatModsToValue(actor, 0, "commander_aura");	
-				if(commanderLevel > 0){
-					var sourceX = event.posX();
-					var sourceY = event.posY();
-					for(var i = 0; i < 10; i++){
-						var x = i - 5;
-						for(var j = 0; j < 10; j++){
-							var y = j - 5;
-							var distance = Math.abs(x) + Math.abs(y);
-							if(distance <= 5 && distance > 0){
-								var realX = sourceX + x;
-								var realY = sourceY + y;
-								var auraLookup = ENGINE_SETTINGS.COMMANDER_AURA[commanderLevel];
-								if(auraLookup){
-									var amount = auraLookup[distance-1];
-									if(amount){
-										if(!result[realX]){
-											result[realX] = {};
-										}
-										if(!result[realX][realY]){
-											result[realX][realY] = 0;
-										}
-										if(amount > result[realX][realY]){
-											result[realX][realY] = amount;
-										}
-									}
-								}
-							}
-						}	
-					}
-				}	
+				_this.getCommanderAura(actor, event, result);
 			}		
 		});
 	} 

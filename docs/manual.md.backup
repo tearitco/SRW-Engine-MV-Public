@@ -219,7 +219,7 @@ A pilot can have up to 50 relationships:
 \<pilotRelationship50: 2,1,1\><br>
 
 The format is \<Other pilot id\>,\<Relationship definition\>,\<level\><br>
-\<pilotRelationship1: 3,0,2\>: The pilot will receive the effects of relationship bonus type 0 at level 2 when adjacent to Pilot 3.
+\<pilotRelationship1: 3,0,2\>: The pilot will grant the effects of relationship bonus type 0 at level 2  to Pilot 3 when adjacent to them. 
 
 **Note that level starts at 0!**
 

@@ -2023,6 +2023,10 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
     //エネミーターンの開始
     Game_System.prototype.srpgStartEnemyTurn = function(factionId) {
 		var _this = this;
+		$gameTemp.showAllyAttackIndicator = false;
+		$gameTemp.showAllyDefendIndicator = false;
+		$gameTemp.showEnemyAttackIndicator = false;
+		$gameTemp.showEnemyDefendIndicator = false;
 		$gameTemp.currentFaction = factionId;
 		if(factionId > 2){
 			$gameSystem.srpgTurnEnd();
@@ -4079,6 +4083,10 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
                                     $gameSystem.setSubBattlePhase('status_window');
                                 }*/
 								if (battlerArray[1].canInput() == true) {
+									$gameSystem.highlightedTiles = [];
+									$gameSystem.highlightsRefreshed = true;
+									$gameTemp.commanderAuraVisible = false;
+									
 									$gameTemp.reserveOriginalPos($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
 									$gameSystem.setSrpgActorCommandWindowNeedRefresh(battlerArray);
 									$gameParty.pushSrpgBattleActors(battlerArray[1]);
@@ -6654,6 +6662,171 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this.opacity = 0;
 		}		
 	};
+
+//====================================================================
+// ●Sprite_DefendIndicator
+//====================================================================	
+	
+	function Sprite_DefendIndicator() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_DefendIndicator.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_DefendIndicator.prototype.constructor = Sprite_DefendIndicator;
+
+	Sprite_DefendIndicator.prototype.initialize = function(character) {
+		Sprite_Base.prototype.initialize.call(this);
+		this._character = character;
+		this.bitmap =  ImageManager.loadSystem('shield');
+		this.anchor.x = 0.5;
+		this.anchor.y = 1;
+		this._frameCount = 0;
+	};
+
+	Sprite_DefendIndicator.prototype.update = function() {
+		this.x = this._character.screenX();
+		
+		this.y = this._character.screenY() - 2;
+		//this.z = this._character.screenZ() - 1;
+		var eventId = this._character.eventId();
+		var battlerArray = $gameSystem.EventToUnit(eventId);
+		
+		if(battlerArray){
+			var unit = battlerArray[1];
+			var isShown = true;
+			if(!$gameSystem.isEnemy(unit)){
+				if(!$gameTemp.showAllyDefendIndicator){
+					isShown = false;
+				}
+				this.x = this._character.screenX() + 15;
+			} else {
+				if(!$gameTemp.showEnemyDefendIndicator){
+					isShown = false;
+				}
+				this.x = this._character.screenX() - 15;
+			}
+			if($gameSystem.isBattlePhase() === 'AI_phase' || $gameSystem.isSubBattlePhase() === 'actor_target'){
+				var activeEvent = $gameTemp.activeEvent();
+				if(activeEvent){
+					var actor = $gameSystem.EventToUnit(activeEvent.eventId())[1];
+					if($gameSystem.isFriendly(actor, $gameSystem.getFactionId(unit))){
+						if(!actor || !$statCalc.canSupportDefend(actor, unit)){
+							isShown = false;
+						}
+					} else {
+						if(!$statCalc.hasSupportDefend(unit)){
+							isShown = false;
+						}
+					}					
+				} else {
+					isShown = false;
+				}
+			} else {
+				if($gameTemp.summaryUnit && !$statCalc.canSupportDefend($gameTemp.summaryUnit, unit)){
+					isShown = false;
+				}
+			}
+			if(isShown && unit && !this._character.isErased()){
+			
+				this._frameCount+=2;
+				this._frameCount %= 200;
+				if(this._frameCount < 100){
+					this.opacity = this._frameCount + 120;
+				} else {
+					this.opacity = 200 + 120 - this._frameCount;
+				}
+				
+			} else {
+				this.opacity = 0;
+			}
+		} else {
+			this.opacity = 0;
+		}		
+	};
+	
+//====================================================================
+// ●Sprite_AttackIndicator
+//====================================================================	
+	
+	function Sprite_AttackIndicator() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_AttackIndicator.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_AttackIndicator.prototype.constructor = Sprite_AttackIndicator;
+
+	Sprite_AttackIndicator.prototype.initialize = function(character) {
+		Sprite_Base.prototype.initialize.call(this);
+		this._character = character;
+		this.bitmap =  ImageManager.loadSystem('sword');
+		this.anchor.x = 0.5;
+		this.anchor.y = 1;
+		this._frameCount = 0;
+	};
+
+	Sprite_AttackIndicator.prototype.update = function() {
+		this.x = this._character.screenX();
+		
+		this.y = this._character.screenY() - 2;
+		//this.z = this._character.screenZ() - 1;
+		var eventId = this._character.eventId();
+		var battlerArray = $gameSystem.EventToUnit(eventId);
+		
+		if(battlerArray){
+			var unit = battlerArray[1];
+			var isShown = true;
+			if(!$gameSystem.isEnemy(unit)){
+				if(!$gameTemp.showAllyAttackIndicator){
+					isShown = false;
+				}
+				this.x = this._character.screenX() - 15;
+			} else {
+				if(!$gameTemp.showEnemyAttackIndicator){
+					isShown = false;
+				}
+				this.x = this._character.screenX() + 15;
+			}
+			
+			if($gameSystem.isBattlePhase() === 'AI_phase' || $gameSystem.isSubBattlePhase() === 'actor_target'){
+				var activeEvent = $gameTemp.activeEvent();
+				if(activeEvent){
+					var actor = $gameSystem.EventToUnit(activeEvent.eventId())[1];
+					if($gameSystem.isFriendly(actor, $gameSystem.getFactionId(unit))){
+						if(!actor || !$statCalc.canSupportAttack(actor, unit)){
+							isShown = false;
+						}
+					} else {
+						if(!$statCalc.hasSupportAttack(unit)){
+							isShown = false;
+						}
+					}
+				} else {
+					isShown = false;
+				}				
+			} else {
+				if(!$gameTemp.summaryUnit || !$statCalc.canSupportAttack($gameTemp.summaryUnit, unit)){
+					isShown = false;
+				}
+			}
+			
+			
+			if(isShown && unit && !this._character.isErased()){
+			
+				this._frameCount+=2;
+				this._frameCount %= 200;
+				if(this._frameCount < 100){
+					this.opacity = this._frameCount + 120;
+				} else {
+					this.opacity = 200 + 120 - this._frameCount;
+				}
+				
+			} else {
+				this.opacity = 0;
+			}
+		} else {
+			this.opacity = 0;
+		}		
+	};	
 	
 //====================================================================
 // Sprite_Destroyed
@@ -7114,6 +7287,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._appearSprites = {};
 		this._disappearSprites = {};
 		this._willIndicators = {};
+		this._defendIndicators = {};
+		this._attackIndicators = {};
 		$gameMap.events().forEach(function(event) {
 			this.createBShadow(event._eventId,event);			
 		}, this);
@@ -7177,6 +7352,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.createAppearSprite(event._eventId, event);
 			this.createDisappearSprite(event._eventId, event);
 			this.createWillIndicator(event._eventId, event);
+			this.createDefendIndicator(event._eventId, event);
+			this.createAttackIndicator(event._eventId, event);
 		}, this);			
 		
 		this._reticuleSprite = new Sprite_Reticule();
@@ -7227,6 +7404,24 @@ SceneManager.reloadCharacters = function(startEvent){
 			character._willIndicator = true;
 		};
 	};	
+	
+	Spriteset_Map.prototype.createDefendIndicator = function(id,character) {
+		if (!character) return;
+		if (!this._defendIndicators[id]) {
+			this._defendIndicators[id] = new Sprite_DefendIndicator(character);
+			this.addCharacterToBaseSprite(this._defendIndicators[id]);
+			character._defendIndicator = true;
+		};
+	};	
+	
+	Spriteset_Map.prototype.createAttackIndicator = function(id,character) {
+		if (!character) return;
+		if (!this._attackIndicators[id]) {
+			this._attackIndicators[id] = new Sprite_AttackIndicator(character);
+			this.addCharacterToBaseSprite(this._attackIndicators[id]);
+			character._defendIndicator = true;
+		};
+	};
 
     var _SRPG_Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
@@ -9437,6 +9632,10 @@ SceneManager.reloadCharacters = function(startEvent){
                 }
             } else if ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_map_target') {
                 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
+					$gameTemp.showAllyAttackIndicator = false;
+					$gameTemp.showAllyDefendIndicator = false;
+					$gameTemp.showEnemyAttackIndicator = false;
+					$gameTemp.showEnemyDefendIndicator = false;
                     SoundManager.playCancel();
                     var event = $gameTemp.activeEvent();
                     var battlerArray = $gameSystem.EventToUnit(event.eventId());
@@ -9983,6 +10182,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		
         //エネミーフェイズの処理
         if ($gameSystem.isBattlePhase() === 'AI_phase') {
+			
+			
+			
 			if ($gameSystem.isSubBattlePhase() == "rewards_display"){
 				return;
 			}
@@ -10058,9 +10260,41 @@ SceneManager.reloadCharacters = function(startEvent){
 				$gameTemp.summaryUnit = summaryUnit;	
 				if(!_this._summaryWindow.visible || $gameTemp.summaryUnit != previousUnit){
 					_this._summaryWindow.show();
-				}											
+				}			
+
+				if(!$gameTemp.commanderAuraVisible || $gameTemp.summaryUnit != previousUnit){
+					
+					$gameTemp.commanderAuraVisible = true;
+					var commanderAuraLookup = {};
+					$statCalc.getCommanderAura(summaryUnit, summaryUnit.event, commanderAuraLookup);
+					$gameSystem.highlightedTiles = [];
+					Object.keys(commanderAuraLookup).forEach(function(x){
+						Object.keys(commanderAuraLookup[x]).forEach(function(y){
+							$gameSystem.highlightedTiles.push({x: x, y: y, color: "yellow"});
+						});
+					});
+					
+					$gameSystem.highlightsRefreshed = true;
+					
+					if(!$gameSystem.isEnemy($gameTemp.summaryUnit)){
+						$gameTemp.showAllyAttackIndicator = true;
+						$gameTemp.showAllyDefendIndicator = true;
+					} else {
+						$gameTemp.showEnemyAttackIndicator = true;
+						$gameTemp.showEnemyDefendIndicator = true;
+					}
+				}
+				
 			} else {
 				_this._summaryWindow.hide();
+				$gameTemp.commanderAuraVisible = false;
+				$gameSystem.highlightedTiles = [];
+				$gameSystem.highlightsRefreshed = true;
+				
+				$gameTemp.showAllyAttackIndicator = false;
+				$gameTemp.showAllyDefendIndicator = false;
+				$gameTemp.showEnemyAttackIndicator = false;
+				$gameTemp.showEnemyDefendIndicator = false;
 				
 				if(Input.isTriggered('ok')){
 					//if(!$gameTemp.OKHeld){
@@ -10968,6 +11202,15 @@ SceneManager.reloadCharacters = function(startEvent){
         this._attackWindow.refresh();
         this._attackWindow.show();
         this._attackWindow.activate();*/
+		
+		$gameTemp.summaryUnit = null;
+		
+		$gameTemp.showAllyAttackIndicator = true;
+		$gameTemp.showAllyDefendIndicator = false;
+		$gameTemp.showEnemyAttackIndicator = false;
+		$gameTemp.showEnemyDefendIndicator = true;
+		
+		
 		var actionBattlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
 		$gameTemp.currentMenuUnit = {
 			actor: actionBattlerArray[1],
@@ -11706,6 +11949,18 @@ SceneManager.reloadCharacters = function(startEvent){
                 return;
             }
         }
+		
+		if($gameSystem.isEnemy(enemy)){
+			$gameTemp.showAllyAttackIndicator = false;
+			$gameTemp.showAllyDefendIndicator = true;
+			$gameTemp.showEnemyAttackIndicator = true;
+			$gameTemp.showEnemyDefendIndicator = false;
+		} else {
+			$gameTemp.showAllyAttackIndicator = true;
+			$gameTemp.showAllyDefendIndicator = false;
+			$gameTemp.showEnemyAttackIndicator = false;
+			$gameTemp.showEnemyDefendIndicator = true;
+		}
 		
         		
 		$gameTemp.setActiveEvent(event);
