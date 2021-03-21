@@ -1474,6 +1474,9 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 	}
 	
 	Game_System.prototype.isEnemy = function(actor) {
+		if(!actor.isActor){
+			return true;
+		}
 		if(actor.isActor()){
 			return false;
 		} else {
@@ -1935,6 +1938,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
     //アクターターンの開始
     Game_System.prototype.srpgStartActorTurn = function() {
 		var _this = this;
+		$statCalc.invalidateAbilityCache();
+		
 		$gameTemp.currentFaction = -1;
 		$songManager.playStageSong();
         this.aliveActorIdList = [];
@@ -2023,6 +2028,9 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
     //エネミーターンの開始
     Game_System.prototype.srpgStartEnemyTurn = function(factionId) {
 		var _this = this;
+		$statCalc.invalidateAbilityCache();
+		
+		
 		$gameTemp.showAllyAttackIndicator = false;
 		$gameTemp.showAllyDefendIndicator = false;
 		$gameTemp.showEnemyAttackIndicator = false;
@@ -4748,6 +4756,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 					this._pendingMoveToPoint = false;
 					$gameTemp.followMove = false;
 					$gameSystem.setSrpgWaitMoving(false);
+					$statCalc.invalidateAbilityCache();
 				} else {				
 					this.setMoveSpeed(6);
 					if(followMove){
@@ -4790,6 +4799,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 						this._pendingMoveToPoint = false;
 						$gameTemp.followMove = false;
 						$gameSystem.setSrpgWaitMoving(false);
+						$statCalc.invalidateAbilityCache();
 					}	
 				}
 			}
@@ -9446,6 +9456,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					_this._startDeath = true;
 					$gameSystem.setSubBattlePhase("process_death");
 				} else {
+					$statCalc.invalidateAbilityCache();
 					_this.srpgAfterAction();
 				}
 				return;

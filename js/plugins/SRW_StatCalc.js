@@ -748,7 +748,7 @@ StatCalc.prototype.refreshAllSRWStats = function(type){
 }
 
 StatCalc.prototype.softRefreshUnits = function(){
-	var _this = this;
+	var _this = this;	
 	this.iterateAllActors(null, function(actor, event){
 		var itemsIds = [];
 		actor.SRWStats.mech.items.forEach(function(item){
@@ -761,6 +761,7 @@ StatCalc.prototype.softRefreshUnits = function(){
 		actor.SRWStats.pilot.abilities = null;//ensure reload
 		_this.initSRWStats(actor, _this.getCurrentLevel(actor), itemsIds, true);				
 	});
+	this.invalidateAbilityCache();
 }
 
 StatCalc.prototype.createEmptyActor = function(level){
@@ -3351,6 +3352,7 @@ StatCalc.prototype.modifyWill = function(actor, increment){
 			actor.SRWStats.pilot.will = 50;
 		}
 	} 	
+	this.invalidateAbilityCache();
 }
 
 StatCalc.prototype.getTerrainMod = function(actor){
@@ -3926,6 +3928,8 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 						} else if(statMod.modType == "mult_ceil"){
 							targetList = result.mult_ceil;
 						}
+						
+						statMod.rangeInfo = {min: 1, max: 1, targets: "own"};
 						if(targetList){
 							targetList.push(statMod);
 						}
@@ -3998,10 +4002,10 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 				}
 			}	
 			
-			var relationshipBonuses = this.getActiveRelationshipBonuses(actor);
+			/*var relationshipBonuses = this.getActiveRelationshipBonuses(actor);
 			if(relationshipBonuses){
 				accumulateFromAbilityList(relationshipBonuses, $relationshipBonusManager);	
-			}
+			}*/
 		}
 	}
 	return result;
@@ -4018,8 +4022,104 @@ StatCalc.prototype.getModDefinitions = function(actor, types, excludedSkills){
 	return result;
 }
 
+StatCalc.prototype.invalidateAbilityCache = function(excludedSkills){
+	this._abilityCacheDirty = true;
+}
+
+StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
+	var _this = this;
+	if(_this._cachedAbilityLookup && !_this._abilityCacheDirty){
+		return _this._cachedAbilityLookup;
+	}
+	var result = {};
+	_this.iterateAllActors(null, function(actor, event){			
+		if(actor && event && !event.isErased()){
+			var isEnemy = $gameSystem.isEnemy(actor);
+			var sourceX = event.posX();
+			var sourceY = event.posY();
+			
+			var accumulators = _this.getActiveStatMods(actor, excludedSkills);
+			Object.keys(accumulators).forEach(function(accType){
+				var activeAbilities = accumulators[accType];
+				activeAbilities.forEach(function(effect){
+					var rangeInfo = effect.rangeInfo;
+					var target;
+					if(isEnemy){
+						if(rangeInfo.targets == "own"){
+							target = "enemy";
+						} else {
+							target = "ally";
+						}
+					} else {
+						if(rangeInfo.targets == "own"){
+							target = "ally";
+						} else {
+							target = "enemy";
+						}
+					}
+					for(var i = 0; i <= rangeInfo.max * 2; i++){
+						var x = i - rangeInfo.max;
+						for(var j = 0; j <= 10; j++){
+							var y = j - rangeInfo.max;
+							var distance = Math.abs(x) + Math.abs(y);
+							if(distance <= rangeInfo.max && distance >= rangeInfo.min){
+								var realX = sourceX + x;
+								var realY = sourceY + y;
+								if(!result[realX]){
+									result[realX] = {};
+								}
+								if(!result[realX][realY]){
+									result[realX][realY] = {};
+								}
+								if(!result[realX][realY][target]){
+									result[realX][realY][target] = {
+										mult: [],
+										mult_ceil: [],
+										addPercent: [],
+										addFlat: [],
+										list: []
+									};
+								}
+								/*if(!result[realX][realY][target][accType]){
+									result[realX][realY][target][accType] = [];
+								}*/
+								result[realX][realY][target][accType].push(effect);
+							}
+						}	
+					}
+				});	
+			});			
+		}
+	});
+	_this._cachedAbilityLookup = result;
+	_this._abilityCacheDirty = false;
+	return result;
+}
+
 StatCalc.prototype.applyStatModsToValue = function(actor, value, types, excludedSkills){
-	var statMods = this.getActiveStatMods(actor, excludedSkills);
+	
+	var abilityLookup = this.createActiveAbilityLookup(excludedSkills);
+	var statMods;// = this.getActiveStatMods(actor, excludedSkills);
+	
+	try {
+		if($gameSystem.isEnemy(actor)){
+			statMods = abilityLookup[actor.event.posX()][actor.event.posY()].enemy;
+		} else {
+			statMods = abilityLookup[actor.event.posX()][actor.event.posY()].ally;
+		}
+	} catch(e){
+		
+	}
+	if(!statMods){
+		statMods = {
+			mult: [],
+			mult_ceil: [],
+			addPercent: [],
+			addFlat: [],
+			list: []
+		};
+	}
+	
 	for(var i = 0; i < statMods.addFlat.length; i++){
 		if(types.indexOf(statMods.addFlat[i].type) != -1){
 			value+=statMods.addFlat[i].value*1;
@@ -4320,5 +4420,6 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 		});		
 	}
 	
-	$statCalc.initSRWStats($gameActors.actor(actorId));
+	this.initSRWStats($gameActors.actor(actorId));
+	this.invalidateAbilityCache();
 }
