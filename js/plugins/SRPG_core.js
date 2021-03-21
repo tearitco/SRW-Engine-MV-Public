@@ -4288,6 +4288,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										$gameTemp.supportDefendSelected = supporterSelected;
 										
 										$gameTemp.setTargetEvent(event);
+										$statCalc.invalidateAbilityCache();
 										$gameSystem.setSubBattlePhase('battle_window');
 										$gameTemp.pushMenu = "before_battle";
 									}	
@@ -5313,6 +5314,7 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 			}
 		}
     }
+	$statCalc.invalidateAbilityCache();
     return true;
 };
 
@@ -9732,8 +9734,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		if ($gameSystem.isSubBattlePhase() == "enemy_targeting_display"){
 			if($gameTemp.targetingDisplayCounter <= 0){
-				 $gameTemp.pushMenu = "before_battle";
-				 $gameSystem.setSubBattlePhase("enemy_attack");
+				$statCalc.invalidateAbilityCache();
+				$gameTemp.pushMenu = "before_battle";
+				$gameSystem.setSubBattlePhase("enemy_attack");
 			} else {
 				$gameTemp.targetingDisplayCounter--;
 			}

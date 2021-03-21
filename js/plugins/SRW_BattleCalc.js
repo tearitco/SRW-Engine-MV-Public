@@ -170,7 +170,7 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		
 		var finalHit = (baseHit - baseEvade) * this._sizeEvadeMod[defenderMechStats.size] * (1 - terrainEvadeFactor/100);
 		
-		finalHit = finalHit + $statCalc.getCommanderBonus(attackerInfo.actor) - $statCalc.getCommanderBonus(defenderInfo.actor);
+		//finalHit = finalHit + $statCalc.getCommanderBonus(attackerInfo.actor) - $statCalc.getCommanderBonus(defenderInfo.actor);
 		
 		finalHit = $statCalc.applyStatModsToValue(attackerInfo.actor, finalHit, ["hit"]);
 		var evadeMod = 0;

@@ -279,7 +279,8 @@ $SRWConfig.mechAbilties = function(){
 		},
 		function(actor, level){
 			return true;
-		}
+		},
+		null
 	);
 	this.addDefinition(
 		20, 

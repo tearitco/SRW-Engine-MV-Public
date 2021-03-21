@@ -3929,7 +3929,10 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 							targetList = result.mult_ceil;
 						}
 						
-						statMod.rangeInfo = {min: 1, max: 1, targets: "own"};
+						statMod.rangeInfo = abilityManager.getRangeDef(actor, abilityDef.idx, abilityDef.level) || {min: 0, max: 0, targets: "own"};
+						
+						statMod.stackId = abilityDef.idx;
+						statMod.canStack = abilityManager.canStack(abilityDef.idx);
 						if(targetList){
 							targetList.push(statMod);
 						}
@@ -4002,25 +4005,17 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 				}
 			}	
 			
-			/*var relationshipBonuses = this.getActiveRelationshipBonuses(actor);
+			var relationshipBonuses = this.getActiveRelationshipBonuses(actor);
 			if(relationshipBonuses){
 				accumulateFromAbilityList(relationshipBonuses, $relationshipBonusManager);	
-			}*/
+			}
+			
 		}
 	}
 	return result;
 }
 
-StatCalc.prototype.getModDefinitions = function(actor, types, excludedSkills){
-	var result = [];
-	var statMods = this.getActiveStatMods(actor, excludedSkills);	
-	for(var i = 0; i < statMods.list.length; i++){
-		if(types.indexOf(statMods.list[i].type) != -1){
-			result.push(statMods.list[i]);
-		}		
-	}	
-	return result;
-}
+
 
 StatCalc.prototype.invalidateAbilityCache = function(excludedSkills){
 	this._abilityCacheDirty = true;
@@ -4083,7 +4078,35 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 								/*if(!result[realX][realY][target][accType]){
 									result[realX][realY][target][accType] = [];
 								}*/
-								result[realX][realY][target][accType].push(effect);
+								if(effect.range == null || effect.range == distance){
+									result[realX][realY][target][accType].push(effect);
+										
+									var stackInfo = {};
+									var tmp = [];
+									
+									var effects = result[realX][realY][target][accType];
+									effects.forEach(function(effect){
+										if(effect.canStack){
+											tmp.push(effect);
+										} else {
+											if(!stackInfo[effect.stackId]){
+												stackInfo[effect.stackId] = {};
+											}
+											if(!stackInfo[effect.stackId][effect.type]){
+												stackInfo[effect.stackId][effect.type] = effect;
+											} else if(stackInfo[effect.stackId][effect.type].value < effect.value){
+												stackInfo[effect.stackId][effect.type] = effect;
+											}
+										}									
+									});
+									Object.keys(stackInfo).forEach(function(stackId){
+										var typeInfo = stackInfo[stackId];
+										Object.keys(typeInfo).forEach(function(type){
+											tmp.push(stackInfo[stackId][type]);
+										});										
+									});									
+									result[realX][realY][target][accType] = tmp;
+								}
 							}
 						}	
 					}
@@ -4096,8 +4119,8 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 	return result;
 }
 
-StatCalc.prototype.applyStatModsToValue = function(actor, value, types, excludedSkills){
-	
+
+StatCalc.prototype.getActorStatMods = function(actor, excludedSkills){
 	var abilityLookup = this.createActiveAbilityLookup(excludedSkills);
 	var statMods;// = this.getActiveStatMods(actor, excludedSkills);
 	
@@ -4119,7 +4142,22 @@ StatCalc.prototype.applyStatModsToValue = function(actor, value, types, excluded
 			list: []
 		};
 	}
-	
+	return statMods;
+}
+
+StatCalc.prototype.getModDefinitions = function(actor, types, excludedSkills){
+	var result = [];
+	var statMods = this.getActorStatMods(actor, excludedSkills);		
+	for(var i = 0; i < statMods.list.length; i++){
+		if(types.indexOf(statMods.list[i].type) != -1){
+			result.push(statMods.list[i]);
+		}		
+	}	
+	return result;
+}
+
+StatCalc.prototype.applyStatModsToValue = function(actor, value, types, excludedSkills){
+	var statMods = this.getActorStatMods(actor, excludedSkills);	
 	for(var i = 0; i < statMods.addFlat.length; i++){
 		if(types.indexOf(statMods.addFlat[i].type) != -1){
 			value+=statMods.addFlat[i].value*1;
@@ -4145,7 +4183,7 @@ StatCalc.prototype.applyStatModsToValue = function(actor, value, types, excluded
 
 StatCalc.prototype.applyMaxStatModsToValue = function(actor, value, types, excludedSkills){
 	var max = value;
-	var statMods = this.getActiveStatMods(actor, excludedSkills);
+	var statMods = this.getActorStatMods(actor, excludedSkills);	
 	for(var i = 0; i < statMods.addFlat.length; i++){
 		if(types.indexOf(statMods.addFlat[i].type) != -1){
 			if(value + statMods.addFlat[i].value*1 > max){
@@ -4422,4 +4460,8 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 	
 	this.initSRWStats($gameActors.actor(actorId));
 	this.invalidateAbilityCache();
+}
+
+StatCalc.prototype.isInCombat = function(actor){
+	return $gameTemp.currentBattleActor == actor || $gameTemp.currentBattleEnemy == actor;
 }

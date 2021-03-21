@@ -3,8 +3,14 @@ function AbilityManager(){
 	this.initDefinitions();	
 }
 
-AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, cost, maxLevel, isHighlightedHandler){
+AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, cost, maxLevel, isHighlightedHandler, rangeDef, canStack){
 	var _this = this;
+	if(!rangeDef){
+		rangeDef = function(){return {min: 0, max: 0, targets: "own"}};
+	}
+	if(canStack == null){
+		canStack = true;
+	}
 	this._abilityDefinitions[idx] = {
 		name: name,
 		desc: desc,
@@ -13,7 +19,9 @@ AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isU
 		statmodHandler: statmodHandler,
 		isActiveHandler: isActiveHandler,
 		cost: cost,
-		maxLevel: maxLevel
+		maxLevel: maxLevel,
+		rangeDef: rangeDef,
+		canStack: canStack
 	};
 	if(statmodHandler){
 		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
@@ -72,6 +80,14 @@ AbilityManager.prototype.getStatmod = function(actor, idx, level){
 	return this.getAbilityDef(idx).statmodHandler(actor, level);
 }
 
+AbilityManager.prototype.getRangeDef = function(actor, idx, level){
+	return this.getAbilityDef(idx).rangeDef(actor, level);
+}
+
+AbilityManager.prototype.canStack = function(idx){
+	return this.getAbilityDef(idx).canStack;
+}
+
 function PilotAbilityManager(){
 	this._parent = AbilityManager.prototype;
 	this._parent.constructor.call(this);
@@ -92,15 +108,23 @@ function MechAbilityManager(){
 MechAbilityManager.prototype = Object.create(AbilityManager.prototype);
 MechAbilityManager.prototype.constructor = MechAbilityManager;
 
-MechAbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, isHighlightedHandler){
+MechAbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, isHighlightedHandler, rangeDef, canStack){
 	var _this = this;
+	if(!rangeDef){
+		rangeDef = function(){return {min: 0, max: 0, targets: "own"}};
+	}
+	if(canStack == null){
+		canStack = true;
+	}
 	this._abilityDefinitions[idx] = {
 		name: name,
 		desc: desc,
 		hasLevel: hasLevel,
 		isUnique: isUnique,
 		statmodHandler: statmodHandler,
-		isActiveHandler: isActiveHandler
+		isActiveHandler: isActiveHandler,
+		rangeDef: rangeDef,
+		canStack: canStack
 	};
 	if(statmodHandler){
 		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
@@ -212,7 +236,9 @@ AbilityCommandManger.prototype.addDefinition = function(idx, name, desc, useCoun
 		useCount: useCount,
 		statmodHandler: statmodHandler,
 		isActiveHandler: isActiveHandler,
-		animId: animId
+		animId: animId,
+		rangeDef: function(){return {min: 0, max: 0, targets: "own"}},
+		canStack: false
 	};
 	if(statmodHandler){
 		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
@@ -262,6 +288,8 @@ RelationshipBonusManager.prototype.addDefinition = function(idx, name, desc, sta
 		desc: desc,
 		statmodHandler: statmodHandler,
 		isActiveHandler: function(){return true;},
+		rangeDef: function(){return {min: 1, max: 1, targets: "own"}},
+		canStack: true
 	};
 	if(statmodHandler){
 		this._abilityDefinitions[idx].statmodHandler = statmodHandler;

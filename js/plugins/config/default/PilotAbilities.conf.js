@@ -807,15 +807,43 @@ $SRWConfig.pilotAbilties = function(){
 		true,
 		true,
 		function(actor, level){
-			return [
-				{type: "commander_aura", modType: "addFlat", value: level}
+			var effects = [
+				[//level 1
+					{type: "hit", modType: "addFlat", value: 10, range: 1},{type: "evade", modType: "addFlat", value: 10, range: 1},
+					{type: "hit", modType: "addFlat", value: 8, range: 2},{type: "evade", modType: "addFlat", value: 8, range: 2},
+				],
+				[//level 2
+					{type: "hit", modType: "addFlat", value: 15, range: 1},{type: "evade", modType: "addFlat", value: 15, range: 1},
+					{type: "hit", modType: "addFlat", value: 12, range: 2},{type: "evade", modType: "addFlat", value: 12, range: 2},
+					{type: "hit", modType: "addFlat", value: 8, range: 3},{type: "evade", modType: "addFlat", value: 8, range: 3},
+				],
+				[//level 3
+					{type: "hit", modType: "addFlat", value: 20, range: 1},{type: "evade", modType: "addFlat", value: 20, range: 1},
+					{type: "hit", modType: "addFlat", value: 16, range: 2},{type: "evade", modType: "addFlat", value: 16, range: 2},
+					{type: "hit", modType: "addFlat", value: 12, range: 3},{type: "evade", modType: "addFlat", value: 12, range: 3},
+					{type: "hit", modType: "addFlat", value: 8, range: 4},{type: "evade", modType: "addFlat", value: 8, range: 4},
+				],
+				[//level 4
+					{type: "hit", modType: "addFlat", value: 25, range: 1},{type: "evade", modType: "addFlat", value: 25, range: 1},
+					{type: "hit", modType: "addFlat", value: 20, range: 2},{type: "evade", modType: "addFlat", value: 20, range: 2},
+					{type: "hit", modType: "addFlat", value: 15, range: 3},{type: "evade", modType: "addFlat", value: 15, range: 3},
+					{type: "hit", modType: "addFlat", value: 10, range: 4},{type: "evade", modType: "addFlat", value: 10, range: 4},
+					{type: "hit", modType: "addFlat", value: 5, range: 5},{type: "evade", modType: "addFlat", value: 5, range: 5},
+				],
 			];
+			
+			return effects[level-1];
 		},
 		function(actor, level){
 			return true;
 		},
-		[0],
-		4
+		[0],//cost
+		4,//max level
+		null,//ability highlighting function, unused for this ability
+		function(actor, level){//function that determines the range of the ability depending on level
+			return {min: 1, max: 5, targets: "own"}
+		},
+		false //do not allow stacking
 	);
 	
 	this.addDefinition(
@@ -938,7 +966,8 @@ $SRWConfig.pilotAbilties = function(){
 			return true;
 		},
 		[0],
-		4
+		4,
+		null
 	);
 	
 	this.addDefinition(
@@ -1092,5 +1121,39 @@ $SRWConfig.pilotAbilties = function(){
 		},
 		[0],
 		4
+	);
+	
+	this.addDefinition(
+		59, 
+		"Pressure", 
+		"Increases damage dealt to and reduces damage taken from opponents within range whose SKL stats are lower. Effective range is twice the skill level. More effective at higher skill levels.", 
+		true,
+		true,
+		function(actor, level){
+			var effects = [
+				[//level 1
+					{type: "final_damage", modType: "mult", value: 0.95}, {type: "final_defend", modType: "mult", value: 0.95},				
+				],
+				[//level 2
+					{type: "final_damage", modType: "mult", value: 0.90}, {type: "final_defend", modType: "mult", value: 0.90},		
+				],
+				[//level 3
+					{type: "final_damage", modType: "mult", value: 0.85}, {type: "final_defend", modType: "mult", value: 0.85},
+				],
+				[//level 4
+					{type: "final_damage", modType: "mult", value: 0.80}, {type: "final_defend", modType: "mult", value: 0.80},
+				],
+			];			
+			return effects[level-1];		
+		},
+		function(actor, level){
+			return $statCalc.isInCombat(actor);//this check makes it so that the ability is only active if the holder is currently in battle
+		},
+		[0],
+		4,
+		null,
+		function(actor, level){			
+			return {min: 1, max: (level*1 + 1) * 2, targets: "other"}
+		}	
 	);
 }
