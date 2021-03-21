@@ -219,7 +219,7 @@ A pilot can have up to 50 relationships:
 \<pilotRelationship50: 2,1,1\><br>
 
 The format is \<Other pilot id\>,\<Relationship definition\>,\<level\><br>
-\<pilotRelationship1: 3,0,2\>: The pilot will grant the effects of relationship bonus type 0 at level 2  to Pilot 3 when adjacent to them. 
+\<pilotRelationship1: 3,0,2\>: The pilot will grant the effects of relationship bonus type 0 at level 2 to Pilot 3 when adjacent.
 
 **Note that level starts at 0!**
 
@@ -1263,7 +1263,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	
 * setPilotRelationship pilot\_id other\_pilot\_id bonus\_id level
 
-	Set the relationship bonus for the pilot specified by pilot\_id to the specified bonus and level when adjacent to the pilot specified by other\_pilot\_id. Note that levels start at 0!
+	Set the relationship bonus for the pilot specified by other\_pilot\_id to the specified bonus and level when adjacent to the pilot specified by pilot\_id. Note that levels start at 0!
 			 
 ## External Plugin commands	
 

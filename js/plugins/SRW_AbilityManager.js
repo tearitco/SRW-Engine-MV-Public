@@ -88,6 +88,10 @@ AbilityManager.prototype.canStack = function(idx){
 	return this.getAbilityDef(idx).canStack;
 }
 
+AbilityManager.prototype.getIdPrefix = function(idx){
+	throw("Must be implemented by sub class!");
+}
+
 function PilotAbilityManager(){
 	this._parent = AbilityManager.prototype;
 	this._parent.constructor.call(this);
@@ -100,6 +104,10 @@ PilotAbilityManager.prototype.initDefinitions = function(){
 	$SRWConfig.pilotAbilties.call(this);
 }
 
+PilotAbilityManager.prototype.getIdPrefix = function(idx){
+	return "pilot";
+}
+
 function MechAbilityManager(){
 	this._parent = AbilityManager.prototype;
 	this._parent.constructor.call(this);
@@ -107,6 +115,10 @@ function MechAbilityManager(){
 
 MechAbilityManager.prototype = Object.create(AbilityManager.prototype);
 MechAbilityManager.prototype.constructor = MechAbilityManager;
+
+MechAbilityManager.prototype.getIdPrefix = function(idx){
+	return "mech";
+}
 
 MechAbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, isHighlightedHandler, rangeDef, canStack){
 	var _this = this;
@@ -156,6 +168,9 @@ function ItemEffectManager(){
 ItemEffectManager.prototype = Object.create(AbilityManager.prototype);
 ItemEffectManager.prototype.constructor = ItemEffectManager;
 
+ItemEffectManager.prototype.getIdPrefix = function(idx){
+	return "item";
+}
 
 ItemEffectManager.prototype.applyConsumable = function(actor, itemIdx){
 	var effectHandlers = {
@@ -212,6 +227,10 @@ function WeaponEffectManager(){
 WeaponEffectManager.prototype = Object.create(AbilityManager.prototype);
 WeaponEffectManager.prototype.constructor = WeaponEffectManager;
 
+WeaponEffectManager.prototype.getIdPrefix = function(idx){
+	return "weapon";
+}
+
 WeaponEffectManager.prototype.initDefinitions = function(){
 	$SRWConfig.weaponEffects.call(this);
 }
@@ -226,6 +245,10 @@ AbilityCommandManger.prototype.constructor = AbilityCommandManger;
 
 AbilityCommandManger.prototype.initDefinitions = function(){
 	$SRWConfig.abilityCommands.call(this);
+}
+
+AbilityCommandManger.prototype.getIdPrefix = function(idx){
+	return "command";
 }
 
 AbilityCommandManger.prototype.addDefinition = function(idx, name, desc, useCount, statmodHandler, isActiveHandler, animId){
@@ -276,6 +299,10 @@ function RelationshipBonusManager(){
 
 RelationshipBonusManager.prototype = Object.create(AbilityManager.prototype);
 RelationshipBonusManager.prototype.constructor = RelationshipBonusManager;
+
+RelationshipBonusManager.prototype.getIdPrefix = function(idx){
+	return "relation";
+}
 
 RelationshipBonusManager.prototype.initDefinitions = function(){
 	$SRWConfig.relationShipbonuses.call(this);

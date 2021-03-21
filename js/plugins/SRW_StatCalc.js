@@ -2371,35 +2371,35 @@ StatCalc.prototype.getActiveRelationshipBonuses = function(actor){
 	var _this = this;
 	var result = [];
 	if(this.isActorSRWInitialized(actor) && actor.event){	
-		var position = {x: actor.event.posX(), y: actor.event.posY()};
 		var candidateLookup = this.getPilotRelationships(actor);
 		
-		this.iterateAllActors(actor.isActor() ? "actor" : "enemy", function(actor, event){
-			if(event && !event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) <= 1){
-				var def = candidateLookup[actor.SRWStats.pilot.id];
-				if(def){
-					result.push({
-						idx: def.effectId,
-						level: def.level
-					});
-				}
-				if(!actor.isSubPilot){
-					var subPilots = _this.getSubPilots(actor);
-					subPilots.forEach(function(pilotId){
-						var actor = $gameActors.actor(pilotId);
-						if(actor){
-							var def = candidateLookup[actor.SRWStats.pilot.id];
-							if(def){
-								result.push({
-									idx: def.effectId,
-									level: def.level
-								});
-							}
-						}			
-					});	
-				}
-			}					
-		});
+		Object.keys(candidateLookup).forEach(function(otherId){
+			var def = candidateLookup[otherId];
+			if(def){
+				result.push({
+					idx: def.effectId,
+					level: def.level,
+					appliesTo: otherId
+				});
+			}
+			if(!actor.isSubPilot){
+				var subPilots = _this.getSubPilots(actor);
+				subPilots.forEach(function(pilotId){
+					var actor = $gameActors.actor(pilotId);
+					var candidateLookup = this.getPilotRelationships(actor);
+					if(actor){
+						var def = candidateLookup[otherId];
+						if(def){
+							result.push({
+								idx: def.effectId,
+								level: def.level,
+								appliesTo: otherId
+							});
+						}
+					}			
+				});	
+			}
+		});		
 	}
 	return result;
 }
@@ -3931,8 +3931,10 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 						
 						statMod.rangeInfo = abilityManager.getRangeDef(actor, abilityDef.idx, abilityDef.level) || {min: 0, max: 0, targets: "own"};
 						
-						statMod.stackId = abilityDef.idx;
+						statMod.stackId = abilityManager.getIdPrefix()+"_"+abilityDef.idx;
 						statMod.canStack = abilityManager.canStack(abilityDef.idx);
+						
+						statMod.appliesTo = abilityDef.appliesTo;
 						if(targetList){
 							targetList.push(statMod);
 						}
@@ -4149,7 +4151,7 @@ StatCalc.prototype.getModDefinitions = function(actor, types, excludedSkills){
 	var result = [];
 	var statMods = this.getActorStatMods(actor, excludedSkills);		
 	for(var i = 0; i < statMods.list.length; i++){
-		if(types.indexOf(statMods.list[i].type) != -1){
+		if((statMods.list[i].appliesTo == null || statMods.list[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.list[i].type) != -1){
 			result.push(statMods.list[i]);
 		}		
 	}	
@@ -4159,22 +4161,22 @@ StatCalc.prototype.getModDefinitions = function(actor, types, excludedSkills){
 StatCalc.prototype.applyStatModsToValue = function(actor, value, types, excludedSkills){
 	var statMods = this.getActorStatMods(actor, excludedSkills);	
 	for(var i = 0; i < statMods.addFlat.length; i++){
-		if(types.indexOf(statMods.addFlat[i].type) != -1){
+		if((statMods.addFlat[i].appliesTo == null || statMods.addFlat[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.addFlat[i].type) != -1){
 			value+=statMods.addFlat[i].value*1;
 		}		
 	}
 	for(var i = 0; i < statMods.addPercent.length; i++){
-		if(types.indexOf(statMods.addPercent[i].type) != -1){
+		if((statMods.addPercent[i].appliesTo == null || statMods.addPercent[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.addPercent[i].type) != -1){
 			value+=Math.floor(value * statMods.addPercent[i].value);
 		}		
 	}
 	for(var i = 0; i < statMods.mult.length; i++){
-		if(types.indexOf(statMods.mult[i].type) != -1){
+		if((statMods.mult[i].appliesTo == null || statMods.mult[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.mult[i].type) != -1){
 			value = Math.floor(value * statMods.mult[i].value);
 		}		
 	}
 	for(var i = 0; i < statMods.mult_ceil.length; i++){
-		if(types.indexOf(statMods.mult_ceil[i].type) != -1){
+		if((statMods.mult_ceil[i].appliesTo == null || statMods.mult_ceil[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.mult_ceil[i].type) != -1){
 			value = Math.ceil(value * statMods.mult_ceil[i].value);
 		}		
 	}
@@ -4185,30 +4187,30 @@ StatCalc.prototype.applyMaxStatModsToValue = function(actor, value, types, exclu
 	var max = value;
 	var statMods = this.getActorStatMods(actor, excludedSkills);	
 	for(var i = 0; i < statMods.addFlat.length; i++){
-		if(types.indexOf(statMods.addFlat[i].type) != -1){
+		if((statMods.addFlat[i].appliesTo == null || statMods.addFlat[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.addFlat[i].type) != -1){
 			if(value + statMods.addFlat[i].value*1 > max){
 				max = value + statMods.addFlat[i].value*1;
 			}
 		}		
 	}
 	for(var i = 0; i < statMods.addPercent.length; i++){
-		if(types.indexOf(statMods.addPercent[i].type) != -1){
+		if((statMods.addPercent[i].appliesTo == null || statMods.addPercent[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.addPercent[i].type) != -1){
 			if(value + Math.floor(value * statMods.addPercent[i].value) > max){
 				max = value + Math.floor(value * statMods.addPercent[i].value);
 			}
 		}		
 	}
 	for(var i = 0; i < statMods.mult.length; i++){
-		if(types.indexOf(statMods.mult[i].type) != -1){
+		if((statMods.mult[i].appliesTo == null || statMods.mult[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.mult[i].type) != -1){
 			if(Math.floor(value * statMods.mult[i].value) > max){
 				max = Math.floor(value * statMods.mult[i].value);
 			}
 		}		
 	}
 	for(var i = 0; i < statMods.mult_ceil.length; i++){
-		if(types.indexOf(statMods.mult_ceil[i].type) != -1){
-			if(Math.ceil(value * statMods.mult[i].value) > max){
-				max = Math.ceil(value * statMods.mult[i].value);
+		if((statMods.mult_ceil[i].appliesTo == null || statMods.mult_ceil[i].appliesTo == actor.SRWStats.pilot.id) && types.indexOf(statMods.mult_ceil[i].type) != -1){
+			if(Math.ceil(value * statMods.mult_ceil[i].value) > max){
+				max = Math.ceil(value * statMods.mult_ceil[i].value);
 			}
 		}		
 	}
