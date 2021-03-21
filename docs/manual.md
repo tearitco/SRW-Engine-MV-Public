@@ -716,6 +716,96 @@ The format of a Pilot Ability definition is as follows:
 	)
 ```
 
+By default an ability will only affect its holder, but an ability can be set to target allies and enemies in a range around the ability holder as well.
+
+The following example implements the commander ability:
+
+```
+	this.addDefinition(
+		44, //the id of the ability
+		"Commander", // the display name of the ability
+		"Grants a boost to evasion and accuracy to adjacent allies. Range and effectiveness depend on the skill level.", // the display description of the ability 
+		true, // true if the ability has a level, otherwise false
+		true, //true if the ability is unique, otherwise false. Unique abilities are marked with a \* when they are display and they cannot be purchased
+		function(actor, level){ //the function implementing the effect of the ability. Actor is the unit that will be affected by the ability and level is the current level of the ability.
+			var effects = [
+				[//level 1
+					{type: "hit", modType: "addFlat", value: 10, range: 1},{type: "evade", modType: "addFlat", value: 10, range: 1},
+					{type: "hit", modType: "addFlat", value: 8, range: 2},{type: "evade", modType: "addFlat", value: 8, range: 2},
+				],
+				[//level 2
+					{type: "hit", modType: "addFlat", value: 15, range: 1},{type: "evade", modType: "addFlat", value: 15, range: 1},
+					{type: "hit", modType: "addFlat", value: 12, range: 2},{type: "evade", modType: "addFlat", value: 12, range: 2},
+					{type: "hit", modType: "addFlat", value: 8, range: 3},{type: "evade", modType: "addFlat", value: 8, range: 3},
+				],
+				[//level 3
+					{type: "hit", modType: "addFlat", value: 20, range: 1},{type: "evade", modType: "addFlat", value: 20, range: 1},
+					{type: "hit", modType: "addFlat", value: 16, range: 2},{type: "evade", modType: "addFlat", value: 16, range: 2},
+					{type: "hit", modType: "addFlat", value: 12, range: 3},{type: "evade", modType: "addFlat", value: 12, range: 3},
+					{type: "hit", modType: "addFlat", value: 8, range: 4},{type: "evade", modType: "addFlat", value: 8, range: 4},
+				],
+				[//level 4
+					{type: "hit", modType: "addFlat", value: 25, range: 1},{type: "evade", modType: "addFlat", value: 25, range: 1},
+					{type: "hit", modType: "addFlat", value: 20, range: 2},{type: "evade", modType: "addFlat", value: 20, range: 2},
+					{type: "hit", modType: "addFlat", value: 15, range: 3},{type: "evade", modType: "addFlat", value: 15, range: 3},
+					{type: "hit", modType: "addFlat", value: 10, range: 4},{type: "evade", modType: "addFlat", value: 10, range: 4},
+					{type: "hit", modType: "addFlat", value: 5, range: 5},{type: "evade", modType: "addFlat", value: 5, range: 5},
+				],
+			];
+			
+			return effects[level-1];
+		},
+		function(actor, level){ // the function that determines if the ability is current active.
+			return true;
+		},
+		[0],//cost
+		4,//max level
+		null,//ability highlighting function, unused for this ability
+		function(actor, level){//function that determines the range of the ability depending on level
+			return {min: 1, max: 5, targets: "own"}
+		},
+		false //optional parameter, if false do not allow stacking of the ability with other instances of itself. Default true.
+	);
+``` 
+
+And this example implements the Pressure ability:
+
+```
+	this.addDefinition(
+		59, //the id of the ability
+		"Pressure", // the display name of the ability
+		"Increases damage dealt to and reduces damage taken from opponents within range whose SKL stats are lower. Effective range is twice the skill level. More effective at higher skill levels.", // the display description of the ability 
+		true,// true if the ability has a level, otherwise false
+		true, //true if the ability is unique, otherwise false. Unique abilities are marked with a \* when they are display and they cannot be purchased
+		function(actor, level){ //the function implementing the effect of the ability. Actor is the unit that will be affected by the ability and level is the current level of the ability.
+			var effects = [
+				[//level 1
+					{type: "final_damage", modType: "mult", value: 0.95}, {type: "final_defend", modType: "mult", value: 0.95},				
+				],
+				[//level 2
+					{type: "final_damage", modType: "mult", value: 0.90}, {type: "final_defend", modType: "mult", value: 0.90},		
+				],
+				[//level 3
+					{type: "final_damage", modType: "mult", value: 0.85}, {type: "final_defend", modType: "mult", value: 0.85},
+				],
+				[//level 4
+					{type: "final_damage", modType: "mult", value: 0.80}, {type: "final_defend", modType: "mult", value: 0.80},
+				],
+			];			
+			return effects[level-1];		
+		},
+		function(actor, level){
+			return $statCalc.isInCombat(actor);//this check makes it so that the ability is only active if the holder is currently in battle
+		},
+		[0],//cost
+		4,//max level
+		null,//ability highlighting function, unused for this ability
+		function(actor, level){//function that determines the range of the ability depending on level			
+			return {min: 1, max: (level*1 + 1) * 2, targets: "other"}
+		}	
+	);
+```
+
 ## Mech Abilities
 
 Mech abilities are managed in js/plugins/config/active/MechAbilities.conf.js

@@ -3935,6 +3935,10 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 						statMod.canStack = abilityManager.canStack(abilityDef.idx);
 						
 						statMod.appliesTo = abilityDef.appliesTo;
+						
+						statMod.originType = actor.isActor() ? "actor" : "enemy";
+						statMod.originId = actor.SRWStats.pilot.id;
+						
 						if(targetList){
 							targetList.push(statMod);
 						}
@@ -4127,11 +4131,13 @@ StatCalc.prototype.getActorStatMods = function(actor, excludedSkills){
 	var statMods;// = this.getActiveStatMods(actor, excludedSkills);
 	
 	try {
-		if($gameSystem.isEnemy(actor)){
-			statMods = abilityLookup[actor.event.posX()][actor.event.posY()].enemy;
-		} else {
-			statMods = abilityLookup[actor.event.posX()][actor.event.posY()].ally;
-		}
+		if(actor.event && abilityLookup && abilityLookup[actor.event.posX()] && abilityLookup[actor.event.posX()][actor.event.posY()]){
+			if($gameSystem.isEnemy(actor)){				
+				statMods = abilityLookup[actor.event.posX()][actor.event.posY()].enemy;
+			} else {
+				statMods = abilityLookup[actor.event.posX()][actor.event.posY()].ally;
+			}
+		}		
 	} catch(e){
 		
 	}
@@ -4235,12 +4241,15 @@ StatCalc.prototype.getCommanderBonus = function(actor){
 }
 
 
-StatCalc.prototype.getCommanderAura = function(actor, event, result){
+StatCalc.prototype.getCommanderAura = function(actor){
 	var _this = this;
-	var commanderLevel = _this.applyStatModsToValue(actor, 0, "commander_aura");	
-	if(commanderLevel > 0){
-		var sourceX = event.posX();
-		var sourceY = event.posY();
+	var result = {};
+	var abilityLookup = this.createActiveAbilityLookup();	
+	
+	var commanderLevel = _this.getPilotAbilityLevel(actor, 44);
+	if(commanderLevel > 0 && actor.event){
+		var sourceX = actor.event.posX();
+		var sourceY = actor.event.posY();
 		for(var i = 0; i <= 10; i++){
 			var x = i - 5;
 			for(var j = 0; j <= 10; j++){
@@ -4268,6 +4277,7 @@ StatCalc.prototype.getCommanderAura = function(actor, event, result){
 			}	
 		}
 	}
+	return result;
 }
 
 StatCalc.prototype.getCommanderAuraLookup = function(actor){

@@ -10279,8 +10279,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				if(!$gameTemp.commanderAuraVisible || $gameTemp.summaryUnit != previousUnit){
 					
 					$gameTemp.commanderAuraVisible = true;
-					var commanderAuraLookup = {};
-					$statCalc.getCommanderAura(summaryUnit, summaryUnit.event, commanderAuraLookup);
+					var commanderAuraLookup = $statCalc.getCommanderAura(summaryUnit, summaryUnit.event, commanderAuraLookup);
 					$gameSystem.highlightedTiles = [];
 					Object.keys(commanderAuraLookup).forEach(function(x){
 						Object.keys(commanderAuraLookup[x]).forEach(function(y){
