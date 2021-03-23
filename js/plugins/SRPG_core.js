@@ -1627,7 +1627,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		$gameVariables.setValue(_existActorVarID, oldValue + 1);
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 		actor_unit.isSubPilot = false;
-		$statCalc.initSRWStats(actor_unit);
+		
+		//$statCalc.initSRWStats(actor_unit);
 		
 		$statCalc.applyDeployActions(actor_unit.SRWStats.pilot.id, actor_unit.SRWStats.mech.id);
 		
@@ -1667,6 +1668,9 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			deployInfo.assigned[currentMaxSlot+1] = actor_unit.actorId();
 		}
 		$gameSystem.setDeployInfo(deployInfo);
+		
+		$statCalc.invalidateAbilityCache();
+		$statCalc.initSRWStats(actor_unit);
 	}
 	
 	Game_System.prototype.getEventDeploySlot = function(event) {
