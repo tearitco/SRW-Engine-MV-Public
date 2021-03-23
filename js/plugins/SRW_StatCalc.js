@@ -4495,3 +4495,20 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 StatCalc.prototype.isInCombat = function(actor){
 	return $gameTemp.currentBattleActor == actor || $gameTemp.currentBattleEnemy == actor;
 }
+
+StatCalc.prototype.getActiveCombatInfo = function(actor){
+	if(actor == $gameTemp.currentBattleActor){
+		return {
+			self: actor,
+			other: $gameTemp.currentBattleEnemy
+		}
+	} 
+	if(actor == $gameTemp.currentBattleEnemy){
+		return {
+			self: actor,
+			other: $gameTemp.currentBattleActor
+		}
+	}
+	return null;
+}
+
