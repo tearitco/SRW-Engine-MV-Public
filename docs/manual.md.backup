@@ -796,7 +796,14 @@ And this example implements the Pressure ability:
 			return effects[level-1];		
 		},
 		function(actor, level){
-			return $statCalc.isInCombat(actor);//this check makes it so that the ability is only active if the holder is currently in battle
+			var combatInfo = $statCalc.getActiveCombatInfo(actor);
+			if(combatInfo){
+				var ownPilotStats = $statCalc.getCalculatedPilotStats(combatInfo.self);
+				var otherPilotStats = $statCalc.getCalculatedPilotStats(combatInfo.other);
+				return ownPilotStats.skill > otherPilotStats.skill;
+			} else {
+				return false;
+			}
 		},
 		[0],//cost
 		4,//max level
