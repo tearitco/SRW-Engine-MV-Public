@@ -4645,7 +4645,14 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
             var type = battlerArray[0];
             var unit = battlerArray[1];
             if (type === 'actor') {
-				var mechClass = unit._classId;
+				var mechClass;
+
+				if(unit.SRWStats && unit.SRWStats.mech){
+					mechClass = unit.SRWStats.mech.id;
+				} else {
+					mechClass = unit._classId;
+				}
+				
 				var overworldSpriteData = $dataClasses[mechClass].meta.srpgOverworld.split(",");
 				characterName = overworldSpriteData[0];
 				characterIndex = overworldSpriteData[1];

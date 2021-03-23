@@ -331,6 +331,7 @@ Units can be given the ability to transform into other units.
 \<mechTransformsInto:1\>: The id of the mech into which the mech can transform.<br>
 \<mechTransformWill:0\>: The required will for transformation.<br>
 \<mechTransformRestores:0\> If 1 the mech will recover all HP and EN after transforming. If 0 the old HP and EN will carry over.<br>
+\<mechTransformRestores:1,0\> Optionally this parameter can be defined as two comma separated values. The first value determines if HP will be restored, the second value determines if EN will be restored. In this example only HP will be restored after transforming.<br>
 \<mechTransformedActor:1\> If specified the unit's pilot will be set to the actor with the specified id after transforming.
 
 Units can be given the ability to automatically transform into other units when they are destroyed.
