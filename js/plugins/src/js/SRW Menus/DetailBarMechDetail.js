@@ -113,8 +113,12 @@ DetailBarMechDetail.prototype.redraw = function(){
 		var displayClass = "inactive";
 		var displayName = "---------";
 		var uniqueString = "";
+		var descriptionData = "";
+		var descriptionClass = "";
 		if(typeof abilityList[i] != "undefined"){
 			displayClass = "";
+			descriptionClass = "described_element";
+			descriptionData = "data-type='mech' data-idx='"+abilityList[i].idx+"'";
 			var displayInfo = $mechAbilityManager.getAbilityDisplayInfo(abilityList[i].idx);
 			
 			if(displayInfo.isHighlightedHandler){
@@ -127,7 +131,7 @@ DetailBarMechDetail.prototype.redraw = function(){
 				displayName = displayInfo.name;
 			}			
 		}		
-		detailContent+="<div class='pilot_stat_container scaled_text scaled_width fitted_text "+displayClass+"'>";
+		detailContent+="<div "+descriptionData+" class='pilot_stat_container "+descriptionClass+" scaled_text scaled_width fitted_text "+displayClass+"'>";
 		detailContent+="<div class='stat_value'>"+displayName+"</div>";
 		detailContent+="</div>";		
 		
@@ -149,14 +153,18 @@ DetailBarMechDetail.prototype.redraw = function(){
 		var displayClass = "inactive";
 		var displayName = "---------";
 		var uniqueString = "";
+		var descriptionData = "";
+		var descriptionClass = "";
 		if(typeof itemList[i] != "undefined" && itemList[i] != null){
 			displayClass = "";
+			descriptionClass = "described_element";
+			descriptionData = "data-type='item' data-idx='"+itemList[i].idx+"'";
 			var displayInfo = $itemEffectManager.getAbilityDisplayInfo(itemList[i].idx);
 			displayName = displayInfo.name;
 			
 		}		
 		detailContent+="<div class='ability_block_row scaled_height'>";	
-		detailContent+="<div class='pilot_stat_container scaled_text fitted_text "+displayClass+"'>";
+		detailContent+="<div "+descriptionData+" class='pilot_stat_container "+descriptionClass+" scaled_text fitted_text "+displayClass+"'>";
 		detailContent+=displayName;
 		detailContent+="</div>";		
 		detailContent+="</div>";	

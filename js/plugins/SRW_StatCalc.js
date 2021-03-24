@@ -4172,7 +4172,7 @@ StatCalc.prototype.getActorStatMods = function(actor, excludedSkills){
 	var abilityLookup = this.createActiveAbilityLookup(excludedSkills);
 	var statMods;// = this.getActiveStatMods(actor, excludedSkills);
 	var event;
-	if(actor.isSubPilot){		
+	if(actor.isSubPilot && actor.mainPilot){		
 		event = actor.mainPilot.event;
 	} else {
 		event = actor.event;

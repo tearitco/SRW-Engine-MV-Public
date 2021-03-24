@@ -1026,6 +1026,7 @@ The first two pages of Control Variables are reserved for specific functions in 
 * 0002 - Remaining Enemies: The number of remaining enemies on the stage. This variable is updated by the engine when enemies are added or removed.
 * 0003 - Turns Passed(Stage): The number of turns(one actor phase + one enemy phase) that has passed on the current stage.
 * 0004 - Actor Event ID: The event ID of the current active actor
+
 * 0005 - Enemy Event ID: The event ID of the current active enemy
 * 0006 - Next Map: The id of the next map that will be loaded after the next intermission
 * 0007 - Next Map X: The starting x coordinate for the cursor on the next map
@@ -1636,3 +1637,9 @@ A setting can be left blank by entering "" as its value.
 ## Attack Editor
 
 [Link](battle_scene_editor.md)
+
+## Concept Examples
+
+### Stage Flow
+
+The normal flow of a SRW game will see the player go from stage to intermission to the next stage

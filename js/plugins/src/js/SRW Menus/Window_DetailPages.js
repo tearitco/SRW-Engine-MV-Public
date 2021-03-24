@@ -4,6 +4,7 @@ import DetailBarMechDetail from "./DetailBarMechDetail.js";
 import DetailBarMechUpgrades from "./DetailBarMechUpgrades.js";
 import AttackList from "./AttackList.js";
 import DetailBarAttackSummary from "./DetailBarAttackSummary.js";
+import DescriptionOverlay from "./DescriptionOverlay.js";
 import "./style/Window_DetailPages.css"
 
 export default function Window_DetailPages() {
@@ -22,6 +23,7 @@ Window_DetailPages.prototype.initialize = function() {
 		{id: "mech_stats", elem: null, button: null},
 		{id: "weapon_info", elem: null, button: null}
 	]
+	this._uiState = "normal";
 	this._selectedTab = 0;
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
 	
@@ -35,6 +37,7 @@ Window_DetailPages.prototype.resetSelection = function(){
 	this._currentSelection = 0;
 	this._currentPage = 0;
 	this._selectedTab = 0;
+	this._uiState = "normal";
 	this.validateTab();
 }
 
@@ -164,62 +167,80 @@ Window_DetailPages.prototype.createComponents = function() {
 	this._weaponsTabButton.innerHTML = APPSTRINGS.DETAILPAGES.label_weapon_info;
 	this._tabInfo[2].button = this._weaponsTabButton;
 	windowNode.appendChild(this._weaponsTabButton);
+	
+	this._descriptionContainer = document.createElement("div");
+	this._descriptionContainer.classList.add("description_container");
+	windowNode.appendChild(this._descriptionContainer);
+	
+	this._descriptionOverlay = new DescriptionOverlay(this._descriptionContainer);
+	this._descriptionOverlay.createComponents();
 }	
 
 Window_DetailPages.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
-		if(Input.isTriggered('down') || Input.isRepeated('down')){
-			this.requestRedraw();
-			if(this._selectedTab == 2){
-				SoundManager.playCursor();
-				this._attackList.incrementSelection();
+		if(this._uiState == "normal"){
+			if(Input.isTriggered('down') || Input.isRepeated('down')){
+				this.requestRedraw();
+				if(this._selectedTab == 2){
+					SoundManager.playCursor();
+					this._attackList.incrementSelection();
+				}
+			
+			} else if (Input.isTriggered('up') || Input.isRepeated('up')) {
+				this.requestRedraw();
+				if(this._selectedTab == 2){
+					SoundManager.playCursor();
+					this._attackList.decrementSelection();
+				}
 			}
+		}
 		
-		} else if (Input.isTriggered('up') || Input.isRepeated('up')) {
-			this.requestRedraw();
-		    if(this._selectedTab == 2){
-				SoundManager.playCursor();
-				this._attackList.decrementSelection();
-			}
-		}			
+					
 
 		if(Input.isTriggered('left') || Input.isRepeated('left')){
 			this.requestRedraw();
 			SoundManager.playCursor();
-			if(this._selectedTab == 2 && this._attackList.getCurrentPage() != 0){
-				this._attackList.decrementPage();
+			if(this._uiState == "normal"){
+				if(this._selectedTab == 2 && this._attackList.getCurrentPage() != 0){
+					this._attackList.decrementPage();
+				} else {
+					this._selectedTab--;
+					if(this._selectedTab < 0){
+						this._selectedTab = this._tabInfo.length - 1;
+					}
+					
+					if(this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
+						if(this._selectedTab == 0){
+							this._selectedTab = this._tabInfo.length - 1;
+						}
+					}				
+				}
 			} else {
-				this._selectedTab--;
-				if(this._selectedTab < 0){
-					this._selectedTab = this._tabInfo.length - 1;
+				this._descriptionOverlay.decrementSelection();
+			}			
+		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+			this.requestRedraw();
+			SoundManager.playCursor();
+			if(this._uiState == "normal"){
+				if(this._selectedTab == 2 && this._attackList.getCurrentPage() != this._attackList.getMaxPage()){
+					this._attackList.incrementPage();
+				} else {
+					this._selectedTab++;
+					if(this._selectedTab >= this._tabInfo.length){
+						this._selectedTab = 0;
+					}
 				}
 				
 				if(this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
 					if(this._selectedTab == 0){
-						this._selectedTab = this._tabInfo.length - 1;
+						this._selectedTab = 1;
 					}
-				}				
-			}
-			
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
-			this.requestRedraw();
-			SoundManager.playCursor();
-			if(this._selectedTab == 2 && this._attackList.getCurrentPage() != this._attackList.getMaxPage()){
-				this._attackList.incrementPage();
+				}
 			} else {
-				this._selectedTab++;
-				if(this._selectedTab >= this._tabInfo.length){
-					this._selectedTab = 0;
-				}
-			}
-			
-			if(this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
-				if(this._selectedTab == 0){
-					this._selectedTab = 1;
-				}
-			}	
+				this._descriptionOverlay.incrementSelection();
+			}		
 		}
 		
 		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger')){
@@ -230,31 +251,32 @@ Window_DetailPages.prototype.update = function() {
 			
 		}
 		
-		if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
-			this.requestRedraw();
-			if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
-				if($gameTemp.listContext == "actor"){
-					$gameTemp.currentMenuUnit = this.getPreviousAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
-				} else {
-					$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+		if(this._uiState == "normal"){
+			if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
+				this.requestRedraw();
+				if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
+					if($gameTemp.listContext == "actor"){
+						$gameTemp.currentMenuUnit = this.getPreviousAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
+					} else {
+						$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+					}
+					
+					this._attackList.resetSelection();
 				}
 				
-				this._attackList.resetSelection();
-			}
-			
-		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
-			this.requestRedraw();
-			if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
-				if($gameTemp.listContext == "actor"){
-					$gameTemp.currentMenuUnit = this.getNextAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
-				} else {
-					$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+			} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
+				this.requestRedraw();
+				if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
+					if($gameTemp.listContext == "actor"){
+						$gameTemp.currentMenuUnit = this.getNextAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
+					} else {
+						$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+					}
+					
+					this._attackList.resetSelection();
 				}
-				
-				this._attackList.resetSelection();
 			}
 		}
-		
 		if(Input.isTriggered('L3')){
 			this.requestRedraw();
 			
@@ -263,18 +285,34 @@ Window_DetailPages.prototype.update = function() {
 		if(Input.isTriggered('ok')){
 			
 		}
+		
+		if(Input.isTriggered('menu')){
+			if(this._uiState == "normal"){
+				if(this._selectedTab == 0){
+					this._descriptionOverlay.show(this._pilotStats2);
+					this._uiState = "description";
+				} else if(this._selectedTab == 1){
+					this._descriptionOverlay.show(this._detailContainer);
+					this._uiState = "description";
+				}				
+			}
+		}	
+		
 		if(Input.isTriggered('cancel')){	
 			SoundManager.playCancel();
-			$gameTemp.popMenu = true;	
+			if(this._uiState == "normal"){
+				$gameTemp.popMenu = true;	
 			
-			if(this._callbacks["closed"]){
-				this._callbacks["closed"]();
-			}	
-		}		
+				if(this._callbacks["closed"]){
+					this._callbacks["closed"]();
+				}					
+			} else {
+				this._descriptionOverlay.hide();
+				this._uiState = "normal";
+			}			
+		}				
 		
-		
-		this.validateTab();
-		
+		this.validateTab();		
 		this.refresh();
 	}		
 };
@@ -459,7 +497,11 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 		var displayName = "---";
 		var displayClass = "";
 		var uniqueString = "";
+		var descriptionData = "";
+		var descriptionClass = "";
 		if(typeof abilityList[i] != "undefined" && abilityList[i].requiredLevel <= currentLevel){
+			descriptionClass = "described_element";
+			descriptionData = "data-type='pilot' data-idx='"+abilityList[i].idx+"'";
 			var displayInfo = $pilotAbilityManager.getAbilityDisplayInfo(abilityList[i].idx);
 			
 			if(displayInfo.isHighlightedHandler){
@@ -481,7 +523,8 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 			}
 		}
 		
-		detailContent+="<div class='pilot_stat_container scaled_text scaled_width fitted_text "+displayClass+"'>";
+		
+		detailContent+="<div "+descriptionData+" class='pilot_stat_container "+descriptionClass+" scaled_text scaled_width fitted_text "+displayClass+"'>";
 		detailContent+="<div class='unique_skill_mark scaled_width'>"+uniqueString+"</div>";
 		detailContent+="<div class='stat_value'>"+displayName+"</div>";
 		detailContent+="</div>";		
@@ -508,12 +551,17 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 		
 		var displayName = "---";
 		var uniqueString = "";
+		var descriptionData = "";
+		var descriptionClass = "";
 		if(typeof spiritList[i] != "undefined" && spiritList[i].level <= currentLevel){
+			descriptionClass = "described_element";
+			descriptionData = "data-type='spirit' data-idx='"+spiritList[i].idx+"'";
+			
 			var displayInfo = $spiritManager.getSpiritDisplayInfo(spiritList[i].idx);
 			displayName = "<div class='scaled_width spirit_label'>"+displayInfo.name+"</div>("+spiritList[i].cost+")" ;
 		}
 		
-		detailContent+="<div class='pilot_stat_container scaled_text scaled_width fitted_text spirit_list_entry'>";
+		detailContent+="<div "+descriptionData+" class='pilot_stat_container "+descriptionClass+" scaled_text scaled_width fitted_text spirit_list_entry'>";
 		detailContent+="<div class='stat_value'>"+displayName+"</div>";
 		detailContent+="</div>";		
 		
@@ -623,6 +671,7 @@ Window_DetailPages.prototype.redraw = function() {
 		var battleSpriteFolder = $statCalc.getBattleSceneImage(this.getCurrentSelection().actor);
 		this._actorBattleImg.innerHTML = "<img src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'>";	
 	}
-
+	
+	this._descriptionOverlay.redraw();
 	Graphics._updateCanvas();
 }
