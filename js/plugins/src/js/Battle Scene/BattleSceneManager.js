@@ -1838,11 +1838,14 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},
 		set_sprite_frame: function(target, params){
+			params = JSON.parse(JSON.stringify(params));
 			var targetObj = getTargetObject(target);
 			var action = _this._currentAnimatedAction;
 			var targetAction = _this._currentAnimatedAction.attacked;
 			if(targetObj){
-				if(params.name == "hurt" || params.name == "hurt_end"){
+				if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
+					params.name = "main";
+				} else if(params.name == "hurt" || params.name == "hurt_end"){
 					if(target == "active_main" || target == "active_support_attacker"){
 						battleEffect = targetAction; 					
 					} else if(target == "active_target" || target == "active_support_defender"){

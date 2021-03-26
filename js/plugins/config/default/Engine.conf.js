@@ -72,5 +72,6 @@ var ENGINE_SETTINGS_DEFAULT = {
 		MIN: 10,
 		MAX: 50000, //500 EXP per level, this is 100 levels so basically unlimited,
 		LEVEL_SCALING_FORMULA: "defenderTotalYield * ((defenderLevel-attackerLevel) < 0 ? Math.pow((1/10), (Math.log10(attackerLevel-defenderLevel + 1))) : Math.log10(0.09*(defenderLevel-attackerLevel) + 1) * 20 + 1)"		
-	}
+	},
+	SINGLE_BATTLE_SPRITE_MODE: false
 }
