@@ -2736,6 +2736,9 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 			var preloadCtr = 0;
 			function preloadDefaultFrames(ref){
 				var defaultFrames = ["main", "in", "out", "hurt", "dodge"];
+				if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
+					defaultFrames = ["main"];
+				}
 				if(ref){
 					var imgPath = $statCalc.getBattleSceneImage(ref);
 					defaultFrames.forEach(function(frame){
