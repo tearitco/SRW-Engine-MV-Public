@@ -673,8 +673,8 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 			height = size;
 		}
 	} else {
-		width = 3;
-		height = 3;
+		width = ENGINE_SETTINGS.BATTLE_SCENE.SPRITE_WORLD_SIZE;
+		height = ENGINE_SETTINGS.BATTLE_SCENE.SPRITE_WORLD_SIZE;
 	}
 	var bg = BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height, updatable: true}, this._scene);
 	//bg.billboardMode = 7;
@@ -1803,10 +1803,15 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},
 		set_sprite_animation: function(target, params){
+			params = JSON.parse(JSON.stringify(params));
+			var targetObj = getTargetObject(target);				
 			var targetObj = getTargetObject(target);
 			var action = _this._currentAnimatedAction;
 			var targetAction = _this._currentAnimatedAction.attacked;
 			if(targetObj){
+				if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
+					params.name = "main";
+				}
 				var sampleMode;
 				if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
 					sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
@@ -2792,6 +2797,11 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 							}								
 							
 							var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+							
+							if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
+								params.name = "main";
+							}
+							
 							var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
 							promises.push(_this.getBgPromise(bg));
 							_this._animationBackgroundsInfo.push(bg);

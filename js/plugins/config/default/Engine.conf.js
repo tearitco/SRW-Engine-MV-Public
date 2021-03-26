@@ -1,6 +1,7 @@
 var ENGINE_SETTINGS_DEFAULT = {
 	DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
 	BATTLE_SCENE: {
+		SPRITE_WORLD_SIZE: 3,
 		SPRITES_FILTER_MODE: "NEAREST", // set the filtering mode for textures in the battle scene: NEAREST or TRILINEAR
 		DEFAULT_ANIM: {// defines default animations
 			DESTROY: 2 // the default destroy animation

@@ -401,8 +401,8 @@ Window_UpgradeMech.prototype.redraw = function() {
 	
 	this.updateScaledDiv(this._actorBattleImg);
 	
-	var battleSpriteFolder = $statCalc.getBattleSceneImage(refData);
-	this._actorBattleImg.innerHTML = "<img src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'>";
+	var menuImagePath = $statCalc.getMenuImagePath(refData);
+	this._actorBattleImg.innerHTML = "<img src='img/"+menuImagePath+"'>";
 	
 	Graphics._updateCanvas();
 }

@@ -1782,6 +1782,11 @@ StatCalc.prototype.getBattleSceneInfo = function(actor){
 		var mechProperties = $dataClasses[actor.SRWStats.mech.id].meta;
 		result.basicBattleSpriteName = mechProperties.mechBasicBattleSprite;
 		result.battleSceneSpriteName = mechProperties.mechBattleSceneSprite;
+		if(mechProperties.mechMenuSprite){
+			result.menuSpritePath = "menu/"+mechProperties.mechMenuSprite+".png";
+		} else {
+			result.menuSpritePath = "SRWBattleScene/"+result.battleSceneSpriteName+"/main.png";
+		}
 		
 		result.battleSceneSpriteSize = parseInt(mechProperties.mechBattleSceneSpriteSize);
 		
@@ -1809,6 +1814,14 @@ StatCalc.prototype.getBattleSceneInfo = function(actor){
 		result.deathAnimId = mechProperties.mechBattleSceneDeathAnim;
 	} 
 	return result;
+}
+
+StatCalc.prototype.getMenuImagePath = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return this.getBattleSceneInfo(actor).menuSpritePath;	
+	} else {
+		return "";
+	}
 }
 
 StatCalc.prototype.getBattleSceneImage = function(actor){

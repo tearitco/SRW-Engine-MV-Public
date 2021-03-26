@@ -529,6 +529,7 @@ Image files for the battle scene are stored in the img/SRWBattleScene directory 
 
 \<mechBattleSceneSprite:harold\> The name of the sub directory in the img/SRWBattleScene folder that houses the image files for the Mech. <br>
 \<mechBattleSceneSpriteSize:64\> The height and width of the main.png image for this mech.<br>
+\<mechMenuSprite:harold\>  The name of a .png file in the img/menu folder. This image is displayed in the menus when the full size mech sprite is shown. If omitted the main.png sprite of the unit will be used instead.
 \<mechBattleSceneUseSpriter:1\> If 1 the sprite for this mech is a Spriter sprite. More info about Spriter sprites in the chapter on the battle animation system. <br>
 \<mechBattleSceneShadowSize:1\> The size of the shadow displayed for the mech in the battle scene.<br>
 \<mechBattleSceneShadowOffsetX:0\>The x offset for the shadow relative to the center point of the mech's sprite in the battle scene.<br>

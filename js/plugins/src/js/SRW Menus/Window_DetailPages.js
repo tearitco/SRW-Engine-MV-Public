@@ -668,8 +668,8 @@ Window_DetailPages.prototype.redraw = function() {
 	this.updateScaledDiv(this._actorBattleImg);
 	
 	if(this.getCurrentSelection().mech.id != -1){	
-		var battleSpriteFolder = $statCalc.getBattleSceneImage(this.getCurrentSelection().actor);
-		this._actorBattleImg.innerHTML = "<img src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'>";	
+		var menuImagePath = $statCalc.getMenuImagePath(this.getCurrentSelection().actor);
+		this._actorBattleImg.innerHTML = "<img src='img/"+menuImagePath+"'>";	
 	}
 	
 	this._descriptionOverlay.redraw();

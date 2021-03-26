@@ -355,8 +355,9 @@ Window_Deployment.prototype.redraw = function() {
 		deployedContent+="<div class='entry "+displayClass+"'>"
 		var actorId = deployInfo.assigned[i];
 		if(actorId != null && $statCalc.isValidForDeploy($gameActors.actor(actorId))){
-			var battleSpriteFolder = $statCalc.getBattleSceneImage($gameActors.actor(actorId));
-			deployedContent+="<img class='actor_img' src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'/>";	
+			var menuImagePath = $statCalc.getMenuImagePath($gameActors.actor(actorId));
+			deployedContent+="<img class='actor_img' src='img/"+menuImagePath+"'>";
+
 
 			if(deployInfo.lockedSlots[i]){				
 				deployedContent+="<img class='locked_icon' src='svg/padlock.svg'/>";
@@ -381,9 +382,9 @@ Window_Deployment.prototype.redraw = function() {
 		if(availableUnits[i] && $statCalc.isValidForDeploy(availableUnits[i])) {
 			availableContent+="<div class='entry "+(this._UIState == "select_deploy_slot" && _this._deployedSelection == i ? "active" : "")+"'>"
 		
+			var menuImagePath = $statCalc.getMenuImagePath(availableUnits[i]);
+			availableContent+="<img class='actor_img' src='img/"+menuImagePath+"'>";
 			
-			var battleSpriteFolder = $statCalc.getBattleSceneImage(availableUnits[i]);
-			availableContent+="<img class='actor_img' src='img/SRWBattleScene/"+battleSpriteFolder+"/main.png'/>";	
 			var actorId = availableUnits[i].actorId()
 			var slot = slotLookup[actorId];
 			if(deployInfo.lockedSlots[slot]){				
