@@ -1296,7 +1296,7 @@ StatCalc.prototype.getSubPilots = function(actor){
 }
 StatCalc.prototype.canTransform = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		return actor.SRWStats.mech.transformsInto != null && actor.SRWStats.mech.transformWill <= this.getCurrentWill(actor);
+		return actor.SRWStats.mech.transformsInto != null && !$gameSystem.isTransformationLocked(actor.SRWStats.mech.id) && actor.SRWStats.mech.transformWill <= this.getCurrentWill(actor);
 	} 
 	return false;
 }

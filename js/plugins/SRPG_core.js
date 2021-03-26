@@ -744,6 +744,22 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		if (command === 'unlockMechAbility') {	
 			$gameSystem.setMechAbilityStatus(args[0], args[1], "");
 		}
+		
+		if (command === 'lockTransformation') {	
+			$gameSystem.lockTransformation(args[0]);
+		}
+		
+		if (command === 'lockAllTransformations') {	
+			$gameSystem.lockAllTransformations();
+		}
+		
+		if (command === 'unlockTransformation') {	
+			$gameSystem.unlockTransformation(args[0]);
+		}
+		
+		if (command === 'unlockAllTransformations') {	
+			$gameSystem.unlockAllTransformations();
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -2329,7 +2345,41 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		}		
 		return result;
 	}
-
+	
+	Game_System.prototype.validateTransformationLockInfo = function() {
+		if(!this.transformationLockInfo){
+			this.transformationLockInfo = {}
+		}
+	}
+	
+	Game_System.prototype.isTransformationLocked = function(mechId) {
+		this.validateTransformationLockInfo();
+		return this.transformationLockInfo[mechId];
+	}
+	
+	Game_System.prototype.lockTransformation = function(mechId) {
+		this.validateTransformationLockInfo();
+		this.transformationLockInfo[mechId] = true;
+	}
+	
+	Game_System.prototype.lockAllTransformations = function() {
+		this.validateTransformationLockInfo();
+		for(var i = 1; i < $dataActors.length; i++){
+			this.transformationLockInfo[i] = true;
+		}	
+	}
+	
+	Game_System.prototype.unlockTransformation = function(mechId) {
+		this.validateTransformationLockInfo();
+		delete this.transformationLockInfo[mechId];
+	}
+	
+	Game_System.prototype.unlockAllTransformations = function() {
+		this.validateTransformationLockInfo();
+		for(var i = 1; i < $dataActors.length; i++){
+			delete this.transformationLockInfo[i];
+		}	
+	}
 //==================================================================
 // ●Game_Action
 //====================================================================

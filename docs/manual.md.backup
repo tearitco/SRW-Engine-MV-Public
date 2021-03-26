@@ -1027,6 +1027,7 @@ The first two pages of Control Variables are reserved for specific functions in 
 * 0003 - Turns Passed(Stage): The number of turns(one actor phase + one enemy phase) that has passed on the current stage.
 * 0004 - Actor Event ID: The event ID of the current active actor
 
+
 * 0005 - Enemy Event ID: The event ID of the current active enemy
 * 0006 - Next Map: The id of the next map that will be loaded after the next intermission
 * 0007 - Next Map X: The starting x coordinate for the cursor on the next map
@@ -1363,6 +1364,18 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * setPilotRelationship pilot\_id other\_pilot\_id bonus\_id level
 
 	Set the relationship bonus for the pilot specified by other\_pilot\_id to the specified bonus and level when adjacent to the pilot specified by pilot\_id. Note that levels start at 0!
+
+* lockTransformation mech\_id
+	Locks the Transform option for the mech with the specified id.
+	
+* lockAllTransformations
+	Locks the Transform option for all mechs.	
+		
+* unlockTransformation mech\_id
+	Unlocks the Transform option for the mech with the specified id.
+
+* unlockAllTransformations
+	Unlocks the Transform option for all mechs.	
 			 
 ## External Plugin commands	
 
@@ -1642,4 +1655,4 @@ A setting can be left blank by entering "" as its value.
 
 ### Stage Flow
 
-The normal flow of a SRW game will see the player go from stage to intermission to the next stage
+The normal flow of a SRW game will see the player go from stage to intermission to the next stage and so on. 
