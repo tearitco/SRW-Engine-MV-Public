@@ -352,6 +352,10 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			finalDamage*=0.7;
 		}
 		
+		if(ENGINE_SETTINGS.ENABLE_ATTRIBUTE_SYSTEM){
+			finalDamage*=$statCalc.getEffectivenessMultipler(attackerInfo.actor, defenderInfo.actor);
+		}
+		
 		
 		if(activeAttackerSpirits.soul){				
 			finalDamage*=2.2;

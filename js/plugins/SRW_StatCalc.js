@@ -1215,7 +1215,15 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		
 		
 		result.destroyTransformInto = mechProperties.mechDestroyTransformInto * 1 || null;		
-		result.destroyTransformedActor = mechProperties.mechDestroyTransformedActor * 1 || null;		
+		result.destroyTransformedActor = mechProperties.mechDestroyTransformedActor * 1 || null;	
+
+		if(mechProperties.mechAttribute1){
+			result.attribute1 = mechProperties.mechAttribute1.trim();
+		}
+		
+		if(mechProperties.mechAttribute2){
+			result.attribute2 = mechProperties.mechAttribute2.trim();
+		}
 		
 		//result.transformedActor = mechProperties.mechTransformedActor;
 
@@ -4577,5 +4585,28 @@ StatCalc.prototype.getActiveCombatInfo = function(actor){
 		}
 	}
 	return null;
+}
+
+StatCalc.prototype.getEffectivenessMultipler = function(attacker, defender){
+	function readLookup(lookup, attackerAttr, defenderAttr){
+		var result = 1;
+		if(lookup){
+			if(lookup[attackerAttr] && lookup[attackerAttr][defenderAttr]){
+				result = lookup[attackerAttr][defenderAttr];
+			}
+		}
+		return result;
+	}
+	var attackerAttr1 = attacker.SRWStats.mech.attribute1 || "";
+	var defenderAttr1 = defender.SRWStats.mech.attribute1 || ""; 
+	
+	var attr1Mult = readLookup(ENGINE_SETTINGS.EFFECTIVENESS.attribute1, attackerAttr1, defenderAttr1);
+	
+	var attackerAttr2 = attacker.SRWStats.mech.attribute2 || "";
+	var defenderAttr2 = defender.SRWStats.mech.attribute2 || ""; 
+	
+	var attr2Mult = readLookup(ENGINE_SETTINGS.EFFECTIVENESS.attribute2, attackerAttr2, defenderAttr2);
+	
+	return attr1Mult * attr2Mult;
 }
 

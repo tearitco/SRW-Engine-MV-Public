@@ -74,5 +74,56 @@ var ENGINE_SETTINGS_DEFAULT = {
 		MAX: 50000, //500 EXP per level, this is 100 levels so basically unlimited,
 		LEVEL_SCALING_FORMULA: "defenderTotalYield * ((defenderLevel-attackerLevel) < 0 ? Math.pow((1/10), (Math.log10(attackerLevel-defenderLevel + 1))) : Math.log10(0.09*(defenderLevel-attackerLevel) + 1) * 20 + 1)"		
 	},
-	SINGLE_BATTLE_SPRITE_MODE: false
+	SINGLE_BATTLE_SPRITE_MODE: false,
+	ENABLE_ATTRIBUTE_SYSTEM: true,
+	EFFECTIVENESS: { //example tables
+		attribute1: {
+			"vaccine": {
+				"vaccine": 1,
+				"virus": 1.5,
+				"data": 0.75,			
+			},
+			"data": {
+				"vaccine": 1.5,
+				"virus": 0.75,
+				"data": 1,
+			},
+			"virus": {
+				"vaccine": 0.75,
+				"virus": 1,
+				"data": 1.5,
+			},
+			"free": {
+				"vaccine": 1,
+				"virus": 1,
+				"data": 1,
+			}
+		},
+		attribute2: {	
+			"fire": {
+				"plant": 1.1,
+			},
+			"plant": {
+				"water": 1.1,
+			},
+			"water": {
+				"fire": 1.1,
+			},
+			"electric": {
+				"wind": 1.1,
+			},
+			"wind": {
+				"earth": 1.1,
+			},
+			"earth": {
+				"electric": 1.1,
+			},
+			"light": {
+				"dark": 1.1,
+			},
+			"dark": {
+				"light": 1.1,
+			},
+		}
+	}
 }
