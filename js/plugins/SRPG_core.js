@@ -6642,16 +6642,21 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		  height: 30,
 		  width: 20,
 		});
-		this.addChild(this.text)
+		this.addChild(this.text);
+		this._previousEventType = -1;
 	};
 
 	Sprite_WillIndicator.prototype.update = function() {
-		this._isEnemy = this._character.isType() === 'enemy'
-		if(this._isEnemy){
-			this.bitmap = ImageManager.loadSystem('WillIndicatorEnemy');
-		} else {
-			this.bitmap = ImageManager.loadSystem('WillIndicator');
-		}
+		var type = this._character.isType();
+		this._isEnemy = type === 'enemy'
+		if(this._previousEventType != type){
+			this._previousEventType = type;
+			if(this._isEnemy){
+				this.bitmap = ImageManager.loadSystem('WillIndicatorEnemy');
+			} else {
+				this.bitmap = ImageManager.loadSystem('WillIndicator');
+			}
+		}		
 		
 		this.anchor.x = 0.5;
 		this.anchor.y = 1;
@@ -10361,9 +10366,11 @@ SceneManager.reloadCharacters = function(startEvent){
 				
 			} else {
 				_this._summaryWindow.hide();
-				$gameTemp.commanderAuraVisible = false;
-				$gameSystem.highlightedTiles = [];
-				$gameSystem.highlightsRefreshed = true;
+				if($gameTemp.commanderAuraVisible){
+					$gameTemp.commanderAuraVisible = false;
+					$gameSystem.highlightedTiles = [];
+					$gameSystem.highlightsRefreshed = true;
+				}				
 				
 				$gameTemp.showAllyAttackIndicator = false;
 				$gameTemp.showAllyDefendIndicator = false;
