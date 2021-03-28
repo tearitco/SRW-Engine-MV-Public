@@ -17,6 +17,23 @@ Window_EquipMechSelection.prototype.initialize = function() {
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
 }
 
+Window_EquipMechSelection.prototype.rowEnabled = function(actor){
+	return true;
+}
+
+Window_EquipMechSelection.prototype.getAvailableUnits = function(){
+	var _this = this;
+	
+	var availableMechs = Window_CSS.prototype.getAvailableUnits.call(this);
+	var tmp = [];
+	availableMechs.forEach(function(candidate){
+		if(!candidate.SRWStats.mech.inheritsPartsFrom){
+			tmp.push(candidate);
+		}
+	});
+	return tmp;
+}
+
 Window_EquipMechSelection.prototype.getCurrentSelection = function(){
 	return this._mechList.getCurrentSelection();
 	
@@ -45,7 +62,7 @@ Window_EquipMechSelection.prototype.createComponents = function() {
 	this._detailContainer.classList.add("list_detail");
 	windowNode.appendChild(this._detailContainer);	
 	
-	this._mechList = new MechList(this._listContainer, [10]); //
+	this._mechList = new MechList(this._listContainer, [10], this); //
 	//this._mechList.setUnitModeActor();
 	this._mechList.createComponents();
 	this._mechList.setMaxPageSize(4);

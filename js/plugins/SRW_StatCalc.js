@@ -410,6 +410,10 @@ StatCalc.prototype.getMechAbilityInfo = function(mechProperties){
 StatCalc.prototype.getActorMechItems = function(mechId){
 	var result = [];	
 	var mech = $dataClasses[mechId];
+	if(mech.meta.mechInheritsPartsFrom != null){
+		mechId = mech.meta.mechInheritsPartsFrom;
+		mech = $dataClasses[mechId];
+	}
 	var ids = $inventoryManager.getActorItemIds(mechId);
 	for(var i = 0; i < mech.meta.mechItemSlots; i++){
 		if(ids[i]){
@@ -1246,7 +1250,10 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			result.deployActions = DEPLOY_ACTIONS[deployActionsId];
 		}		
 		
-		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;		
+		result.inheritsUpgradesFrom = mechProperties.mechInheritsUpgradesFrom * 1 || null;	
+		
+		result.inheritsPartsFrom = mechProperties.mechInheritsPartsFrom * 1 || null;	
+		
 		
 		result.abilities = this.getMechAbilityInfo(mechProperties);
 		result.itemSlots = parseInt(mechProperties.mechItemSlots);		

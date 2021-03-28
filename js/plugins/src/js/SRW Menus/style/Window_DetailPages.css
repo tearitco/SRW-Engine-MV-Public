@@ -283,7 +283,7 @@
 	position: absolute;
 	--widthpixels: 350;
 	--heightpixels: 350;
-	top: 0;
+	bottom: 40%;
 	margin-left: 32%;
 }
 

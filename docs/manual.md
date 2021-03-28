@@ -360,6 +360,13 @@ When working with transforming or combining mechs it usually desirable for the u
 
 \<mechInheritsUpgradesFrom:1\>: The id of the mech from which the mech will inherit upgrade levels.
 
+
+### Inheriting parts
+
+When working with transforming mechs it may be desired that the mech that is transformed into automatically gets the same parts as the mech that started the transformation. 
+
+\<mechInheritsPartsFrom:1\>: The id of the mech from which the mech will inherit parts. If specified the parts of the mech can not be changed in the equip menu.
+
 ### Managing (Sub)Pilot Assignments 
 
 Some mechs may be pilot-able by multiple pilots:
@@ -1557,6 +1564,7 @@ A setting can be left blank by entering "" as its value.
 * this.cursorMoveTo(x, y)
 
 	Instantly move the cursor to the specified coordinates.
+
 
 * this.isActorInRegion(actor\_id, region\_id)
 
