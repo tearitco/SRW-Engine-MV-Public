@@ -495,6 +495,7 @@ The definitions for the Bird and Lander take a slot from the combined Type 3 and
 
 ##### Checking if a unit can be deployed
 
+
 In addition to being used to rearrange pilots as needed the Deploy Action definitions are also used to check whether a unit is valid to deploy. For sources that are of the "direct" type a check is performed to see if the specified pilot is in the right place. For sources that are indirect("main" or "sub" type), a check is performed to see if any pilot is available in the target slot for that entry.
 
 ##### Automatically rearranging pilots
@@ -542,6 +543,7 @@ Image files for the battle scene are stored in the img/SRWBattleScene directory 
 \<mechBattleSceneShadowOffsetX:0\>The x offset for the shadow relative to the center point of the mech's sprite in the battle scene.<br>
 \<mechBattleReferenceSize:3\> The world space size of the Mech's sprite. This size is used for determining the size and position of the unit's barrier.<br>
 \<mechBattleSceneDeathAnim:1\> Specifies the id of a battle animation to be played when the mech is destroyed. If omitted the default death animation is used.
+\<mechBattleYOffset: 1\> If specified the main sprite for the unit will be offset by the given amount. The offset is specified in world units.
 
 # Attacks
 
