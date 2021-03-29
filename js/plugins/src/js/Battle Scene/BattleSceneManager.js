@@ -570,19 +570,25 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 	
 	function getSprite(){	
 		var spriteInfo;
+		var spriteParent = _this.createBg(name, "", position, 0, 1, null, true);
+		spriteParent.isVisible = false;
 		var pivothelper = _this.createBg(name+"_pivot", "", new BABYLON.Vector3(0, 0, 0), 0, 1, null, true);
 		pivothelper.isVisible = false;
 		if(!spriteConfig || spriteConfig.type == "default"){
-			spriteInfo = _this.createPlanarSprite(name, path, position, frameSize, flipX);		
+			spriteInfo = _this.createPlanarSprite(name+"_displayed", path,  new BABYLON.Vector3(0, spriteConfig.yOffset, 0), frameSize, flipX);		
 			spriteInfo.sprite.setPivotMatrix(BABYLON.Matrix.Translation(-0, spriteInfo.size.height/2, -0), false);
 		} else {
-			spriteInfo = _this.createSpriterSprite(name, path, position, flipX);
+			spriteInfo = _this.createSpriterSprite(name+"_displayed", path,  new BABYLON.Vector3(0, spriteConfig.yOffset, 0), flipX);
 			pivothelper.position.y+=spriteConfig.referenceSize / 2;			
-		}				
+		}	
+			
 		pivothelper.parent = spriteInfo.sprite;
 		spriteInfo.sprite.pivothelper = pivothelper;
 		spriteInfo.sprite.spriteInfo = spriteInfo;
 		spriteInfo.sprite.spriteConfig = spriteConfig;
+		
+		spriteInfo.sprite.parent = spriteParent;
+		spriteInfo.sprite.parent_handle = spriteParent;
 		return spriteInfo;	
 	}
 	
@@ -771,9 +777,9 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		if(spriteInfo){
 			var shadowSprite = spriteInfo.sprite.shadowSprite;
 			if(shadowSprite){			
-				shadowSprite.position.x = spriteInfo.sprite.position.x + ((shadowSprite.shadowInfo.offsetX || 0) * (shadowSprite.shadowInfo.type == "enemy" ? -1 : 1));
-				shadowSprite.position.z = spriteInfo.sprite.position.z + 0.1;//(shadowSprite.shadowInfo.offsetZ || 0);
-				var scale = Math.max(4 - spriteInfo.sprite.position.y, 0) / 4;
+				shadowSprite.position.x = spriteInfo.sprite.parent_handle.position.x + ((shadowSprite.shadowInfo.offsetX || 0) * (shadowSprite.shadowInfo.type == "enemy" ? -1 : 1));
+				shadowSprite.position.z = spriteInfo.sprite.parent_handle.position.z + 0.1;//(shadowSprite.shadowInfo.offsetZ || 0);
+				var scale = Math.max(4 - spriteInfo.sprite.parent_handle.position.y, 0) / 4;
 				
 				shadowSprite.scaling.x = scale;
 				shadowSprite.scaling.y = scale;
@@ -781,7 +787,7 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 				shadowSprite.setEnabled(spriteInfo.sprite.isEnabled());
 			}
 			/*if(spriteInfo.sprite.isEnabled()){
-				console.log(spriteInfo.sprite.position.x+", "+spriteInfo.sprite.position.z);
+				console.log(spriteInfo.sprite.parent_handle.position.x+", "+spriteInfo.sprite.parent_handle.position.z);
 			}*/
 		}		
 	}
@@ -1317,8 +1323,11 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._matrixAnimations = {};
 		},
 		teleport: function(target, params){
-			//console.log("teleport: "+target);
+			//console.log("teleport: "+target);			
 			var targetObj = getTargetObject(target);
+			if(targetObj.parent_handle){
+				targetObj = targetObj.parent_handle;
+			}
 			if(targetObj){
 				targetObj.position = _this.applyAnimationDirection(params.position);
 			}
@@ -1335,6 +1344,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		translate: function(target, params){
 			var targetObj = getTargetObject(target);
+			if(targetObj.parent_handle){
+				targetObj = targetObj.parent_handle;
+			}
 			if(targetObj){
 				targetObj.wasMoved = true;
 				var startPosition;
@@ -1972,17 +1984,17 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				
 			_this._camera.position.x = 0;
 			
-			if(_this._actorSprite && _this._actorSprite.sprite.wasMoved){
-				_this._actorSprite.sprite.position.x+=targetOffset;
+			if(_this._actorSprite && _this._actorSprite.sprite.parent_handle.wasMoved){
+				_this._actorSprite.sprite.parent_handle.position.x+=targetOffset;
 			}
-			if(_this._enemySprite && _this._enemySprite.sprite.wasMoved){
-				_this._enemySprite.sprite.position.x+=targetOffset;
+			if(_this._enemySprite && _this._enemySprite.sprite.parent_handle.wasMoved){
+				_this._enemySprite.sprite.parent_handle.position.x+=targetOffset;
 			}
-			if(_this._actorSupporterSprite && _this._actorSupporterSprite.sprite.wasMoved){
-				_this._actorSupporterSprite.sprite.position.x+=targetOffset;
+			if(_this._actorSupporterSprite && _this._actorSupporterSprite.sprite.parent_handle.wasMoved){
+				_this._actorSupporterSprite.sprite.parent_handle.position.x+=targetOffset;
 			}
-			if(_this._enemySupporterSprite && _this._enemySupporterSprite.sprite.wasMoved){
-				_this._enemySupporterSprite.sprite.position.x+=targetOffset;
+			if(_this._enemySupporterSprite && _this._enemySupporterSprite.sprite.parent_handle.wasMoved){
+				_this._enemySupporterSprite.sprite.parent_handle.position.x+=targetOffset;
 			}
 			
 			_this._bgs.forEach(function(bg){
@@ -1993,7 +2005,6 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					bg.position.x-=width * Math.sign(offset);
 				} 			
 			});
-			
 			if(targetObj){
 				//targetObj.playAnimation(1, 1, false, 100)			
 				if(!params.duration){
@@ -2030,7 +2041,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				} 
 				
 				if(!hasSpecialEvasion){
-					_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
+					_this.registerMatrixAnimation("translate", targetObj.parent_handle, _this.applyAnimationDirection(targetObj.parent_handle.position), targetPostion, startTick, params.duration);
 				}
 				
 				_this._animationList[startTick + params.duration] = [				
@@ -2379,6 +2390,7 @@ BattleSceneManager.prototype.readBattleCache = function() {
 			spriteInfo.id = "idle";
 		}
 		spriteInfo.referenceSize = $statCalc.getBattleReferenceSize(battleEffect.ref);
+		spriteInfo.yOffset = $statCalc.getBattleSceneInfo(battleEffect.ref).yOffset;
 		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
 				_this._participantInfo.actor.participating = true;
@@ -2630,22 +2642,22 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._camera.position = _this._defaultPositions.camera_main_intro;
 	_this._camera.rotation = _this._defaultRotations.camera_main_intro;
 	if(_this._actorSprite){
-		_this._actorSprite.sprite.position.copyFrom(_this._defaultPositions.ally_main_idle);
+		_this._actorSprite.sprite.parent_handle.position.copyFrom(_this._defaultPositions.ally_main_idle);
 		_this._actorSprite.wasMoved = false;
 		delete _this._actorSprite.sprite.realPosition;
 	}
 	if(_this._enemySprite){
-		_this._enemySprite.sprite.position.copyFrom(_this._defaultPositions.enemy_main_idle);	
+		_this._enemySprite.sprite.parent_handle.position.copyFrom(_this._defaultPositions.enemy_main_idle);	
 		_this._enemySprite.wasMoved = false;
 		delete _this._enemySprite.sprite.realPosition;
 	}
 	if(_this._actorSupporterSprite){
-		_this._actorSupporterSprite.sprite.position.copyFrom(_this._defaultPositions.ally_support_idle);
+		_this._actorSupporterSprite.sprite.parent_handle.position.copyFrom(_this._defaultPositions.ally_support_idle);
 		_this._actorSupporterSprite.wasMoved = false;
 		delete _this._actorSupporterSprite.sprite.realPosition;
 	}
 	if(_this._enemySupporterSprite){
-		_this._enemySupporterSprite.sprite.position.copyFrom(_this._defaultPositions.enemy_support_idle);
+		_this._enemySupporterSprite.sprite.parent_handle.position.copyFrom(_this._defaultPositions.enemy_support_idle);
 		_this._enemySupporterSprite.wasMoved = false;
 		delete _this._enemySupporterSprite.sprite.realPosition;
 	}	
@@ -2963,13 +2975,13 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 				_this._supportAttackerActive = true;
 				_this._actorSprite.sprite.setEnabled(false);
 				_this._actorSupporterSprite.sprite.setEnabled(true);
-				_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_main_idle;
+				_this._actorSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_main_idle;
 				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
 				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
 			} else {		
 				_this._lastActionWasSupportAttack = false;
 				_this._actorSprite.sprite.setEnabled(true);		
-				_this._actorSupporterSprite.sprite.position = _this._defaultPositions.ally_support_idle;
+				_this._actorSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_support_idle;
 				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
 				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
 			}			
@@ -2984,13 +2996,13 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 				_this._supportAttackerActive = true;
 				_this._enemySprite.sprite.setEnabled(false);
 				_this._enemySupporterSprite.sprite.setEnabled(true);
-				_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_main_idle;
+				_this._enemySupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_main_idle;
 				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
 				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
 			} else {			
 				_this._lastActionWasSupportAttack = false;
 				_this._enemySprite.sprite.setEnabled(true);	
-				_this._enemySupporterSprite.sprite.position = _this._defaultPositions.enemy_support_idle;
+				_this._enemySupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_support_idle;
 				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
 				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
 			}
