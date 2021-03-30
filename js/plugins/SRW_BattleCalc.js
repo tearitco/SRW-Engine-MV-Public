@@ -303,7 +303,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		
 		var armor =  defenderMechStats.armor;
 		if($statCalc.isArmorDown(defenderInfo.actor)){
-			armor-=500;
+			armor/=2;
 		}
 		armor = $statCalc.applyStatModsToValue(defenderInfo.actor, armor, ["armor"]);	
 

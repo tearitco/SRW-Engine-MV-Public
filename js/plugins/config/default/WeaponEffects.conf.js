@@ -54,7 +54,7 @@ $SRWConfig.weaponEffects = function(){
 	this.addDefinition(
 		4, 
 		"Armor Down", 
-		"Armor reduced by 500 for 1 turn.", 
+		"Armor halved for 1 turn.", 
 		false,
 		false,
 		function(actor, level){

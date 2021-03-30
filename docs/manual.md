@@ -496,6 +496,7 @@ The definitions for the Bird and Lander take a slot from the combined Type 3 and
 ##### Checking if a unit can be deployed
 
 
+
 In addition to being used to rearrange pilots as needed the Deploy Action definitions are also used to check whether a unit is valid to deploy. For sources that are of the "direct" type a check is performed to see if the specified pilot is in the right place. For sources that are indirect("main" or "sub" type), a check is performed to see if any pilot is available in the target slot for that entry.
 
 ##### Automatically rearranging pilots
