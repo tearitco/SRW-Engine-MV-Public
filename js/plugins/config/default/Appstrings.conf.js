@@ -71,7 +71,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_list: "Unit List",
 	cmd_conditions: "Conditions",
 	cmd_options: "Options",
-	cmd_save: "Save",
+	cmd_save: "Quick Save",
 	cmd_game_end: "Exit",
 	label_funds: "Funds",
 	label_turn: "Turn",

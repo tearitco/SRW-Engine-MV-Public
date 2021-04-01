@@ -9778,6 +9778,16 @@ SceneManager.reloadCharacters = function(startEvent){
     Scene_Map.prototype.update = function() {
 		var _this = this;
 		
+		if(!$gameSystem.isIntermission() && Input.isPressed("ok") && Input.isPressed("cancel") && Input.isPressed("pageup") && Input.isPressed("pagedown")){
+			Input.clear();
+			try {
+				JsonEx.parse(StorageManager.load("continue"));//check if the continue slot exists first by trying to parse it
+				DataManager.loadContinueSlot();
+			} catch(e){
+				
+			}			
+			return;
+		}
 		if($gameTemp.continueLoaded){
 			$gameTemp.continueLoaded = false;
 			$gameSystem.onAfterLoad();
