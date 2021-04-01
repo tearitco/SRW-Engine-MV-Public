@@ -3086,7 +3086,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 		if(nextAction && nextAction.action.type != "defend" && nextAction.action.type != "evade" && nextAction.action.type != "none"){
 			if((!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && _this._lastActionWasSupportAttack) || (ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && nextAction.type == "support attack")){// || _this._lastActionWasSupportDefend
 				_this.fadeToBlack(700).then(function(){
-					
+					_this.createEnvironment(nextAction.ref);
 					continueScene();
 					_this.fadeFromBlack();
 				});

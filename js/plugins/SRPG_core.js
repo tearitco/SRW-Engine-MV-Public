@@ -872,6 +872,10 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 
     //移動範囲を初期化する
     Game_Temp.prototype.clearMoveTable = function() {
+		$gameTemp.validTiles = {};
+		$gameSystem.highlightedTiles = [];
+		$gameSystem.highlightsRefreshed = true;
+		$gameTemp.disableHighlightGlow = false;
         this._MoveTable = [];
         this._MoveList = [];
         for (var i = 0; i < $dataMap.width; i++) {
@@ -2154,15 +2158,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
         $gameTemp.initialMoveTable(event.posX(), event.posY(), battlerArray[1].srpgThroughTag());
         event.makeMoveTable(event.posX(), event.posY(), moveRange, [0], battlerArray[1]);
         var list = $gameTemp.moveList();
-		//TODO: Turn attack range drawing into option
-        /*for (var i = 0; i < list.length; i++) {
-            var pos = list[i];
-            if (battlerArray[1].action(0) && battlerArray[1].action(0).item()) {
-                event.makeRangeTable(pos[0], pos[1], battlerArray[1].srpgSkillRange(battlerArray[1].action(0).item()), [0], pos[0], pos[1], battlerArray[1].action(0).item());
-            } else {
-                event.makeRangeTable(pos[0], pos[1], battlerArray[1].srpgWeaponRange(), [0], pos[0], pos[1], $dataSkills[battlerArray[1].attackSkillId()]);
-            }
-        }*/
+		
         $gameTemp.pushRangeListToMoveList();
     };
 
@@ -11399,30 +11395,6 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gameTemp.deployWindowCallback = function(deployed){
 			var shipEvent = $gameTemp.activeEvent();
 			$gameTemp.activeShip = {position: {x: shipEvent.posX(), y: shipEvent.posY()}, actor: $gameSystem.EventToUnit(shipEvent.eventId())[1], event: $gameTemp.activeEvent()};
-			/*var freeSpace = $statCalc.getAdjacentFreeSpace({x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()});
-			if(freeSpace){				
-				$statCalc.removeBoardedUnit(deployed.actor, $gameTemp.activeShip);				
-				var event = deployed.actor.event;
-				event.locate(freeSpace.x, freeSpace.y);
-				event.appear();						
-				$gameMap.setEventImages();			
-			}
-			_this._mapSrpgActorCommandWindow.refresh();
-			_this._mapSrpgActorCommandWindow.updatePlacement();
-			_this._mapSrpgActorCommandWindow.activate();
-			_this._mapSrpgActorCommandWindow.show();*/
-			
-			/*var event = $gameTemp.activeEvent();
-			
-			$gameTemp.clearMoveTable();
-			$gameTemp.initialRangeTable(event.posX(), event.posY(), 1);
-			event.makeRangeTable(event.posX(), event.posY(), 1, [0], event.posX(), event.posY(), null);
-			$gameTemp.minRangeAdapt(event.posX(), event.posY(), 0);
-			$gameTemp.pushRangeListToMoveList();
-			$gameTemp.setResetMoveList(true);
-			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
-			$gameTemp.actorToDeploy = deployed.actor;
-			$gameSystem.setSubBattlePhase('select_deploy_position');*/
 			
 			$statCalc.removeBoardedUnit(deployed.actor, $gameTemp.activeShip.actor);				
 			var event = deployed.actor.event;
@@ -11806,16 +11778,36 @@ SceneManager.reloadCharacters = function(startEvent){
 		} else {
 			var range = $statCalc.getRealWeaponRange(battler, weapon);
 			var minRange = weapon.minRange || 0;
-			$gameTemp.clearMoveTable();
-			$gameTemp.initialRangeTable(event.posX(), event.posY(), battler.srpgMove());
-			event.makeRangeTable(event.posX(), event.posY(), range, [0], event.posX(), event.posY(), null);
-			$gameTemp.minRangeAdapt(event.posX(), event.posY(), minRange);
-			$gameTemp.pushRangeListToMoveList();
-			$gameTemp.setResetMoveList(true);
+			
+			this.setUpAttackRange(event.posX(), event.posY(), range, minRange);
+			
 			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 			$gameSystem.setSubBattlePhase('actor_target');
 		}		
     };
+	
+	Scene_Map.prototype.setUpAttackRange = function(x, y, range, minRange) {
+		$gameTemp.validTiles = {};
+		$gameSystem.highlightedTiles = [];
+		$gameSystem.highlightsRefreshed = true;
+		$gameTemp.disableHighlightGlow = true;
+		for(var i = range * -1; i <= range; i++){
+			for(var j = range * -1; j <= range; j++){
+				var distance = Math.abs(i) + Math.abs(j);
+				if(distance <= range && distance >= minRange){
+					var realX = x - i;
+					var realY = y - j;
+					if(realX >= 0 && realX < $gameMap.width() && realY >=0 && realY <= $gameMap.height()){
+						if(!$gameTemp.validTiles[realX]){
+							$gameTemp.validTiles[realX] = {};
+						}
+						$gameTemp.validTiles[realX][realY] = true;
+						$gameSystem.highlightedTiles.push({x: realX, y: realY, color: "#ff3a3a"});
+					}					
+				}
+			}
+		}	
+	}
 
     //戦闘開始コマンド・戦闘開始
     Scene_Map.prototype.commandBattleStart = function() {
@@ -12274,9 +12266,7 @@ SceneManager.reloadCharacters = function(startEvent){
     };
 
     // 移動力と射程を足した範囲内にいる対象をリストアップする
-    Scene_Map.prototype.srpgMakeCanAttackTargets = function(battler, targetType) {
-        var moveRangeList = $gameTemp.moveList();
-        var targetList = [];	
+    Scene_Map.prototype.srpgMakeCanAttackTargets = function(battler, targetType) {        	
 		//var type = battler.isActor() ? "enemy" : "actor";
 		var pos = {
 			x: $gameTemp.activeEvent().posX(),
@@ -12309,9 +12299,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		return targets;
     };
 	
-	Scene_Map.prototype.srpgMakeCanAttackTargetsWithMove = function(battler, targetType) {
-        var moveRangeList = $gameTemp.moveList();
-        var targetList = [];	
+	Scene_Map.prototype.srpgMakeCanAttackTargetsWithMove = function(battler, targetType) {        	
 		//var type = battler.isActor() ? "enemy" : "actor";
 		var pos = {
 			x: $gameTemp.activeEvent().posX(),
@@ -12845,13 +12833,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		var weapon = $gameTemp.enemyWeaponSelection;
 		var range = $statCalc.getRealWeaponRange(actionArray[1], weapon);
 		var minRange = weapon.minRange || 0;
-		$gameTemp.clearMoveTable();
 		var event = actionArray[1].event;		
-		$gameTemp.initialRangeTable(event.posX(), event.posY(), actionArray[1].srpgMove());
-		event.makeRangeTable(event.posX(), event.posY(), range, [0], event.posX(), event.posY(), null);
-		$gameTemp.minRangeAdapt(event.posX(), event.posY(), minRange);
-		$gameTemp.pushRangeListToMoveList();
-		$gameTemp.setResetMoveList(true);
+		
+		this.setUpAttackRange(event.posX(), event.posY(), range, minRange);
 		
 		$gameSystem.setSubBattlePhase("enemy_targeting_display");
 		$gameTemp.targetingDisplayCounter = 60;
