@@ -679,8 +679,8 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 			height = size;
 		}
 	} else {
-		width = ENGINE_SETTINGS.BATTLE_SCENE.SPRITE_WORLD_SIZE;
-		height = ENGINE_SETTINGS.BATTLE_SCENE.SPRITE_WORLD_SIZE;
+		width = ENGINE_SETTINGS.BATTLE_SCENE.SPRITE_WORLD_SIZE || 3;
+		height = ENGINE_SETTINGS.BATTLE_SCENE.SPRITE_WORLD_SIZE || 3;
 	}
 	var bg = BABYLON.MeshBuilder.CreatePlane(name, {width: width, height: height, updatable: true}, this._scene);
 	//bg.billboardMode = 7;
@@ -1584,7 +1584,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				_this.delayAnimationList(startTick + 27, 140);
 				_this._animationList[startTick + 30] = [
 					{type: "teleport", target: "Camera", params: {position: _this._defaultPositions.camera_main_idle}},
+					{type: "teleport", target: "active_target", params: {position: _this._defaultPositions.enemy_main_idle}},
 					{type: "rotate_to", target: "Camera", params: {rotation: _this._defaultRotations.camera_main_idle}},
+				
 					{type: "show_sprite", target: "active_target", params: {}},		
 					{type: "hide_sprite", target: "active_main", params: {}},					
 				];	
@@ -3082,7 +3084,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 		}
 		
 		if(nextAction && nextAction.action.type != "defend" && nextAction.action.type != "evade" && nextAction.action.type != "none"){
-			if(_this._lastActionWasSupportAttack){// || _this._lastActionWasSupportDefend
+			if((!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && _this._lastActionWasSupportAttack) || (ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && nextAction.type == "support attack")){// || _this._lastActionWasSupportDefend
 				_this.fadeToBlack(700).then(function(){
 					continueScene();
 					_this.fadeFromBlack();

@@ -912,17 +912,25 @@ BattleCalc.prototype.generateBattleResult = function(){
 	if(defenderCounterActivates){
 		$gameTemp.defenderCounterActivated = true;
 		actions.push(new BattleAction(defender, attacker, null, defenderSide));
-		if(supportAttacker){			
+		if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
 			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
 		}	
-		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));			
+		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));		
+		if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+		}	
 	} else {
 		$gameTemp.defenderCounterActivated = false;
-		if(supportAttacker){			
+		if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
 			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
 		}	
 		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
-		actions.push(new BattleAction(defender, attacker, null, defenderSide));			
+		
+		actions.push(new BattleAction(defender, attacker, null, defenderSide));		
+
+		if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+		}	
 	}
 	
 	
