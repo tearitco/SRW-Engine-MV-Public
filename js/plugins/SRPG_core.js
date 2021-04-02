@@ -9774,6 +9774,30 @@ SceneManager.reloadCharacters = function(startEvent){
     Scene_Map.prototype.update = function() {
 		var _this = this;
 		
+		if ($gameSystem.isSubBattlePhase() == "halt"){
+			return;
+		}
+		
+		if(this._transitioningToBattle){
+			this.updateEncounterEffect();
+			return;
+		}
+		
+		if(this._loadingIntoBattle){
+			this._loadingIntoBattle = false;
+			
+			setTimeout(function(){
+				//hack to remove the black overlay of the map scene while in the battle scene
+				_this.removeChild(_this._transitionBackSprite);					
+			}, 500);						
+			
+			$gameSystem.setSubBattlePhase('halt');			
+			$battleSceneManager.playBattleScene();
+			//
+			return;
+		}
+		
+		
 		if(!$gameSystem.isIntermission() && Input.isPressed("ok") && Input.isPressed("cancel") && Input.isPressed("pageup") && Input.isPressed("pagedown")){
 			Input.clear();
 			try {
@@ -9795,9 +9819,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 		}
 		
-		if ($gameSystem.isSubBattlePhase() == "halt"){
-			return;
-		}
+		
 		if ($gameSystem.isSubBattlePhase() !== 'normal') {	
 			this._summaryWindow.hide();
 			this._terrainDetailsWindow.hide();
@@ -10226,6 +10248,7 @@ SceneManager.reloadCharacters = function(startEvent){
         }
         //戦闘終了後の処理
         if ($gameSystem.isSubBattlePhase() === 'after_battle') {
+			
 			if($gameTemp.playingBattleDemo){
 				$gameSystem.setSubBattlePhase('normal');
 				$gameTemp.scriptedBattleDemoId = null;
@@ -12913,10 +12936,7 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.playBattleScene = function() {
 		if($gameSystem.demoSetting){
-			SceneManager.stop();
-			$gameSystem.setSubBattlePhase('halt');			
-			$battleSceneManager.playBattleScene();
-			$songManager.playBattleSong($gameTemp.currentBattleActor, $gameTemp.currentBattleEnemy);
+			this.startEncounterEffect();			
 		} else {
 			$gameTemp.popMenu = true;//remove before battle menu
 			$gameSystem.setSubBattlePhase('battle_basic');
@@ -12957,20 +12977,10 @@ SceneManager.reloadCharacters = function(startEvent){
         }
     };
 
-    // SRPG戦闘中は戦闘開始エフェクトを高速化する
-    var _SRPG_SceneMap_startEncounterEffect = Scene_Map.prototype.startEncounterEffect;
-    Scene_Map.prototype.startEncounterEffect = function() {
-        if ($gameSystem.isSRPGMode() == true && _srpgBattleQuickLaunch == 'true') {
-            this._encounterEffectDuration = this.encounterEffectSpeed();
-        } else {
-            _SRPG_SceneMap_startEncounterEffect.call(this);
-        }
-    };
-
-    // SRPG戦闘中は戦闘開始エフェクトを高速化する
+      // SRPG戦闘中は戦闘開始エフェクトを高速化する
     var _SRPG_SceneMap_updateEncounterEffect = Scene_Map.prototype.updateEncounterEffect;
     Scene_Map.prototype.updateEncounterEffect = function() {
-        if ($gameSystem.isSRPGMode() == true && $gameSwitches.value(2) == true) {
+        /*if ($gameSystem.isSRPGMode() == true && $gameSwitches.value(2) == true) {
             if (this._encounterEffectDuration > 0) {
                 this._encounterEffectDuration--;
                 this.snapForBattleBackground();
@@ -12991,7 +13001,31 @@ SceneManager.reloadCharacters = function(startEvent){
             }
         } else {
             _SRPG_SceneMap_updateEncounterEffect.call(this);
-        }
+        }*/
+		
+		
+		//this._twistFilter.radius+=20;
+		
+		
+		this._transitionSprite.scale.x = this._transitionSpriteScale;
+		this._transitionSprite.scale.y = this._transitionSpriteScale;
+		if (this._transitionFilter.strength >= 0.4) {	
+			this._transitionSprite.opacity-=10;
+			/*this._transitionSpriteScale+=0.005;
+			this._transitionSprite.x-=2.5;
+			this._transitionSprite.y-=0.5;*/
+			this._transitionFilter.strength+=0.01;
+			if(this._transitionFilter.strength >= 0.65){
+				//this._transitionFilter.blurX = 0;	
+				//this.clearTREffects();
+				this._transitioningToBattle = false;
+				this._loadingIntoBattle = true;
+				this.removeChild(this._transitionSprite);				
+			}			
+		} else {
+			this._transitionFilter.strength+=0.02;
+		}
+		this._transitionTimer++;
     };
 
     // SRPG戦闘中は戦闘開始エフェクトを高速化する
@@ -13006,11 +13040,54 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	var _SRPG_SceneMap_startEncounterEffect = Scene_Map.prototype.startEncounterEffect;
     Scene_Map.prototype.startEncounterEffect = function() {
-        if ($gameSystem.isSRPGMode() == true && _srpgBattleQuickLaunch == 'true') {
+        /*if ($gameSystem.isSRPGMode() == true && _srpgBattleQuickLaunch == 'true') {
             this._encounterEffectDuration = this.encounterEffectSpeed();
         } else {
             _SRPG_SceneMap_startEncounterEffect.call(this);
-        }
+        }*/
+		
+		try {
+			this.removeChild(this._transitionBackSprite);
+		} catch(e){
+			
+		}
+		
+		this._transitionBase = SceneManager.snap();
+		this._transitioningToBattle = true;
+		this._transitionTimer = 0;
+	
+		this._transitionBackSprite = new Sprite(new Bitmap(Graphics.boxWidth,Graphics.boxHeight));
+		this._transitionBackSprite.bitmap.fillAll('black');
+		this.addChild(this._transitionBackSprite);
+
+		this._transitionSprite = new Sprite(this._transitionBase);
+		this._transitionSpriteScale = 1;
+		
+		var filter = new PIXI.filters.ZoomBlurFilter();
+		filter.strength = 0.01;
+		var x = 0;
+		var y = 0;
+		var activeEvent = $gameTemp.targetEvent();
+		if(activeEvent){
+			x = activeEvent.screenX();
+			y = activeEvent.screenY() - 24;
+		}
+		filter.center = [x, y];
+		filter.innerRadius = 0;
+		
+		this._transitionFilter = filter;	
+		
+		/*var twistFilter = new PIXI.filters.TwistFilter();
+		twistFilter.angle = -0.5;
+		twistFilter.offset = [Graphics._getCurrentWidth() / 2, Graphics._getCurrentHeight() / 2];
+		twistFilter.radius = 0;
+		
+		this._twistFilter = twistFilter;	*/
+		
+		this._transitionSprite.filters = [filter];
+		this.addChild(this._transitionSprite);
+		
+		$songManager.playBattleSong($gameTemp.currentBattleActor, $gameTemp.currentBattleEnemy);
     };
 	
 Scene_Gameover.prototype.gotoTitle = function() {

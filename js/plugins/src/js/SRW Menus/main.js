@@ -115,6 +115,10 @@ Graphics._getCurrentWidth = function(){
 	}	
 }
 
+Graphics._getCurrentHeight = function(){	
+	return this._height * this._realScale;		
+}
+
 Graphics.getOriginalWidth = function(){
 	return this._width;
 }

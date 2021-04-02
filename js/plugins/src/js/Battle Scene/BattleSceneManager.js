@@ -3175,6 +3175,7 @@ BattleSceneManager.prototype.playBattleScene = function(){
 	_this.stopScene();
 	_this.systemFadeToBlack(200, 1000).then(function(){
 		$gameTemp.popMenu = true;//remove before battle menu
+		//SceneManager.stop();
 		_this.startScene();
 		_this.showScene();
 	});
