@@ -2630,7 +2630,7 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 BattleSceneManager.prototype.resetScene = function() {
 	var _this = this;
 	this.initScene();
-	
+	_this._spriteManagers = {};
 	_this.setBgScrollRatio(1);
 	_this._UILayerManager.hideNoise();
 	_this._animationList = [];
