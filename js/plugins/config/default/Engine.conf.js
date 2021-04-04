@@ -1,6 +1,6 @@
 var ENGINE_SETTINGS_DEFAULT = {
 	USE_SRW_SUPPORT_ORDER: true,
-	DISABLE_EVASION_DECAY: true,
+	DISABLE_EVASION_DECAY: false,
 	DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
 	BATTLE_SCENE: {
 		SPRITE_WORLD_SIZE: 3,
