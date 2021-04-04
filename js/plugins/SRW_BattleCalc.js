@@ -187,7 +187,7 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 			finalHit-=30;
 		}
 		
-		if(!$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ignore_evasion_decay"])){
+		if(!$statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["ignore_evasion_decay"]) && !ENGINE_SETTINGS.DISABLE_EVASION_DECAY){
 			finalHit+=$statCalc.getEvadeCount(defenderInfo.actor) * 5;//evasion decay
 		}			
 		
