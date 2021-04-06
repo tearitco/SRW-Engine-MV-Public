@@ -17,7 +17,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 			var fontPercent = textElement.getAttribute("data-font-percent");
 			if(!fontPercent){
 				fontPercent = window.getComputedStyle(textElement, null).getPropertyValue('font-size');
-				fontPercent = fontPercent.replace("px", "");
+				fontPercent = parseFloat(fontPercent.replace("px", ""));
 				textElement.setAttribute("data-font-percent", fontPercent);
 			}
 			
@@ -31,7 +31,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 				if(!scalePercent){
 					scalePercent = window.getComputedStyle(scaledElement, null).getPropertyValue('width');
 				}				
-				scalePercent = scalePercent.replace("px", "");
+				scalePercent = parseFloat(scalePercent.replace("px", ""));
 				scaledElement.setAttribute("data-original-width", scalePercent);
 			}
 			
@@ -46,7 +46,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 				if(!scalePercent){
 					scalePercent = window.getComputedStyle(scaledElement, null).getPropertyValue('height');
 				}
-				scalePercent = scalePercent.replace("px", "");
+				scalePercent = parseFloat(scalePercent.replace("px", ""));
 				scaledElement.setAttribute("data-original-height", scalePercent);
 			}
 			
