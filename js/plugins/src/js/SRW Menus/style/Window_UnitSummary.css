@@ -9,7 +9,7 @@
 #unit_summary .bg_fade_container {
     -webkit-mask-image: none;   
     justify-content: center;  
-    font-size: 2.4px;   
+    --fontsize: 2.4px;   
 	--widthpixels: 500;
 	--heightpixels: 157;
     padding: 0;
@@ -72,7 +72,7 @@
 	top: 31%;
     left: 29%;
     font-style: italic;
-	font-size: 3px;
+	--fontsize: 3px;
 }
 
 #unit_summary .unit_summary_block .unit_summary_delta{
@@ -93,7 +93,7 @@
 }
 
 #unit_summary .pilot_name{
-	font-size: 2.2px;
+	--fontsize: 2.2px;
 	--widthscaling: 30;
 	position: absolute;
 	top: 6%;
@@ -102,7 +102,7 @@
 	white-space: nowrap;
 }
 #unit_summary .pilot_stats{
-	font-size: 2.2px;
+	--fontsize: 2.2px;
 	display: flex;
 	align-items: center;
 	color: #FFFFFF;
@@ -208,6 +208,6 @@
 	position: absolute;
 	left: 26%;
 	top: 48%;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #FFFFFF;
 }

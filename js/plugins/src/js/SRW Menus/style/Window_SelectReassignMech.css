@@ -22,7 +22,7 @@
 #mech_reassign_select_slot_selection_container .content .entry{
 	display: flex;
     align-items: center;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: white;
 	padding: 0.3vw;
 }

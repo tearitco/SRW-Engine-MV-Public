@@ -9,7 +9,7 @@
 #terrain_details .bg_fade_container {
     -webkit-mask-image: none;   
     justify-content: center;  
-    font-size: 2.4px;   
+    --fontsize: 2.4px;   
 	--widthpixels: 250;
 	--heightpixels: 120;
     padding: 0;
@@ -36,7 +36,7 @@
 
 #terrain_details .terrain_boost_section {
 	position: absolute;
-	font-size: 2.2px;
+	--fontsize: 2.2px;
 	display: flex;
 	white-space: nowrap;
 }

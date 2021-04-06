@@ -16,7 +16,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 		textElements.forEach(function(textElement){
 			var fontPercent = textElement.getAttribute("data-font-percent");
 			if(!fontPercent){
-				fontPercent = window.getComputedStyle(textElement, null).getPropertyValue('font-size');
+				fontPercent = window.getComputedStyle(textElement, null).getPropertyValue('--fontsize');
 				fontPercent = parseFloat(fontPercent.replace("px", ""));
 				textElement.setAttribute("data-font-percent", fontPercent);
 			}

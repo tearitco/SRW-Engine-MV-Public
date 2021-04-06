@@ -5,7 +5,7 @@
 }
 
 .pilot_stats_label {
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	text-align: center;
 	width: 10px;
 	color: var(--text-color-highlight);
@@ -14,7 +14,7 @@
 }
 
 .pilot_stat_container {
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	text-align: center;
 	width: 9px;
 	color: #FFFFFF;

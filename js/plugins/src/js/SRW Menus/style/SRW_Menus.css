@@ -23,7 +23,7 @@ body {
 	z-index: 50;
 	margin: auto;
 	font-family: GameFont;
-	font-size: 2px; /*percent of GameCanvas width*/
+	--fontsize: 2px; /*percent of GameCanvas width*/
 	overflow: hidden;
 }
 
@@ -79,7 +79,7 @@ body {
 	left: 0;
 	width: 35%;
 	height: 12%;
-	font-size: 3.5px;
+	--fontsize: 3.5px;
 	color: #FFFFFF;
 	
 	font-style: italic;
@@ -136,7 +136,7 @@ body {
 	color: var(--text-color-highlight);
 	position: absolute;
 	font-style: italic;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	top: 30%;
 }
 
@@ -144,12 +144,12 @@ body {
 	color: var(--text-color-highlight);
 	position: absolute;
 	font-style: italic;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	top: 60%;
 }
 
 .mech_hp_en_container .hp_display {
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	width: 100%;
 	display: flex;
 	color: white;
@@ -174,7 +174,7 @@ body {
 }
 
 .mech_hp_en_container .en_display {
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	width: 50%;
 	display: flex;
 	color: white;
@@ -232,7 +232,7 @@ body {
 	position: absolute;
 	height: 100%;
 	
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	justify-content: center;
     align-items: center;
 	width: 75%;
@@ -309,7 +309,7 @@ body {
 	top: 5%;
 	left: 1%;
 	color: var(--text-color-highlight);	
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 }
 
 .detail_bar_upgrades .upgrade_block {
@@ -343,37 +343,37 @@ body {
 .detail_bar_upgrades .upgrade_block.HP {
 	top: 1%;
 	left: 16%;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 }
 
 .detail_bar_upgrades .upgrade_block.armor {
 	top: 1%;
 	left: 43%;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 }
 
 .detail_bar_upgrades .upgrade_block.accuracy {
 	top: 1%;
 	left: 70%;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 }
 
 .detail_bar_upgrades .upgrade_block.EN {
 	top: 50%;
 	left: 16%;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 }
 
 .detail_bar_upgrades .upgrade_block.mobility {
 	top: 50%;
 	left: 43%;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 }
 
 .detail_bar_upgrades .upgrade_block.weapon {
 	top: 50%;
 	left: 70%;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 }
 
 .upgrade_bar {

@@ -24,7 +24,7 @@
 	color: var(--text-color-highlight);
 	position: absolute;
     right: 9%;
-	font-size:2.5px;
+	--fontsize:2.5px;
 }
 
 .deployed_list_label {
@@ -77,7 +77,7 @@
 	right: 3%;
 	bottom: -9%;
 	color: var(--text-color-highlight);
-	font-size: 1.5px;
+	--fontsize: 1.5px;
 }
 
 .list_row .entry .fav_icon {
@@ -134,7 +134,7 @@
 	position: absolute;
 	top: 2%;
     right: 4%;
-    font-size: 2.5px;
+    --fontsize: 2.5px;
     color: white;
 }
 

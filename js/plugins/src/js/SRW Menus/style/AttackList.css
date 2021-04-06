@@ -26,7 +26,7 @@
 	top: -12%;
 	background-color: rgba(0,67,99,0.5);
 	color: #FFFFFF;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	text-align: center;
 }
 
@@ -74,31 +74,31 @@
 
 .attack_list_row .attack_list_block:nth-child(1){
 	width: 5%;
-	font-size: 1.8px;	
+	--fontsize: 1.8px;	
 	position: relative;
 }
 
 .attack_list_row .attack_list_block:nth-child(2){
 	width: 25%;
-	font-size: 1.8px;		
+	--fontsize: 1.8px;		
 }
 
 .attack_list_row .attack_list_block:nth-child(3){
 	width: 10%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	margin-right: 2%;
 	text-align: center;
 }
 
 .attack_list_row .attack_list_block:nth-child(4){
 	width: 5%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	text-align: right;
 }
 
 .attack_list_row .attack_list_block:nth-child(5){
 	width: 3%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	text-align: center;
 }
 
@@ -108,37 +108,37 @@
 
 .attack_list_row .attack_list_block:nth-child(6){
 	width: 8%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	text-align: right;
 }
 
 .attack_list_row .attack_list_block:nth-child(7){
 	width: 10%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 }
 
 .attack_list_row.summary .attack_list_block:nth-child(4){
 	width: 9%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	text-align: right;
 }
 
 .attack_list_row.summary .attack_list_block:nth-child(5){
 	width: 9%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	text-align: right;
 }
 
 .attack_list_row.summary .attack_list_block:nth-child(6){
 	width: 9%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	text-align: right;
 	margin-left: 6%;
 }
 
 .attack_list_row.summary .attack_list_block:nth-child(7){
 	width: 9%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	text-align: right;
 }
 
@@ -175,7 +175,7 @@
 }
 
 .attribute_block_entry{
-	font-size: 1.5px;
+	--fontsize: 1.5px;
 	width: 1.8px;
 	--widthscaling: 1.8;
 	height: 1.8px;
@@ -222,7 +222,7 @@
 	margin-right: 1%;
 	height: 100%;
 	/*width: 20%;*/
-	font-size: 1.2px;
+	--fontsize: 1.2px;
 	text-align: center;
 	border: 0.1vw solid rgba(174, 219, 241, 0.9);
 	background-color: #538ca7;
@@ -259,17 +259,17 @@
 
 .summary_row.usage_detail {
 	color: #FF0000;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 }
 
 .summary_row_label {
 	width: 35%;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	color: var(--text-color-highlight);
 }
 
 .summary_row_value {
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 	color: #FFFFFF;
 }
 
@@ -289,7 +289,7 @@
 }
 
 .required_will_label {
-	/*font-size: 1.4px;*/
+	/*--fontsize: 1.4px;*/
 }
 
 .summary_row_value .upgrade_bar {

@@ -11,7 +11,7 @@
 }
 
 .ability_block_label {
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	color: var(--text-color-highlight);
 }
 

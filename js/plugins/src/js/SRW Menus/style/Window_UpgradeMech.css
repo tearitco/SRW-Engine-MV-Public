@@ -35,13 +35,13 @@
 }
 
 .upgrade_entry_label {
-	font-size: 2px;
+	--fontsize: 2px;
 	color: var(--text-color-highlight);
 	margin-left: 3%;
 }
 
 .upgrade_entry_current {
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #FFFFFF;
 	margin-left: auto;
 
@@ -49,7 +49,7 @@
 
 
 .upgrade_entry_new {
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #FFFFFF;
 	width: 12%;
 	margin-right: 30%;

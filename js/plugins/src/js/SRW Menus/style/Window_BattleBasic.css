@@ -334,7 +334,7 @@
 
 #battle_basic_enemy_damage {
 	position: absolute;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #ff9c00;
 	top: var(--main-damage-vert);
     left: var(--main-damage-horz);
@@ -348,7 +348,7 @@
 
 #battle_basic_enemy_damage_support {
 	position: absolute;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #ff9c00;
 	top: var(--support-damage-vert);
     left: var(--support-damage-horz);
@@ -362,7 +362,7 @@
 
 #battle_basic_actor_damage {
 	position: absolute;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #ff9c00;
 	top: var(--main-damage-vert);
     right: var(--main-damage-horz);
@@ -376,7 +376,7 @@
 
 #battle_basic_actor_damage_support {
 	position: absolute;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #ff9c00;
 	top: var(--support-damage-vert);
     right: var(--support-damage-horz);
@@ -390,7 +390,7 @@
 
 #battle_basic_actor_evade {
 	position: absolute;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #2d96ff;
 	top: var(--evade-label-vert);
     right: var(--evade-label-horz);
@@ -400,7 +400,7 @@
 
 #battle_basic_enemy_evade {
 	position: absolute;
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #2d96ff;
 	top: var(--evade-label-vert);
     left: var(--evade-label-horz);
@@ -537,7 +537,7 @@
 
 #battle_basic_actor_counter {
 	color: #FFFFFF;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	top: var(--counter-label-vert);
     left: var(--counter-label-horz);
     position: absolute;
@@ -546,7 +546,7 @@
 
 #battle_basic_enemy_counter {
 	color: #FFFFFF;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	top: var(--counter-label-vert);
     right: var(--counter-label-horz);
     position: absolute;
@@ -555,7 +555,7 @@
 
 #battle_basic_actor_special_evade {
 	color: #FFFFFF;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	top: var(--double-image-main-vert);
     left: var(--double-image-main-horz);
     position: absolute;
@@ -564,7 +564,7 @@
 
 #battle_basic_actor_support_special_evade {
 	color: #FFFFFF;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	top: var(--double-image-support-vert);
     left: var(--double-image-support-horz);
     position: absolute;
@@ -573,7 +573,7 @@
 
 #battle_basic_enemy_special_evade {
 	color: #FFFFFF;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	top: var(--double-image-main-vert);
     right: var(--double-image-main-horz);
     position: absolute;
@@ -582,7 +582,7 @@
 
 #battle_basic_enemy_support_special_evade {
 	color: #FFFFFF;
-	font-size: 1.6px;
+	--fontsize: 1.6px;
 	top: var(--double-image-support-vert);
     left: var(--double-image-support-horz);
     position: absolute;

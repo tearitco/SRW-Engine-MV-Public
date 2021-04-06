@@ -17,7 +17,7 @@
     align-items: center;
     justify-content: center;
 	border: 0.4vw solid #FFFFFF;
-	font-size: 2.4px;
+	--fontsize: 2.4px;
 }
 
 #rewards .rewards_content {

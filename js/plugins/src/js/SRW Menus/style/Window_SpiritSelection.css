@@ -17,7 +17,7 @@
     align-items: center;
     justify-content: center;
 	border: 0.4vw solid #FFFFFF;
-	font-size: 2.4px;
+	--fontsize: 2.4px;
 }
 
 #spirit_selection .spirit_selection_content {
@@ -42,7 +42,7 @@
 }
 
 #spirit_selection #spirit_selection_SP_display {
-	font-size: 2px;
+	--fontsize: 2px;
 	position: absolute;
 	left: 6.5%;
 	bottom: 0%;
@@ -53,7 +53,7 @@
 #spirit_selection .spirit_selection_row.details {
 	height: 42%;
 	display: flex;	
-	font-size: 2px;
+	--fontsize: 2px;
 }
 
 #spirit_selection .spirit_selection_row .spirit_list_container {
@@ -117,7 +117,7 @@
 	position: relative;
 	white-space: normal;
 	padding: 2%;
-	font-size: 2px;
+	--fontsize: 2px;
 }
 
 #spirit_selection .spirit_selection_block .name{
@@ -131,7 +131,7 @@
 	top: 31%;
     left: 29%;
     font-style: italic;
-	font-size: 3px;
+	--fontsize: 3px;
 }
 
 #spirit_selection .spirit_selection_block .spirit_selection_delta{
@@ -214,7 +214,7 @@
 	width: 94%;
 	margin-left: 3%;
 	display: flex;	
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 }
 
 #spirit_selection .stats_block .row .column:nth-child(1){
@@ -247,7 +247,7 @@
 	width: 94%;
 	margin-left: 3%;
 	text-align: left;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 }
 
 #spirit_selection .skills_block .row.header {
@@ -267,7 +267,7 @@
 	width: 94%;
 	margin-left: 3%;
 	text-align: left;
-	font-size: 1.8px;
+	--fontsize: 1.8px;
 }
 
 #spirit_selection .spirits_block .row.header {

@@ -55,13 +55,13 @@
 }
 
 #upgrade_pilot .upgrade_entry_label {
-	font-size: 2px;
+	--fontsize: 2px;
 	color: var(--text-color-highlight);
 	margin-left: 3%;
 }
 
 #upgrade_pilot .upgrade_entry_current {
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #FFFFFF;
 	margin-left: auto;
 
@@ -69,7 +69,7 @@
 
 
 #upgrade_pilot .upgrade_entry_new {
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #FFFFFF;
 	width: 12%;
 	margin-right: 30%;
@@ -202,7 +202,7 @@
 }
 
 .pilot_basic_info {
-	font-size: 2px;
+	--fontsize: 2px;
 	border: 0.1vw solid rgba(200,200,200,0.5);
 	height: 25%;
     width: 90%;
@@ -252,7 +252,7 @@
 	margin-left: auto;
 	margin-right: auto;
 	border-bottom: 0.1vw solid var(--underline-color);
-	font-size: 1.9px;
+	--fontsize: 1.9px;
 }
 
 .upgrade_control_row.selected{
@@ -348,11 +348,11 @@
 	color: var(--text-color-highlight);
 	height: 10%;
 	padding-left: 5%;
-	font-size: 2px;
+	--fontsize: 2px;
 }
 
 #upgrade_pilot .pilot_stat_container {
-	font-size: 2px;
+	--fontsize: 2px;
 	width: 90%;
 	margin-left: auto;
 	margin-right: auto;

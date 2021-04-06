@@ -11,7 +11,7 @@
 	display: flex;
     justify-content: center;  
 	align-items: center;
-    font-size: 2.4px;   
+    --fontsize: 2.4px;   
 }
 
 #confirm_end_turn .confirm_end_turn_content {

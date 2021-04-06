@@ -64,7 +64,7 @@
 }
 
 #battle_scene_ui_layer .text_container {
-	font-size: 2px;
+	--fontsize: 2px;
 	height: 70%;
 	max-width: 80%;
 }
@@ -137,7 +137,7 @@
     right: 23%;
     display: flex;
     top: 70%;
-    font-size: 2px;
+    --fontsize: 2px;
     color: #FFFFFF;
 	width: fit-content;
 	text-align: right;
@@ -157,7 +157,7 @@
 }
 
 #battle_scene_ui_layer .stats_container .label {
-	font-size: 2px;
+	--fontsize: 2px;
 	color: #FFFFFF;
 	margin-left: 5%;
 	margin-right: 3%;
@@ -195,7 +195,7 @@
 #battle_scene_ui_layer_damage_display {
 	--widthpixels: 200;
 	--heightpixels: 50;
-	font-size: 5px;	
+	--fontsize: 5px;	
 	position: absolute;
 	color: #FF0000;
 	text-shadow: 0.1vw 0.1vw 0 #222222;
@@ -241,7 +241,7 @@
 	width: 30%;
 	color: #FFFFFF;
 	font-style: italic;
-	font-size: 2.5px;
+	--fontsize: 2.5px;
 	padding-left: 1%;
 	padding-right: 1%;
 	text-shadow: 0.1vw 0.1vw 0 #222222;
@@ -261,7 +261,7 @@
 	position: absolute;
 	top: 25%;
 	color: #FFFFFF;
-	font-size: 2.5px;
+	--fontsize: 2.5px;
 	text-shadow: 0.1vw 0.1vw 0 #222222;
 }
 
@@ -282,7 +282,7 @@
 	color: #fffbec;
 	background-color: rgba(255, 196, 0, 0.5);
 	padding: 5%;
-	font-size: 2px;
+	--fontsize: 2px;
 	display: flex;
     align-items: center;
 	/*width: fit-content;*/
