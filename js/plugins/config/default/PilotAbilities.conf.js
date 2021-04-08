@@ -1271,4 +1271,29 @@ $SRWConfig.pilotAbilties = function(){
 		4
 	);
 	
+	this.addDefinition(
+		66, 
+		"Ace 7", 
+		"Inflict 30% more damage to targets affected by analyse.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "final_damage", modType: "mult", value: 1.3},
+			];
+		},
+		function(actor, level){
+			var isValid = false;
+			var combatInfo = $statCalc.getActiveCombatInfo(actor);
+			if(combatInfo){				
+				isValid = $statCalc.getActiveSpirits(combatInfo.other).analyse;
+			} else {
+				return false;
+			}				
+			return $statCalc.isAce(actor) && isValid;
+		},
+		[0],
+		4
+	);
+	
 }

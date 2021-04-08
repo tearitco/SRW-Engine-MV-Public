@@ -2262,14 +2262,11 @@ BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef)
 		if(attackDef.onHitOverwrite){
 			overwriteAnimList(attackDef.onHitOverwrite);
 		}
-		if(cacheRef.attacked && cacheRef.attacked.isDestroyed){
-			if(cacheRef.type != "support attack" || cacheRef.damageInflicted >= $statCalc.getCalculatedMechStats(cacheRef.attacked.ref).currentHP){			
-				//this._animationList = this._animationList.concat(attackDef.onDestroy);
-				_this.mergeAnimList(attackDef.onDestroy);
-				if(attackDef.onDestroyOverwrite){
-					overwriteAnimList(attackDef.onDestroyOverwrite);
-				}
-			}
+		if(cacheRef.attacked && cacheRef.attacked.isDestroyed && cacheRef.attacked.destroyer == cacheRef.ref){
+			_this.mergeAnimList(attackDef.onDestroy);
+			if(attackDef.onDestroyOverwrite){
+				overwriteAnimList(attackDef.onDestroyOverwrite);
+			}		
 		} 	
 	} else {
 		//this._animationList = this._animationList.concat(attackDef.onMiss);

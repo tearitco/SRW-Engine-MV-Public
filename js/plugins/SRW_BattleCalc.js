@@ -876,6 +876,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 					aCache.damageInflicted = activeDefenderCache.damageTaken;
 				} else {
 					activeDefenderCache.isDestroyed = true;
+					activeDefenderCache.destroyer = aCache.ref;
 				}				
 			}				
 			
