@@ -1234,4 +1234,41 @@ $SRWConfig.pilotAbilties = function(){
 		4
 	);
 	
+	this.addDefinition(
+		64, 
+		"Ace 5", 
+		"20% less damage taken when support defending, 20% more damage dealt when support attacking.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "support_defend_armor", modType: "addFlat", value: 20},
+				{type: "support_attack_buff", modType: "addFlat", value: 20},
+			];
+		},
+		function(actor, level){
+			return $statCalc.isAce(actor);
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		65, 
+		"Ace 6", 
+		"Survive a lethal hit up to once per stage.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "one_time_miracle", modType: "addFlat", value: 1},
+			];
+		},
+		function(actor, level){
+			return $statCalc.isAce(actor) && !$statCalc.getUsedCount(actor, "one_time_miracle");
+		},
+		[0],
+		4
+	);
+	
 }

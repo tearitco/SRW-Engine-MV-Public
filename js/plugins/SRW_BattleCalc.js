@@ -251,7 +251,7 @@ BattleCalc.prototype.doesSupportHit = function(){
 	return Math.random() < this.getSupportFinalHit();
 }	
 
-BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderInfo, noCrit, noBarrier, isSupportDefender){
+BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderInfo, noCrit, noBarrier, isSupportDefender, isSupportAttacker){
 	var result = {
 		damage: 0,
 		isCritical: false,
@@ -397,6 +397,11 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			var supportDefendMod = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["support_defend_armor"]) || 0;		
 			finalDamage = finalDamage - (finalDamage / 100 * supportDefendMod);
 		}	
+		
+		if(isSupportAttacker){
+			var supportAttackMod = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["support_attack_buff"]) || 0;		
+			finalDamage = finalDamage + (finalDamage / 100 * supportAttackMod);
+		}
 		
 		if(activeDefenderSpirits.persist){
 			finalDamage = 10;
@@ -804,7 +809,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 						activeDefender,
 						false,
 						false,
-						isSupportDefender	
+						isSupportDefender,
+						aCache.type == "support attack"
 					);	
 				} 					
 			} 
@@ -864,7 +870,13 @@ BattleCalc.prototype.generateBattleResult = function(){
 			activeDefenderCache.damageTaken+=damageResult.damage;
 			
 			if(activeDefenderCache.damageTaken >= activeDefenderCache.currentAnimHP + (activeDefenderCache.HPRestored || 0)){
-				activeDefenderCache.isDestroyed = true;
+				if($statCalc.applyMaxStatModsToValue(this._defender.actor, 0, ["one_time_miracle"])){
+					$statCalc.setAbilityUsed(this._defender.actor, "one_time_miracle");
+					activeDefenderCache.damageTaken = activeDefenderCache.currentAnimHP + (activeDefenderCache.HPRestored || 0) - 1;
+					aCache.damageInflicted = activeDefenderCache.damageTaken;
+				} else {
+					activeDefenderCache.isDestroyed = true;
+				}				
 			}				
 			
 			if(aCache.action.attack && 

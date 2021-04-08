@@ -4115,7 +4115,7 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 				}
 				for(var i = 0; i <= rangeInfo.max * 2; i++){
 					var x = i - rangeInfo.max;
-					for(var j = 0; j <= 10; j++){
+					for(var j = 0; j <= rangeInfo.max * 2; j++){
 						var y = j - rangeInfo.max;
 						var distance = Math.abs(x) + Math.abs(y);
 						if(distance <= rangeInfo.max && distance >= rangeInfo.min){

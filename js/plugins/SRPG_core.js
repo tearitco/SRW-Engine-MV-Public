@@ -10293,8 +10293,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		
         //エネミーフェイズの処理
         if ($gameSystem.isBattlePhase() === 'AI_phase') {
-			
-			
+			$gameTemp.summaryUnit = null;			
 			
 			if ($gameSystem.isSubBattlePhase() == "rewards_display"){
 				return;
