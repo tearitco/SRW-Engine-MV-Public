@@ -1295,5 +1295,38 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		4
 	);
+	this.addDefinition(
+		67, 
+		"Ace 8", 
+		"Automatically cast Charge and Fury at the start of the player turn at 130 Will or higher.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "auto_spirit", modType: "addFlat", value: 23}, //charge
+				{type: "auto_spirit", modType: "addFlat", value: 36}, //fury
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 && $statCalc.isAce(actor);
+		},
+		[0],
+		4
+	);
 	
+	this.addDefinition(
+		68, 
+		"Ace 9", 
+		"All attacks inflict Will Down when damaging the target.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "inflict_will_down", modType: "addFlat", value: 10}];
+		},
+		function(actor, level){
+			return $statCalc.isAce(actor);
+		},
+		[0],
+		4
+	);	
 }

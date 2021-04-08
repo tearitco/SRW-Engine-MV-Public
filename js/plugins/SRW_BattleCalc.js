@@ -336,6 +336,7 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 			isCritical = true;
 		}				
 		
+		
 		finalDamage = $statCalc.applyStatModsToValue(attackerInfo.actor, finalDamage, ["final_damage"]);			
 		
 		finalDamage = $statCalc.applyStatModsToValue(defenderInfo.actor, finalDamage, ["final_defend"]);
@@ -632,6 +633,8 @@ BattleCalc.prototype.prepareBattleCache = function(actionObject, type){
 
 BattleCalc.prototype.generateBattleResult = function(){
 	var _this = this;
+	$statCalc.invalidateAbilityCache();
+	
 	$gameTemp.battleEffectCache = {};
 	$gameTemp.sortedBattleActorCaches = [];
 	var attacker;
@@ -1048,6 +1051,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 
 BattleCalc.prototype.generateMapBattleResult = function(){
 	var _this = this;
+	$statCalc.invalidateAbilityCache();
+	
 	$gameTemp.battleEffectCache = {};
 	$gameTemp.sortedBattleActorCaches = [];
 	var attacker;
