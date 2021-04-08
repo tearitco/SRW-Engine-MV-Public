@@ -3942,6 +3942,13 @@ StatCalc.prototype.setAbilityUsed = function(actor, idx){
 	}	
 }
 
+StatCalc.prototype.getUsedCount = function(actor, idx){
+	if(this.isActorSRWInitialized(actor)){	
+		return actor.SRWStats.stageTemp.abilityUsed[idx] || 0
+	}	
+	return 0;
+}
+
 StatCalc.prototype.isStatModActiveOnAnyActor = function(modType, excludedSkills){
 	var _this = this;
 	var result = false;

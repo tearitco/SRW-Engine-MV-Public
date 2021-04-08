@@ -1163,4 +1163,75 @@ $SRWConfig.pilotAbilties = function(){
 			return {min: 1, max: (level*1 + 1) * 2, targets: "other"}
 		}	
 	);
+	
+	this.addDefinition(
+		60, 
+		"Ace 1", 
+		"Final damage times 1.2 at 130 Will or higher.", 
+		false,
+		true,
+		function(actor, level){
+			return [{type: "final_damage", modType: "mult", value: 1.2}];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 && $statCalc.isAce(actor);
+		},
+		[0],
+		1,
+	);
+	
+	this.addDefinition(
+		61, 
+		"Ace 2", 
+		"Automatically cast Persist at the start of the player turn at 130 Will or higher.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "auto_spirit", modType: "addFlat", value: 27}, //persist
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 && $statCalc.isAce(actor);
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		62, 
+		"Ace 3", 
+		"Automatically cast Intuition at the start of the player turn at 130 Will or higher.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "auto_spirit", modType: "addFlat", value: 20}, //Intuition
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 130 && $statCalc.isAce(actor);
+		},
+		[0],
+		4
+	);
+	
+	this.addDefinition(
+		63, 
+		"Ace 4", 
+		"Automatically cast Miracle at the start of the player turn at 150 Will or higher once per stage.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "auto_spirit", modType: "addFlat", value: 33}, //Miracle
+			];
+		},
+		function(actor, level){
+			return $statCalc.getCurrentWill(actor) >= 150 && $statCalc.isAce(actor) && !$statCalc.getUsedCount(actor, "auto_spirit_pilot_63");
+		},
+		[0],
+		4
+	);
+	
 }

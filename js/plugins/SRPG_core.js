@@ -1993,7 +1993,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				
 				var autoSpirits = $statCalc.getModDefinitions(battlerArray[1], ["auto_spirit"]);
 				
-				autoSpirits.forEach(function(autoSpirit){					
+				autoSpirits.forEach(function(autoSpirit){		
+					$statCalc.setAbilityUsed(battlerArray[1], "auto_spirit_"+autoSpirit.stackId);
 					spiritActivations.push({actor: battlerArray[1], spirit: autoSpirit.value});				
 				});				
 				
@@ -2089,7 +2090,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				
 				var autoSpirits = $statCalc.getModDefinitions(battlerArray[1], ["auto_spirit"]);
 				
-				autoSpirits.forEach(function(autoSpirit){					
+				autoSpirits.forEach(function(autoSpirit){	
+					$statCalc.setAbilityUsed(actor, "auto_spirit_"+autoSpirit.stackId);
 					spiritActivations.push({actor: battlerArray[1], spirit: autoSpirit.value});				
 				});	
             }
@@ -10096,21 +10098,21 @@ SceneManager.reloadCharacters = function(startEvent){
 				function handleAutoSpirits(){
 					$gameTemp.popMenu = true;
 					if($gameTemp.autoSpirits.length){
-						/*var activation = $gameTemp.autoSpirits.shift();				
-						$gameTemp.spiritTargetActor = activation.actor;
-						$spiritManager.applyEffect(activation.spirit, activation.actor, [activation.actor], 0);
-						$gamePlayer.locate(activation.actor.event.posX(), activation.actor.event.posY());
-						$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {idx: activation.spirit}}];	*/
-
 						$gameTemp.queuedActorEffects = [];
+						var currentActor = $gameTemp.autoSpirits[0].actor;
+						var remaining = [];
 						$gameTemp.autoSpirits.forEach(function(autoSpirit){
-							$gameTemp.spiritTargetActor = autoSpirit.actor;
-							$gamePlayer.locate(autoSpirit.actor.event.posX(), autoSpirit.actor.event.posY());
-							$spiritManager.applyEffect(autoSpirit.spirit, autoSpirit.actor, [autoSpirit.actor], 0);
-							$gameTemp.queuedActorEffects.push({type: "spirit", parameters: {idx: autoSpirit.spirit, target: autoSpirit.actor}})
+							if(autoSpirit.actor == currentActor){							
+								$gameTemp.spiritTargetActor = autoSpirit.actor;
+								$gamePlayer.locate(autoSpirit.actor.event.posX(), autoSpirit.actor.event.posY());
+								$spiritManager.applyEffect(autoSpirit.spirit, autoSpirit.actor, [autoSpirit.actor], 0);
+								$gameTemp.queuedActorEffects.push({type: "spirit", parameters: {idx: autoSpirit.spirit, target: autoSpirit.actor}})
+							} else {
+								remaining.push(autoSpirit);
+							}
 						});
 						
-						$gameTemp.autoSpirits = [];
+						$gameTemp.autoSpirits = remaining;
 						
 						
 						$gameSystem.setSubBattlePhase('spirit_activation');				
