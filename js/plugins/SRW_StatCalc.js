@@ -2696,7 +2696,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 					x: rangeTarget.event.posX(),
 					y: rangeTarget.event.posY()
 				};
-				if(!$battleCalc.isTargetInRange(pos, targetpos, $statCalc.getRealWeaponRange(actor, weapon), weapon.minRange)){
+				if(!$battleCalc.isTargetInRange(pos, targetpos, $statCalc.getRealWeaponRange(actor, weapon), $statCalc.getRealWeaponMinRange(actor, weapon))){
 					canUse = false;
 					detail.target = true;
 				}
@@ -2710,7 +2710,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 				var rangeResult;
 				var type = actor.isActor() ? "enemy" : "actor";
 				
-				if(!this.getAllInRange($gameSystem.getUnitFactionInfo(actor), pos, $statCalc.getRealWeaponRange(actor, weapon), weapon.minRange).length){
+				if(!this.getAllInRange($gameSystem.getUnitFactionInfo(actor), pos, $statCalc.getRealWeaponRange(actor, weapon), $statCalc.getRealWeaponMinRange(actor, weapon)).length){
 					canUse = false;
 					detail.target = true;
 				}
@@ -2888,7 +2888,7 @@ StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 	allWeapons.forEach(function(weapon){
 		if(_this.canUseWeapon(actor, weapon, postMoveEnabledOnly)){
 			var range = _this.getRealWeaponRange(actor, weapon);
-			var minRange = weapon.minRange;
+			var minRange = _this.getRealWeaponMinRange(actor, weapon);
 			if(range > currentRange){
 				currentRange = range;
 			}
@@ -3857,6 +3857,24 @@ StatCalc.prototype.getRealWeaponRange = function(actor, weapon){
 	}
 }
 
+StatCalc.prototype.getRealWeaponMinRange = function(actor, weapon){		
+	if(this.isActorSRWInitialized(actor)){			
+		var result = weapon.minRange;
+		if(result == 1){
+			return 1;
+		}		
+		var minRangeImprovement =  this.applyStatModsToValue(actor, 0, ["min_range"]);
+		result-= minRangeImprovement;
+		
+		if(result < 1){
+			result = 1;
+		}
+		return result;
+	} else {
+		return 0;
+	}
+}
+
 StatCalc.prototype.getPilotAbilityLevel = function(actor, abilityIdx){		
 	var _this = this;
 	var result = 0;
@@ -4601,6 +4619,20 @@ StatCalc.prototype.getActiveCombatInfo = function(actor){
 		}
 	}
 	return null;
+}
+
+StatCalc.prototype.getAttributeInfo = function(actor){
+	var result = {
+		attribute1: "",
+		attribute2: ""
+	}
+	if(this.isActorSRWInitialized(actor)){	
+		result = {
+			attribute1: String(actor.SRWStats.mech.attribute1).toLowerCase(),
+			attribute2: String(actor.SRWStats.mech.attribute2).toLowerCase()
+		}
+	}	
+	return result;
 }
 
 StatCalc.prototype.getEffectivenessMultipler = function(attacker, defender){

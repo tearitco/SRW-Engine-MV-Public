@@ -1329,4 +1329,20 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		4
 	);	
+	
+	this.addDefinition(
+		69, 
+		"Ace 10", 
+		"Final damage times 1.3 when Snipe is active.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "final_damage", modType: "mult", value: 1.3}];
+		},
+		function(actor, level){
+			return $statCalc.isAce(actor) && $statCalc.getActiveSpirits(actor).snipe;
+		},
+		[0],
+		4
+	);	
 }

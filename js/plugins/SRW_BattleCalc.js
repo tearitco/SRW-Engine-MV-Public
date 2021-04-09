@@ -556,7 +556,11 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 					}
 				} 			
 			}
-			result.barrierCost = totalBarrierCost;		
+			result.barrierCost = totalBarrierCost;	
+			var barrierCostReduction = $statCalc.applyStatModsToValue(defenderInfo.actor, 0, ["barrier_cost_reduction"]);
+			if(barrierCostReduction){
+				result.barrierCost = Math.max(0, result.barrierCost - barrierCostReduction);
+			}
 		}
 		
 		if(Number.isNaN(finalDamage)){
@@ -1194,7 +1198,7 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 	var defenderHP = defenderInfo.actor.hp;
 	var canShootDown = false;
 	allWeapons.forEach(function(weapon){
-		if(!weapon.isMap && $statCalc.canUseWeapon(attackerInfo.actor, weapon, postMoveEnabledOnly, defenderInfo.actor) && (ignoreRange || _this.isTargetInRange(attackerInfo.pos, defenderInfo.pos, $statCalc.getRealWeaponRange(attackerInfo.actor, weapon), weapon.minRange))){
+		if(!weapon.isMap && $statCalc.canUseWeapon(attackerInfo.actor, weapon, postMoveEnabledOnly, defenderInfo.actor) && (ignoreRange || _this.isTargetInRange(attackerInfo.pos, defenderInfo.pos, $statCalc.getRealWeaponRange(attackerInfo.actor, weapon), $statCalc.getRealWeaponMinRange(attackerInfo.actor, weapon)))){
 			var damageResult = _this.performDamageCalculation(
 				{actor: attackerInfo.actor, action: {type: "attack", attack: weapon}},
 				{actor: defenderInfo.actor, action: {type: "none"}},
@@ -1203,7 +1207,7 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 			);
 			var isReachable;
 			var range = $statCalc.getRealWeaponRange(attackerInfo.actor, weapon);
-			isReachable = $statCalc.isReachable(defenderInfo.actor, attackerInfo.actor, range, weapon.minRange);
+			isReachable = $statCalc.isReachable(defenderInfo.actor, attackerInfo.actor, range, $statCalc.getRealWeaponMinRange(attackerInfo.actor, weapon));
 			
 			if(isReachable){				
 				if(optimizeCost){

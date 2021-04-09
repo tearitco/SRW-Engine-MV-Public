@@ -11801,7 +11801,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameSystem.setSubBattlePhase('actor_map_target');
 		} else {
 			var range = $statCalc.getRealWeaponRange(battler, weapon);
-			var minRange = weapon.minRange || 0;
+			var minRange = $statCalc.getRealWeaponMinRange(battler, weapon);
 			
 			this.setUpAttackRange(event.posX(), event.posY(), range, minRange);
 			
@@ -12155,14 +12155,14 @@ SceneManager.reloadCharacters = function(startEvent){
 				$gameTemp.enemyWeaponSelection = targetInfo.weapon;
 				$gameTemp.setTargetEvent(targetInfo.target);
 				enemy._currentTarget = targetInfo.target;
-				var alreadyInRange = $battleCalc.isTargetInRange({x: event.posX(), y: event.posY()}, {x: targetInfo.target.posX(), y: targetInfo.target.posY()}, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon), targetInfo.weapon.minRange);
+				var alreadyInRange = $battleCalc.isTargetInRange({x: event.posX(), y: event.posY()}, {x: targetInfo.target.posX(), y: targetInfo.target.posY()}, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon), $statCalc.getRealWeaponMinRange(enemy, targetInfo.weapon));
 				if(!alreadyInRange){
 					$gameSystem.srpgMakeMoveTable(event);
 					if ($gameTemp.isSrpgBestSearchFlag() == true) {
 						$gameTemp.setSrpgBestSearchFlag(false);
 						$gameSystem.srpgMakeMoveTable(event);
 					}
-					var optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon), targetInfo.weapon.minRange);
+					var optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, $statCalc.getRealWeaponRange(enemy, targetInfo.weapon), $statCalc.getRealWeaponMinRange(enemy, targetInfo.weapon));
 					if(optimalPos[0] != event.posX() || optimalPos[1] != event.posY()){
 						$gameTemp.isPostMove = true;
 						var route = $gameTemp.MoveTable(optimalPos[0], optimalPos[1])[1];
@@ -12599,7 +12599,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			var deltaX = Math.abs(targetCoords.x - node.x);
 			var deltaY = Math.abs(targetCoords.y - node.y);
 			var dist = Math.hypot(deltaX, deltaY);
-			if(dist >= minRange){
+			if(deltaX + deltaY >= minRange){
 				tmp.push(node);
 			}
 		});
@@ -12856,7 +12856,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		var weapon = $gameTemp.enemyWeaponSelection;
 		var range = $statCalc.getRealWeaponRange(actionArray[1], weapon);
-		var minRange = weapon.minRange || 0;
+		var minRange = $statCalc.getRealWeaponMinRange(actionArray[1], weapon);
 		var event = actionArray[1].event;		
 		
 		this.setUpAttackRange(event.posX(), event.posY(), range, minRange);

@@ -543,4 +543,122 @@ $SRWConfig.mechAbilties = function(){
 			return $statCalc.isFUB(actor);
 		}
 	);	
+	
+	this.addDefinition(
+		38, 
+		"FUB 1", 
+		"Weapons +200, Armor + 200.", 
+		false,
+		true,
+		function(actor, level){
+			return [
+				{type: "armor", modType: "addFlat", value: 200},
+				{type: "weapon_melee", modType: "addFlat", value: 200},
+				{type: "weapon_ranged", modType: "addFlat", value: 200},
+			];
+		},
+		function(actor, level){
+			return $statCalc.isFUB(actor);
+		}
+	);
+	
+	this.addDefinition(
+		39, 
+		"FUB 2", 
+		"Weapons +200, Mobility + 10.", 
+		false,
+		true,
+		function(actor, level){
+			return [
+				{type: "mobility", modType: "addFlat", value: 10},
+				{type: "weapon_melee", modType: "addFlat", value: 200},
+				{type: "weapon_ranged", modType: "addFlat", value: 200},
+			];
+		},
+		function(actor, level){
+			return $statCalc.isFUB(actor);
+		}
+	);
+	
+	this.addDefinition(
+		40, 
+		"FUB 2", 
+		"Movement +1, Mobility +20.", 
+		false,
+		true,
+		function(actor, level){
+			return [
+				{type: "mobility", modType: "addFlat", value: 20},
+				{type: "movement", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return $statCalc.isFUB(actor);
+		}
+	);
+	
+	this.addDefinition(
+		41, 
+		"FUB 3", 
+		"Final damage times 1.3 when battling a Virus type enemy.", 
+		false,
+		true,
+		function(actor, level){			
+			return [{type: "final_damage", modType: "mult", value: 1.3}];			
+		},
+		function(actor, level){
+			var isValid = false;
+			var combatInfo = $statCalc.getActiveCombatInfo(actor);
+			if(combatInfo){				
+				isValid = $statCalc.getAttributeInfo(combatInfo.other).attribute1 == "virus";
+			} else {
+				return false;
+			}
+			
+			return isValid && $statCalc.isFUB(actor);
+		}
+	);
+	
+	this.addDefinition(
+		42, 
+		"FUB 3", 
+		"Movement + 1, Barrier Cost reduced by 10.", 
+		false,
+		true,
+		function(actor, level){			
+			return [{type: "movement", modType: "addFlat", value: 1},{type: "barrier_cost_reduction", modType: "addFlat", value: 10}];			
+		},
+		function(actor, level){
+			return $statCalc.isFUB(actor);
+		}
+	);
+	
+	this.addDefinition(
+		43, 
+		"FUB 4", 
+		"Weapons min range becomes 1, max range +1.", 
+		false,
+		true,
+		function(actor, level){			
+			return [{type: "range", modType: "addFlat", value: 1},{type: "min_range", modType: "addFlat", value: 10}];			
+		},
+		function(actor, level){
+			return $statCalc.isFUB(actor);
+		}
+	);
+	
+	this.addDefinition(
+		44, 
+		"FUB 5", 
+		"Mobility + 10, Double Image activation rate +20%", 
+		false,
+		true,
+		function(actor, level){			
+			return [{type: "mobility", modType: "addFlat", value: 10},{type: "special_evade", subType: "all", activation: "random", name: "DOUBLE IMAGE", value: 0.2, dodgePattern: 1}];			
+		},
+		function(actor, level){
+			return $statCalc.isFUB(actor);
+		}
+	);
+	
 };
