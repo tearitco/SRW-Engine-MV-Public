@@ -1155,7 +1155,8 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * assignSlot slot actor\_id
 	
 	Assign an actor to a slot for the next deployment.
-	Indirect id assignment is possible by providing the actor\_id in the form of \<game_variable\>. If provided in this format the assigned actor will be the number stored in the provided 
+	Indirect id assignment is possible by providing the actor\_id in the form of \<game_variable\>. If provided in this format the assigned actor will be the number stored in the provided variable.
+	
 	Example:
 	
 	◆Control Variables：#0065 testVariableActorId = 1<br>
