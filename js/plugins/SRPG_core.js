@@ -315,7 +315,12 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			//args[0]: slot 
 			//args[1]: actor id
 			var deployInfo = $gameSystem.getDeployInfo();
-			deployInfo.assigned[args[0]] = args[1];
+			var actorId = args[1];
+			var parts = actorId.match(/\<(.*)\>/);
+			if(parts && parts.length > 1){
+				actorId = $gameVariables.value(parts[1]);
+			}
+			deployInfo.assigned[args[0]] = actorId;
 			$gameSystem.setDeployInfo(deployInfo);
         }
 		

@@ -497,6 +497,7 @@ The definitions for the Bird and Lander take a slot from the combined Type 3 and
 
 
 
+
 In addition to being used to rearrange pilots as needed the Deploy Action definitions are also used to check whether a unit is valid to deploy. For sources that are of the "direct" type a check is performed to see if the specified pilot is in the right place. For sources that are indirect("main" or "sub" type), a check is performed to see if any pilot is available in the target slot for that entry.
 
 ##### Automatically rearranging pilots
@@ -1154,6 +1155,13 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * assignSlot slot actor\_id
 	
 	Assign an actor to a slot for the next deployment.
+	Indirect id assignment is possible by providing the actor\_id in the form of \<game_variable\>. If provided in this format the assigned actor will be the number stored in the provided 
+	Example:
+	
+	◆Control Variables：#0065 testVariableActorId = 1<br>
+	◆Plugin Command：assignSlot 0 <65>
+
+	This example first sets game variable 65 to a value of 1 and then assigns the content of that variable to slot 0. The end result is that actor 1 is assigned to slot 0.
 
 * assignShipSlot slot actor\_id
 	
@@ -1480,6 +1488,7 @@ They can also be used as conditionals in IF statements.
 	Will be TRUE if the HP of the event with the specified id is below the specified value.	
 
 * this.cancelActorDestruction(actor\_id) 
+
 
 	Cancel the destruction animation and erasure of an actor that is about to be destroyed.<br>
 	To be used in the before_destruction event.
