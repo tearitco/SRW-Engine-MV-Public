@@ -214,8 +214,23 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			filename = $gameSystem.faceAliases[filename];
 		}
 		return this.loadBitmap('img/faces/', filename, hue, true);
+	};	
+	
+	ImageManager.requestFace = function(filename, hue) {
+		if($gameSystem.faceAliases && $gameSystem.faceAliases[filename]){
+			filename = $gameSystem.faceAliases[filename];
+		}
+		return this.requestBitmap('img/faces/', filename, hue, true);
+	};
+	
+	ImageManager.reserveFace = function(filename, hue, reservationId) {
+		if($gameSystem.faceAliases && $gameSystem.faceAliases[filename]){
+			filename = $gameSystem.faceAliases[filename];
+		}
+		return this.reserveBitmap('img/faces/', filename, hue, true, reservationId);
 	};
 
+	
     var _Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
