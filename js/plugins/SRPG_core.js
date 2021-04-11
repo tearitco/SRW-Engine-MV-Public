@@ -208,6 +208,13 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		}	
 		$CSSUIManager.updateScaledText();				
 	}
+	
+	ImageManager.loadFace = function(filename, hue) {
+		if($gameSystem.faceAliases && $gameSystem.faceAliases[filename]){
+			filename = $gameSystem.faceAliases[filename];
+		}
+		return this.loadBitmap('img/faces/', filename, hue, true);
+	};
 
     var _Game_Interpreter_pluginCommand =
             Game_Interpreter.prototype.pluginCommand;
@@ -316,7 +323,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			//args[1]: actor id
 			var deployInfo = $gameSystem.getDeployInfo();
 			var actorId = args[1];
-			var parts = actorId.match(/\<(.*)\>/);
+			var parts = actorId.match(/\<(.*)\>/);	
 			if(parts && parts.length > 1){
 				actorId = $gameVariables.value(parts[1]);
 			}
@@ -765,6 +772,15 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		if (command === 'unlockAllTransformations') {	
 			$gameSystem.unlockAllTransformations();
 		}
+		
+		if (command === 'setFaceAlias') {	
+			if(!$gameSystem.faceAliases){
+				$gameSystem.faceAliases = {};
+			}
+			$gameSystem.faceAliases[args[0]] = args[1];
+		}
+		
+		
     };		
 //====================================================================
 // ●Game_Temp

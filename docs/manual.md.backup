@@ -498,6 +498,7 @@ The definitions for the Bird and Lander take a slot from the combined Type 3 and
 
 
 
+
 In addition to being used to rearrange pilots as needed the Deploy Action definitions are also used to check whether a unit is valid to deploy. For sources that are of the "direct" type a check is performed to see if the specified pilot is in the right place. For sources that are indirect("main" or "sub" type), a check is performed to see if any pilot is available in the target slot for that entry.
 
 ##### Automatically rearranging pilots
@@ -1396,6 +1397,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 * unlockAllTransformations
 	Unlocks the Transform option for all mechs.	
+	
+* setFaceAlias face\_name\_original face\_name\_translated
+	Sets a face alias. When a face name specified by face\_name\_original is aliased it will be replaced by face\_name\_translated when fetching the face image. This can be used to more easily manage variable characters, such as when protagonist selection is implemented.
 			 
 ## External Plugin commands	
 
