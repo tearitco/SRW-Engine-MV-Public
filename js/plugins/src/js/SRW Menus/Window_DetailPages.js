@@ -340,7 +340,7 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	var currentLevel = $statCalc.getCurrentLevel(actor);
 	
 	detailContent+="<div class='bar_pilot_stats details'>";
-	detailContent+="<div id='bar_pilot_stats_icon' class='scaled_width'></div>";//icon
+	detailContent+="<div id='bar_pilot_stats_icon' class=''></div>";//icon
 	detailContent+="</div>";
 	
 	detailContent+="<div id='pilot_summary_name' class='upgrade_mech_name'>";
@@ -405,6 +405,7 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	this._pilotStats1.innerHTML = detailContent;
 	
 	var actorIcon = this._pilotStats1.querySelector("#bar_pilot_stats_icon");
+	this.updateScaledDiv(actorIcon);
 	if(actor.isActor()){
 		this.loadActorFace(actor.actorId(), actorIcon);
 	} else {
@@ -671,6 +672,7 @@ Window_DetailPages.prototype.redraw = function() {
 		var menuImagePath = $statCalc.getMenuImagePath(this.getCurrentSelection().actor);
 		this._actorBattleImg.innerHTML = "<img src='img/"+menuImagePath+"'>";	
 	}
+	
 	
 	this._descriptionOverlay.redraw();
 	Graphics._updateCanvas();

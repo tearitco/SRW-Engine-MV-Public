@@ -1,8 +1,10 @@
 #bar_pilot_stats_icon {
-	width: 12px;
+	/*width: 12px;*/
 	margin-left: 2%;
 	background-color: rgba(85, 164, 255, 0.5);
 	border: 0.1vw solid #99e3ff;
+	--widthpixels: 133;
+	--heightpixels: 133;
 }
 
 .ability_block {
