@@ -2842,6 +2842,16 @@ StatCalc.prototype.iterateAllActors = function(type, func){
 	}
 }
 
+StatCalc.prototype.isMechDeployed = function(mechId){
+	var result = false;
+	this.iterateAllActors(null, function(actor, event){		
+		if(actor.SRWStats.mech.id == mechId){
+			result = true;
+		}
+	});
+	return result;
+}
+
 StatCalc.prototype.getTopAce = function(){
 	var _this = this;
 	var maxKills = -1;

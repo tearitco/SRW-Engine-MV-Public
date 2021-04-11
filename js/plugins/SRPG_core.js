@@ -209,24 +209,44 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		$CSSUIManager.updateScaledText();				
 	}
 	
-	ImageManager.loadFace = function(filename, hue) {
+	ImageManager.getTranslationInfo = function(filename){		
 		if($gameSystem.faceAliases && $gameSystem.faceAliases[filename]){
 			filename = $gameSystem.faceAliases[filename];
 		}
+		if(ENGINE_SETTINGS.variableUnitPortraits){
+			var keyParts = filename.split("_");
+			keyParts.pop();
+			var variablePortraitKey = keyParts.join("_");
+			var defs = ENGINE_SETTINGS.variableUnitPortraits[variablePortraitKey];
+			if(defs){
+				var translationFound = false;
+				var ctr = 0;
+				while(ctr < defs.length && !translationFound){
+					var def = defs[ctr];
+					var mechId = def.deployedId;
+					if($statCalc.isMechDeployed(mechId)){
+						translationFound = true;
+						filename = def.filename;
+					}
+					ctr++;
+				}
+			}			
+		}
+		return filename;
+	}
+	
+	ImageManager.loadFace = function(filename, hue) {
+		filename = this.getTranslationInfo(filename); 
 		return this.loadBitmap('img/faces/', filename, hue, true);
 	};	
 	
-	ImageManager.requestFace = function(filename, hue) {
-		if($gameSystem.faceAliases && $gameSystem.faceAliases[filename]){
-			filename = $gameSystem.faceAliases[filename];
-		}
+	ImageManager.requestFace = function(filename, hue) {		
+		filename = this.getTranslationInfo(filename); 		
 		return this.requestBitmap('img/faces/', filename, hue, true);
 	};
 	
 	ImageManager.reserveFace = function(filename, hue, reservationId) {
-		if($gameSystem.faceAliases && $gameSystem.faceAliases[filename]){
-			filename = $gameSystem.faceAliases[filename];
-		}
+		filename = this.getTranslationInfo(filename); 
 		return this.reserveBitmap('img/faces/', filename, hue, true, reservationId);
 	};
 
