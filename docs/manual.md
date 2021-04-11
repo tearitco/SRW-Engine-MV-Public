@@ -1387,18 +1387,23 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	Set the relationship bonus for the pilot specified by other\_pilot\_id to the specified bonus and level when adjacent to the pilot specified by pilot\_id. Note that levels start at 0!
 
 * lockTransformation mech\_id
+
 	Locks the Transform option for the mech with the specified id.
 	
 * lockAllTransformations
+
 	Locks the Transform option for all mechs.	
 		
 * unlockTransformation mech\_id
+
 	Unlocks the Transform option for the mech with the specified id.
 
 * unlockAllTransformations
+
 	Unlocks the Transform option for all mechs.	
 	
 * setFaceAlias face\_name\_original face\_name\_translated
+
 	Sets a face alias. When a face name specified by face\_name\_original is aliased it will be replaced by face\_name\_translated when fetching the face image. This can be used to more easily manage variable characters, such as when protagonist selection is implemented.
 			 
 ## External Plugin commands	
