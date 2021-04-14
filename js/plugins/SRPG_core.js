@@ -816,8 +816,24 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		}
 		
 		if (command == 'showTargetingReticule'){			
-			var actionArray = $gameSystem.EventToUnit(args[0]);
-			var targetArray = $gameSystem.EventToUnit(args[1]);
+			var eventIdSource;
+			var parts = args[0].match(/\actor\:(.*)/);	
+			if(parts && parts.length > 1){
+				eventIdSource = $gameSystem.ActorToEvent(parts[1]);
+			} else {
+				eventIdSource = args[0];
+			}			
+			
+			var eventIdTarget;
+			var parts = args[1].match(/\actor\:(.*)/);	
+			if(parts && parts.length > 1){
+				eventIdTarget = $gameSystem.ActorToEvent(parts[1]);
+			} else {
+				eventIdTarget = args[1];
+			}
+			
+			var actionArray = $gameSystem.EventToUnit(eventIdSource);
+			var targetArray = $gameSystem.EventToUnit(eventIdTarget);
 			if(actionArray && targetArray){
 				$gameTemp.reticuleInfo = {
 					actor: actionArray[1],
