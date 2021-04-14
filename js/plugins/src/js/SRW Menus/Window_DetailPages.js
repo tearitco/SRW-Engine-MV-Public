@@ -604,8 +604,7 @@ Window_DetailPages.prototype.redraw = function() {
 		this._detailBarMechUpgrades.redraw();	
 		this._attackList.redraw();
 		this._attackSummary.redraw();
-	}
-	
+	}	
 	
 	for(var i = 0; i < this._tabInfo.length; i++){
 		var tab = this._tabInfo[i].elem;

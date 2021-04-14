@@ -815,7 +815,16 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			$gameSystem.faceAliases[args[0]] = args[1];
 		}
 		
-		
+		if (command == 'showTargetingReticule'){			
+			var actionArray = $gameSystem.EventToUnit(args[0]);
+			var targetArray = $gameSystem.EventToUnit(args[1]);
+			if(actionArray && targetArray){
+				$gameTemp.reticuleInfo = {
+					actor: actionArray[1],
+					targetActor: targetArray[1]
+				};
+			}			
+		}
     };		
 //====================================================================
 // ●Game_Temp
