@@ -387,4 +387,54 @@ Update the current default backgrounds to match the target. This command is auto
 
 Target: The id of the main sprite to which the backgrounds are matched.
 
+### play\_rmmv\_anim
+Play a vanilla RMMV animation in the Battle Scene rendered onto an object in the scene.
+The animation can be positioned in the 3d space of the scene.
 
+Target: The id of the animation that will be created.
+
+Parameters:
+
+* animId: The id of the RMMV animation.
+* position: A position defined by an x, y and z coordinate.
+* scaleX: A scaling factor for the width of the effect.
+* scaleY: A scaling factor for the height of the effect.
+* loop: If set to 1 the animation will continue looping.
+* noFlash: If set to 1 the flashing effects of the animation are not shown.
+* noSfx: If set to 1 the built in sound effects of the animation will not play.
+
+### remove\_rmmv\_anim	
+Remove a running RMMV animation immediately.
+
+Target: The id of the animation that will be removed.			
+
+### stop\_rmmv\_anim	
+Stop a running RMMV animation after the next loop.
+
+Target: The id of the animation that will be stopped.	
+	
+### play\_rmmv\_screen\_anim
+Play a vanilla RMMV animation in the Battle Scene on an overlay over the screen.
+The position of the animations will always be the same on the screen, even if the camera is moved.
+
+Target: The id of the animation that will be created.
+
+Parameters:
+
+* animId: The id of the RMMV animation.
+* position: A position defined by an **x, y offset to the center of the screen**
+* scaleX: A scaling factor for the width of the effect.
+* scaleY: A scaling factor for the height of the effect.
+* loop: If set to 1 the animation will continue looping.
+* noFlash: If set to 1 the flashing effects of the animation are not shown.
+* noSfx: If set to 1 the built in sound effects of the animation will not play.
+
+### remove\_rmmv\_screen\_anim	
+Remove a running RMMV screen animation immediately.
+
+Target: The id of the animation that will be removed.			
+
+### stop\_rmmv\_screen\_anim	
+Stop a running RMMV screen animation after the next loop.
+
+Target: The id of the animation that will be stopped.
