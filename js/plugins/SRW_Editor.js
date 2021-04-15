@@ -267,13 +267,18 @@ SRWEditor.prototype.init = function(){
 		},
 		play_rmmv_anim: {
 			hasTarget: true,
-			params: ["animId", "position", "scaleX", "scaleY", "loop", "noFlash"],
+			params: ["animId", "position", "scaleX", "scaleY", "loop", "noFlash", "noSfx"],
 			desc: "Play RMMV animation."
 		},		
 		remove_rmmv_anim: {
 			hasTarget: true,
 			params: [],
 			desc: "Remove a running RMMV animation."
+		},
+		stop_rmmv_anim: {
+			hasTarget: true,
+			params: [],
+			desc: "Stop a running RMMV animation after the next loop."
 		},
 		set_sprite_index: {
 			hasTarget: true,
@@ -421,7 +426,8 @@ SRWEditor.prototype.init = function(){
 		ratio: "The factor by which the scroll speed is multiplied.",
 		animId: "The id of the RMMV animation.",
 		loop: "If set to 1 the RMMV animation will continue looping.",
-		noFlash: "If set to 1 the flashing effects of the RMMV animation are not shown"
+		noFlash: "If set to 1 the flashing effects of the RMMV animation are not shown.",
+		noSfx: "If set to 1 the built in sound effects of the animation will not play."
 	}
 	
 	_this._paramDisplayHandlers = {
@@ -675,6 +681,9 @@ SRWEditor.prototype.init = function(){
 			
 		},
 		scaleY: function(value){
+			
+		},
+		noSfx: function(value){
 			
 		}
 	}

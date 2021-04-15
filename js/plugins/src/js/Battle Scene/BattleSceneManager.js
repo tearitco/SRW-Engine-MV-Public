@@ -2,160 +2,14 @@ import * as BABYLON from "babylonjs";
 import * as Materials from 'babylonjs-materials';
 import * as Loaders from 'babylonjs-loaders';
 
+import Sprite_Animation_Babylon from "./Sprite_Animation_Babylon.js";
+
 import BattleSceneUILayer from "./BattleSceneUILayer.js";
 import SpriterManager from "./SpriterManager.js";
 //import BattleAnimationBuilder from "./BattleAnimationBuilder.js";
 
 //
 
-function Sprite_Animation_Babylon(){
-	this.initialize.apply(this, arguments);
-}
-Sprite_Animation_Babylon.prototype = Object.create(Sprite_Animation.prototype);
-Sprite_Animation_Babylon.prototype.constructor = Sprite_Animation_Babylon;
-
-Sprite_Animation_Babylon.prototype.setup = function(animation, mirror, delay, loop, noFlash) {
-	this._animation = animation;
-	this._mirror = mirror;
-	this._delay = delay;
-	this._loop = loop;
-	this._noFlash = noFlash;
-	if (this._animation) {
-		this.remove();
-		this.setupRate();
-		this.setupDuration();
-		this.loadBitmaps();
-		this.createSprites();
-	}
-};
-
-Sprite_Animation_Babylon.prototype.setupDuration = function() {
-	this._accumulator = 0;
-    this._duration = this._animation.frames.length * this._rate + 1;
-};
-
-Sprite_Animation_Babylon.prototype.getFramesElapsed = function() {
-	return Math.floor(this._accumulator / (1000 / 60));
-};
-
-Sprite_Animation_Babylon.prototype.update = function(deltaTime) {
-	Sprite.prototype.update.call(this);
-	this._accumulator+=deltaTime;
-	this.updateMain();
-	//this.updateFlash();
-	this.updateScreenFlash();
-	this.updateHiding();
-	Sprite_Animation._checker1 = {};
-	Sprite_Animation._checker2 = {};		
-	
-	this.scale.x = 1;
-	this.scale.y = 1;	
-	this.rotation = 0;
-	if(this._animation.direction){			
-		
-		if(this._animation.direction == "down"){
-			this.scale.y = -1;	
-		}
-		if(this._animation.direction == "left" || this._animation.direction == "right"){				
-			this.scale.x = -1;		
-			this.rotation = 90 * Math.PI / 180;				
-		}
-		
-		if(this._animation.direction == "left"){
-			this.scale.y = -1;	
-		}			
-		
-		if(this._animation.offset){
-			var offset = this._animation.offset[this._animation.direction];	
-			if(offset){
-				this.x+=offset.x;
-				this.y+=offset.y;
-			}	
-		}			
-	}
-	
-	if(this._animation.scale){
-		this.scale.y*=this._animation.scale;
-		this.scale.x*=this._animation.scale;
-	}
-	
-};
-
-Sprite_Animation.prototype.updateScreenFlash = function() {
-    if (this._screenFlashDuration > 0) {
-        var d = this._screenFlashDuration--;
-        if (this._screenFlashSprite) {
-            this._screenFlashSprite.x = -this.absoluteX();
-            this._screenFlashSprite.y = -this.absoluteY();
-            this._screenFlashSprite.opacity *= (d - 1) / d;
-            this._screenFlashSprite.visible = (this._screenFlashDuration > 0);
-        }
-    }
-	if(this._screenFlashSprite && this._noFlash){
-		 this._screenFlashSprite.visible = false;
-	}
-};
-
-Sprite_Animation_Babylon.prototype.updateFlash = function() {
-    if (this._flashDuration > 0) {
-        var d = this._flashDuration--;
-        this._flashColor[3] *= (d - 1) / d;
-        //this._target.setBlendColor(this._flashColor);
-    }
-};
-
-Sprite_Animation_Babylon.prototype.isPlaying = function() {
-    return (this._duration - this.getFramesElapsed()) > 0;
-};
-
-Sprite_Animation.prototype.currentFrameIndex = function() {
-    return (this._animation.frames.length -
-            Math.floor(((this._duration - this.getFramesElapsed()) + this._rate - 1) / this._rate));
-};
-
-Sprite_Animation_Babylon.prototype.updateMain = function() {
-    if (this.isReady()) {
-		if(this.isPlaying()){
-			if (this._delay > 0) {
-				this._delay--;
-			} else {
-				//this._duration--;
-				this.updatePosition();
-				if ((this._duration - this.getFramesElapsed()) % this._rate === 0) {
-					this.updateFrame();
-				}
-			}
-		} else if(this._loop){
-			this.setupDuration();
-		} else {
-			this.visible = false;
-		}        
-    }
-};
-
-Sprite_Animation_Babylon.prototype.updatePosition = function() {
-	//if (this._animation.position === 3) {
-		this.x = 1110 / 2;
-		this.y = 624 / 2;
-		
-		//console.log("x: "+this.x+", y: "+this.y);
-		
-	/*} else {
-		var parent = this._target.parent;
-		var grandparent = parent ? parent.parent : null;
-		this.x = this._target.x;
-		this.y = this._target.y;
-		if (this.parent === grandparent) {
-			this.x += parent.x;
-			this.y += parent.y;
-		}
-		if (this._animation.position === 0) {
-			this.y -= this._target.height;
-		} else if (this._animation.position === 1) {
-			this.y -= this._target.height / 2 - 0;
-		}
-	}*/
-};
 
 
 BABYLON.Effect.ShadersStore['shockWaveFragmentShader'] = 
@@ -808,7 +662,7 @@ BattleSceneManager.prototype.createSpriterSprite = function(name, path, position
 	return dynamicBgInfo;
 }
 
-BattleSceneManager.prototype.createRMMVAnimationSprite = function(name, animId, position, size, flipX, loop, noFlash){
+BattleSceneManager.prototype.createRMMVAnimationSprite = function(name, animId, position, size, flipX, loop, noFlash, noSfx){
 	var canvas = document.createElement("canvas");
 	canvas.setAttribute("width", 1000);
 	canvas.setAttribute("height", 1000);
@@ -823,7 +677,7 @@ BattleSceneManager.prototype.createRMMVAnimationSprite = function(name, animId, 
 	var stage = new PIXI.Container();
 	var animation = $dataAnimations[animId];
 	var sprite = new Sprite_Animation_Babylon();
-    sprite.setup(animation, false, 0, loop, noFlash);
+    sprite.setup(animation, false, 0, loop, noFlash, noSfx);
 	sprite.anchor.x = 0.5;
 	sprite.anchor.y = 0.5;
 	
@@ -1352,7 +1206,7 @@ BattleSceneManager.prototype.startScene = function(){
 		var tmp = [];
 		_this._RMMVSpriteInfo.forEach(function(RMMVBg){
 			if(!RMMVBg.sprite.isDisposed()){
-				RMMVBg.RMMVSprite.update(_this._engine.getDeltaTime());
+				RMMVBg.RMMVSprite.update(_this._engine.getDeltaTime() * ratio);
 				RMMVBg.renderer.render(RMMVBg.stage);	
 				RMMVBg.texture.update();
 				tmp.push(RMMVBg);
@@ -2026,12 +1880,25 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var position = _this.applyAnimationDirection(params.position || new BABYLON.Vector3(0,0,0));	
 			var width = params.scaleX || 5;
 			var height = params.scaleY || 5;
-			_this.createRMMVAnimationSprite(target, params.animId, position, {width: width, height: height}, _this._animationDirection == -1 ? true : false, params.loop * 1, params.noFlash * 1);
+			_this.createRMMVAnimationSprite(target, params.animId, position, {width: width, height: height}, _this._animationDirection == -1 ? true : false, params.loop * 1, params.noFlash * 1, params.noSfx * 1);
 		},
 		remove_rmmv_anim: function(target, params){
 			var targetObj = getTargetObject(target);
 			if(targetObj){
 				targetObj.dispose();
+			}
+		},
+		stop_rmmv_anim: function(target, params){
+			var obj;
+			var ctr = 0;
+			while(!obj && ctr < _this._RMMVSpriteInfo.length){
+				if(_this._RMMVSpriteInfo[ctr].sprite.name == target+"_rmmv"){
+					obj = _this._RMMVSpriteInfo[ctr];
+				}
+				ctr++;
+			}
+			if(obj){
+				obj.RMMVSprite._loop = false;
 			}
 		},
 		hide_effekseer: function(target, params){
