@@ -1411,11 +1411,11 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * showTargetingReticle start\_event\_id target\_event\_id
 		
 	Display the targeting reticle moving from the event with the provided start\_event\_id to the event with the provided target\_event\_id.
-	Both parameters can also be provided in the form actor:actor\_id in, example:
+	Both parameters can also be provided in the form actor:actor\_id instead, example:
 	
 	showTargetingReticle 9 actor:3 Show the reticle moving from event 9 to the current position of actor 3
 	
-Note that script execution is not halted while the reticle is shown, use the wait command if needed.
+	Note that script execution is not halted while the reticle is shown, use the wait command if needed.
 Also note that only one reticle can be shown at a time.
 
 ## External Plugin commands	
