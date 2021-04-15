@@ -280,6 +280,21 @@ SRWEditor.prototype.init = function(){
 			params: [],
 			desc: "Stop a running RMMV animation after the next loop."
 		},
+		play_rmmv_screen_anim: {
+			hasTarget: true,
+			params: ["animId", "position", "scaleX", "scaleY", "loop", "noFlash", "noSfx"],
+			desc: "Play RMMV screen animation."
+		},		
+		remove_rmmv_screen_anim: {
+			hasTarget: true,
+			params: [],
+			desc: "Remove a running RMMV screen animation."
+		},
+		stop_rmmv_screen_anim: {
+			hasTarget: true,
+			params: [],
+			desc: "Stop a running RMMV screen animation after the next loop."
+		},
 		set_sprite_index: {
 			hasTarget: true,
 			params: ["index"],
@@ -842,6 +857,10 @@ SRWEditor.prototype.prepareBattleScenePreview = function(){
 	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._UIcontainer);	
 	$battleSceneManager._UIcontainer.style.width = "";
 	$battleSceneManager._UIcontainer.style.height = "";
+	
+	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._PIXIContainer);	
+	$battleSceneManager._PIXIContainer.style.width = "";
+	$battleSceneManager._PIXIContainer.style.height = "";
 	
 	document.querySelector("#attack_editor .preview_window").appendChild($battleSceneManager._fadeContainer);
 	$battleSceneManager._fadeContainer.style.width = "";

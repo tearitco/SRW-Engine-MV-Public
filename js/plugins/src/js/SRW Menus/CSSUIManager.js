@@ -65,7 +65,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 	}
 }
 
-CSSUIManager.prototype.initAllWindows = function(){
+CSSUIManager.prototype.initAllWindows = function(){	
 	this.customUILayer = document.createElement("div");
 	this.customUILayer.id = "custom_UI_layer";		
 	document.body.appendChild(this.customUILayer);

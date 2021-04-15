@@ -3,6 +3,7 @@ import * as Materials from 'babylonjs-materials';
 import * as Loaders from 'babylonjs-loaders';
 
 import Sprite_Animation_Babylon from "./Sprite_Animation_Babylon.js";
+import Sprite_Screen_Animation_Babylon from "./Sprite_Screen_Animation_Babylon.js";
 
 import BattleSceneUILayer from "./BattleSceneUILayer.js";
 import SpriterManager from "./SpriterManager.js";
@@ -142,6 +143,7 @@ export default function BattleSceneManager(){
 	this._spritersBackgroundsInfo = [];
 	this._spriterMainSpritesInfo = [];
 	this._RMMVSpriteInfo = [];
+	this._RMMVScreenSpriteInfo = [];
 	this._effekseerInfo = [];
 
 	this._participantInfo = {
@@ -217,6 +219,10 @@ BattleSceneManager.prototype.initContainer = function(){
 	this._UIcontainer = document.createElement("div");
 	this._UIcontainer.id = "battle_scene_ui_layer";	
 	document.body.appendChild(this._UIcontainer);		
+	
+	this._PIXIContainer = document.createElement("div");
+	this._PIXIContainer.id = "battle_scene_pixi_layer";	
+	document.body.appendChild(this._PIXIContainer);
 }
 
 BattleSceneManager.prototype.init = function(attachControl){
@@ -341,7 +347,33 @@ BattleSceneManager.prototype.initScene = function(){
 	/**/
 	
 	//_this.createRMMVAnimationSprite("test", null, new BABYLON.Vector3(0,0,1));
+	
 	//this.startScene();	
+	
+	var canvas = document.createElement("canvas");
+	//canvas.setAttribute("width", 1110);
+	//canvas.setAttribute("height", 624);
+	canvas.style.width = "100%";
+	canvas.style.height = "100%";
+	this._PIXIContainer.innerHTML = "";
+	this._PIXIContainer.appendChild(canvas);
+	
+	
+	_this._screenSpacePixiRenderer = new PIXI.CanvasRenderer(1110, 624, {
+		view: canvas,	
+		transparent: true
+	});
+	
+	var stage = new PIXI.Container();
+	/*var sprite = PIXI.Sprite.from("https://i.imgur.com/1yLS2b8.jpg");
+	sprite.anchor.set(0.5);
+	sprite.position.set(100, 100);
+	stage.addChild(sprite);*/
+	
+	_this._screenSpacePixiStage = stage;
+	
+	//this.addOverlayPIXISprite("test", 74, new BABYLON.Vector3(200,200,1), {width: 1, height: 1}, false, true, true, true);
+	
 	this._engine.resize();	
 }
 
@@ -688,6 +720,27 @@ BattleSceneManager.prototype.createRMMVAnimationSprite = function(name, animId, 
 	
 	this._RMMVSpriteInfo.push(dynamicBgInfo);
 	return dynamicBgInfo;
+}
+
+BattleSceneManager.prototype.addOverlayPIXISprite = function(name, animId, position, size, flipX, loop, noFlash, noSfx){
+	var animation = $dataAnimations[animId];
+	var sprite = new Sprite_Screen_Animation_Babylon();
+    sprite.setup(animation, false, 0, loop, noFlash, noSfx);
+	sprite.anchor.x = 0.5;
+	sprite.anchor.y = 0.5;
+	sprite.x = position.x;
+	sprite.y = position.y;
+	sprite.scale.x = size.width;
+	if(flipX){
+		sprite.scale.x*=-1;
+	}
+	sprite.scale.y = size.height;
+	sprite._name = name+"_rmmv";
+	this._screenSpacePixiStage.addChild(sprite);	
+	this._RMMVScreenSpriteInfo.push({
+		RMMVSprite: sprite,
+		name: sprite._name
+	});
 }
 
 BattleSceneManager.prototype.createSceneSprite = function(name, path, position, frameSize, flipX, size){
@@ -1172,14 +1225,15 @@ BattleSceneManager.prototype.startScene = function(){
 	Input.clear();
 	this._container.style.display = "block";
 	this._engine._deltaTime = 0;
-	this._engine._RMMVSpriteAccumulator = 0;
+
 	// Register a render loop to repeatedly render the scene
 	this._scene.render();
 	this._engine.runRenderLoop(function () {			
 		_this._fpsCounter.innerHTML = _this._engine.getFps().toFixed() + " fps";		
 		
-		_this._engine.wipeCaches(true);
+		
 		_this._scene.render();
+		_this._engine.wipeCaches(true);
 		var ratio = 1;
 		if(_this.isOKHeld){
 			ratio = 2;
@@ -1198,11 +1252,7 @@ BattleSceneManager.prototype.startScene = function(){
 		});
 		_this._spriterMainSpritesInfo = tmp;		
 		
-		_this._engine._RMMVSpriteAccumulator+=_this._engine.getDeltaTime();
-		
-		
-		
-		_this._engine._RMMVSpriteAccumulator = 0;
+
 		var tmp = [];
 		_this._RMMVSpriteInfo.forEach(function(RMMVBg){
 			if(!RMMVBg.sprite.isDisposed()){
@@ -1213,6 +1263,20 @@ BattleSceneManager.prototype.startScene = function(){
 			}			
 		});
 		_this._RMMVSpriteInfo = tmp;
+		
+		var tmp = [];
+		_this._RMMVScreenSpriteInfo.forEach(function(RMMVBg){
+			if(!RMMVBg.RMMVSprite.hasEnded()){
+				RMMVBg.RMMVSprite.update(_this._engine.getDeltaTime() * ratio);
+				tmp.push(RMMVBg);
+			} else {
+				RMMVBg.RMMVSprite.parent.removeChild(RMMVBg.RMMVSprite);
+			}	
+		});
+		_this._RMMVScreenSpriteInfo = tmp;
+		
+		//_this._screenSpacePixiRenderer.reset();
+		_this._screenSpacePixiRenderer.render(_this._screenSpacePixiStage);
 			
 	});
 	this._engine.resize()
@@ -1901,6 +1965,40 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				obj.RMMVSprite._loop = false;
 			}
 		},
+		play_rmmv_screen_anim: function(target, params){
+			var position = _this.applyAnimationDirection(params.position || new BABYLON.Vector3(0,0,0));
+			position.x+=555;
+			position.y+=324;
+			var width = params.scaleX || 5;
+			var height = params.scaleY || 5;
+			_this.addOverlayPIXISprite(target, params.animId, position, {width: width, height: height}, _this._animationDirection == -1 ? true : false, params.loop * 1, params.noFlash * 1, params.noSfx * 1);
+		},
+		remove_rmmv_screen_anim: function(target, params){
+			var obj;
+			var ctr = 0;
+			while(!obj && ctr < _this._RMMVScreenSpriteInfo.length){
+				if(_this._RMMVScreenSpriteInfo[ctr].name == target+"_rmmv"){
+					obj = _this._RMMVScreenSpriteInfo[ctr];
+				}
+				ctr++;
+			}
+			if(obj){
+				obj.RMMVSprite._hasEnded = true;
+			}
+		},
+		stop_rmmv_screen_anim: function(target, params){
+			var obj;
+			var ctr = 0;
+			while(!obj && ctr < _this._RMMVScreenSpriteInfo.length){
+				if(_this._RMMVScreenSpriteInfo[ctr].name == target+"_rmmv"){
+					obj = _this._RMMVScreenSpriteInfo[ctr];
+				}
+				ctr++;
+			}
+			if(obj){
+				obj.RMMVSprite._loop = false;
+			}
+		},		
 		hide_effekseer: function(target, params){
 			var targetObj;
 			var ctr = 0;
@@ -2982,6 +3080,7 @@ BattleSceneManager.prototype.showScene = function() {
 	_this._sceneCanEnd = false;
 	_this._sceneIsEnding = false;
 	_this._UIcontainer.style.display = "block";	
+	_this._PIXIContainer.style.display = "block";	
 	_this.resetScene();
 	_this.readBattleCache();	
 	
@@ -3133,6 +3232,7 @@ BattleSceneManager.prototype.endScene = function(force) {
 			_this.disposeEffekseerInstances();
 			_this._animationList = [];
 			_this._UIcontainer.style.display = "";
+			_this._PIXIContainer.style.display = "";	
 			_this.systemFadeFromBlack(400, 1000).then(function(){
 				$gameSystem.setSubBattlePhase('after_battle');
 				if(!$gameTemp.editMode){
@@ -3167,6 +3267,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				_this.systemFadeToBlack(100, 1000).then(function(){					
 					_this.stopScene();
 					_this._UIcontainer.style.display = "";
+					_this._PIXIContainer.style.display = "";	
 					_this.systemFadeFromBlack(1000).then(function(){
 						$gameSystem.setSubBattlePhase('after_battle');
 						if(!$gameTemp.editMode){
@@ -3296,6 +3397,7 @@ BattleSceneManager.prototype.showEnvironmentScene = function() {
 	_this._sceneCanEnd = false;
 	_this._sceneIsEnding = false;
 	_this._UIcontainer.style.display = "block";	
+	_this._PIXIContainer.style.display = "block";	
 	
 	_this.resetScene();		
 	_this.setBgScrollDirection(1, true);

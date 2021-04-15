@@ -231,3 +231,18 @@
 	left: 0;
 	pointer-events: none;
 }
+
+#battle_scene_pixi_layer {
+	position: fixed;
+	width: 0px;
+	height: 0px;	
+	top: 0;
+	left: 0;
+	z-index: 51;
+	margin: auto;
+	font-family: GameFont;
+	overflow: hidden;
+	background: none;
+	pointer-events: none;
+	display: none;
+}

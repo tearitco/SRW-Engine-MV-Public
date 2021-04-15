@@ -21,6 +21,10 @@ Sprite_Animation_Babylon.prototype.setup = function(animation, mirror, delay, lo
 	}
 };
 
+Sprite_Animation_Babylon.prototype.hasEnded = function() {
+	return this._hasEnded;
+};
+
 Sprite_Animation_Babylon.prototype.setupDuration = function() {
 	this._accumulator = 0;
     this._duration = this._animation.frames.length * this._rate + 1;
@@ -39,38 +43,6 @@ Sprite_Animation_Babylon.prototype.update = function(deltaTime) {
 	this.updateHiding();
 	Sprite_Animation._checker1 = {};
 	Sprite_Animation._checker2 = {};		
-	
-	this.scale.x = 1;
-	this.scale.y = 1;	
-	this.rotation = 0;
-	if(this._animation.direction){			
-		
-		if(this._animation.direction == "down"){
-			this.scale.y = -1;	
-		}
-		if(this._animation.direction == "left" || this._animation.direction == "right"){				
-			this.scale.x = -1;		
-			this.rotation = 90 * Math.PI / 180;				
-		}
-		
-		if(this._animation.direction == "left"){
-			this.scale.y = -1;	
-		}			
-		
-		if(this._animation.offset){
-			var offset = this._animation.offset[this._animation.direction];	
-			if(offset){
-				this.x+=offset.x;
-				this.y+=offset.y;
-			}	
-		}			
-	}
-	
-	if(this._animation.scale){
-		this.scale.y*=this._animation.scale;
-		this.scale.x*=this._animation.scale;
-	}
-	
 };
 
 Sprite_Animation.prototype.updateScreenFlash = function() {
@@ -138,31 +110,13 @@ Sprite_Animation_Babylon.prototype.updateMain = function() {
 		} else if(this._loop){
 			this.setupDuration();
 		} else {
+			this._hasEnded = true;
 			this.visible = false;
 		}        
     }
 };
 
-Sprite_Animation_Babylon.prototype.updatePosition = function() {
-	//if (this._animation.position === 3) {
-		this.x = 1110 / 2;
-		this.y = 624 / 2;
-		
-		//console.log("x: "+this.x+", y: "+this.y);
-		
-	/*} else {
-		var parent = this._target.parent;
-		var grandparent = parent ? parent.parent : null;
-		this.x = this._target.x;
-		this.y = this._target.y;
-		if (this.parent === grandparent) {
-			this.x += parent.x;
-			this.y += parent.y;
-		}
-		if (this._animation.position === 0) {
-			this.y -= this._target.height;
-		} else if (this._animation.position === 1) {
-			this.y -= this._target.height / 2 - 0;
-		}
-	}*/
+Sprite_Animation_Babylon.prototype.updatePosition = function() {	
+	this.x = 1000 / 2;
+	this.y = 1000 / 2;	
 };

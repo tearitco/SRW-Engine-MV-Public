@@ -181,12 +181,18 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 	Graphics._updateCanvas = function(){
 		Graphics_updateCanvas.call(this);
 		if(!$gameTemp || !$gameTemp.editMode){
+			var battleScenePIXILayer = document.querySelector("#battle_scene_pixi_layer");
+			if(battleScenePIXILayer){
+				battleScenePIXILayer.width = this._width;
+				battleScenePIXILayer.height = this._height;
+				this._centerElement(battleScenePIXILayer);
+			}	
 			var customUILayer = document.querySelector("#custom_UI_layer");
 			if(customUILayer){
 				customUILayer.width = this._width;
 				customUILayer.height = this._height;
 				this._centerElement(customUILayer);
-			}	
+			}
 			var battleSceneLayer = document.querySelector("#battle_scene_layer");
 			if(battleSceneLayer){
 				battleSceneLayer.width = this._width;
