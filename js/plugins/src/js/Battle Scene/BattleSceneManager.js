@@ -486,7 +486,7 @@ BattleSceneManager.prototype.initScene = function(){
 	_this.initShaderEffect("shockWave");
 	/**/
 	
-	_this.createRMMVAnimationSprite("test", null, new BABYLON.Vector3(0,0,1));
+	//_this.createRMMVAnimationSprite("test", null, new BABYLON.Vector3(0,0,1));
 	//this.startScene();	
 	this._engine.resize();	
 }
@@ -639,7 +639,7 @@ BattleSceneManager.prototype.createSceneBg = function(name, path, position, size
 	return bg;
 }
 
-BattleSceneManager.prototype.createSpriterBg = function(name, position, size, alpha, billboardMode, flipX, sourceCanvas, useAlpha){
+BattleSceneManager.prototype.createSpriterBg = function(name, position, size, alpha, billboardMode, flipX, sourceCanvas, useAlpha, groupId){
 	var width;
 	var height;
 	if(typeof size != "undefined"){
@@ -687,6 +687,10 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 	if(typeof alpha != "undefined"){
 		material.alpha = alpha;
 	}	
+	
+	if(groupId){
+		bg.renderingGroupId = groupId;
+	}
 
     bg.material = material;
 	
@@ -804,26 +808,24 @@ BattleSceneManager.prototype.createSpriterSprite = function(name, path, position
 	return dynamicBgInfo;
 }
 
-BattleSceneManager.prototype.createRMMVAnimationSprite = function(name, path, position, flipX){
+BattleSceneManager.prototype.createRMMVAnimationSprite = function(name, animId, position, size, flipX, loop, noFlash){
 	var canvas = document.createElement("canvas");
-	canvas.setAttribute("width", 1110);
-	canvas.setAttribute("height", 624);
+	canvas.setAttribute("width", 1000);
+	canvas.setAttribute("height", 1000);
 	
 	//document.body.appendChild(canvas);
 	
-	var renderer =  new PIXI.CanvasRenderer(1110, 624, {view: canvas,  transparent: true });
+	var renderer =  new PIXI.CanvasRenderer(1000, 1000, {view: canvas,  transparent: true });
 	
-	var dynamicBgInfo = this.createSpriterBg(name+"_rmmv", position, 10, 1, 0, flipX, canvas, true);
+	var dynamicBgInfo = this.createSpriterBg(name+"_rmmv", position, size, 1, 0, flipX, canvas, true, 1);
 	dynamicBgInfo.renderer = renderer;
 	
 	var stage = new PIXI.Container();
-	/*var sprite = PIXI.Sprite.from("https://i.imgur.com/1yLS2b8.jpg");
-	sprite.anchor.set(0.5);
-	sprite.position.set(500, 500);*/
-	
-	var animation = $dataAnimations[36];
+	var animation = $dataAnimations[animId];
 	var sprite = new Sprite_Animation_Babylon();
-    sprite.setup(animation, false, 0, false, true);
+    sprite.setup(animation, false, 0, loop, noFlash);
+	sprite.anchor.x = 0.5;
+	sprite.anchor.y = 0.5;
 	
 	stage.addChild(sprite);
 	
@@ -1516,6 +1518,15 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					ctr++;
 				}
 			}
+			if(!obj){//check rmmv animation
+				var ctr = 0;
+				while(!obj && ctr < _this._RMMVSpriteInfo.length){
+					if(_this._RMMVSpriteInfo[ctr].sprite.name == name+"_rmmv"){
+						obj = _this._RMMVSpriteInfo[ctr].sprite;
+					}
+					ctr++;
+				}
+			}
 			return obj;
 		}						
 	}
@@ -2011,6 +2022,18 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._effekseerInfo.push(info);			
 			effect.scale = scale;
 		},		
+		play_rmmv_anim: function(target, params){
+			var position = _this.applyAnimationDirection(params.position || new BABYLON.Vector3(0,0,0));	
+			var width = params.scaleX || 5;
+			var height = params.scaleY || 5;
+			_this.createRMMVAnimationSprite(target, params.animId, position, {width: width, height: height}, _this._animationDirection == -1 ? true : false, params.loop * 1, params.noFlash * 1);
+		},
+		remove_rmmv_anim: function(target, params){
+			var targetObj = getTargetObject(target);
+			if(targetObj){
+				targetObj.dispose();
+			}
+		},
 		hide_effekseer: function(target, params){
 			var targetObj;
 			var ctr = 0;

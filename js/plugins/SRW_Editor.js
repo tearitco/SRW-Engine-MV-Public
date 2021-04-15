@@ -265,6 +265,16 @@ SRWEditor.prototype.init = function(){
 			params: [],
 			desc: "Hide a running effekseer effect."
 		},
+		play_rmmv_anim: {
+			hasTarget: true,
+			params: ["animId", "position", "scaleX", "scaleY", "loop", "noFlash"],
+			desc: "Play RMMV animation."
+		},		
+		remove_rmmv_anim: {
+			hasTarget: true,
+			params: [],
+			desc: "Remove a running RMMV animation."
+		},
 		set_sprite_index: {
 			hasTarget: true,
 			params: ["index"],
@@ -401,12 +411,17 @@ SRWEditor.prototype.init = function(){
 		isBackground: "If 1 the layer will be a background layer.",
 		color: "The blend color for the skybox.",
 		scale: "A scaling factor for the effect.",
+		scaleX: "A scaling factor for the width of the effect.",
+		scaleY: "A scaling factor for the height of the effect.",
 		index: "The new sprite index",
 		percent: "How much of the change to the value that should be shown. If the total change is 5000, specifying 50 will show 2500.",
 		seId: "The name of the sound effect to play.",
 		pitch: "The pitch to play the sound effect at.",
 		volume: "The volume to play the sound effect at.",
-		ratio: "The factor by which the scroll speed is multiplied."
+		ratio: "The factor by which the scroll speed is multiplied.",
+		animId: "The id of the RMMV animation.",
+		loop: "If set to 1 the RMMV animation will continue looping.",
+		noFlash: "If set to 1 the flashing effects of the RMMV animation are not shown"
 	}
 	
 	_this._paramDisplayHandlers = {
@@ -645,6 +660,21 @@ SRWEditor.prototype.init = function(){
 		
 		},
 		ratio: function(value){
+			
+		},
+		animId: function(value){
+			
+		},
+		loop: function(value){
+			
+		},
+		noFlash: function(value){
+			
+		},
+		scaleX: function(value){
+			
+		},
+		scaleY: function(value){
 			
 		}
 	}
