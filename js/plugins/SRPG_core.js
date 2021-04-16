@@ -7408,6 +7408,144 @@ SceneManager.reloadCharacters = function(startEvent){
 //====================================================================
 // ●Spriteset_Map
 //====================================================================
+
+	function UpperTilemap(){
+		this.initialize.apply(this, arguments);
+	}
+	
+	UpperTilemap.prototype = Object.create(Tilemap.prototype);
+	UpperTilemap.prototype.constructor = UpperTilemap;
+	
+	UpperTilemap.prototype._paintTiles = function(startX, startY, x, y) {
+		var tableEdgeVirtualId = 10000;
+		var mx = startX + x;
+		var my = startY + y;
+		var dx = (mx * this._tileWidth).mod(this._layerWidth);
+		var dy = (my * this._tileHeight).mod(this._layerHeight);
+		var lx = dx / this._tileWidth;
+		var ly = dy / this._tileHeight;
+		var tileId0 = this._readMapData(mx, my, 0);
+		var tileId1 = this._readMapData(mx, my, 1);
+		var tileId2 = this._readMapData(mx, my, 2);
+		var tileId3 = this._readMapData(mx, my, 3);
+		var shadowBits = this._readMapData(mx, my, 4);
+		var upperTileId1 = this._readMapData(mx, my - 1, 1);
+		var lowerTiles = [];
+		var upperTiles = [];
+
+		if (this._isHigherTile(tileId0)) {
+			upperTiles.push(tileId0);
+		}
+		if (this._isHigherTile(tileId1)) {
+			upperTiles.push(tileId1);
+		} 
+
+		if (this._isOverpassPosition(mx, my)) {
+			upperTiles.push(tileId2);
+			upperTiles.push(tileId3);
+		} else {
+			if (this._isHigherTile(tileId2)) {
+				upperTiles.push(tileId2);
+			} 
+			if (this._isHigherTile(tileId3)) {
+				upperTiles.push(tileId3);
+			} 
+		}
+		var lastUpperTiles = this._readLastTiles(1, lx, ly);
+		if (!upperTiles.equals(lastUpperTiles)) {
+			this._upperBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
+			for (var j = 0; j < upperTiles.length; j++) {
+				this._drawTile(this._upperBitmap, upperTiles[j], dx, dy);
+			}
+			this._writeLastTiles(1, lx, ly, upperTiles);
+		}
+	};
+
+	function UpperShaderTileMap(){
+		Tilemap.apply(this, arguments);
+		this.roundPixels = true;
+	}
+	
+	UpperShaderTileMap.prototype = Object.create(ShaderTilemap.prototype);
+	UpperShaderTileMap.prototype.constructor = UpperShaderTileMap;
+	
+	UpperShaderTileMap.prototype._paintTiles = function(startX, startY, x, y) {
+		var mx = startX + x;
+		var my = startY + y;
+		var dx = x * this._tileWidth, dy = y * this._tileHeight;
+		var tileId0 = this._readMapData(mx, my, 0);
+		var tileId1 = this._readMapData(mx, my, 1);
+		var tileId2 = this._readMapData(mx, my, 2);
+		var tileId3 = this._readMapData(mx, my, 3);
+		var shadowBits = this._readMapData(mx, my, 4);
+		var upperTileId1 = this._readMapData(mx, my - 1, 1);
+		var lowerLayer = this.lowerLayer.children[0];
+		var upperLayer = this.upperLayer.children[0];
+
+		if (this._isHigherTile(tileId0)) {
+			this._drawTile(upperLayer, tileId0, dx, dy);
+		} 
+		if (this._isHigherTile(tileId1)) {
+			this._drawTile(upperLayer, tileId1, dx, dy);
+		} 
+
+		
+		if (this._isOverpassPosition(mx, my)) {
+			this._drawTile(upperLayer, tileId2, dx, dy);
+			this._drawTile(upperLayer, tileId3, dx, dy);
+		} else {
+			if (this._isHigherTile(tileId2)) {
+				this._drawTile(upperLayer, tileId2, dx, dy);
+			} 
+			if (this._isHigherTile(tileId3)) {
+				this._drawTile(upperLayer, tileId3, dx, dy);
+			} 
+		}
+	};
+	
+	Spriteset_Map.prototype.createUpperLayer = function() {
+		if (Graphics.isWebGL()) {
+			this._upperTilemap = new UpperShaderTileMap();
+		} else {
+			this._upperTilemap = new UpperTilemap();
+		}
+		this._upperTilemap.tileWidth = $gameMap.tileWidth();
+		this._upperTilemap.tileHeight = $gameMap.tileHeight();
+		this._upperTilemap.setData($gameMap.width(), $gameMap.height(), $gameMap.data());
+		this._upperTilemap.horizontalWrap = $gameMap.isLoopHorizontal();
+		this._upperTilemap.verticalWrap = $gameMap.isLoopVertical();
+	
+		this._tileset = $gameMap.tileset();
+		if (this._tileset) {
+			var tilesetNames = this._tileset.tilesetNames;
+			for (var i = 0; i < tilesetNames.length; i++) {
+				this._upperTilemap.bitmaps[i] = ImageManager.loadTileset(tilesetNames[i]);
+			}
+			var newTilesetFlags = $gameMap.tilesetFlags();			
+			this._upperTilemap.refreshTileset();
+			if (!this._tilemap.flags.equals(newTilesetFlags)) {				
+				this._upperTilemap.refresh();
+			}
+			this._upperTilemap.flags = newTilesetFlags;
+		}
+	
+		this._baseSprite.addChild(this._upperTilemap);
+		
+		this.addCharacterToBaseSprite(new Sprite_Character($gamePlayer));   	
+		
+		this.createPictures();
+		this.createTimer();
+		this.createScreenSprites();
+	};
+	
+	Spriteset_Map.prototype.updateTilemap = function() {
+		this._tilemap.origin.x = $gameMap.displayX() * $gameMap.tileWidth();
+		this._tilemap.origin.y = $gameMap.displayY() * $gameMap.tileHeight();
+		
+		this._upperTilemap.origin.x = $gameMap.displayX() * $gameMap.tileWidth();
+		this._upperTilemap.origin.y = $gameMap.displayY() * $gameMap.tileHeight();
+	};
+
     var _SRPG_Spriteset_Map_createTilemap = Spriteset_Map.prototype.createTilemap;
     Spriteset_Map.prototype.createTilemap = function() {		
 		_SRPG_Spriteset_Map_createTilemap.call(this);
@@ -7507,7 +7645,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gamePlayer.followers().reverseEach(function(follower) {
 			this._characterSprites.push(new Sprite_Character(follower));
 		}, this);
-		this._characterSprites.push(new Sprite_Character($gamePlayer));
+		//this._characterSprites.push(new Sprite_Character($gamePlayer));
 		for (var i = 0; i < this._characterSprites.length; i++) {
 			this.addCharacterToBaseSprite(this._characterSprites[i]);
 		}
