@@ -332,7 +332,13 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
             $inventoryManager.removeItemHolder(args[0], args[1]);
         }
 		if (command === 'focusActor') {
-			var event = $gameMap.event($gameSystem.ActorToEvent(args[0]));
+			var actorId = args[0];
+			var parts = actorId.match(/\<(.*)\>/);	
+			if(parts && parts.length > 1){
+				actorId = $gameVariables.value(parts[1]);
+			}
+			
+			var event = $gameMap.event($gameSystem.ActorToEvent(actorId));
 			if(event && !event.isErased()){
 				$gamePlayer.locate(event.posX(), event.posY());
 			}
@@ -819,6 +825,13 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 				$gameSystem.faceAliases = {};
 			}
 			$gameSystem.faceAliases[args[0]] = args[1];
+		}
+		
+		if (command === 'setCharacterIndexAlias') {	
+			if(!$gameSystem.characterIdexAliases){
+				$gameSystem.characterIdexAliases = {};
+			}
+			$gameSystem.characterIdexAliases[args[0]] = args[1];
 		}
 		
 		if (command == 'showTargetingReticule'){			
@@ -6322,7 +6335,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 //====================================================================
 // ●Sprite_Character
 //====================================================================
-    //ターン終了したユニットか返す
+
+	
+	Game_CharacterBase.prototype.characterIndex = function() {
+		var filename = this.characterName();
+		var index = this._characterIndex;
+		if($gameSystem.characterIdexAliases && $gameSystem.characterIdexAliases[filename]){
+			 index = $gameSystem.characterIdexAliases[filename];
+		}
+		return index;
+	};
+	
 	//Character sprites are split into two a bottom and top part to improve overlap for units whose map icon goes outside their current tiles.
 	//This can happen for flying units for example.
 	//The base sprite is normally hidden, but is still available.
@@ -6369,6 +6392,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			}			
 		}		
 	}
+	
+	
 	
     Sprite_Character.prototype.isTurnEndUnit = function() {
         if (this._character.isEvent() == true) {
