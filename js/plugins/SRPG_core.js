@@ -5375,6 +5375,18 @@ Game_Interpreter.prototype.cancelEnemyDestruction  = function(id){
 	}
 }
 
+Game_Interpreter.prototype.cancelEventDestruction  = function(id){
+	var tmp = [];
+	if($gameTemp.deathQueue && $gameTemp.deathQueue.length){		
+		$gameTemp.deathQueue.forEach(function(queuedDeath){
+			if(!queuedDeath.actor.event && queuedDeath.actor.event.eventId() != id){
+				tmp.push(queuedDeath);
+			}
+		});
+		$gameTemp.deathQueue = tmp;
+	}
+}
+
 Game_Interpreter.prototype.addEnemiesFromObj = function(params) {
 	for(var i = startId; i <= endId; i++){
 		this.addEnemy(
@@ -5506,6 +5518,9 @@ Game_Interpreter.prototype.eraseEvents = function(startId, endId, toQueue) {
 Game_Interpreter.prototype.eraseEvent = function(eventId, toQueue) {
 	var event = $gameMap.event(eventId);
 	if(toQueue){
+		if(!$gameTemp.disappearQueue){
+			$gameTemp.disappearQueue = [];
+		}
 		$gameTemp.disappearQueue.push(event);
 	} else {
 		event.erase();
