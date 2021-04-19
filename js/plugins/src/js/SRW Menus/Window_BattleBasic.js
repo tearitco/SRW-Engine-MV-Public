@@ -444,14 +444,22 @@ Window_BattleBasic.prototype.animateDamage = function(elem, special) {
 	elem.className = "scaled_text";	
 	elem.innerHTML = special.damage;
 	this.applyDoubleTime(elem);
-	
+	var seName = "SRWHit";
 	if(special.crit){
 		elem.classList.add("crit");
+		seName = "SRWHit_Crit";
 	}
+	if(special.barrierState == 1){
+		seName = "SRWHit_Barrier";
+	}
+	if(special.barrierState == 2){
+		seName = "SRWHit_Barrier_Break";
+	}
+	
 	setTimeout(function(){ elem.style.display = "none" }, 600 * this.getAnimTimeRatio());
 	
 	var se = {};
-	se.name = 'SRWHit';
+	se.name = seName;
 	se.pan = 0;
 	se.pitch = 100;
 	se.volume = 80;
@@ -579,6 +587,9 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	}
 	
 	var attackAnimation = {target: initiator, type: currentInfo.anim_mainAttack};
+	attackAnimation.special = {
+		attack_start: true
+	} 
 	this._animationQueue.push([attackAnimation]);
 	if(nextAction.hits){
 		if(nextAction.attacked.type == "support defend"){
@@ -602,7 +613,16 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			}
 			
 			damageAnimation.special =  {};
-			damageAnimation.special[currentInfo.special_targetSupportDamage] = {damage: nextAction.damageInflicted, crit: nextAction.inflictedCritical};
+			
+			var barrierState = 0;
+			if(nextAction.attacked.hasBarrier){
+				if(nextAction.attacked.barrierBroken){
+					barrierState = 2;
+				} else {
+					barrierState = 1;
+				}
+			}
+			damageAnimation.special[currentInfo.special_targetSupportDamage] = {damage: nextAction.damageInflicted, crit: nextAction.inflictedCritical, barrierState: barrierState};
 			if(nextAction.attacked.hasBarrier && !nextAction.attacked.barrierBroken){
 				damageAnimation.special[currentInfo.special_targetSupportBarrier] = true;
 			}
@@ -630,11 +650,6 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 				this._animationQueue.push([{target: target, type: currentInfo.anim_targetSupportReturn}]);
 			}			
 		} else {
-		/*	var damageAnimation = {target: target, type: "damage"};
-			damageAnimation.special =  {};
-			damageAnimation.special[currentInfo.anim_targetDamage] = {damage: nextAction.damageInflicted, crit: nextAction.inflictedCritical};
-			this._animationQueue.push([damageAnimation]);*/
-			
 			var damageAnimation;
 			if(nextAction.damageInflicted > 0){
 				damageAnimation = {target: target, type: "damage"};
@@ -643,7 +658,15 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 			}
 			
 			damageAnimation.special =  {};
-			damageAnimation.special[currentInfo.anim_targetDamage] = {damage: nextAction.damageInflicted, crit: nextAction.inflictedCritical};
+			var barrierState = 0;
+			if(nextAction.attacked.hasBarrier){
+				if(nextAction.attacked.barrierBroken){
+					barrierState = 2;
+				} else {
+					barrierState = 1;
+				}
+			}
+			damageAnimation.special[currentInfo.anim_targetDamage] = {damage: nextAction.damageInflicted, crit: nextAction.inflictedCritical, barrierState: barrierState};
 			if(nextAction.attacked.hasBarrier && !nextAction.attacked.barrierBroken){
 				damageAnimation.special[currentInfo.special_targetBarrier] = true;
 			}
@@ -765,7 +788,8 @@ Window_BattleBasic.prototype.update = function() {
 				_this._processingAnimationCount = 0;
 				var nextAnimations = this._animationQueue.shift();
 				if(nextAnimations){
-					this._processingAnimation = true;
+					this._processingAnimation = true;					
+					
 					for(var i = 0; i < nextAnimations.length; i++){
 						_this._processingAnimationCount++;
 						var nextAnimation = nextAnimations[i];
@@ -782,6 +806,16 @@ Window_BattleBasic.prototype.update = function() {
 							if(nextAnimation.special.enemy_damage){
 								_this.animateDamage(_this._enemyDamage, nextAnimation.special.enemy_damage);										
 							}
+							
+							if(nextAnimation.special.attack_start){
+								var se = {};
+								se.name = 'SRWAttack';
+								se.pan = 0;
+								se.pitch = 100;
+								se.volume = 80;
+								AudioManager.playSe(se);									
+							}						
+							
 							if(nextAnimation.special.actor_damage){
 								_this.animateDamage(_this._actorDamage, nextAnimation.special.actor_damage);										
 							}
@@ -904,45 +938,45 @@ Window_BattleBasic.prototype.update = function() {
 								_this._actorBarrier.style.display = "block";
 								setTimeout(function(){ _this._actorBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());	
 
-								var se = {};
+								/*var se = {};
 								se.name = 'SRWShield';
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
-								AudioManager.playSe(se);		
+								AudioManager.playSe(se);	*/	
 							}
 							if(nextAnimation.special.actor_support_barrier){
 								_this._actorSupportBarrier.style.display = "block";
 								setTimeout(function(){ _this._actorSupportBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());	
 								
-								var se = {};
+								/*var se = {};
 								se.name = 'SRWShield';
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
-								AudioManager.playSe(se);	
+								AudioManager.playSe(se);	*/
 							}
 							if(nextAnimation.special.enemy_barrier){
 								_this._enemyBarrier.style.display = "block";
 								setTimeout(function(){ _this._enemyBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());		
 								
-								var se = {};
+								/*var se = {};
 								se.name = 'SRWShield';
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
-								AudioManager.playSe(se);
+								AudioManager.playSe(se);*/
 							}
 							if(nextAnimation.special.enemy_support_barrier){
 								_this._enemySupportBarrier.style.display = "block";
 								setTimeout(function(){ _this._enemySupportBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());
 
-								var se = {};
+								/*var se = {};
 								se.name = 'SRWShield';
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
-								AudioManager.playSe(se);	
+								AudioManager.playSe(se);	*/
 							}
 						}
 					}
