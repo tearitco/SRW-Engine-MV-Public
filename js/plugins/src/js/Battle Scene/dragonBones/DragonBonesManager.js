@@ -6,7 +6,7 @@ export default function DragonBonesManager(path, renderer) {
 	//_this._background = new PIXI.Sprite(PIXI.Texture.EMPTY);
 	_this._resources = [];
 	_this._renderer.backgroundColor = 0x666666;
-	_this._resources.push(DragonBonesManager.BACKGROUND_URL);
+	//_this._resources.push(DragonBonesManager.BACKGROUND_URL);
 	document.body.appendChild(_this._renderer.view);
 	//
 	_this._resources.push(
@@ -86,7 +86,7 @@ Object.defineProperty(DragonBonesManager.prototype, "stageHeight", {
 	enumerable: true,
 	configurable: true
 });
-DragonBonesManager.BACKGROUND_URL = "resource/background.png";
+//DragonBonesManager.BACKGROUND_URL = "resource/background.png";
    // return DragonBonesManager;
 DragonBonesManager.prototype._onStart = function () {
 	var factory = dragonBones.PixiFactory.factory;
