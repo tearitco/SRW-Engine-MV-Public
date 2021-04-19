@@ -6196,6 +6196,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 				dCache.damageTaken = damage;
 				if(this._attacker.params.targetEndHP <= 0){
 					dCache.isDestroyed = true;
+					dCache.destroyer = aCache.ref;
 				}
 			} else {
 				aCache.damageInflicted = 0;
