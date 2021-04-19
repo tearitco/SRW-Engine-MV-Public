@@ -1807,6 +1807,15 @@ StatCalc.prototype.getBattleSceneInfo = function(actor){
 		
 		result.useSpriter = parseInt(mechProperties.mechBattleSceneUseSpriter);
 		
+		result.usedragonbones = parseInt(mechProperties.mechBattleSceneUseDragonBones);
+		result.dragonbonesWorldSize = parseInt(mechProperties.mechBattleSceneDragonBonesSize || 5);
+		var width = parseInt(mechProperties.mechBattleSceneCanvasWidth || 0);
+		var height = parseInt(mechProperties.mechBattleSceneCanvasHeight || 0);
+		if(width && height){
+			result.canvasDims = {width: width, height: height};
+		}
+		
+		
 		result.battleSceneShadowInfo = {
 			size: 1,
 			offsetZ: 0,
@@ -1853,6 +1862,8 @@ StatCalc.prototype.getBattleSceneSpriteType = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		if(this.getBattleSceneInfo(actor).useSpriter){
 			return "spriter";
+		} else if(this.getBattleSceneInfo(actor).usedragonbones){
+			return "dragonbones";
 		} else {
 			return "default";
 		}
