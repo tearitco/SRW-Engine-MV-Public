@@ -1,5 +1,7 @@
 //Derived from the JS API for Spriter demo
 
+SpriterManager.defCache = {};
+
 export default function SpriterManager(){
 	this._spriter_data = null;
 	this._spriter_pose = null;
@@ -57,8 +59,10 @@ SpriterManager.prototype.startAnimation = function(animationContext, path, animK
 
 SpriterManager.prototype.updateAnimation = function(animKey, animKeyOut){	
 	this._anim_key = animKey;
-	this._spriter_pose.setAnim(animKey);
-	this._spriter_pose.setAnimOut(animKeyOut);
+	if(this._spriter_pose){
+		this._spriter_pose.setAnim(animKey);
+		this._spriter_pose.setAnimOut(animKeyOut);
+	}	
 }
 
 SpriterManager.prototype.loadDefFile = function(){
@@ -96,9 +100,15 @@ SpriterManager.prototype.loadDefFile = function(){
 				json_text = json_text.replace(/"@(.*)":/g, "\"$1\":");
 				var json = JSON.parse(json_text);
 				var spriter_json = json.spriter_data;
-				_this._spriter_data = new spriter.Data().load(spriter_json);
+				if(!SpriterManager.defCache[file_spriter_url]){
+					SpriterManager.defCache[file_spriter_url] = new spriter.Data().load(spriter_json);
+				}
+				_this._spriter_data = SpriterManager.defCache[file_spriter_url];
 			} else {
-				_this._spriter_data = new spriter.Data().load(JSON.parse(text));
+				if(!SpriterManager.defCache[file_spriter_url]){
+					SpriterManager.defCache[file_spriter_url] = new spriter.Data().load(JSON.parse(text));
+				}
+				_this._spriter_data = SpriterManager.defCache[file_spriter_url];
 			}
 
 			_this._spriter_pose = new spriter.Pose(_this._spriter_data);
@@ -172,7 +182,7 @@ SpriterManager.prototype.loadDefFile = function(){
 					folder.file_array.forEach(function(file) {
 						switch (file.type) {
 							case 'sound':
-								if (player_web.ctx) {
+								/*if (player_web.ctx) {
 									counter_inc();
 									loadSound(file_path + file.name, (function(file) {
 										return function(err, buffer) {
@@ -190,7 +200,7 @@ SpriterManager.prototype.loadDefFile = function(){
 									})(file));
 								} else {
 									console.log("TODO: load", file.type, file.name);
-								}
+								}*/
 								break;
 						}
 					});

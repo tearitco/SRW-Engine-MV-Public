@@ -234,7 +234,37 @@ SRWEditor.prototype.init = function(){
 			hasTarget: true,
 			params: [],
 			desc: "Remove a background."
+		},
+		create_dragonbones_bg: {
+			hasTarget: true,
+			params: ["path", "armatureName", "animName", "parent", "position", "size", "canvasWidth", "canvasHeight"],
+			desc: "Create a new background with a Dragonbones animation running on it."
+		},		
+		remove_dragonbones_bg: {
+			hasTarget: true,
+			params: [],
+			desc: "Remove dragonbones background."
 		},	
+		set_dragonbones_bg_anim: {
+			hasTarget: true,
+			params: ["animName"],
+			desc: "Set dragonbones background animation."
+		},
+		create_spriter_bg: {
+			hasTarget: true,
+			params: ["path",  "animName", "parent", "position"],
+			desc: "Create a new background with a Spriter animation running on it."
+		},		
+		remove_spriter_bg: {
+			hasTarget: true,
+			params: [],
+			desc: "Remove Spriter background."
+		},	
+		set_spriter_bg_anim: {
+			hasTarget: true,
+			params: ["animName"],
+			desc: "Set Spriter background animation."
+		},		
 		create_layer: {
 			hasTarget: true,
 			params: ["path", "isBackground", "frameSize", "lineCount", "columnCount", "animationFrames", "animationLoop", "animationDelay"],
@@ -393,6 +423,10 @@ SRWEditor.prototype.init = function(){
 		y_fraction: "A screen space position defined by a percentage of the height of the screen.",
 		shockwave_intensity: "The intensity of the shockwave effect.",
 		position: "A position defined by an x, y and z coordinate.",
+		armatureName: "The name of Armature that will be shown", 
+		animName: "The name of the animation that will be shown",
+		canvasWidth: "The width of the rendering surface for the external renderer", 
+		canvasHeight: "The height of the rendering surface for the external renderer",
 		parent: "The id of the object that will be the parent of this object.",
 		rotation: "A rotation defined by an x, y and z component. The rotations are described with radian values.",
 		relative: "If 1 the animation positions will be relative to the target's current position. The specified start position will be ignored!",
@@ -453,6 +487,18 @@ SRWEditor.prototype.init = function(){
 			
 		},
 		shockwave_intensity: function(value){
+			
+		},
+		armatureName: function(value){
+			
+		}, 
+		animName: function(value){
+			
+		},
+		canvasWidth: function(value){
+			
+		}, 
+		canvasHeight: function(value){
 			
 		},
 		position: function(value){
