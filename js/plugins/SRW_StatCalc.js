@@ -4032,7 +4032,7 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 	function accumulateFromAbilityList(abilityList, abilityManager){
 		if(abilityList && abilityManager){			
 			abilityList.forEach(function(abilityDef){
-				if(abilityDef && !excludedSkills[abilityDef.idx] && (typeof abilityDef.requiredLevel == "undefined" || abilityDef.requiredLevel == 0 || _this.getCurrentLevel(actor) >= abilityDef.requiredLevel) && abilityManager.isActive(actor, abilityDef.idx, abilityDef.level)){
+				if(abilityDef && !excludedSkills[abilityManager.getIdPrefix()+"_"+abilityDef.idx] && (typeof abilityDef.requiredLevel == "undefined" || abilityDef.requiredLevel == 0 || _this.getCurrentLevel(actor) >= abilityDef.requiredLevel) && abilityManager.isActive(actor, abilityDef.idx, abilityDef.level)){
 					var statMods = abilityManager.getStatmod(actor, abilityDef.idx, abilityDef.level);
 					var targetList;			
 					statMods.forEach(function(statMod){

@@ -116,11 +116,16 @@ $SRWConfig.pilotAbilties = function(){
 			if(armorMod < 0){
 				armorMod = 0;
 			}
+			var ownId = $pilotAbilityManager.getIdPrefix()+"_"+4;
+			var excludedSkills = {};
+			excludedSkills[ownId] = true;
+			var prevailBoost = 1 + ($statCalc.applyStatModsToValue(actor, 0, ["prevail_boost"], excludedSkills) / 100);
+			
 			return [
-				{type: "hit", modType: "addFlat", value: hitEvadeMod * 100},
-				{type: "evade", modType: "addFlat", value: hitEvadeMod * 100},
-				{type: "armor", modType: "addPercent", value: armorMod},
-				{type: "crit", modType: "addFlat", value: critMod * 100},
+				{type: "hit", modType: "addFlat", value: hitEvadeMod * prevailBoost * 100},
+				{type: "evade", modType: "addFlat", value: hitEvadeMod * prevailBoost * 100},
+				{type: "armor", modType: "addPercent", value: armorMod * prevailBoost},
+				{type: "crit", modType: "addFlat", value: critMod * prevailBoost * 100},
 			];
 		},
 		function(actor, level){
@@ -1456,6 +1461,69 @@ $SRWConfig.pilotAbilties = function(){
 				}
 			} 
 			return false;			
+		},
+		[0],
+		4,
+	);
+	
+	this.addDefinition(
+		75, 
+		"Executioner", 
+		"+50% Hit and Crit rate against enemies below 50% HP.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "hit", modType: "addFlat", value: 50},
+				{type: "crit", modType: "addFlat", value: 50},
+			];
+		},
+		function(actor, level){
+			var combatInfo = $statCalc.getActiveCombatInfo(actor);
+			if(combatInfo){									
+				var mechStats = $statCalc.getCalculatedMechStats(combatInfo.other);
+				if(mechStats.currentHP < mechStats.maxHP / 2){
+					return true;
+				}					
+			} 
+			return false;			
+		},
+		[0],
+		4,
+	);
+	
+	this.addDefinition(
+		76, 
+		"Brazen Spirit", 
+		"Prevail bonuses 50% more effective. Unit takes 20% more damage.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "final_defend", modType: "addFlat", value: 0.8},
+				{type: "prevail_boost", modType: "addFlat", value: 50},
+			];
+		},
+		function(actor, level){
+			return true;		
+		},
+		[0],
+		4,
+	);
+	
+	this.addDefinition(
+		77, 
+		"Supreme Accuracy", 
+		"Hit rate can exceed 100%. Excess hit rate increases damage.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "hit_cap_break", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;		
 		},
 		[0],
 		4,

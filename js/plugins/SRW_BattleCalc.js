@@ -122,9 +122,7 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		if(!ignoreAlert && $statCalc.getActiveSpirits(defenderInfo.actor).alert){
 			return 0;
 		}
-		if($statCalc.getActiveSpirits(attackerInfo.actor).strike){
-			return 1;
-		}						
+								
 		var attackerPilotStats = $statCalc.getCalculatedPilotStats(attackerInfo.actor);
 		var attackerMechStats = $statCalc.getCalculatedMechStats(attackerInfo.actor);
 		var accuracy = attackerMechStats.accuracy;
@@ -209,9 +207,18 @@ BattleCalc.prototype.performHitCalculation = function(attackerInfo, defenderInfo
 		if(finalHit < 0){
 			finalHit = 0;
 		}
-		if(finalHit > 1){
-			finalHit = 1;
+		if(!$statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["hit_cap_break"])){
+			if(finalHit > 1){
+				finalHit = 1;
+			}
 		}
+		
+		if($statCalc.getActiveSpirits(attackerInfo.actor).strike){
+			if(finalHit < 1){
+				return 1;
+			}			
+		}
+		
 		result = finalHit;
 	}
 	return result;
@@ -337,7 +344,17 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		}				
 		
 		
-		finalDamage = $statCalc.applyStatModsToValue(attackerInfo.actor, finalDamage, ["final_damage"]);			
+		finalDamage = $statCalc.applyStatModsToValue(attackerInfo.actor, finalDamage, ["final_damage"]);	
+
+		if($statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["hit_cap_break"])){
+			var targetInfo = $gameTemp.battleTargetInfo[attackerInfo.actor._cacheReference];
+			if(!targetInfo){
+				targetInfo = $gameTemp.battleTargetInfo[attackerInfo.actor._supportCacheReference];
+			}
+			if(targetInfo && targetInfo.hitRate > 1){
+				finalDamage*=targetInfo.hitRate;
+			}
+		}	
 		
 		finalDamage = $statCalc.applyStatModsToValue(defenderInfo.actor, finalDamage, ["final_defend"]);
 		
@@ -904,10 +921,12 @@ BattleCalc.prototype.generateBattleResult = function(){
 	
 	BattleAction.prototype.determineTargetInfo = function(){
 		var finalTarget = this._defender;
-		var isHit = Math.random() < _this.performHitCalculation(
+		var hitRate = _this.performHitCalculation(
 			this._attacker,
 			this._defender		
-		);
+		);		
+		
+		var isHit = Math.random() < hitRate;
 		var specialEvasion = null;
 		if(isHit){		
 			var weaponref = this._attacker.action.attack; 
@@ -949,7 +968,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 			isHit: isHit,
 			target: finalTarget,
 			initiator: this._attacker,
-			specialEvasion: specialEvasion
+			specialEvasion: specialEvasion,
+			hitRate: hitRate
 		}
 	}
 	
