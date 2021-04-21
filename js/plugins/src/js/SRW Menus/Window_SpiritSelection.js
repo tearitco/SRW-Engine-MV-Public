@@ -284,11 +284,13 @@ Window_SpiritSelection.prototype.redraw = function() {
 	for(var i = 0; i < this._maxSelection; i++){
 		var displayName = "---";
 		var isDisplayed = false;
+		var targetType;
 		if(i != 0 && i % this._selectionRowSize == 0){
 			content+="</div>"
 			content+="<div class='section_column'>";
 		}
 		if(typeof spiritList[i] != "undefined" && spiritList[i].level <= currentLevel){
+			targetType = $spiritManager.getSpiritDef(spiritList[i].idx).targetType;
 			var displayInfo = $spiritManager.getSpiritDisplayInfo(spiritList[i].idx);
 			displayName = "<div class='scaled_width spirit_label fitted_text'>"+displayInfo.name+"</div>("+spiritList[i].cost+")" ;
 			isDisplayed = true;
@@ -302,7 +304,7 @@ Window_SpiritSelection.prototype.redraw = function() {
 			displayClass = "insufficient";
 		}		
 		
-		var targetType = $spiritManager.getSpiritDef(spiritList[i].idx).targetType;
+		
 		
 		var isBatched = false;
 		if(this._currentBatchInfo[_this._currentActor]){ 

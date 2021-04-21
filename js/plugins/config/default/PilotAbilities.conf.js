@@ -1528,4 +1528,20 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		4,
 	);
+	
+	this.addDefinition(
+		78, 
+		"Summon Illusion",
+		"Summon a ghostly copy of an enemy to fight on your side.",
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "ability_command", cmdId: 1},				
+			];
+		},
+		function(actor, level){
+			return true;		
+		}
+	);	
 }

@@ -347,12 +347,14 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		finalDamage = $statCalc.applyStatModsToValue(attackerInfo.actor, finalDamage, ["final_damage"]);	
 
 		if($statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["hit_cap_break"])){
-			var targetInfo = $gameTemp.battleTargetInfo[attackerInfo.actor._cacheReference];
-			if(!targetInfo){
-				targetInfo = $gameTemp.battleTargetInfo[attackerInfo.actor._supportCacheReference];
-			}
-			if(targetInfo && targetInfo.hitRate > 1){
-				finalDamage*=targetInfo.hitRate;
+			if($gameTemp.battleTargetInfo){			
+				var targetInfo = $gameTemp.battleTargetInfo[attackerInfo.actor._cacheReference];
+				if(!targetInfo){
+					targetInfo = $gameTemp.battleTargetInfo[attackerInfo.actor._supportCacheReference];
+				}
+				if(targetInfo && targetInfo.hitRate > 1){
+					finalDamage*=targetInfo.hitRate;
+				}
 			}
 		}	
 		

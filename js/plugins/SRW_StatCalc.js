@@ -3542,6 +3542,16 @@ StatCalc.prototype.addExp = function(actor, amount){
 	}		
 }
 
+StatCalc.prototype.setHP = function(actor, amount){		
+	if(this.isActorSRWInitialized(actor)){			
+		var mechStats = this.getCalculatedMechStats(actor);
+		mechStats.currentHP=amount;
+		if(mechStats.currentHP > mechStats.maxHP){
+			mechStats.currentHP = mechStats.maxHP;
+		}
+	} 	
+}
+
 StatCalc.prototype.recoverHP = function(actor, amount){		
 	if(this.isActorSRWInitialized(actor)){			
 		var mechStats = this.getCalculatedMechStats(actor);

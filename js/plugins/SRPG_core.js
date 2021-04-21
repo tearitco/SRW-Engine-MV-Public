@@ -9966,6 +9966,7 @@ SceneManager.reloadCharacters = function(startEvent){
             }
             if ($gameSystem.isSubBattlePhase() === 'actor_move') {
                 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
+					$statCalc.invalidateAbilityCache();
                     SoundManager.playCancel();
 					$gameTemp.isPostMove = false;
 					$gameTemp.activeEvent().locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);
