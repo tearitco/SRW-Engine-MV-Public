@@ -684,7 +684,7 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 			pivothelper.position.y+=spriteConfig.referenceSize / 2;			
 		} else if(spriteConfig.type == "dragonbones"){
 			spriteInfo = _this.createDragonBonesSprite(name+"_displayed", path, spriteConfig.armatureName, new BABYLON.Vector3(0, spriteConfig.yOffset, 0), flipX, spriteConfig.dragonbonesWorldSize, spriteConfig.canvasDims);
-			pivothelper.position.y+=spriteConfig.referenceSize / 2;			
+			pivothelper.position.y+=spriteConfig.referenceSize / 2 - spriteConfig.yOffset;			
 		}	
 			
 		pivothelper.parent = spriteInfo.sprite;
