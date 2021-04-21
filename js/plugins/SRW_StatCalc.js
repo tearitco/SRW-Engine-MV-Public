@@ -894,6 +894,9 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		actorId = parseInt(actor.enemyId());
 		actorProperties = $dataEnemies[actorId].meta;
 	}
+	
+	actor.SRWStats.pilot.grantsGainsTo = actorProperties.pilotGrantsGainsTo;
+	
 	actor.SRWStats.pilot.id = actorId;
 	actor.SRWStats.pilot.name = actor.name();
 	actor.SRWStats.pilot.expYield = parseInt(actorProperties.pilotExpYield);
@@ -1579,11 +1582,9 @@ StatCalc.prototype.applyStoredActorData = function(actor, dbAbilities, dbRelatio
 		actor.SRWStats.pilot.PP = storedData.PP;
 		actor.SRWStats.pilot.exp = storedData.exp;
 		actor.SRWStats.pilot.kills = storedData.kills;
-		actor.SRWStats.pilot.stats.upgrades = storedData.pilotUpgrades;	
-
-			
+		actor.SRWStats.pilot.stats.upgrades = storedData.pilotUpgrades;			
 		
-		var storedAbilities = storedData.abilities || {};
+		var storedAbilities = $SRWSaveManager.getActorData(actor.actorId()).abilities || {};
 		var usedSlots = {};
 		Object.keys(storedAbilities).forEach(function(abilityIdx){
 			var slot = storedAbilities[abilityIdx].slot;
@@ -1635,7 +1636,7 @@ StatCalc.prototype.getStoredMechData = function(mechId){
 }
 
 StatCalc.prototype.storeActorData = function(actor){
-	if(actor.isActor()){
+	if(actor.isActor()){		
 		$SRWSaveManager.storeActorData(actor.actorId(), {
 			pilotUpgrades: actor.SRWStats.pilot.stats.upgrades,			
 			PP: actor.SRWStats.pilot.PP,
@@ -3492,8 +3493,11 @@ StatCalc.prototype.getExp = function(actor){
 }
 
 StatCalc.prototype.addExp = function(actor, amount){	
-	var _this = this;
+	var _this = this;	
 	if(this.isActorSRWInitialized(actor)){
+		if(actor.SRWStats.pilot.grantsGainsTo){
+			actor = $gameActors.actor(actor.SRWStats.pilot.grantsGainsTo);
+		}
 		var oldStats = JSON.parse(JSON.stringify(this.getCalculatedPilotStats(actor)));
 		var oldLevel = this.getCurrentLevel(actor);
 		actor.SRWStats.pilot.exp+=amount;
@@ -3613,8 +3617,11 @@ StatCalc.prototype.canRecoverHP = function(actor){
 
 
 StatCalc.prototype.addPP = function(actor, amount){		
-	if(this.isActorSRWInitialized(actor)){			
-		actor.SRWStats.pilot.PP+=amount;
+	if(this.isActorSRWInitialized(actor)){	
+		if(actor.SRWStats.pilot.grantsGainsTo){
+			actor = $gameActors.actor(actor.SRWStats.pilot.grantsGainsTo);
+		}
+		actor.SRWStats.pilot.PP+=amount;		
 		this.storeActorData(actor);
 	} 	
 }
@@ -3626,7 +3633,10 @@ StatCalc.prototype.subtractPP = function(actor, amount){
 }
 
 StatCalc.prototype.addKill = function(actor){		
-	if(this.isActorSRWInitialized(actor)){			
+	if(this.isActorSRWInitialized(actor)){	
+		if(actor.SRWStats.pilot.grantsGainsTo){
+			actor = $gameActors.actor(actor.SRWStats.pilot.grantsGainsTo);
+		}
 		actor.SRWStats.pilot.kills++;
 		this.storeActorData(actor);
 	} 	

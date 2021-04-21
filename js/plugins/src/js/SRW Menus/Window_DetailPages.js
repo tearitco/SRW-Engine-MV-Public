@@ -368,7 +368,7 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	detailContent+="<div class='stat_label'>Next-Lv</div>";
 	var currentExp = $statCalc.getExp(actor);
 	
-	detailContent+="<div class='stat_value'>"+(currentExp - (currentLevel * 500))+"</div>";
+	detailContent+="<div class='stat_value'>"+(500 - (currentExp - (currentLevel * 500)))+"</div>";
 	detailContent+="</div>";
 	detailContent+="</div>";
 	

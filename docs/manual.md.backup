@@ -153,6 +153,8 @@ The rest of the pilot properties are set using metadata tags in the note field. 
 \<pilotExpYield:50\>The exp yield listed here is the exp gained if the enemy defeated and the actor were at the same level. When the level is different the exp gain gets scaled accordingly.<br>
 \<pilotPPYield:10\><br>
 
+\<pilotGrantsGainsTo:1\> If specified all exp, kills and PP gained by this pilot will be added to the pilot with the specified id instead.<br>
+
 #### Stat growth rates
 
 
@@ -500,6 +502,7 @@ The definitions for the Bird and Lander take a slot from the combined Type 3 and
 
 
 
+
 In addition to being used to rearrange pilots as needed the Deploy Action definitions are also used to check whether a unit is valid to deploy. For sources that are of the "direct" type a check is performed to see if the specified pilot is in the right place. For sources that are indirect("main" or "sub" type), a check is performed to see if any pilot is available in the target slot for that entry.
 
 ##### Automatically rearranging pilots
@@ -838,6 +841,7 @@ Mechs have a special ability called a Full Upgrade Bonus which is unlocked when 
 
 [A list of default Mech Abilities is available here.](default_mech_abilities.md)
 
+
 The format of a Mech Ability definition is as follows:
 
 ```javascript
@@ -946,6 +950,7 @@ The abilities that grant use of Ability Commands use the special "ability\_comma
 ```javascript
 	this.addDefinition(
 		37, 
+
 		"Chalice",
 		"Recover HP and EN to full up to twice per stage.",
 		false,
