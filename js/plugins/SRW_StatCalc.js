@@ -960,6 +960,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		var previousFlightState;
 		var previousCombineInfo;
 		var previousBoarded;
+		var customStats;
 		
 		if(preserveVolatile){
 			if(actor.SRWStats.mech && actor.SRWStats.mech.stats){
@@ -970,6 +971,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 				previousFlightState = actor.SRWStats.mech.isFlying;
 				previousCombineInfo = actor.SRWStats.mech.combineInfo;
 				previousBoarded = actor.SRWStats.mech.unitsOnBoard;
+				customStats = actor.SRWStats.mech.stats.custom;
 			}			
 		}
 		actor.SRWStats.mech = this.getMechData(mech, isForActor, items, previousWeapons);
@@ -987,6 +989,11 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			if(previousStats){
 				actor.SRWStats.mech.stats.calculated.currentHP = previousStats.currentHP;
 				actor.SRWStats.mech.stats.calculated.currentEN = previousStats.currentEN;
+			}
+			if(customStats){
+				Object.keys(customStats).forEach(function(stat){
+					actor.SRWStats.mech.stats.calculated[stat] = customStats[stat];
+				});
 			}
 			if(previousFlightState){
 				actor.SRWStats.mech.isFlying = previousFlightState;
@@ -2036,13 +2043,25 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatil
 		
 		calculatedStats.move = $statCalc.applyStatModsToValue(mechData, calculatedStats.move, "base_move");
 		
+		
 		if(!preserveVolatile){
 			calculatedStats.currentHP = calculatedStats.maxHP;
 			calculatedStats.currentEN = calculatedStats.maxEN;
-		}	
-	
+		}		
 	} else {
 		console.log("Attempted to calculate stats for an undefined mech, please check your unlocks!");
+	}
+}
+
+StatCalc.prototype.setCustomMechStats = function(actor, stats){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.mech.stats.custom = stats;
+		Object.keys(stats).forEach(function(stat){
+			actor.SRWStats.mech.stats.calculated[stat] = stats[stat];
+			if(stat == "maxHP"){
+				actor.SRWStats.mech.stats.calculated["currentHP"] = stats[stat];
+			}
+		});
 	}
 }
 

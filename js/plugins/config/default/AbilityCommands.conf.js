@@ -43,9 +43,10 @@ $SRWConfig.abilityCommands = function(){
 			var mechClass = classes[Math.floor(Math.random() * classes.length)];
 			if(mechClass != null){
 				actor_unit._mechClass = mechClass;
-			}
+			}			
 			
-			$statCalc.initSRWStats(actor_unit, actor.SRWStats.pilot.level);
+			$statCalc.initSRWStats(actor_unit, actor.SRWStats.pilot.level);			
+			
 			
 			var mechStats = $statCalc.getCalculatedMechStats(actor_unit);
 			if(mechStats.currentHP > 5000){
@@ -53,7 +54,8 @@ $SRWConfig.abilityCommands = function(){
 			}
 			if(actor_unit && event){
 				event.setType("actor");
-				$gameSystem.deployActor(actor_unit, event, false);
+				$gameSystem.deployActor(actor_unit, event, false);		
+				$statCalc.setCustomMechStats(actor_unit, {maxHP: 10000, armor: 500, mobility: 130});				
 			}
 			
 			event.appear();
