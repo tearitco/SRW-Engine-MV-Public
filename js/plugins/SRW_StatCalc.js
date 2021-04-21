@@ -465,7 +465,8 @@ StatCalc.prototype.resetStageTemp = function(actor){
 			nonMapAttackCounter: 1,
 			isBoarded: false,
 			isAI: false,
-			isEssential: false
+			isEssential: false,
+			additionalActions: 0
 		};
 		this.resetStatus(actor);
 	}
@@ -642,6 +643,22 @@ StatCalc.prototype.setRevealed = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		actor.SRWStats.stageTemp.isRevealed = true;
 	} 
+}
+
+StatCalc.prototype.addAdditionalAction = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		actor.SRWStats.stageTemp.additionalActions++;
+	} 
+}
+
+StatCalc.prototype.consumeAdditionalAction = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		if(actor.SRWStats.stageTemp.additionalActions){
+			actor.SRWStats.stageTemp.additionalActions--;
+			return true;
+		}		
+	} 	
+	return false;	
 }
 
 StatCalc.prototype.getCurrentMaxHPDisplay = function(actor){
@@ -4627,19 +4644,20 @@ StatCalc.prototype.isInCombat = function(actor){
 	return $gameTemp.currentBattleActor == actor || $gameTemp.currentBattleEnemy == actor;
 }
 
-StatCalc.prototype.getActiveCombatInfo = function(actor){
-	if(actor == $gameTemp.currentBattleActor){
-		return {
-			self: actor,
-			other: $gameTemp.currentBattleEnemy
+StatCalc.prototype.getActiveCombatInfo = function(actor){	
+	if($gameTemp.battleTargetInfo){
+		var targetInfo = $gameTemp.battleTargetInfo[actor._cacheReference];
+		if(!targetInfo){
+			 targetInfo = $gameTemp.battleTargetInfo[actor._supportCacheReference];
 		}
-	} 
-	if(actor == $gameTemp.currentBattleEnemy){
-		return {
-			self: actor,
-			other: $gameTemp.currentBattleActor
+		if(targetInfo){
+			return {
+				self: targetInfo.initiator.actor,
+				other: targetInfo.target.actor,
+				self_action: targetInfo.initiator.action
+			}
 		}
-	}
+	}	
 	return null;
 }
 

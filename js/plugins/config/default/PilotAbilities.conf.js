@@ -1345,4 +1345,119 @@ $SRWConfig.pilotAbilties = function(){
 		[0],
 		4
 	);	
+	
+	this.addDefinition(
+		70, 
+		"Dominance", 
+		"Damage against enemies with less Will +10%.", 
+		false,
+		false,
+		function(actor, level){
+			return [{type: "final_damage", modType: "mult", value: 1.1}];
+		},
+		function(actor, level){
+			var combatInfo = $statCalc.getActiveCombatInfo(actor);
+			if(combatInfo){
+				return $statCalc.getCurrentWill(combatInfo.self) > $statCalc.getCurrentWill(combatInfo.other);
+			} else {
+				return false;
+			}
+		},
+		[0],
+		4
+	);	
+	
+	this.addDefinition(
+		71, 
+		"Soul Absorption", 
+		"Unit heals 100% of damage dealt.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "hp_drain", modType: "addFlat", value: 1}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4,
+	);
+	
+	this.addDefinition(
+		72, 
+		"Survival Instincts", 
+		"Gain an extra action after taking 15000 or more damage in one hit.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "extra_action_on_damage", modType: "addFlat", value: 15000}
+			];
+		},
+		function(actor, level){
+			return true;
+		},
+		[0],
+		4,
+	);
+	
+	this.addDefinition(
+		73, 
+		"Aim for the Heart", 
+		"Ranged attacks against enemies not at full HP do 80% more damage.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "final_damage", modType: "mult", value: 1.8}
+			];
+		},
+		function(actor, level){
+			var combatInfo = $statCalc.getActiveCombatInfo(actor);
+			if(combatInfo){
+				if(combatInfo.self_action.type == "attack" && combatInfo.self_action.attack){
+					if(combatInfo.self_action.attack.type == "R"){
+						var mechStats = $statCalc.getCalculatedMechStats(combatInfo.other);
+						if(mechStats.currentHP < mechStats.maxHP){
+							return true;
+						}
+					}
+				}
+			} 
+			return false;			
+		},
+		[0],
+		4,
+	);
+	
+	this.addDefinition(
+		74, 
+		"Guillotine", 
+		"Melee attacks against enemies not at full HP do 80% more damage.", 
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "final_damage", modType: "mult", value: 1.8}
+			];
+		},
+		function(actor, level){
+			var combatInfo = $statCalc.getActiveCombatInfo(actor);
+			if(combatInfo){
+				if(combatInfo.self_action.type == "attack" && combatInfo.self_action.attack){
+					if(combatInfo.self_action.attack.type == "M"){
+						var mechStats = $statCalc.getCalculatedMechStats(combatInfo.other);
+						if(mechStats.currentHP < mechStats.maxHP){
+							return true;
+						}
+					}
+				}
+			} 
+			return false;			
+		},
+		[0],
+		4,
+	);
 }

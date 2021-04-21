@@ -4995,7 +4995,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			}
 		}
 		this._startOfDynamicEvents = this._events.length;
-		for (var i = this._startOfDynamicEvents; i < this._startOfDynamicEvents + 20; i++) {
+		for (var i = this._startOfDynamicEvents; i < this._startOfDynamicEvents + 100; i++) {
 			var event = new Game_Event(this._mapId, i);
 			event.isUnused = true;
 			this._events[i] = event;			
@@ -9801,6 +9801,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					_this._currentDeath.event.isDoingDeathAnim = true;
 				}
 				if(_this._deathTimer <= 0){
+					_this._currentDeath.event.isUnused = true;
 					//_this._currentDeath.event.erase();
 					if (_this._currentDeath.actor.isActor()) {
 						var oldValue = $gameVariables.value(_existActorVarID);
@@ -11475,6 +11476,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			$statCalc.setHasUsedContinuousAction(battler);
 		} else if($statCalc.getActiveSpirits(battler).zeal){
 			$statCalc.clearSpirit(battler, "zeal");
+		} else if($statCalc.consumeAdditionalAction(battler)){
+			//do not end turn if an action could be consumed
 		} else {
 			if (battler.SRPGActionTimes() <= 1) {
 				battler.setSrpgTurnEnd(true);

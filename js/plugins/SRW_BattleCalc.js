@@ -702,7 +702,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 	BattleAction.prototype.execute = function(orderIdx){
 		var mainAttackerCache = $gameTemp.battleEffectCache[attacker.actor._cacheReference];
 		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		var storedCacheRef = this._attacker.actor._cacheReference;
 		if(this._isSupportAttack){
+			this._attacker.actor._cacheReference = null; //remove the main attacker cache ref while calculating support results for this actor 
+			//this is a hack to circumvent issues with determining ability activation when a unit has self supporting capabilites
 			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
 		}
 		aCache.side = this._side;
@@ -728,11 +731,20 @@ BattleCalc.prototype.generateBattleResult = function(){
 			aCache.originalTarget = dCache;
 			$gameTemp.sortedBattleActorCaches.push(aCache);
 			
-			var isHit = Math.random() < _this.performHitCalculation(
+			/*var isHit = Math.random() < _this.performHitCalculation(
 				this._attacker,
 				this._defender		
-			);
-							
+			);*/
+			
+			var hitInfo;
+			if(this._isSupportAttack){
+				hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._supportCacheReference];
+			} else {
+				hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._cacheReference];
+			}			
+			var isHit = hitInfo.isHit;	
+			dCache.specialEvasion = hitInfo.specialEvasion;
+			
 			var activeDefender = this._defender;
 			var activeDefenderCache = dCache;						
 			
@@ -747,54 +759,6 @@ BattleCalc.prototype.generateBattleResult = function(){
 			};
 			var isSupportDefender = false;
 			if(isHit){
-				var specialEvadeInfo = $statCalc.getModDefinitions(this._defender.actor, ["special_evade"]);
-				var weaponType = weaponref.particleType;
-				var aSkill = $statCalc.getPilotStat(aCache.ref, "skill");
-				var dSkill = $statCalc.getPilotStat(dCache.ref, "skill");		
-				
-				var ctr = 0;
-				
-				if(!$statCalc.getActiveSpirits(this._attacker.actor).strike && !$statCalc.getActiveSpirits(this._attacker.actor).fury){
-					while(isHit && ctr < specialEvadeInfo.length){
-						var evasionType = specialEvadeInfo[ctr].subType;
-						if(evasionType == weaponType || evasionType == "all"){
-							if(specialEvadeInfo[ctr].activation == "skill"){
-								isHit = dSkill < aSkill;
-							} else if(specialEvadeInfo[ctr].activation == "random"){
-								isHit = Math.random() > specialEvadeInfo[ctr].value;
-							}
-							if(!isHit){
-								dCache.specialEvasion = specialEvadeInfo[ctr];
-							}
-						}
-						ctr++;
-					}
-				}
-				
-				/*
-				
-				if(Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["double_image_rate"])){
-					dCache.isDoubleImage = true;
-					isHit = 0;
-				}
-				
-				if(weaponref.particleType == "physical" && Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["parry_rate"])){
-					dCache.isParry = true;
-					isHit = 0;
-				}
-				
-				if(weaponref.particleType == "missile" && Math.random() < $statCalc.applyStatModsToValue(this._defender.actor, 0, ["jamming_rate"])){
-					dCache.isJamming = true;
-					isHit = 0;
-				}
-				
-				var aSkill = $statCalc.getPilotStat(aCache.ref, "skill");
-				var dSkill = $statCalc.getPilotStat(dCache.ref, "skill");				
-				if((weaponref.particleType == "funnel" || weaponref.particleType == "missile") && $statCalc.applyStatModsToValue(this._defender.actor, 0, ["shoot_down"]) && dSkill > aSkill){
-					dCache.isShootDown = true;
-					isHit = 0;
-				}*/
-				
 				if(isHit && sCache && !sCache.hasActed){
 					isHit = 1;
 					activeDefender = this._supportDefender;
@@ -887,6 +851,20 @@ BattleCalc.prototype.generateBattleResult = function(){
 				}				
 			}				
 			
+			
+			var extraActionInfo = $statCalc.getModDefinitions(this._defender.actor, ["extra_action_on_damage"]);
+			var minDamageRequired = -1;
+			
+			for(var i = 0; i < extraActionInfo.length; i++){
+				if(minDamageRequired == -1 || extraActionInfo[i].value < extraActionInfo){
+					minDamageRequired = extraActionInfo[i].value;
+				}
+			}
+			
+			if(minDamageRequired != -1 && minDamageRequired <= damageResult.damage){
+				$statCalc.addAdditionalAction(this._defender.actor);
+			}
+			
 			if(aCache.action.attack && 
 				(
 					$statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct"]) ||
@@ -920,9 +898,60 @@ BattleCalc.prototype.generateBattleResult = function(){
 		if(dCache && dCache.selfDestructed){
 			aCache.targetSelfDestructed = true;
 		}	
+		
+		this._attacker.actor._cacheReference = storedCacheRef;
 	}
 	
-	
+	BattleAction.prototype.determineTargetInfo = function(){
+		var finalTarget = this._defender;
+		var isHit = Math.random() < _this.performHitCalculation(
+			this._attacker,
+			this._defender		
+		);
+		var specialEvasion = null;
+		if(isHit){		
+			var weaponref = this._attacker.action.attack; 
+			var specialEvadeInfo = $statCalc.getModDefinitions(this._defender.actor, ["special_evade"]);
+			var weaponType = weaponref.particleType;
+			var aSkill = $statCalc.getPilotStat(this._attacker.actor, "skill");
+			var dSkill = $statCalc.getPilotStat(this._defender.actor, "skill");		
+			
+			var ctr = 0;
+			
+			if(!$statCalc.getActiveSpirits(this._attacker.actor).strike && !$statCalc.getActiveSpirits(this._attacker.actor).fury){
+				while(isHit && ctr < specialEvadeInfo.length){
+					var evasionType = specialEvadeInfo[ctr].subType;
+					if(evasionType == weaponType || evasionType == "all"){
+						if(specialEvadeInfo[ctr].activation == "skill"){
+							isHit = dSkill < aSkill;
+						} else if(specialEvadeInfo[ctr].activation == "random"){
+							isHit = Math.random() > specialEvadeInfo[ctr].value;
+						}
+						if(!isHit){
+							specialEvasion = specialEvadeInfo[ctr];
+						}
+					}
+					ctr++;
+				}
+			}
+		}
+		if(isHit && this._supportDefender && !this._supportDefender.blockedHit){
+			this._supportDefender.blockedHit = true;
+			finalTarget = this._supportDefender;
+		}
+		var cacheRef;
+		if(this._isSupportAttack){
+			cacheRef = this._attacker.actor._supportCacheReference;
+		} else {
+			cacheRef = this._attacker.actor._cacheReference;
+		}		
+		$gameTemp.battleTargetInfo[cacheRef] = {
+			isHit: isHit,
+			target: finalTarget,
+			initiator: this._attacker,
+			specialEvasion: specialEvasion
+		}
+	}
 	
 	var actions = [];
 	var defenderCounterActivates = Math.random() < $statCalc.applyStatModsToValue(defender.actor, 0, ["counter_rate"]);
@@ -953,9 +982,15 @@ BattleCalc.prototype.generateBattleResult = function(){
 		}	
 	}
 	
+	$gameTemp.battleTargetInfo = {};	
+	for(var i = 0; i < actions.length; i++){
+		actions[i].determineTargetInfo();
+	}
+	
 	
 	
 	for(var i = 0; i < actions.length; i++){
+		$statCalc.invalidateAbilityCache();
 		actions[i].execute(i);
 	}
 	
