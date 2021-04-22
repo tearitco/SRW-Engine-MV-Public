@@ -1044,7 +1044,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		});	
 	}		
 	
-	if(!actor.isSubTwin){
+	if(actor.isActor() && !actor.isSubTwin){
 		var subTwinId = this.getSubTwinId(actor);
 		var subTwinActor = $gameActors.actor(subTwinId);
 		if(subTwinActor){
@@ -4507,7 +4507,7 @@ StatCalc.prototype.getMainTwin = function(actor){
 	var candidates = this.getAllActors(type);
 	var ctr = 0;
 	while(!result && ctr < candidates.length){
-		if(candidates[ctr].subTwinId == actor.SRWStats.pilot.id){
+		if(candidates[ctr].subTwin == actor){
 			result = candidates[ctr];
 		}
 		ctr++;

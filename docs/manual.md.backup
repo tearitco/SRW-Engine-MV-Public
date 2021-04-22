@@ -155,6 +155,10 @@ The rest of the pilot properties are set using metadata tags in the note field. 
 
 \<pilotGrantsGainsTo:1\> If specified all exp, kills and PP gained by this pilot will be added to the pilot with the specified id instead.<br>
 
+
+\<pilotSubTwinOnly:1\> If specified the pilot is forced to be the sub twin when twinned with a pilot that does not have this flag set.
+\<pilotMainTwinOnly:1\> If specified the pilot is forced to be the main twin when twinned with a pilot that does not have this flag set.
+
 #### Stat growth rates
 
 
@@ -321,6 +325,7 @@ For normal stats, upgrades will increase the stat by a fixed value for each leve
 The values listed above are the default values used when the tags are not present in the mech metadata.
 
 For weapons the upgrade amount per level is defined in the Weapon definition.
+
 
 
 

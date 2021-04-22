@@ -5514,6 +5514,57 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
     return true;
 };
 
+Game_Interpreter.prototype.addSubTwinEnemy = function(eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior) {
+	var enemy_unit = new Game_Enemy(enemyId, 0, 0);
+    var event = $gameMap.event(eventId);
+	if(typeof squadId == "undefined" || squadId == ""){
+		squadId = -1;
+	}
+	if(typeof targetRegion == "undefined"|| targetRegion == ""){
+		targetRegion = -1;
+	}
+	if(typeof factionId == "undefined"|| factionId == ""){
+		factionId = 0;
+	}
+    if (enemy_unit && event) { 	
+		var mainEnemy = $gameSystem.EventToUnit(eventId)[1];
+		
+		enemy_unit._mechClass = mechClass;	
+		enemy_unit.squadId = squadId;	
+		enemy_unit.targetRegion = targetRegion;	
+		enemy_unit.factionId = factionId;	
+		enemy_unit.targetUnitId = targetId || "";
+		enemy_unit.counterBehavior = counterBehavior || "attack";
+		if (enemy_unit) {
+			
+			if (mode) {
+				enemy_unit.setBattleMode(mode);
+			}
+			enemy_unit.initTp(); //TPを初期化
+			var faceName = enemy_unit.enemy().meta.faceName; //顔グラフィックをプリロードする
+			if (faceName) {
+				var bitmap = ImageManager.loadFace(faceName);
+			} else {
+				if ($gameSystem.isSideView()) {
+					var bitmap = ImageManager.loadSvEnemy(enemy_unit.battlerName(), enemy_unit.battlerHue());
+				} else {
+					var bitmap = ImageManager.loadEnemy(enemy_unit.battlerName(), enemy_unit.battlerHue());
+				}
+			}
+			var oldValue = $gameVariables.value(_existEnemyVarID);
+			$gameVariables.setValue(_existEnemyVarID, oldValue + 1);			
+			$statCalc.initSRWStats(enemy_unit, level, items);
+			$statCalc.applyBattleStartWill(enemy_unit);
+			
+			enemy_unit.isSubTwin = true;			
+			mainEnemy.subTwin = enemy_unit;
+			mainEnemy.subTwinId = enemy_unit.enemyId();
+		}
+    }
+	$statCalc.invalidateAbilityCache();
+    return true;
+}
+
 Game_Interpreter.prototype.destroyEvents = function(startId, endId) {
 	for(var i = startId; i <= endId; i++){
 		this.destroyEvent(i);
