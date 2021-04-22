@@ -23,14 +23,6 @@ $SRWConfig.abilityCommands = function(){
 			var space = $statCalc.getAdjacentFreeSpace({x: actor.event.posX(), y: actor.event.posY()});			
 			event.locate(space.x, space.y);
 			
-			/*$gameMap._interpreter.addEnemy(
-				0,
-				event.eventId(),				
-				1,
-				10,
-				actor.SRWStats.pilot.level,
-			);*/
-			
 			var actor_unit = $gameActors.actor(14);//change this number to change the actor that is deployed
 			actor_unit._mechClass = 10;
 			
@@ -46,12 +38,6 @@ $SRWConfig.abilityCommands = function(){
 			}			
 			
 			$statCalc.initSRWStats(actor_unit, actor.SRWStats.pilot.level);			
-			
-			
-			var mechStats = $statCalc.getCalculatedMechStats(actor_unit);
-			if(mechStats.currentHP > 5000){
-				mechStats.currentHP = 5000;
-			}
 			if(actor_unit && event){
 				event.setType("actor");
 				$gameSystem.deployActor(actor_unit, event, false);		
