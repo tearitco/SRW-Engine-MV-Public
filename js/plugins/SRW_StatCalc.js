@@ -44,6 +44,33 @@ StatCalc.prototype.isActorSRWInitialized = function(actor){
 	return actor && actor.SRWInitialized;
 }
 
+StatCalc.prototype.getReferenceEvent = function(actor){
+	var event;
+	if(actor.isSubPilot && actor.mainPilot){		
+		event = actor.mainPilot.event;
+	} else if(actor.isSubTwin){
+		var mainTwin = this.getMainTwin(actor);
+		if(mainTwin){
+			event = mainTwin.event;
+		}		
+	} else {
+		event = actor.event;
+	}
+	return event;
+}
+
+StatCalc.prototype.getReferenceEventId = function(actor){
+	var id;
+	if(actor.isSubPilot && actor.mainPilot){		
+		id = "sub_"+actor.mainPilot.event.eventId();
+	} else if(actor.isSubTwin){
+		id = "twin_"+this.getMainTwin(actor).event.eventId();
+	} else {
+		id = actor.event.eventId();
+	}
+	return id;
+}
+
 StatCalc.prototype.canStandOnTile = function(actor, position){
 	if(this.isActorSRWInitialized(actor)){
 		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
@@ -130,6 +157,9 @@ StatCalc.prototype.numericToTerrain = function(terrainNumber){
 StatCalc.prototype.setCurrentTerrainFromRegionIndex = function(actor, terrainIndex){
 	if(this.isActorSRWInitialized(actor)){
 		actor.SRWStats.mech.currentTerrain = this._terrainStringLookup[terrainIndex % 8];
+		if(this.isMainTwin(actor)){
+			this.setCurrentTerrainFromRegionIndex(actor.subTwin, terrainIndex);
+		}
 	}		
 }
 
@@ -150,7 +180,9 @@ StatCalc.prototype.setCurrentTerrainModsFromTilePropertyString = function(actor,
 				en_regen: String(parts[3]).trim()*1
 			};
 		}
-		
+		if(this.isMainTwin(actor)){
+			this.setCurrentTerrainModsFromTilePropertyString(actor.subTwin, propertyString);
+		}
 	}		
 }
 
@@ -1060,9 +1092,9 @@ StatCalc.prototype.getSubTwinId = function(actor){
 	return actor.subTwinId;
 }	
 
-StatCalc.prototype.isTwinMain = function(actor){
+StatCalc.prototype.isMainTwin = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return actor.subTwin != null;
+		return !actor.isSubTwin;
 	} else {
 		return false;
 	}
@@ -1365,7 +1397,7 @@ StatCalc.prototype.getSubPilots = function(actor){
 
 StatCalc.prototype.swap = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		if(this.isTwinMain(actor)){	
+		if(this.isMainTwin(actor)){	
 			
 			var twin = actor.subTwin;
 			
@@ -1396,7 +1428,7 @@ StatCalc.prototype.swap = function(actor){
 
 StatCalc.prototype.separate = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		if(this.isTwinMain(actor)){		
+		if(this.isMainTwin(actor)){		
 			var twin = actor.subTwin;
 			actor.subTwin = null;	
 			actor.subTwinId = null;
@@ -1450,7 +1482,7 @@ StatCalc.prototype.isMainTwinOnly = function(actor){
 
 StatCalc.prototype.twin = function(actor, otherActor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		if(!this.isTwinMain(actor) && !this.isTwinMain(otherActor)){
+		if(!this.isMainTwin(actor) && !this.isMainTwin(otherActor)){
 			
 			if(!this.isTwinSlotConflict(actor, otherActor) && (this.isSubTwinOnly(actor) || this.isMainTwinOnly(otherActor))){
 				var tmp = otherActor;
@@ -1478,7 +1510,7 @@ StatCalc.prototype.twin = function(actor, otherActor){
 }
 
 StatCalc.prototype.validateTwinTarget = function(actor){
-	if(this.isTwinMain(actor)){
+	if(this.isMainTwin(actor)){
 		return false;
 	}
 	if(this.getCurrentWill(actor) < 110){
@@ -1490,6 +1522,10 @@ StatCalc.prototype.validateTwinTarget = function(actor){
 	return true;
 }
 
+StatCalc.prototype.isTwinMismatch = function(actor, otherActor){
+	return this.isMainTwin(actor) != this.isMainTwin(otherActor);
+}
+
 StatCalc.prototype.isTwinSlotConflict = function(actor, otherActor){
 	return (
 		(this.isSubTwinOnly(actor) && this.isSubTwinOnly(otherActor)) || 
@@ -1498,7 +1534,7 @@ StatCalc.prototype.isTwinSlotConflict = function(actor, otherActor){
 }
 
 StatCalc.prototype.canSwap = function(actor){
-	return this.isTwinMain(actor) && 
+	return this.isMainTwin(actor) && 
 	(
 		this.isTwinSlotConflict(actor, actor.subTwin) || 
 		(!$statCalc.isMainTwinOnly(actor) && !$statCalc.isSubTwinOnly(actor.subTwin))
@@ -2761,7 +2797,7 @@ StatCalc.prototype.getCurrentWill = function(actor){
 StatCalc.prototype.getCurrentMoveRange = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		var totalMove = actor.SRWStats.mech.stats.calculated.move;
-		if(this.isTwinMain(actor)){
+		if(this.isMainTwin(actor)){
 			totalMove+=this.getCurrentMoveRange(actor.subTwin);
 			totalMove = Math.floor(totalMove/2);
 		}
@@ -3156,12 +3192,15 @@ StatCalc.prototype.getFullWeaponRange = function(actor, postMoveEnabledOnly){
 	return {range: currentRange, minRange: currentMinRange};
 }
 
+
+
 StatCalc.prototype.isReachable = function(target, user, range, minRange){
 	var _this = this;	
 	var hasEmptyTiles = false;
 	var userIsInRange = false;
 	var offsetX = target.event.posX();
 	var offsetY = target.event.posY();
+	var refEvent = _this.getReferenceEvent(user);
 	for(var i = 0; i < $gameMap.width(); i++){
 		for(var j = 0; j < $gameMap.height(); j++){
 			var deltaX = Math.abs(offsetX - i);
@@ -3170,7 +3209,8 @@ StatCalc.prototype.isReachable = function(target, user, range, minRange){
 			if(totalDelta <= range && totalDelta >= minRange){
 				var unit = this.activeUnitAtPosition({x: i, y: j});
 				if(unit){
-					if(unit.event.eventId() == user.event.eventId()){
+					
+					if(unit.event.eventId() == refEvent.eventId()){
 						userIsInRange = true;
 					}
 				} else {
@@ -4518,14 +4558,14 @@ StatCalc.prototype.getMainTwin = function(actor){
 StatCalc.prototype.getActorStatMods = function(actor, excludedSkills){
 	var abilityLookup = this.createActiveAbilityLookup(excludedSkills);
 	var statMods;// = this.getActiveStatMods(actor, excludedSkills);
-	var event;
-	if(actor.isSubPilot && actor.mainPilot){		
+	var event = this.getReferenceEvent(actor);
+	/*if(actor.isSubPilot && actor.mainPilot){		
 		event = actor.mainPilot.event;
 	} else if(actor.isSubTwin){
 		event = this.getMainTwin(actor).event;
 	} else {
 		event = actor.event;
-	}
+	}*/
 	try {
 		if(event && abilityLookup && abilityLookup[event.posX()] && abilityLookup[event.posX()][event.posY()]){
 			if($gameSystem.isEnemy(actor)){				

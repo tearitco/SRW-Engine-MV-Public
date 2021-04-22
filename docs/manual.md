@@ -1568,6 +1568,14 @@ A setting can be left blank by entering "" as its value.
 		<br>
 	This command will turn all the event ids between startId and endId into enemies with the same properties.
 
+* this.addSubTwinEnemy(mainEventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior)
+	
+	Spawn a sub twin for an already spawned enemy. Must be called after the main enemy has been added.
+
+	The parameters for this command are the same as for addEnemy, with the exception of:<br>
+		* mainEventId: the event id of the enemy for which this enemy will become the sub twin
+	
+
 * this.processEnemyAppearQueue()
 
 	Spawns all enemies that are currently in the queue with their spawn animation.<br>

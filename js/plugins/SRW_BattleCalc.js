@@ -258,7 +258,7 @@ BattleCalc.prototype.doesSupportHit = function(){
 	return Math.random() < this.getSupportFinalHit();
 }	
 
-BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderInfo, noCrit, noBarrier, isSupportDefender, isSupportAttacker){
+BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderInfo, noCrit, noBarrier, isSupportDefender, isSupportAttacker, isMismatchedTwin){
 	var result = {
 		damage: 0,
 		isCritical: false,
@@ -421,6 +421,10 @@ BattleCalc.prototype.performDamageCalculation = function(attackerInfo, defenderI
 		if(isSupportAttacker){
 			var supportAttackMod = $statCalc.applyStatModsToValue(attackerInfo.actor, 0, ["support_attack_buff"]) || 0;		
 			finalDamage = finalDamage + (finalDamage / 100 * supportAttackMod);
+		}
+		
+		if(isMismatchedTwin){
+			finalDamage*=0.65;
 		}
 		
 		if(activeDefenderSpirits.persist){
@@ -631,12 +635,12 @@ BattleCalc.prototype.prepareBattleCache = function(actionObject, type){
 		actor._cacheReference = "e_"+actor.enemyId();
 	}*/
 	var ref;
-	if(type == "initiator" || type == "defender"){
-		ref = actor.event.eventId();
+	if(type == "initiator" || type == "defender" || type == "twin attack" || type == "twin defend"){
+		ref = $statCalc.getReferenceEventId(actor);
 		actor._cacheReference = ref;
 		
 	} else {
-		ref = "support_"+actor.event.eventId();
+		ref = "support_"+$statCalc.getReferenceEventId(actor);
 		actor._supportCacheReference = ref;		
 	}	
 	$gameTemp.battleEffectCache[ref] = {
@@ -661,7 +665,9 @@ BattleCalc.prototype.generateBattleResult = function(){
 	$gameTemp.battleEffectCache = {};
 	$gameTemp.sortedBattleActorCaches = [];
 	var attacker;
+	var attackerTwin;
 	var defender;
+	var defenderTwin;
 	var supportAttacker; 
 	if($gameTemp.supportAttackCandidates){
 		supportAttacker = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
@@ -695,6 +701,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 		}
 	}
 	
+	if($statCalc.isMainTwin(attacker.actor) && $gameTemp.attackingTwinAction){
+		attackerTwin = {actor: attacker.actor.subTwin, action: $gameTemp.attackingTwinAction, isInitiator: true};
+	}
+	
 	$gameVariables.setValue(_lastActorAttackId, $gameTemp.actorAction.attack.id);
 	$gameVariables.setValue(_lastEnemyAttackId, $gameTemp.enemyAction.attack.id);
 	
@@ -708,7 +718,11 @@ BattleCalc.prototype.generateBattleResult = function(){
 	
 	if(supportDefender){
 		this.prepareBattleCache(supportDefender, "support defend");
-	}		
+	}
+
+	if(attackerTwin){
+		this.prepareBattleCache(attackerTwin, "twin attack");
+	}	
 	
 	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
 		this._attacker = attacker;
@@ -800,7 +814,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 						false,
 						false,
 						isSupportDefender,
-						aCache.type == "support attack"
+						aCache.type == "support attack",
+						hitInfo.isMismatchedTwin
 					);	
 				} 					
 			} 
@@ -923,6 +938,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 	
 	BattleAction.prototype.determineTargetInfo = function(){
 		var finalTarget = this._defender;
+		var isMismatchedTwin = false;
 		var hitRate = _this.performHitCalculation(
 			this._attacker,
 			this._defender		
@@ -959,6 +975,9 @@ BattleCalc.prototype.generateBattleResult = function(){
 		if(isHit && this._supportDefender && !this._supportDefender.blockedHit){
 			this._supportDefender.blockedHit = true;
 			finalTarget = this._supportDefender;
+			isMismatchedTwin = false;
+		} else if($statCalc.isTwinMismatch(this._attacker.actor, this._defender.actor)){
+			isMismatchedTwin = true;
 		}
 		var cacheRef;
 		if(this._isSupportAttack){
@@ -971,7 +990,8 @@ BattleCalc.prototype.generateBattleResult = function(){
 			target: finalTarget,
 			initiator: this._attacker,
 			specialEvasion: specialEvasion,
-			hitRate: hitRate
+			hitRate: hitRate,
+			isMismatchedTwin: isMismatchedTwin
 		}
 	}
 	
@@ -994,7 +1014,12 @@ BattleCalc.prototype.generateBattleResult = function(){
 		$gameTemp.defenderCounterActivated = false;
 		if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
 			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-		}	
+		}			
+		
+		if(attackerTwin){
+			actions.push(new BattleAction(attackerTwin, defender, supportDefender, attackerSide));
+		}
+		
 		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
 		
 		actions.push(new BattleAction(defender, attacker, null, defenderSide));		

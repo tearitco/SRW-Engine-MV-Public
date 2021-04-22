@@ -2345,7 +2345,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		if($gameTemp.editMode){
 			return $SRWEditor.getBattleEnvironmentId();
 		} else {
-			var region = $gameMap.regionId(actor.event.posX(), actor.event.posY());
+			var event = $statCalc.getReferenceEvent(actor);
+			var region = $gameMap.regionId(event.posX(), event.posY());
 			if($statCalc.isFlying(actor)){
 				if($gameSystem.regionSkyBattleEnv[region] != null){
 					return $gameSystem.regionSkyBattleEnv[region];
@@ -4439,6 +4440,17 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										}
 										$gameTemp.supportDefendCandidates = supporters;
 										$gameTemp.supportDefendSelected = supporterSelected;
+										
+										if($statCalc.isMainTwin($gameTemp.currentBattleActor)){
+											var twinInfo = {
+												actor: $gameTemp.currentBattleActor.subTwin,
+												pos: {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()}
+											};
+											var weaponResult = $battleCalc.getBestWeaponAndDamage(twinInfo, enemyInfo);
+											if(weaponResult.weapon){
+												$gameTemp.attackingTwinAction = {type: "attack", attack: weaponResult.weapon};												
+											}
+										}
 										
 										$gameTemp.setTargetEvent(event);
 										$statCalc.invalidateAbilityCache();
@@ -8820,7 +8832,7 @@ SceneManager.reloadCharacters = function(startEvent){
 						if($statCalc.canSwap(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_swap, 'swap');
 						}	
-						if($statCalc.isTwinMain(_this._actor)){
+						if($statCalc.isMainTwin(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_separate, 'separate');
 						}	
 						if($statCalc.canTwin(_this._actor)){
@@ -10740,6 +10752,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.mapAttackOccurred = false;
 			$gameTemp.supportAttackSelected = -1;
 			$gameTemp.supportDefendSelected = -1;
+			$gameTemp.attackingTwinAction = null;
+			$gameTemp.defendingTwinAction = null;
 			$gameTemp.isPostMove = false;
 			$gameTemp.isHitAndAway = false;		
 			$gameTemp.currentMapTargets	= [];
