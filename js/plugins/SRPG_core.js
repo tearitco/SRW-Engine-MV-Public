@@ -4549,6 +4549,30 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 							}
 						}
 					});			
+                } else if ($gameSystem.isSubBattlePhase() === 'twin_selection') {					
+					$gameMap.eventsXy(x, y).forEach(function(event) {
+						if (event.isTriggerIn(triggers) && !event.isErased()) {
+							if (event.isType() == 'actor') {
+								var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+								var candidate = $gameSystem.EventToUnit(event.eventId())[1];
+								
+								if($statCalc.canTwin(actor, candidate)){
+									$statCalc.twin(actor, candidate);
+									
+									if($gameTemp.isPostMove){
+										$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
+										$gameSystem.setSubBattlePhase('post_move_command_window');
+									} else {
+										$gameSystem.setSubBattlePhase('normal');
+									}								
+									$gameTemp.hasTwinned = true;	
+									$gameSystem.highlightedActionTiles = [];
+									$gameSystem.highlightsRefreshed = true;
+								}
+								Input.clear();
+							}
+						}
+					});			
                 } 
             }
         } else {
@@ -7407,6 +7431,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), highlight.color);
 			}
 		}
+		
+		if($gameSystem.highlightedActionTiles){
+			for(var i = 0; i < $gameSystem.highlightedActionTiles.length; i++){
+				var highlight = $gameSystem.highlightedActionTiles[i];
+				this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), highlight.color);
+			}
+		}
 	}
 
 	Sprite_AreaHighlights.prototype.update = function() {
@@ -8733,7 +8764,19 @@ SceneManager.reloadCharacters = function(startEvent){
 					}	
 					if($statCalc.isCombined(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_split, 'split');
-					}		
+					}
+					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+						if($statCalc.isTwinMain(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_swap, 'swap');
+						}	
+						if($statCalc.isTwinMain(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_separate, 'separate');
+						}	
+						if($statCalc.canTwin(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_join, 'join');
+						}	
+					}
+					
 					if($statCalc.canTransform(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_transform, 'transform');
 					}	
@@ -8759,6 +8802,12 @@ SceneManager.reloadCharacters = function(startEvent){
 					}
 					if($statCalc.applyStatModsToValue(_this._actor, 0, ["heal"])){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_repair, 'heal');
+					}
+					
+					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+						if($statCalc.canTwin(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_join, 'join');
+						}	
 					}
 					_this.addWaitCommand();
 				}
@@ -9460,6 +9509,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._mapSrpgActorCommandWindow.setHandler('combine', this.combineActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('split', this.splitActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('transform', this.transformActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('swap', this.swapActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('separate', this.separateActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('join', this.joinActorMenuCommand.bind(this));		
 		
 		
         this._mapSrpgActorCommandWindow.setHandler('cancel', this.cancelActorMenuCommand.bind(this));
@@ -10032,7 +10084,19 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gameSystem.setSubBattlePhase("actor_command_window");    
 					_this._mapSrpgActorCommandWindow.activate();					
                 }
-            } /*else {
+            } else if ($gameSystem.isSubBattlePhase() === 'twin_selection') {
+                if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
+					$gameSystem.highlightedActionTiles = [];
+					$gameSystem.highlightsRefreshed = true;
+					var battlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+                    SoundManager.playCancel();
+					$gameTemp.clearMoveTable();
+					$gamePlayer.locate($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
+                    $gameSystem.setSrpgActorCommandWindowNeedRefresh(battlerArray);
+					$gameSystem.setSubBattlePhase("actor_command_window");    
+					_this._mapSrpgActorCommandWindow.activate();					
+                }
+            }/*else {
                 _SRPG_SceneMap_updateCallMenu.call(this);
             }*/
         } else {
@@ -11786,6 +11850,39 @@ SceneManager.reloadCharacters = function(startEvent){
 		AudioManager.playSe(se);
     };	
 	
+	Scene_Map.prototype.swapActorMenuCommand = function() {   
+		$statCalc.swap($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
+    };
+	
+	Scene_Map.prototype.separateActorMenuCommand = function() {   
+		$statCalc.separate($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
+    };	
+	
+	Scene_Map.prototype.joinActorMenuCommand = function() {   
+		//$statCalc.separate($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		
+		$gameSystem.highlightedActionTiles = [];
+		$gameSystem.highlightsRefreshed = true;
+		var x = $gameTemp.activeEvent().posX();
+		var y = $gameTemp.activeEvent().posY();
+		
+		$gameSystem.highlightedActionTiles.push({x: x-1, y: y+1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x, y: y+1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x+1, y: y+1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x-1, y: y, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x+1, y: y, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x-1, y: y-1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x, y: y-1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x+1, y: y-1, color: "#009bff"});
+		
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('twin_selection');
+    };	
+	
 	Scene_Map.prototype.splitActorMenuCommand = function() {   
 		$statCalc.split($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
@@ -11838,6 +11935,10 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameSystem.setSubBattlePhase('actor_move');
 		} else if($gameTemp.isPostMove){
 			$gameSystem.setSubBattlePhase('actor_move');
+			if($gameTemp.hasTwinned){
+				$gameTemp.hasTwinned = false;
+				$statCalc.separate($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+			}
 			//var event = $gameTemp.activeEvent();
 			//event.locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);
 		} else {

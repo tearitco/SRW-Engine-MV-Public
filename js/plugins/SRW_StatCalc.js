@@ -1040,7 +1040,31 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			}			
 		});	
 	}	
+	
+	
+	if(!actor.isSubTwin){
+		var subTwinId = this.getSubTwinId(actor);
+		var subTwinActor = $gameActors.actor(subTwinId);
+		if(subTwinActor){
+			subTwinActor.isSubTwin = true;
+			_this.initSRWStats(subTwinActor, 1, [], preserveVolatile);
+			//subTwinActor.mainTwin = actor;			
+			actor.subTwin = subTwinActor;
+		}		
+	}
 }
+
+StatCalc.prototype.getSubTwinId = function(actor){
+	return actor.subTwinId;
+}	
+
+StatCalc.prototype.isTwinMain = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.subTwin != null;
+	} else {
+		return false;
+	}
+}	
 
 StatCalc.prototype.getMechDataById = function(id, forActor){
 	var mech = $dataClasses[id];
@@ -1336,6 +1360,133 @@ StatCalc.prototype.getSubPilots = function(actor){
 		return [];
 	}
 }
+
+StatCalc.prototype.swap = function(actor){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		if(this.isTwinMain(actor)){	
+			
+			var twin = actor.subTwin;
+		
+			actor.subTwin = null;
+			actor.subTwinId = null;
+			actor.isSubTwin = true;
+			//actor.mainTwin = twin;
+			
+			twin.subTwin = actor;
+			twin.subTwinId = actor.actorId();
+			twin.isSubTwin = false;	
+			//twin.mainTwin = null;	
+			
+			this.applyDeployActions(twin.SRWStats.pilot.id, twin.SRWStats.mech.id);			
+			
+			twin.event = actor.event;
+			actor.event = null;
+			$gameSystem.setEventToUnit(twin.event.eventId(), 'actor', twin.actorId());
+									
+			twin.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+			twin.event.refreshImage();			
+		}		
+	}
+}
+
+StatCalc.prototype.separate = function(actor){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		if(this.isTwinMain(actor)){		
+			var twin = actor.subTwin;
+			actor.subTwin = null;	
+			actor.subTwinId = null;
+			//twin.mainTwin = null;
+			twin.isSubTwin = false;
+			
+			if(actor.positionBeforeTwin){
+				actor.event.locate(actor.positionBeforeTwin.x, actor.positionBeforeTwin.y);
+			}
+
+			this.applyDeployActions(twin.SRWStats.pilot.id, twin.SRWStats.mech.id);
+			
+			var event = twin.event;
+			if(!event){
+				event = $gameMap.requestDynamicEvent()
+				twin.event = event;
+				event.setType("actor");
+				$gameSystem.setEventToUnit(twin.event.eventId(), 'actor', twin.actorId());
+			}
+			if(event){				
+				var space;
+				if(twin.positionBeforeTwin){
+					space = twin.positionBeforeTwin;
+				} else {
+					space = this.getAdjacentFreeSpace({x: actor.event.posX(), y: actor.event.posY()});
+				}				
+				event.appear();
+				event.locate(space.x, space.y);
+				
+				event.refreshImage();
+				twin.initImages(twin.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+				twin.event.refreshImage();
+			}					
+				//
+					
+		}	
+	}
+}
+
+StatCalc.prototype.twin = function(actor, otherActor){
+	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		if(!this.isTwinMain(actor) && !this.isTwinMain(otherActor)){	
+			actor.subTwin = otherActor;
+			actor.subTwinId = otherActor.actorId();
+			actor.isSubTwin = false;
+			//actor.mainTwin = null;
+			actor.positionBeforeTwin = {x: actor.event.posX(), y: actor.event.posY()};
+			
+			otherActor.subTwin = null;
+			otherActor.isSubTwin = true;	
+			//otherActor.mainTwin = actor;	
+					
+			otherActor.positionBeforeTwin = {x: otherActor.event.posX(), y: otherActor.event.posY()};
+			otherActor.event.erase();
+			otherActor.event.isUnused = true;
+			otherActor.event = null;		
+		}		
+	}
+}
+
+StatCalc.prototype.validateTwinTarget = function(actor){
+	if(this.isTwinMain(actor)){
+		return false;
+	}
+	if(this.getCurrentWill(actor) < 110){
+		return false;
+	}
+	if(actor.SRWStats.battleTemp.hasFinishedTurn){
+		return false;
+	}
+	return true;
+}
+
+StatCalc.prototype.canTwin = function(actor, otherActor){
+	var _this = this;
+	var result = false;
+	
+	if(!this.validateTwinTarget(actor)){
+		return false;
+	}
+	
+	if(this.isActorSRWInitialized(actor)){
+		var adjacent = _this.getAdjacentActorsWithDiagonal(actor.isActor() ? "actor" : "enemy", {x: actor.event.posX(), y: actor.event.posY()});
+		
+		var valid = [];
+		adjacent.forEach(function(candidate){
+			if((!otherActor || candidate == otherActor) && _this.validateTwinTarget(candidate)){
+				valid.push(candidate);
+			}
+		});		
+		result = valid.length > 0;
+	}
+	return result;
+}
+
 StatCalc.prototype.canTransform = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
 		return actor.SRWStats.mech.transformsInto != null && !$gameSystem.isTransformationLocked(actor.SRWStats.mech.id) && actor.SRWStats.mech.transformWill <= this.getCurrentWill(actor);

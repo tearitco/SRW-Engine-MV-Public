@@ -1,4 +1,5 @@
 var ENGINE_SETTINGS_DEFAULT = {
+	ENABLE_TWIN_SYSTEM: true,
 	USE_SRW_SUPPORT_ORDER: true,
 	DISABLE_EVASION_DECAY: false,
 	DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
