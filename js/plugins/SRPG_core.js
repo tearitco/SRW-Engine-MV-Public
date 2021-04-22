@@ -8766,7 +8766,7 @@ SceneManager.reloadCharacters = function(startEvent){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_split, 'split');
 					}
 					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
-						if($statCalc.isTwinMain(_this._actor)){
+						if($statCalc.canSwap(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_swap, 'swap');
 						}	
 						if($statCalc.isTwinMain(_this._actor)){

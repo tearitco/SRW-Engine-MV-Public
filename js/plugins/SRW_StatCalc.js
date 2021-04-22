@@ -912,6 +912,9 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	}
 	actor.SRWStats.pilot.species = actorProperties.pilotSpecies;
 	
+	actor.SRWStats.pilot.subTwinOnly = actorProperties.pilotSubTwinOnly || 0;
+	actor.SRWStats.pilot.mainTwinOnly = actorProperties.pilotMainTwinOnly || 0;
+	
 	if(!preserveVolatile){
 		_this.resetSpiritsAndEffects(actor);
 	}
@@ -1039,8 +1042,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 				_this.initSRWStats(actor, 1, [], preserveVolatile);
 			}			
 		});	
-	}	
-	
+	}		
 	
 	if(!actor.isSubTwin){
 		var subTwinId = this.getSubTwinId(actor);
@@ -1135,7 +1137,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.id = mech.id;
 		result.expYield = parseInt(mechProperties.mechExpYield);
 		result.PPYield = parseInt(mechProperties.mechPPYield);
-		result.fundYield = parseInt(mechProperties.mechFundYield);
+		result.fundYield = parseInt(mechProperties.mechFundYield);		
 		
 		function parsePilotList(raw){
 			var parts = raw.split(",");
@@ -1366,25 +1368,28 @@ StatCalc.prototype.swap = function(actor){
 		if(this.isTwinMain(actor)){	
 			
 			var twin = actor.subTwin;
-		
-			actor.subTwin = null;
-			actor.subTwinId = null;
-			actor.isSubTwin = true;
-			//actor.mainTwin = twin;
 			
-			twin.subTwin = actor;
-			twin.subTwinId = actor.actorId();
-			twin.isSubTwin = false;	
-			//twin.mainTwin = null;	
-			
-			this.applyDeployActions(twin.SRWStats.pilot.id, twin.SRWStats.mech.id);			
-			
-			twin.event = actor.event;
-			actor.event = null;
-			$gameSystem.setEventToUnit(twin.event.eventId(), 'actor', twin.actorId());
-									
-			twin.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
-			twin.event.refreshImage();			
+			if(this.canSwap(actor, twin)){		
+				actor.subTwin = null;
+				actor.subTwinId = null;
+				actor.isSubTwin = true;
+				//actor.mainTwin = twin;
+				
+				twin.subTwin = actor;
+				twin.subTwinId = actor.actorId();
+				twin.isSubTwin = false;	
+				//twin.mainTwin = null;	
+				
+				this.applyDeployActions(twin.SRWStats.pilot.id, twin.SRWStats.mech.id);			
+				
+				twin.event = actor.event;
+				actor.event = null;
+				$gameSystem.setEventToUnit(twin.event.eventId(), 'actor', twin.actorId());
+										
+				twin.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+				twin.event.refreshImage();		
+				this.invalidateAbilityCache();
+			}			
 		}		
 	}
 }
@@ -1426,14 +1431,33 @@ StatCalc.prototype.separate = function(actor){
 				twin.event.refreshImage();
 			}					
 				//
-					
+			this.invalidateAbilityCache();		
 		}	
+	}
+}
+
+StatCalc.prototype.isSubTwinOnly = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.pilot.subTwinOnly;
+	}
+}
+
+StatCalc.prototype.isMainTwinOnly = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.pilot.mainTwinOnly
 	}
 }
 
 StatCalc.prototype.twin = function(actor, otherActor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		if(!this.isTwinMain(actor) && !this.isTwinMain(otherActor)){	
+		if(!this.isTwinMain(actor) && !this.isTwinMain(otherActor)){
+			
+			if(!this.isTwinSlotConflict(actor, otherActor) && (this.isSubTwinOnly(actor) || this.isMainTwinOnly(otherActor))){
+				var tmp = otherActor;
+				otherActor = actor;
+				actor = tmp;
+			}
+			
 			actor.subTwin = otherActor;
 			actor.subTwinId = otherActor.actorId();
 			actor.isSubTwin = false;
@@ -1447,7 +1471,8 @@ StatCalc.prototype.twin = function(actor, otherActor){
 			otherActor.positionBeforeTwin = {x: otherActor.event.posX(), y: otherActor.event.posY()};
 			otherActor.event.erase();
 			otherActor.event.isUnused = true;
-			otherActor.event = null;		
+			otherActor.event = null;	
+			this.invalidateAbilityCache();
 		}		
 	}
 }
@@ -1465,6 +1490,21 @@ StatCalc.prototype.validateTwinTarget = function(actor){
 	return true;
 }
 
+StatCalc.prototype.isTwinSlotConflict = function(actor, otherActor){
+	return (
+		(this.isSubTwinOnly(actor) && this.isSubTwinOnly(otherActor)) || 
+		(this.isMainTwinOnly(actor) && this.isMainTwinOnly(otherActor))
+	);
+}
+
+StatCalc.prototype.canSwap = function(actor){
+	return this.isTwinMain(actor) && 
+	(
+		this.isTwinSlotConflict(actor, actor.subTwin) || 
+		(!$statCalc.isMainTwinOnly(actor) && !$statCalc.isSubTwinOnly(actor.subTwin))
+	)
+}
+
 StatCalc.prototype.canTwin = function(actor, otherActor){
 	var _this = this;
 	var result = false;
@@ -1478,7 +1518,9 @@ StatCalc.prototype.canTwin = function(actor, otherActor){
 		
 		var valid = [];
 		adjacent.forEach(function(candidate){
-			if((!otherActor || candidate == otherActor) && _this.validateTwinTarget(candidate)){
+			var isSlotConflict = ENGINE_SETTINGS.USE_STRICT_TWIN_SLOTS && _this.isTwinSlotConflict(actor, candidate);
+					
+			if((!otherActor || candidate == otherActor) && _this.validateTwinTarget(candidate) && !isSlotConflict){
 				valid.push(candidate);
 			}
 		});		
@@ -2719,6 +2761,10 @@ StatCalc.prototype.getCurrentWill = function(actor){
 StatCalc.prototype.getCurrentMoveRange = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		var totalMove = actor.SRWStats.mech.stats.calculated.move;
+		if(this.isTwinMain(actor)){
+			totalMove+=this.getCurrentMoveRange(actor.subTwin);
+			totalMove = Math.floor(totalMove/2);
+		}
 		if(this.getActiveSpirits(actor).accel){
 			totalMove+=3; 
 		}
@@ -4434,6 +4480,10 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 			
 			processActor(actor, isEnemy, sourceX, sourceY, "main");		
 			
+			if(actor.subTwin){
+				processActor(actor.subTwin, isEnemy, sourceX, sourceY, "twin");		
+			}
+			
 			var subPilots = _this.getSubPilots(actor);
 			if(!actor.isSubPilot){
 				var ctr = 0;
@@ -4451,6 +4501,19 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 	return result;
 }
 
+StatCalc.prototype.getMainTwin = function(actor){
+	var result;
+	var type = actor.isActor() ? "actor" : "enemy";
+	var candidates = this.getAllActors(type);
+	var ctr = 0;
+	while(!result && ctr < candidates.length){
+		if(candidates[ctr].subTwinId == actor.SRWStats.pilot.id){
+			result = candidates[ctr];
+		}
+		ctr++;
+	}
+	return result;
+}
 
 StatCalc.prototype.getActorStatMods = function(actor, excludedSkills){
 	var abilityLookup = this.createActiveAbilityLookup(excludedSkills);
@@ -4458,6 +4521,8 @@ StatCalc.prototype.getActorStatMods = function(actor, excludedSkills){
 	var event;
 	if(actor.isSubPilot && actor.mainPilot){		
 		event = actor.mainPilot.event;
+	} else if(actor.isSubTwin){
+		event = this.getMainTwin(actor).event;
 	} else {
 		event = actor.event;
 	}
@@ -4489,6 +4554,8 @@ StatCalc.prototype.getActorSlotInfo = function(actor){
 	if(actor.isSubPilot){
 		result.type = "sub";
 		result.slot = actor.subPilotSlot;
+	} else if(actor.isSubTwin) {
+		result.type = "twin";
 	} else {
 		result.type = "main";
 	}
