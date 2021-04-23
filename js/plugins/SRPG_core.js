@@ -4452,6 +4452,21 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 											}
 										}
 										
+										if($statCalc.isMainTwin(enemyInfo.actor)){
+											var twinInfo = {
+												actor: enemyInfo.actor.subTwin,
+												pos: {x: enemyInfo.actor.event.posX(), y: enemyInfo.actor.event.posY()}
+											};
+											var targetInfo = {
+												actor: $gameTemp.currentBattleActor,
+												pos: {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()}
+											};
+											var weaponResult = $battleCalc.getBestWeaponAndDamage(twinInfo, targetInfo);
+											if(weaponResult.weapon){
+												$gameTemp.defendingTwinAction = {type: "attack", attack: weaponResult.weapon};												
+											}
+										}
+										
 										$gameTemp.setTargetEvent(event);
 										$statCalc.invalidateAbilityCache();
 										$gameSystem.setSubBattlePhase('battle_window');
@@ -7159,16 +7174,32 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if(this._animationFrame > this._frames){
 			this.visible = false;
 			this._character.isDoingDeathAnim = false;
+			this._processedDeath = false;
+			this._animationFrame = 0;
 		} else {
+			var eventId = this._character.eventId();
+			var battlerArray = $gameSystem.EventToUnit(eventId);
 			
-			if(this._animationFrame == 3){
-				this._character.erase();				
+			if(this._animationFrame == 3 && !this._processedDeath){
+				this._processedDeath = true;
+				if(this._character.isDoingSubTwinDeath){
+					$statCalc.swapEvent(this._character, true);
+					//_this._currentDeath.event.appear();
+					//this._character.refreshImage();
+					$statCalc.getMainTwin(battlerArray[1]).subTwin = null;
+				} else if(this._character.isDoingMainTwinDeath){	
+					$statCalc.swapEvent(this._character, true);
+					$statCalc.getMainTwin(battlerArray[1]).subTwin = null;
+					//battlerArray[1].subTwin.isSubTwin = false;
+					//battlerArray[1].subTwin = null;
+				} else {	
+					this._character.erase();	
+				}							
 			}				
 			this.x = this._character.screenX();
 			this.y = this._character.screenY();
 			this.z = this._character.screenZ() + 1;
-			var eventId = this._character.eventId();
-			var battlerArray = $gameSystem.EventToUnit(eventId);
+			
 			if(battlerArray && battlerArray[1]){
 				if (this._character.isDoingDeathAnim) {
 					if(this._animationFrame == 1){
@@ -9912,11 +9943,19 @@ SceneManager.reloadCharacters = function(startEvent){
 			
 			if($gameSystem.isSubBattlePhase() === 'process_death'){
 				if(_this._startDeath){
+					_this._currentDeath.event.isDoingSubTwinDeath = false;
+					_this._currentDeath.event.isDoingMainTwinDeath = false;
+					if(_this._currentDeath.actor.isSubTwin){
+						$statCalc.swapEvent($statCalc.getMainTwin(_this._currentDeath.actor).event, true);						
+						_this._currentDeath.event.isDoingSubTwinDeath = true;
+					} else if($statCalc.isMainTwin(_this._currentDeath.actor)){
+						_this._currentDeath.event.isDoingMainTwinDeath = true;
+					}
 					_this._startDeath = false;
 					_this._currentDeath.event.isDoingDeathAnim = true;
 				}
 				if(_this._deathTimer <= 0){
-					_this._currentDeath.event.isUnused = true;
+					
 					//_this._currentDeath.event.erase();
 					if (_this._currentDeath.actor.isActor()) {
 						var oldValue = $gameVariables.value(_existActorVarID);
@@ -9936,6 +9975,13 @@ SceneManager.reloadCharacters = function(startEvent){
 						var oldValue = $gameVariables.value(_enemiesDestroyed);
 						$gameVariables.setValue(_enemiesDestroyed, oldValue + 1);
 					}
+					
+					if(_this._currentDeath.actor.isSubTwin){
+						
+					} else {
+						_this._currentDeath.event.isUnused = true;
+					}
+					
 					$gameSystem.setSubBattlePhase("process_death_queue");
 				}				
 				_this._deathTimer--;
@@ -11278,7 +11324,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gameTemp.destroyTransformQueue.push({actor: battleEffect.ref, event: battleEffect.ref.event});
 				} else {
 					//battleEffect.ref.event._erased = true;
-					$gameTemp.deathQueue.push({actor: battleEffect.ref, event: battleEffect.ref.event});
+					$gameTemp.deathQueue.push({actor: battleEffect.ref, event: $statCalc.getReferenceEvent(battleEffect.ref)});
 					if($statCalc.isShip(battleEffect.ref)){
 						var boardedUnits = $statCalc.getBoardedUnits(battleEffect.ref)
 						for(var i = 0; i < boardedUnits.length; i++){
@@ -11335,7 +11381,16 @@ SceneManager.reloadCharacters = function(startEvent){
 					}
 					entry.expGain+=gain;
 				});
-			});									
+			});	
+
+			if($statCalc.isMainTwin(battleEffect.ref)){
+				var subTwin = battleEffect.ref.subTwin;
+				var gainModifier = 0.75;
+				if($statCalc.applyStatModsToValue(subTwin, 0, ["full_twin_gains"])){
+					gainModifier = 1;
+				}
+				gainResults.unshift({actor: subTwin, expGain: Math.floor(battleEffect.expGain * gainModifier), ppGain: Math.floor(battleEffect.ppGain * gainModifier)});	
+			}	
 			
 			gainResults.unshift({actor: battleEffect.ref, expGain: battleEffect.expGain, ppGain: battleEffect.ppGain});			
 			

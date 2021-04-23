@@ -1094,7 +1094,7 @@ StatCalc.prototype.getSubTwinId = function(actor){
 
 StatCalc.prototype.isMainTwin = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return !actor.isSubTwin;
+		return actor.subTwin != null;
 	} else {
 		return false;
 	}
@@ -1395,13 +1395,13 @@ StatCalc.prototype.getSubPilots = function(actor){
 	}
 }
 
-StatCalc.prototype.swap = function(actor){
+StatCalc.prototype.swap = function(actor, force){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
 		if(this.isMainTwin(actor)){	
 			
 			var twin = actor.subTwin;
 			
-			if(this.canSwap(actor, twin)){		
+			if(this.canSwap(actor, twin) || force){		
 				actor.subTwin = null;
 				actor.subTwinId = null;
 				actor.isSubTwin = true;
@@ -1422,6 +1422,34 @@ StatCalc.prototype.swap = function(actor){
 				twin.event.refreshImage();		
 				this.invalidateAbilityCache();
 			}			
+		}		
+	}
+}
+
+StatCalc.prototype.swapEvent = function(event, force){
+	var actor = $gameSystem.EventToUnit(event.eventId())[1];
+	if(actor && this.isActorSRWInitialized(actor)){
+		if(this.isMainTwin(actor)){
+			var twin = actor.subTwin;
+			actor.subTwin = null;
+			//actor.subTwinId = null;
+			actor.isSubTwin = true;
+			//actor.mainTwin = twin;
+			
+			twin.subTwin = actor;
+			//twin.subTwinId = actor.actorId();
+			twin.isSubTwin = false;	
+			//twin.mainTwin = null;	
+			
+			this.applyDeployActions(twin.SRWStats.pilot.id, twin.SRWStats.mech.id);			
+			
+			twin.event = actor.event;
+			actor.event = null;
+			$gameSystem.setEventToUnit(twin.event.eventId(), twin.isActor() ? 'actor' : 'enemy', twin);
+									
+			//twin.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+			twin.event.refreshImage();		
+			this.invalidateAbilityCache();
 		}		
 	}
 }
@@ -1523,7 +1551,7 @@ StatCalc.prototype.validateTwinTarget = function(actor){
 }
 
 StatCalc.prototype.isTwinMismatch = function(actor, otherActor){
-	return this.isMainTwin(actor) != this.isMainTwin(otherActor);
+	return actor.isSubTwin != otherActor.isSubTwin;
 }
 
 StatCalc.prototype.isTwinSlotConflict = function(actor, otherActor){

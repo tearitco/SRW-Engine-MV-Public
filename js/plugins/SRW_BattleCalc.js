@@ -705,6 +705,30 @@ BattleCalc.prototype.generateBattleResult = function(){
 		attackerTwin = {actor: attacker.actor.subTwin, action: $gameTemp.attackingTwinAction, isInitiator: true};
 	}
 	
+	if($statCalc.isMainTwin(defender.actor) && $gameTemp.defendingTwinAction){
+		defenderTwin = {actor: defender.actor.subTwin, action: $gameTemp.defendingTwinAction};
+	}
+	
+	var attackerTarget;
+	var attackerTwinTarget;
+	var defenderTarget;
+	var defenderTwinTarget;
+	
+	//TODO resolve targeting settings here
+	attackerTarget = defender;
+	if(defenderTwin){
+		attackerTwinTarget = defenderTwin;
+	} else {
+		attackerTwinTarget = defender;
+	}
+	
+	defenderTarget = attacker;
+	if(attackerTwin){
+		defenderTwinTarget = attackerTwin;
+	} else {
+		defenderTwinTarget = attacker;
+	}
+	
 	$gameVariables.setValue(_lastActorAttackId, $gameTemp.actorAction.attack.id);
 	$gameVariables.setValue(_lastEnemyAttackId, $gameTemp.enemyAction.attack.id);
 	
@@ -722,6 +746,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 
 	if(attackerTwin){
 		this.prepareBattleCache(attackerTwin, "twin attack");
+	}
+
+	if(defenderTwin){
+		this.prepareBattleCache(defenderTwin, "twin defend");
 	}	
 	
 	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
@@ -1000,35 +1028,67 @@ BattleCalc.prototype.generateBattleResult = function(){
 	if(defender.action && defender.action.attack && defender.action.attack.isCounter){
 		defenderCounterActivates = true;
 	}
-	if(defenderCounterActivates){
-		$gameTemp.defenderCounterActivated = true;
-		actions.push(new BattleAction(defender, attacker, null, defenderSide));
-		if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-		}	
-		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));		
-		if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-		}	
-	} else {
-		$gameTemp.defenderCounterActivated = false;
-		if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-		}			
-		
-		if(attackerTwin){
-			actions.push(new BattleAction(attackerTwin, defender, supportDefender, attackerSide));
-		}
-		
-		actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
-		
-		actions.push(new BattleAction(defender, attacker, null, defenderSide));		
-
-		if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-			actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-		}	
-	}
 	
+		
+	if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+		if(defenderCounterActivates){
+			$gameTemp.defenderCounterActivated = true;
+			actions.push(new BattleAction(defender, attacker, null, defenderSide));
+			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+			}	
+			actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));		
+			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+			}	
+		} else {
+			$gameTemp.defenderCounterActivated = false;
+			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, attackerTarget, supportDefender, attackerSide, true));								
+			}
+
+			if(attackerTwin){
+				actions.push(new BattleAction(attackerTwin, attackerTwinTarget, supportDefender, attackerSide));
+			}	
+			
+			actions.push(new BattleAction(attacker, attackerTarget, supportDefender, attackerSide));	
+			
+			if(defenderTwin){
+				actions.push(new BattleAction(defenderTwin, defenderTwinTarget, supportDefender, attackerSide));
+			}
+			
+			actions.push(new BattleAction(defender, defenderTarget, null, defenderSide));		
+
+			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+			}	
+		}
+	} else {	
+		if(defenderCounterActivates){
+			$gameTemp.defenderCounterActivated = true;
+			actions.push(new BattleAction(defender, attacker, null, defenderSide));
+			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+			}	
+			actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));		
+			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+			}	
+		} else {
+			$gameTemp.defenderCounterActivated = false;
+			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+			}					
+			
+			actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
+			
+			actions.push(new BattleAction(defender, attacker, null, defenderSide));		
+
+			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+			}	
+		}
+	}
 	$gameTemp.battleTargetInfo = {};	
 	for(var i = 0; i < actions.length; i++){
 		actions[i].determineTargetInfo();
@@ -1125,12 +1185,13 @@ BattleCalc.prototype.generateBattleResult = function(){
 				}
 				$gameTemp.unitHitInfo.enemy[targetId][attackId] = {isSupport: battleEffect.type == "support attack"};		
 			}
-			var targetId = battleEffect.attacked.ref.event.eventId();
-			if(!$gameTemp.unitHitInfo.event[targetId]){
-				$gameTemp.unitHitInfo.event[targetId] = {};
-			}
-			$gameTemp.unitHitInfo.event[targetId][attackId] = {isSupport: battleEffect.type == "support attack"};	
-			
+			if(battleEffect.attacked.ref.event){
+				var targetId = battleEffect.attacked.ref.event.eventId();
+				if(!$gameTemp.unitHitInfo.event[targetId]){
+					$gameTemp.unitHitInfo.event[targetId] = {};
+				}
+				$gameTemp.unitHitInfo.event[targetId][attackId] = {isSupport: battleEffect.type == "support attack"};
+			}			
 		}
 	});	
 }
