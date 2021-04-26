@@ -3226,8 +3226,9 @@ StatCalc.prototype.isReachable = function(target, user, range, minRange){
 	var _this = this;	
 	var hasEmptyTiles = false;
 	var userIsInRange = false;
-	var offsetX = target.event.posX();
-	var offsetY = target.event.posY();
+	var event = this.getReferenceEvent(target);
+	var offsetX = event.posX();
+	var offsetY = event.posY();
 	var refEvent = _this.getReferenceEvent(user);
 	for(var i = 0; i < $gameMap.width(); i++){
 		for(var j = 0; j < $gameMap.height(); j++){
@@ -3238,7 +3239,7 @@ StatCalc.prototype.isReachable = function(target, user, range, minRange){
 				var unit = this.activeUnitAtPosition({x: i, y: j});
 				if(unit){
 					
-					if(unit.event.eventId() == refEvent.eventId()){
+					if(this.getReferenceEvent(unit).eventId() == refEvent.eventId()){
 						userIsInRange = true;
 					}
 				} else {

@@ -4440,32 +4440,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										}
 										$gameTemp.supportDefendCandidates = supporters;
 										$gameTemp.supportDefendSelected = supporterSelected;
-										
-										if($statCalc.isMainTwin($gameTemp.currentBattleActor)){
-											var twinInfo = {
-												actor: $gameTemp.currentBattleActor.subTwin,
-												pos: {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()}
-											};
-											var weaponResult = $battleCalc.getBestWeaponAndDamage(twinInfo, enemyInfo);
-											if(weaponResult.weapon){
-												$gameTemp.attackingTwinAction = {type: "attack", attack: weaponResult.weapon};												
-											}
-										}
-										
-										if($statCalc.isMainTwin(enemyInfo.actor)){
-											var twinInfo = {
-												actor: enemyInfo.actor.subTwin,
-												pos: {x: enemyInfo.actor.event.posX(), y: enemyInfo.actor.event.posY()}
-											};
-											var targetInfo = {
-												actor: $gameTemp.currentBattleActor,
-												pos: {x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()}
-											};
-											var weaponResult = $battleCalc.getBestWeaponAndDamage(twinInfo, targetInfo);
-											if(weaponResult.weapon){
-												$gameTemp.defendingTwinAction = {type: "attack", attack: weaponResult.weapon};												
-											}
-										}
+																														
+										$battleCalc.updateTwinActions();
 										
 										$gameTemp.setTargetEvent(event);
 										$statCalc.invalidateAbilityCache();
@@ -13345,6 +13321,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.actorAction = $gameTemp.enemyAction;
 			$gameTemp.enemyAction = tmp;
 		}
+		
+		$battleCalc.updateTwinActions();
 		
 		var weapon = $gameTemp.enemyWeaponSelection;
 		var range = $statCalc.getRealWeaponRange(actionArray[1], weapon);
