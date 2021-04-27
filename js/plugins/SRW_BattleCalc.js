@@ -1475,10 +1475,10 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 BattleCalc.prototype.updateTwinActions = function(){	
 	if(!$gameTemp.currentTargetingSettings){
 		$gameTemp.currentTargetingSettings = {
-			actor: "all",
-			actorTwin: "all",
+			actor: "main",
+			actorTwin: "twin",
 			enemy: "main",
-			enemyTwin: "main"
+			enemyTwin: "twin"
 		};
 	}
 	
@@ -1538,6 +1538,9 @@ BattleCalc.prototype.updateTwinActions = function(){
 			enemyTwinAction = {type: "attack", attack: weaponResult.weapon};												
 		}
 	}
+	
+	$gameTemp.actorTwinAction = actorTwinAction;
+	$gameTemp.enemyTwinAction = enemyTwinAction;
 	
 	if($gameTemp.isEnemyAttack){
 		$gameTemp.attackingTwinAction = enemyTwinAction;

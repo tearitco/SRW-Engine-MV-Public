@@ -49,8 +49,7 @@ window.Window_LevelUp = Window_LevelUp;
 import Window_SpiritSelection from "./Window_SpiritSelection.js";
 window.Window_SpiritSelection = Window_SpiritSelection;
 
-import Window_BeforeBattle from "./Window_BeforeBattle.js";
-window.Window_BeforeBattle = Window_BeforeBattle;
+
 
 import Window_UnitSummary from "./Window_UnitSummary.js";
 window.Window_UnitSummary = Window_UnitSummary;
@@ -78,6 +77,13 @@ window.Window_SelectReassignMech = Window_SelectReassignMech;
 
 import Window_SelectReassignPilot from "./Window_SelectReassignPilot.js";
 window.Window_SelectReassignPilot = Window_SelectReassignPilot;
+
+
+import Window_BeforeBattle from "./Window_BeforebattleTwin.js";
+window.Window_BeforeBattle = Window_BeforeBattle;
+
+import Window_BeforebattleTwin from "./Window_BeforebattleTwin.js";
+window.Window_BeforebattleTwin = Window_BeforebattleTwin;
 
 
 import "./style/SRW_Menus.css";

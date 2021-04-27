@@ -114,6 +114,8 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 		windowNode.classList.add("full_scene_disabled");
 	}
 	
+	windowNode.classList.add("twin");
+	
 	this._enemy_header = document.createElement("div");
 	this._enemy_header.id = this.createId("enemy_header");
 	this._enemy_header.classList.add("scaled_text");
@@ -137,20 +139,20 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._ally_main.classList.add("faction_color");
 	windowNode.appendChild(this._ally_main);	
 	
-	this._ally_support = document.createElement("div");
-	this._ally_support.id = this.createId("ally_support");
-	this._ally_support.classList.add("faction_color");
-	windowNode.appendChild(this._ally_support);	
+	this._ally_twin = document.createElement("div");
+	this._ally_twin.id = this.createId("ally_twin");
+	this._ally_twin.classList.add("faction_color");
+	windowNode.appendChild(this._ally_twin);	
 	
 	this._enemy_main = document.createElement("div");
 	this._enemy_main.id = this.createId("enemy_main");
 	this._enemy_main.classList.add("faction_color");
 	windowNode.appendChild(this._enemy_main);		
 	
-	this._enemy_support = document.createElement("div");
-	this._enemy_support.id = this.createId("enemy_support");
-	this._enemy_support.classList.add("faction_color");
-	windowNode.appendChild(this._enemy_support);	
+	this._enemy_twin = document.createElement("div");
+	this._enemy_twin.id = this.createId("enemy_twin");
+	this._enemy_twin.classList.add("faction_color");
+	windowNode.appendChild(this._enemy_twin);	
 	
 	this._btn_start = document.createElement("div");
 	this._btn_start.id = this.createId("btn_start");
@@ -191,7 +193,27 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._action_selection = document.createElement("div");
 	this._action_selection.id = this.createId("action_selection");
 	this._action_selection.classList.add("scaled_text");
-	windowNode.appendChild(this._action_selection);	
+	windowNode.appendChild(this._action_selection);
+
+	this._ally_support_1 = document.createElement("div");
+	this._ally_support_1.id = this.createId("ally_support_1");
+	this._ally_support_1.classList.add("faction_color");
+	windowNode.appendChild(this._ally_support_1);
+
+	this._ally_support_2 = document.createElement("div");
+	this._ally_support_2.id = this.createId("ally_support_2");
+	this._ally_support_2.classList.add("faction_color");
+	windowNode.appendChild(this._ally_support_2);	
+
+	this._enemy_support_1 = document.createElement("div");
+	this._enemy_support_1.id = this.createId("enemy_support_1");
+	this._enemy_support_1.classList.add("faction_color");
+	windowNode.appendChild(this._enemy_support_1);
+
+	this._enemy_support_2 = document.createElement("div");
+	this._enemy_support_2.id = this.createId("enemy_support_2");
+	this._enemy_support_2.classList.add("faction_color");
+	windowNode.appendChild(this._enemy_support_2);		
 }	
 
 Window_BeforebattleTwin.prototype.update = function() {	
@@ -440,13 +462,13 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 		}
 	} else {
 		if(action.type == "attack"){
-			content+="Support Attack";
+			content+="Attack";
 		}
 		if(action.type == "evade"){
 			content+="---";
 		}
 		if(action.type == "defend"){
-			content+="Support Defend";
+			content+="Defend";
 		}
 		if(action.type == "none"){
 			content+="---";
@@ -606,6 +628,194 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 }
 
 
+Window_BeforebattleTwin.prototype.createSmallParticipantBlock = function(ref, action, allyOrEnemy) {
+	var content = "";
+	content+="<div class='participant_block participant_block_small "+allyOrEnemy+"'>";
+	content+="<div class='scaled_text action_row'>";
+	
+	if(ref.isActor()){
+		content+=createPercentIndicator();
+		content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='pilot_icon'>";
+		content+="</div>";
+	} 
+	
+	if(action.type == "attack"){
+		content+="<div class='attack_name fitted_text'>";	
+		var attack = action.attack;
+		if(attack && action.type == "attack"){	
+			if(attack.type == "M"){
+				content+="<img class='attack_list_type scaled_width' src='svg/punch_blast.svg'>";
+			} else {
+				content+="<img class='attack_list_type scaled_width' src='svg/crosshair.svg'>";
+			}
+			content+="<div class='scaled_text'>"+attack.name+"</div>";
+		} else {
+			content+="<div class='scaled_text'>------</div>";
+		}
+		content+="</div>";
+	}
+	/*if(action.type == "evade"){
+		content+="---";
+	}*/
+	if(action.type == "defend"){
+		content+="<div class='attack_name fitted_text'>";	
+		content+="Support Defend";
+		content+="</div>";
+	}
+	/*if(action.type == "none"){
+		content+="---";
+	}*/
+	
+	if(!ref.isActor()){
+		content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='enemy_icon'>";
+		content+="</div>";
+		content+=createPercentIndicator();
+	}
+	
+	content+="</div>";
+	//content+="<div class='main_row'>";
+	/*if(allyOrEnemy == "ally"){
+		content+=createPercentIndicator();
+		content+=createMainContent();
+	} else {
+		content+=createMainContent();
+		content+=createPercentIndicator();		
+	}*/
+	
+	function createPercentIndicator(){		
+		var content = "";
+		content+="<div class='scaled_text percent_indicator'>";
+		var hitRate = -1;
+		if(action.type == "attack"){	
+			if(allyOrEnemy == "ally"){
+				
+				var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
+				if(supporter){					
+					hitRate = $battleCalc.performHitCalculation(
+						{actor: supporter.actor, action: supporter.action},
+						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
+					);
+				}
+				
+				
+			} else {
+				
+				var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
+				if(supporter){	
+					hitRate = $battleCalc.performHitCalculation(
+						{actor: supporter.actor, action: supporter.action},
+						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction}
+					);
+				}
+				
+			}
+		}
+		if(hitRate == -1){
+			content+="---";	
+		} else {
+			content+=Math.floor(hitRate * 100)+"%";	
+		}
+		
+		content+="</div>";
+		return content;
+	}
+	
+	function createMainContent(){
+		var content = "";
+	
+		content+="<div class='main_content'>";
+	
+		if(ref.isActor()){
+			content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='pilot_icon'>";
+			content+="</div>";
+		} else {
+			content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='enemy_icon'>";
+			content+="</div>";
+		}		
+		
+		content+="<div class='pilot_name scaled_text scaled_width fitted_text'>";
+		content+=ref.name();
+		content+="</div>";
+		
+		content+="<div class='pilot_stats scaled_text'>";	
+		content+="<div class='level scaled_width'>";
+		content+="<div class='label'>";
+		content+="Lv";
+		content+="</div>";
+		content+="<div class='value'>";
+		content+=$statCalc.getCurrentLevel(ref);
+		content+="</div>";
+		content+="</div>";
+		content+="<div class='will scaled_width'>";
+		content+="<div class='label'>";
+		content+="Will";
+		content+="</div>";
+		content+="<div class='value'>";
+		content+=$statCalc.getCurrentWill(ref);
+		content+="</div>";
+		content+="</div>";
+		content+="</div>";
+		
+		var calculatedStats = $statCalc.getCalculatedMechStats(ref);
+		
+		content+="<div class='mech_hp_en_container scaled_text'>";
+		content+="<div class='hp_label scaled_text'>HP</div>";
+		content+="<div class='en_label scaled_text'>EN</div>";
+
+		content+="<div class='hp_display'>";
+		content+="<div class='current_hp scaled_text'>"+$statCalc.getCurrentHPDisplay(ref)+"</div>";
+		content+="<div class='divider scaled_text'>/</div>";
+		content+="<div class='max_hp scaled_text'>"+$statCalc.getCurrentMaxHPDisplay(ref)+"</div>";
+		
+		content+="</div>";
+		
+		content+="<div class='en_display'>";
+		content+="<div class='current_en scaled_text'>"+$statCalc.getCurrentENDisplay(ref)+"</div>";
+		content+="<div class='divider scaled_text'>/</div>";
+		content+="<div class='max_en scaled_text'>"+$statCalc.getCurrentMaxENDisplay(ref)+"</div>";
+		
+		content+="</div>";
+		
+		var hpPercent = Math.floor(calculatedStats.currentHP / calculatedStats.maxHP * 100);
+		content+="<div class='hp_bar'><div style='width: "+hpPercent+"%;' class='hp_bar_fill'></div></div>";
+		
+		var enPercent = Math.floor(calculatedStats.currentEN / calculatedStats.maxEN * 100);
+		content+="<div class='en_bar'><div style='width: "+enPercent+"%;' class='en_bar_fill'></div></div>";
+		content+="</div>";
+		
+		content+="<div class='attack_name fitted_text'>";	
+		var attack = action.attack;
+		if(attack && action.type == "attack"){	
+			if(attack.type == "M"){
+				content+="<img class='attack_list_type scaled_width' src='svg/punch_blast.svg'>";
+			} else {
+				content+="<img class='attack_list_type scaled_width' src='svg/crosshair.svg'>";
+			}
+			content+="<div class='scaled_text'>"+attack.name+"</div>";
+		} else {
+			content+="<div class='scaled_text'>------</div>";
+		}
+		content+="</div>";	
+		
+		var spirits = $statCalc.getAvailableSpiritStates();
+		var activeSpirits = $statCalc.getActiveSpirits(ref);
+		content+="<div class='active_spirits scaled_text'>";	
+		for(var i = 0; i < spirits.length; i++){
+			content+="<div class='spirit_entry "+(activeSpirits[spirits[i]] ? "active" : "")+"'>";	
+			content+=spirits[i].substring(0, 3).toUpperCase();	
+			content+="</div>";	
+		}
+		content+="</div>";	
+		content+="</div>";	
+		return content;
+	}
+	
+	//content+="</div>";
+	content+="</div>";
+	return content;
+}
+
+
 Window_BeforebattleTwin.prototype.redraw = function() {
 	var _this = this;
 	//this._mechList.redraw();	
@@ -621,43 +831,70 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
-			this._enemy_support.innerHTML = this.createParticipantBlock(supporter.actor, supporter.action, true, "enemy");
-			this._enemy_support.style.display = "";
+			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
+			this._enemy_support_1.style.display = "";
 		} else {
-			this._ally_support.innerHTML = this.createParticipantBlock(supporter.actor, supporter.action, true, "ally");
-			this._ally_support.style.display = "";
+			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "ally");
+			this._ally_support_1.style.display = "";
 		}
 		
 	} else {
 		if($gameTemp.isEnemyAttack){
-			this._enemy_support.innerHTML = "";
-			this._enemy_support.style.display = "none";
+			this._enemy_support_1.innerHTML = "";
+			this._enemy_support_1.style.display = "none";
 		} else {
-			this._ally_support.innerHTML = "";
-			this._ally_support.style.display = "none";
+			this._ally_support_1.innerHTML = "";
+			this._ally_support_1.style.display = "none";
 		}
 	}
 	
 	var supporter = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
-			this._ally_support.innerHTML = this.createParticipantBlock(supporter.actor, supporter.action, true, "ally");
-			this._ally_support.style.display = "";
+			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "ally");
+			this._ally_support_1.style.display = "";
 		} else {			
-			this._enemy_support.innerHTML = this.createParticipantBlock(supporter.actor, supporter.action, true, "enemy");
-			this._enemy_support.style.display = "";
-
+			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
+			this._enemy_support_1.style.display = "";
 		}
 		
 	} else {
 		if($gameTemp.isEnemyAttack){			
-			this._ally_support.innerHTML = "";
-			this._ally_support.style.display = "none";
+			this._ally_support_1.innerHTML = "";
+			this._ally_support_1.style.display = "none";
 		} else {
-			this._enemy_support.innerHTML = "";
-			this._enemy_support.style.display = "none";
+			this._enemy_support_1.innerHTML = "";
+			this._enemy_support_1.style.display = "none";
 		}
 	}
+	if($gameTemp.currentBattleActor.subTwin){
+		var action;
+		if(!$gameTemp.actorTwinAction){
+			action = {type: "none"};
+		} else {
+			action = $gameTemp.actorTwinAction;
+		}
+		this._ally_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor.subTwin, action, true, "ally");
+		this._ally_twin.style.display = "";
+	} else {
+		this._ally_twin.innerHTML = "";
+		this._ally_twin.style.display = "none";
+	}
+	
+	if($gameTemp.currentBattleEnemy.subTwin){
+		var action;
+		if(!$gameTemp.enemyTwinAction){
+			action = {type: "none"};
+		} else {
+			action = $gameTemp.enemyTwinAction;
+		}
+		this._enemy_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy.subTwin, action, true, "enemy");
+		this._enemy_twin.style.display = "";
+	} else {
+		this._enemy_twin.innerHTML = "";
+		this._enemy_twin.style.display = "none";
+	}
+	
 	
 	if(!$gameTemp.isEnemyAttack){
 		this._enemy_label.innerHTML = "Defending";
@@ -705,11 +942,15 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	_this._enemy_header.classList.remove("support_selection_header");
 	_this.assignFactionColorClass(_this._enemy_header, $gameTemp.currentBattleEnemy);
 	_this.assignFactionColorClass(_this._enemy_main, $gameTemp.currentBattleEnemy);
-	_this.assignFactionColorClass(_this._enemy_support, $gameTemp.currentBattleEnemy);
+	_this.assignFactionColorClass(_this._enemy_twin, $gameTemp.currentBattleEnemy);
+	_this.assignFactionColorClass(_this._enemy_support_1, $gameTemp.currentBattleEnemy);
+	_this.assignFactionColorClass(_this._enemy_support_2, $gameTemp.currentBattleEnemy);
 	
 	_this.assignFactionColorClass(_this._ally_header, $gameTemp.currentBattleActor);
 	_this.assignFactionColorClass(_this._ally_main, $gameTemp.currentBattleActor);
-	_this.assignFactionColorClass(_this._ally_support, $gameTemp.currentBattleActor);
+	_this.assignFactionColorClass(_this._ally_twin, $gameTemp.currentBattleActor);	
+	_this.assignFactionColorClass(_this._ally_support_1, $gameTemp.currentBattleActor);
+	_this.assignFactionColorClass(_this._ally_support_2, $gameTemp.currentBattleActor);
 	
 	
 	
@@ -717,7 +958,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	
 	if(_this._currentUIState == "support_selection"){
 		_this._enemy_main.style.display = "none";
-		_this._enemy_support.style.display = "none";
+		_this._enemy_twin.style.display = "none";
 		_this._enemy_label.innerHTML = "Choose Assist";
 		_this._enemy_header.classList.add("support_selection_header");
 		_this._support_selection.style.display = "";

@@ -9653,7 +9653,12 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.createBeforeBattleWindow = function() {
 		var _this = this;
-		_this._beforeBattleWindow = new Window_BeforeBattle(0, 0, Graphics.boxWidth, Graphics.boxHeight);		
+		if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+			_this._beforeBattleWindow = new Window_BeforebattleTwin(0, 0, Graphics.boxWidth, Graphics.boxHeight);		
+		} else {
+			_this._beforeBattleWindow = new Window_BeforeBattle(0, 0, Graphics.boxWidth, Graphics.boxHeight);		
+		}
+		
 		this._beforeBattleWindow.registerCallback("selected", function(spiritInfo){
 			_this.commandBattleStart();
 		});
