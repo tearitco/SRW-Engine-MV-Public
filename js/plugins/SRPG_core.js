@@ -4409,6 +4409,8 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										$gameTemp.supportAttackCandidates = supporterInfo;
 										$gameTemp.supportAttackSelected = supporterSelected;
 										
+										$battleCalc.updateTwinSupportAttack();
+										
 										var supporters = $statCalc.getSupportDefendCandidates(
 											$gameSystem.getFactionId($gameTemp.currentBattleEnemy), 
 											{x: event.posX(), y: event.posY()},
@@ -10775,6 +10777,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.actorAction = {};
 			$gameTemp.enemyAction = {};
 			$gameTemp.isEnemyAttack = false;
+			$gameTemp.currentBattleEnemy = null;
+			$gameTemp.currentBattleActor = null;
 			$gameTemp.battleOccurred = false;
 			$gameTemp.mapAttackOccurred = false;
 			$gameTemp.supportAttackSelected = -1;
@@ -13314,6 +13318,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		}										
 		$gameTemp.supportAttackCandidates = supporterInfo;
 		$gameTemp.supportAttackSelected = supporterSelected;
+		
+		$battleCalc.updateTwinSupportAttack();
 		
 		//hack to make sure that the actor attacks from the correct side of the screen when dealing with AI actors
 		if($gameTemp.currentBattleEnemy.isActor() && !$gameSystem.isEnemy($gameTemp.currentBattleEnemy)){

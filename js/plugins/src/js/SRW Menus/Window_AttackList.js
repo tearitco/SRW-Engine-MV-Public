@@ -29,7 +29,8 @@ Window_AttackList.prototype.validateAttack = function(attack) {
 	var actor = this.getCurrentSelection().actor;
 	var isPostMoveOnly = $gameTemp.isPostMove && !$statCalc.getActiveSpirits(actor).charge && !$gameTemp.isEnemyAttack;	
 	var rangeTarget;
-	if($gameTemp.isEnemyAttack){
+	//if($gameTemp.isEnemyAttack){
+	if($gameTemp.currentBattleEnemy){
 		rangeTarget = $gameTemp.currentBattleEnemy;
 	}
 	return $statCalc.canUseWeaponDetail(actor, attack, isPostMoveOnly, rangeTarget);	

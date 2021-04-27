@@ -653,7 +653,6 @@
 	border-right: 0px;
 	display: flex;
 	align-items: center;
-	display: none;
 }
 
 #before_battle_enemy_support_1 {
@@ -695,4 +694,32 @@
 
 #before_battle_enemy_support_2 .action_row {
 	justify-content: flex-end;
+}
+
+#before_battle_targeting_arrows_1 {
+    position: fixed;
+    top: 24%;
+    left: 48%;
+}
+
+#before_battle_targeting_arrows_2 {
+	position: fixed;
+    top: 56%;
+    left: 48%;
+}
+
+#before_battle.twin #before_battle_support_selection {
+    width: 52%;
+    height: 79%;
+    border: 0.1vw solid #FFFFFF;
+    border-left: 0;
+    color: #FFFFFF;
+    --fontsize: 2px;
+    position: absolute;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+    top: 12%;
+    left: 0;
+    z-index: 1;
+    background-color: var(--section-bg-color-solid);
 }

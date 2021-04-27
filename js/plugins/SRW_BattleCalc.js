@@ -637,8 +637,7 @@ BattleCalc.prototype.prepareBattleCache = function(actionObject, type){
 	var ref;
 	if(type == "initiator" || type == "defender" || type == "twin attack" || type == "twin defend"){
 		ref = $statCalc.getReferenceEventId(actor);
-		actor._cacheReference = ref;
-		
+		actor._cacheReference = ref;		
 	} else {
 		ref = "support_"+$statCalc.getReferenceEventId(actor);
 		actor._supportCacheReference = ref;		
@@ -802,6 +801,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 		this.prepareBattleCache(defenderTwin, "twin defend");
 	}	
 	
+	if($gameTemp.twinSupportAttack){
+		this.prepareBattleCache(defenderTwin, "twin support attack");
+	}
+	
 	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
 		this._attacker = attacker;
 		this._defender = defender;
@@ -817,7 +820,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 		if(this._isSupportAttack){
 			this._attacker.actor._cacheReference = null; //remove the main attacker cache ref while calculating support results for this actor 
 			//this is a hack to circumvent issues with determining ability activation when a unit has self supporting capabilites
-			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
+			aCache = $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
 		}
 		aCache.side = this._side;
 		if(aCache.type == "support attack"){
@@ -1079,14 +1082,14 @@ BattleCalc.prototype.generateBattleResult = function(){
 		defenderCounterActivates = true;
 	}
 	
-	function appendTargetingActions(attacker, targets, supportDefender, side){
+	function appendTargetingActions(attacker, targets, supportDefender, side, isSupportAttacker){
 		if(targets.length > 1){
 			supportDefender = null;
 		} else if(targets[0].isSubTwin){
 			supportDefender = null;
 		}
 		targets.forEach(function(target){
-			actions.push(new BattleAction(attacker, target, supportDefender, side));
+			actions.push(new BattleAction(attacker, target, supportDefender, side, isSupportAttacker));
 		});		
 	}
 	
@@ -1101,7 +1104,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 			
 			appendTargetingActions(defender, defenderTarget, null, defenderSide);	
 			
-			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){	
+				if($gameTemp.twinSupportAttack){
+					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
+				}
 				appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
 			}
 
@@ -1111,7 +1117,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 			
 			appendTargetingActions(attacker, attackerTarget, supportDefender, attackerSide);				
 
-			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){		
+				if($gameTemp.twinSupportAttack){
+					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
+				}
 				appendTargetingActions(supportAttacker, [defender], supportDefender, attackerSide, true);								
 			}		
 		} else {
@@ -1470,13 +1479,11 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 	return {weapon: bestWeapon, damage: bestDamage};
 }
 
-
-
 BattleCalc.prototype.updateTwinActions = function(){	
 	if(!$gameTemp.currentTargetingSettings){
 		$gameTemp.currentTargetingSettings = {
 			actor: "main",
-			actorTwin: "twin",
+			actorTwin: "main",
 			enemy: "main",
 			enemyTwin: "twin"
 		};
@@ -1550,4 +1557,29 @@ BattleCalc.prototype.updateTwinActions = function(){
 		$gameTemp.defendingTwinAction = enemyTwinAction;
 	}
 	
+}
+
+BattleCalc.prototype.updateTwinSupportAttack = function(){
+	$gameTemp.twinSupportAttack = null;
+	var supportAttacker = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected].actor;
+	if(supportAttacker.subTwin){
+		var twinInfo = {
+			actor: supportAttacker.subTwin,
+			pos: {x: supportAttacker.event.posX(), y: supportAttacker.event.posY()}
+		};
+		var currentTarget;
+		if($gameTemp.isEnemyAttack){
+			currentTarget = $gameTemp.currentBattleActor;
+		} else {
+			currentTarget = $gameTemp.currentBattleEnemy;
+		}
+		var targetInfo = {
+			actor: currentTarget,
+			pos: {x: currentTarget.event.posX(), y: currentTarget.event.posY()}
+		};
+		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo);
+		if(weaponResult.weapon){
+			$gameTemp.twinSupportAttack = {actor: supportAttacker.subTwin, action: {type: "attack", attack: weaponResult.weapon}};
+		}
+	}
 }

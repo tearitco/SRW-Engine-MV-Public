@@ -214,6 +214,16 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._enemy_support_2.id = this.createId("enemy_support_2");
 	this._enemy_support_2.classList.add("faction_color");
 	windowNode.appendChild(this._enemy_support_2);		
+	
+	this._targeting_arrows_1 = document.createElement("img");
+	this._targeting_arrows_1.id = this.createId("targeting_arrows_1");
+	this._targeting_arrows_1.setAttribute("src", "img/system/targeting1.png");
+	windowNode.appendChild(this._targeting_arrows_1);	
+	
+	this._targeting_arrows_2 = document.createElement("img");
+	this._targeting_arrows_2.id = this.createId("targeting_arrows_2");
+	this._targeting_arrows_2.setAttribute("src", "img/system/targeting1.png");
+	windowNode.appendChild(this._targeting_arrows_2);	
 }	
 
 Window_BeforebattleTwin.prototype.update = function() {	
@@ -376,14 +386,49 @@ Window_BeforebattleTwin.prototype.update = function() {
 							mech: supporter.actor.SRWStats.mech
 						};
 						$gameTemp.attackWindowCallback = function(attack){
+
 							$gameTemp.popMenu = true;	
 							supporter.action.type = "attack";
 							supporter.action.attack = attack;
-							_this._currentSelection = 0;
-							_this.requestRedraw();							
+							if($statCalc.isMainTwin(supporter.actor)){
+								var twinPos = {
+									x: supporter.actor.event.posX(),
+									y: supporter.actor.event.posY(),
+								};
+								
+								var targetPos = {
+									x: $gameTemp.currentBattleEnemy.event.posX(),
+									y: $gameTemp.currentBattleEnemy.event.posY()
+								};
+								
+								if($battleCalc.getBestWeapon({actor: supporter.actor.subTwin, pos: twinPos}, {actor: $gameTemp.currentBattleEnemy, pos: targetPos}, false, false, false)){
+										$gameTemp.currentMenuUnit = {
+										actor: supporter.actor.subTwin,
+										mech: supporter.actor.subTwin.SRWStats.mech
+									};
+									$gameTemp.attackWindowCallback = function(attack){
+										$gameTemp.popMenu = true;	
+										$gameTemp.twinSupportAttack = {actor: supporter.actor.subTwin, action: {type: "attack", attack: attack}}
+										_this._currentSelection = 0;
+										_this.requestRedraw();	
+									};
+									$gameTemp.pushMenu = "attack_list";
+								} else {
+									$gameTemp.twinSupportAttack = null;
+									_this._currentSelection = 0;
+									_this.requestRedraw();	
+								}								
+							} else {
+								$gameTemp.twinSupportAttack = null;
+								_this._currentSelection = 0;
+								_this.requestRedraw();	
+							}
+													
 						};		
 						$gameTemp.pushMenu = "attack_list";
-					} 				
+					}  else {
+						$gameTemp.twinSupportAttack = null;
+					}		
 				}
 			} else if(this._currentUIState == "action_selection"){
 				SoundManager.playOk();
@@ -489,37 +534,69 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 		content+="<div class='scaled_text percent_indicator'>";
 		var hitRate = -1;
 		if(action.type == "attack"){	
+			var initiatorType;			
 			if(allyOrEnemy == "ally"){
-				if(isSupport){
-					var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
-					if(supporter){					
-						hitRate = $battleCalc.performHitCalculation(
-							{actor: supporter.actor, action: supporter.action},
-							{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
-						);
-					}
-				} else {
-					hitRate = $battleCalc.performHitCalculation(
-						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction, isInitiator: !$gameTemp.isEnemyAttack},
-						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction, isInitiator: $gameTemp.isEnemyAttack}
-					);
+				initiatorType = "actor";
+				if(ref.isSubTwin){
+					initiatorType = "actorTwin"
 				}
-				
 			} else {
-				if(isSupport){
-					var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
-					if(supporter){	
-						hitRate = $battleCalc.performHitCalculation(
-							{actor: supporter.actor, action: supporter.action},
-							{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction}
-						);
-					}
-				} else {
-					hitRate = $battleCalc.performHitCalculation(				
-						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction, isInitiator: $gameTemp.isEnemyAttack},
-						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction, isInitiator: !$gameTemp.isEnemyAttack}
-					);
+				initiatorType = "enemy";
+				if(ref.isSubTwin){
+					initiatorType = "enemyTwin"
 				}
+			}
+		
+			
+			var initiator;			
+			var initiatorAction;	
+			if(initiatorType == "actor"){
+				initiator = $gameTemp.currentBattleActor;
+				initiatorAction = $gameTemp.actorAction;
+			} else if(initiatorType == "actorTwin"){
+				initiator = $gameTemp.currentBattleActor.subTwin;
+				initiatorAction = $gameTemp.actorTwinAction;
+			} else if(initiatorType == "enemy"){
+				initiator = $gameTemp.currentBattleEnemy;
+				initiatorAction = $gameTemp.enemyAction;
+			} else if(initiatorType == "enemyTwin"){
+				initiator = $gameTemp.currentBattleEnemy.subTwin;
+				initiatorAction = $gameTemp.enemyTwinAction;
+			}
+			
+			var defender;
+			var defenderAction;
+			var targetType = $gameTemp.currentTargetingSettings[initiatorType];
+			if(allyOrEnemy == "ally"){
+				if(targetType == "main"){
+					defender = $gameTemp.currentBattleEnemy;
+					defenderAction = $gameTemp.enemyAction;
+				}
+				if(targetType == "twin"){
+					defender = $gameTemp.currentBattleEnemy.subTwin;
+					defenderAction = $gameTemp.enemyTwinAction;
+				}
+			} else {
+				if(targetType == "main"){
+					defender = $gameTemp.currentBattleActor;
+					defenderAction = $gameTemp.actorAction;
+				}
+				if(targetType == "twin"){
+					defender = $gameTemp.currentBattleActor.subTwin;
+					defenderAction = $gameTemp.actorTwinAction;
+				}
+			}		
+			
+			if(allyOrEnemy == "ally"){				
+				hitRate = $battleCalc.performHitCalculation(
+					{actor: initiator, action: initiatorAction, isInitiator: !$gameTemp.isEnemyAttack},
+					{actor: defender, action: defenderAction, isInitiator: $gameTemp.isEnemyAttack}
+				);					
+			} else {				
+				hitRate = $battleCalc.performHitCalculation(				
+					{actor: initiator, action: initiatorAction, isInitiator: $gameTemp.isEnemyAttack},
+					{actor: defender, action: defenderAction, isInitiator: !$gameTemp.isEnemyAttack}
+				);			
 			}
 		}
 		if(hitRate == -1){
@@ -867,6 +944,28 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 			this._enemy_support_1.style.display = "none";
 		}
 	}
+	
+	var supporter = $gameTemp.twinSupportAttack;
+	if(supporter){
+		if($gameTemp.isEnemyAttack){
+			this._enemy_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
+			this._enemy_support_2.style.display = "";
+		} else {
+			this._ally_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "ally");
+			this._ally_support_2.style.display = "";
+		}
+		
+	} else {
+		if($gameTemp.isEnemyAttack){
+			this._enemy_support_2.innerHTML = "";
+			this._enemy_support_2.style.display = "none";
+		} else {
+			this._ally_support_2.innerHTML = "";
+			this._ally_support_2.style.display = "none";
+		}
+	}
+	
+
 	if($gameTemp.currentBattleActor.subTwin){
 		var action;
 		if(!$gameTemp.actorTwinAction){
@@ -1016,5 +1115,33 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		var pilotId = pilotIcon.getAttribute("data-pilot");
 		_this.loadEnemyFace(pilotId, pilotIcon);
 	});
+	
+	_this._targeting_arrows_1.style.transform = "";
+	_this._targeting_arrows_1.style.display = "none";
+	
+	_this._targeting_arrows_2.style.transform = "";
+	_this._targeting_arrows_2.style.display = "none";
+	
+	if($gameTemp.actorAction.type == "attack"){
+		_this._targeting_arrows_1.style.display = "";
+	}
+	
+	if($gameTemp.currentTargetingSettings.actor == "twin"){
+		_this._targeting_arrows_1.style.transform = "rotate(-45deg)";
+	}	
+	
+	if($gameTemp.currentBattleActor.subTwin){
+		if($gameTemp.actorTwinAction && $gameTemp.actorTwinAction.type == "attack"){
+			_this._targeting_arrows_2.style.display = "";
+		}
+		if($gameTemp.currentTargetingSettings.actorTwin == "main"){
+			_this._targeting_arrows_2.style.transform = "rotate(45deg)";
+		}		
+	}
+	
+	_this.updateScaledImage(_this._targeting_arrows_1);
+	_this.updateScaledImage(_this._targeting_arrows_2);
+	
+	
 	Graphics._updateCanvas();
 }

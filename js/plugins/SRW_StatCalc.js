@@ -2997,8 +2997,8 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 			detail.postMove = true;
 		}
 		var pos = {
-			x: actor.event.posX(),
-			y: actor.event.posY()
+			x: this.getReferenceEvent(actor).posX(),
+			y: this.getReferenceEvent(actor).posY()
 		};
 		if(!weapon.isMap){
 			if(rangeTarget){
@@ -3028,7 +3028,10 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 		} else if($gameTemp.isEnemyAttack){
 			canUse = false;
 			detail.isMap = true;
-		}		
+		}  else if(rangeTarget){
+			canUse = false;
+			detail.isMap2 = true;
+		}			
 	} else {
 		canUse = false;
 	} 	
