@@ -3148,6 +3148,9 @@ StatCalc.prototype.iterateAllActors = function(type, func){
 				if(actor && _this.isActorSRWInitialized(actor)){
 					if(!type || (type == "actor" && actor.isActor()) || (type == "enemy" && !actor.isActor())){
 						func(actor, event);
+						if(actor.subTwin){
+							func(actor.subTwin, event);
+						}
 					}
 				}
 			}
@@ -3379,7 +3382,7 @@ StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId){
 StatCalc.prototype.activeUnitAtPosition = function(position, type){
 	var result;
 	this.iterateAllActors(type, function(actor, event){			
-		if(!event.isErased() && event.posX() == position.x && event.posY() == position.y && !event.isErased()){
+		if(!event.isErased() && event.posX() == position.x && event.posY() == position.y && !event.isErased() && !actor.isSubTwin){
 			result = actor;
 		}		
 	});
@@ -3399,7 +3402,7 @@ StatCalc.prototype.activeUnitsInTileRange = function(tiles, type){
 		}
 	}
 	this.iterateAllActors(null, function(actor, event){			
-		if(!event.isErased() && lookup[event.posX()]  && lookup[event.posX()][event.posY()]){3
+		if(!event.isErased() && lookup[event.posX()]  && lookup[event.posX()][event.posY()]){
 			if(type == "enemy"){
 				if($gameSystem.isEnemy(actor)){
 					result.push(actor);
@@ -3578,7 +3581,7 @@ StatCalc.prototype.getSupportAttackCandidates = function(factionId, position, te
 	var _this = this;
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){
-		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
+		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1 && !actor.isSubTwin){
 			var maxSupportAttacks = $statCalc.applyStatModsToValue(actor, 0, ["support_attack"]);
 			if(maxSupportAttacks > actor.SRWStats.battleTemp.supportAttackCount && (!actor.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT)){
 				var validTerrain = true;
@@ -4545,7 +4548,7 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 	}
 	var result = {};
 	_this.iterateAllActors(null, function(actor, event){			
-		if(actor && event && !event.isErased()){
+		if(actor && event && !event.isErased() && !actor.isSubTwin){
 			var isEnemy = $gameSystem.isEnemy(actor);
 			var sourceX = event.posX();
 			var sourceY = event.posY();

@@ -13627,6 +13627,7 @@ Scene_Gameover.prototype.gotoTitle = function() {
 	SceneManager.snap = function() {
 		return Bitmap.snap(this._scene);
 	};
+	
 
 //====================================================================
 // ●Scene_Equip
