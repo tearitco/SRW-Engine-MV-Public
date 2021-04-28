@@ -554,6 +554,11 @@
 	width: 46%;
 }
 
+#before_battle.twin #before_battle_ally_main.selected {
+	border-color: var(--text-color-highlight);
+    box-shadow: 0px 0px 1px 5px var(--text-color-highlight);
+}
+
 #before_battle_ally_twin {
 	position: absolute;
 	border: 0.1vw solid #FFFFFF;
@@ -569,9 +574,19 @@
 	align-items: center;
 }
 
+#before_battle_ally_twin.selected {
+	border-color: var(--text-color-highlight);
+    box-shadow: 0px 0px 1px 5px var(--text-color-highlight);
+}
+
 #before_battle.twin #before_battle_enemy_main {
 	top: 12%;
 	width: 46%;
+}
+
+#before_battle.twin #before_battle_enemy_main.selected {
+	border-color: var(--text-color-highlight);
+    box-shadow: 0px 0px 1px 5px var(--text-color-highlight);
 }
 
 #before_battle_enemy_twin {
@@ -587,6 +602,11 @@
 	border-left: 0px;
 	display: left;
 	align-items: center;
+}
+
+#before_battle_enemy_twin.selected {
+	border-color: var(--text-color-highlight);
+    box-shadow: 0px 0px 1px 5px var(--text-color-highlight);
 }
 
 .participant_block_small .pilot_icon {
@@ -723,3 +743,4 @@
     z-index: 1;
     background-color: var(--section-bg-color-solid);
 }
+

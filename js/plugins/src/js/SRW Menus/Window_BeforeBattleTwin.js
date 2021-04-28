@@ -23,6 +23,8 @@ Window_BeforebattleTwin.prototype.initialize = function() {
 	this._currentSelection = 0;
 	this._currentActionSelection = 0;
 	this._currentSupportSelection = 0;
+	this._currentTwinTargetSelection = 0;
+	this._currentEnemySelection = 0;
 	this._currentUIState = "main_selection";
 	window.addEventListener("resize", function(){
 		_this.requestRedraw();
@@ -237,11 +239,35 @@ Window_BeforebattleTwin.prototype.update = function() {
 			if(this._currentUIState == "support_selection"){
 				SoundManager.playCursor();
 				_this.incrementSupportSelection()
-			}
-			if(this._currentUIState == "action_selection"){
+			} else if(this._currentUIState == "action_selection"){
 				SoundManager.playCursor();
 				_this.incrementActionSelection();
+			} else if(this._currentUIState == "actor_twin_target_selection"){
+				SoundManager.playCursor();	
+				_this._currentTwinTargetSelection++;
+			
+				if($statCalc.isMainTwin($gameTemp.currentBattleActor)){
+					if(_this._currentTwinTargetSelection > 1){
+						_this._currentTwinTargetSelection = 0;
+						_this._currentUIState = "main_selection";
+					}
+				} else {
+					if(_this._currentTwinTargetSelection > 0){
+						_this._currentTwinTargetSelection = 0;
+						_this._currentUIState = "main_selection";
+					}
+				}
+				
+			} else if(this._currentUIState == "enemy_twin_target_selection"){
+				SoundManager.playCursor();	
+				_this._currentEnemySelection++;
+				
+				if(_this._currentEnemySelection > 1){
+					_this._currentEnemySelection = 1;
+				}
+				
 			}
+			
 		
 		} else if (Input.isTriggered('up') || Input.isRepeated('up')) {
 			this.requestRedraw();
@@ -250,10 +276,34 @@ Window_BeforebattleTwin.prototype.update = function() {
 			if(this._currentUIState == "support_selection"){
 				SoundManager.playCursor();
 				_this.decrementSupportSelection()
-			}
-			if(this._currentUIState == "action_selection"){
+			} else if(this._currentUIState == "action_selection"){
 				SoundManager.playCursor();
 				_this.decrementActionSelection();
+			} else if(this._currentUIState == "main_selection"){
+				if($statCalc.isMainTwin($gameTemp.currentBattleEnemy)){
+					SoundManager.playCursor();
+					if($statCalc.isMainTwin($gameTemp.currentBattleActor)){
+						_this._currentTwinTargetSelection = 1;
+					} else {
+						_this._currentTwinTargetSelection = 0;
+					}					
+					_this._currentUIState = "actor_twin_target_selection";
+				}				
+			} else if(this._currentUIState == "actor_twin_target_selection"){					
+				_this._currentTwinTargetSelection--;
+				if(_this._currentTwinTargetSelection < 0){
+					_this._currentTwinTargetSelection = 0;
+				} else {
+					SoundManager.playCursor();
+				}
+			} else if(this._currentUIState == "enemy_twin_target_selection"){
+				SoundManager.playCursor();	
+				_this._currentEnemySelection--;
+				
+				if(_this._currentEnemySelection < 0){
+					_this._currentEnemySelection = 0;
+				}
+				
 			}
 		}		
 
@@ -457,7 +507,28 @@ Window_BeforebattleTwin.prototype.update = function() {
 					$gameTemp.actorAction.type = "evade";
 					_this._currentUIState = "main_selection";
 				}
-			}						
+			} else if(this._currentUIState == "actor_twin_target_selection"){
+				SoundManager.playOk();
+				_this._currentUIState = "enemy_twin_target_selection";
+				this.requestRedraw();
+			} else if(this._currentUIState == "enemy_twin_target_selection"){
+				SoundManager.playOk();
+				if(_this._currentTwinTargetSelection == 0){
+					if(_this._currentEnemySelection == 0){
+						$gameTemp.currentTargetingSettings.actor = "main";
+					} else {
+						$gameTemp.currentTargetingSettings.actor = "twin";
+					}
+				} else {
+					if(_this._currentEnemySelection == 0){
+						$gameTemp.currentTargetingSettings.actorTwin = "main";
+					} else {
+						$gameTemp.currentTargetingSettings.actorTwin = "twin";
+					}
+				}
+				//_this._currentUIState = "main_selection";
+				this.requestRedraw();
+			}					
 		}
 		if(Input.isTriggered('cancel')){	
 			if(this._currentUIState == "main_selection"){
@@ -476,7 +547,16 @@ Window_BeforebattleTwin.prototype.update = function() {
 				SoundManager.playCancel();
 				this.requestRedraw();
 				_this._currentUIState = "main_selection";
-			}
+			} else if(this._currentUIState == "actor_twin_target_selection"){
+				SoundManager.playCancel();
+				this.requestRedraw();
+				_this._currentUIState = "main_selection";
+			} else if(this._currentUIState == "enemy_twin_target_selection"){
+				SoundManager.playCancel();
+				this.requestRedraw();
+				_this._currentUIState = "actor_twin_target_selection";
+			}			
+			
 		}		
 		
 		if(Input.isTriggered('menu')){
@@ -1010,14 +1090,19 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		_this.updateScaledDiv(spiritEntry);
 	});
 	
+	var disableActionButtons = false;
+	if(_this._currentUIState != "actor_twin_target_selection" && _this._currentUIState != "enemy_twin_target_selection"){
+		disableActionButtons = true;
+	}
 	var actionButtons = this.getWindowNode().querySelectorAll(".action_btn");
 	actionButtons.forEach(function(actionButton){
-		if(actionButton.getAttribute("action_id") == _this._currentSelection){
+		if(disableActionButtons && actionButton.getAttribute("action_id") == _this._currentSelection){
 			actionButton.classList.add("selected");
 		} else {
 			actionButton.classList.remove("selected");
 		}		
 	});
+	
 	
 	if($gameSystem.demoSetting){
 		_this._btn_demo.innerHTML = "DEMO: ON";
@@ -1045,6 +1130,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	_this.assignFactionColorClass(_this._enemy_support_1, $gameTemp.currentBattleEnemy);
 	_this.assignFactionColorClass(_this._enemy_support_2, $gameTemp.currentBattleEnemy);
 	
+	_this._ally_header.classList.remove("support_selection_header");
 	_this.assignFactionColorClass(_this._ally_header, $gameTemp.currentBattleActor);
 	_this.assignFactionColorClass(_this._ally_main, $gameTemp.currentBattleActor);
 	_this.assignFactionColorClass(_this._ally_twin, $gameTemp.currentBattleActor);	
@@ -1142,6 +1228,30 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	_this.updateScaledImage(_this._targeting_arrows_1);
 	_this.updateScaledImage(_this._targeting_arrows_2);
 	
+	
+	this._ally_twin.classList.remove("selected");
+	this._ally_main.classList.remove("selected");
+	if(this._currentUIState == "actor_twin_target_selection" || this._currentUIState == "enemy_twin_target_selection"){
+		_this._ally_label.innerHTML = "Change Target";
+		_this._ally_header.classList.add("support_selection_header");
+		if(_this._currentTwinTargetSelection == 0){
+			this._ally_main.classList.add("selected");
+		} else {
+			this._ally_twin.classList.add("selected");
+		}
+	}
+	
+	this._enemy_twin.classList.remove("selected");
+	this._enemy_main.classList.remove("selected");
+	if(this._currentUIState == "enemy_twin_target_selection"){
+		_this._enemy_label.innerHTML = "Select Target";
+		_this._enemy_header.classList.add("support_selection_header");
+		if(_this._currentEnemySelection == 0){
+			this._enemy_main.classList.add("selected");
+		} else {
+			this._enemy_twin.classList.add("selected");
+		}
+	}
 	
 	Graphics._updateCanvas();
 }

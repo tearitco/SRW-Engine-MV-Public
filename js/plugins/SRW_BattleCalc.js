@@ -802,7 +802,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 	}	
 	
 	if($gameTemp.twinSupportAttack){
-		this.prepareBattleCache(defenderTwin, "twin support attack");
+		this.prepareBattleCache($gameTemp.twinSupportAttack, "support attack");
 	}
 	
 	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
@@ -1567,28 +1567,30 @@ BattleCalc.prototype.updateTwinActions = function(){
 
 BattleCalc.prototype.updateTwinSupportAttack = function(){
 	$gameTemp.twinSupportAttack = null;
-	var supportAttacker = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected].actor;
-	if(supportAttacker.subTwin){
-		
-		var maxSupportAttacks = $statCalc.applyStatModsToValue(supportAttacker.subTwin, 0, ["support_attack"]);
-		if(maxSupportAttacks > supportAttacker.subTwin.SRWStats.battleTemp.supportAttackCount && (!supportAttacker.subTwin.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT)){
-			var twinInfo = {
-				actor: supportAttacker.subTwin,
-				pos: {x: supportAttacker.event.posX(), y: supportAttacker.event.posY()}
-			};
-			var currentTarget;
-			if($gameTemp.isEnemyAttack){
-				currentTarget = $gameTemp.currentBattleActor;
-			} else {
-				currentTarget = $gameTemp.currentBattleEnemy;
-			}
-			var targetInfo = {
-				actor: currentTarget,
-				pos: {x: currentTarget.event.posX(), y: currentTarget.event.posY()}
-			};
-			var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo);
-			if(weaponResult.weapon){
-				$gameTemp.twinSupportAttack = {actor: supportAttacker.subTwin, action: {type: "attack", attack: weaponResult.weapon}};
+	if($gameTemp.supportAttackSelected != -1 && $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected]){
+		var supportAttacker = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected].actor;
+		if(supportAttacker.subTwin){
+			
+			var maxSupportAttacks = $statCalc.applyStatModsToValue(supportAttacker.subTwin, 0, ["support_attack"]);
+			if(maxSupportAttacks > supportAttacker.subTwin.SRWStats.battleTemp.supportAttackCount && (!supportAttacker.subTwin.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT)){
+				var twinInfo = {
+					actor: supportAttacker.subTwin,
+					pos: {x: supportAttacker.event.posX(), y: supportAttacker.event.posY()}
+				};
+				var currentTarget;
+				if($gameTemp.isEnemyAttack){
+					currentTarget = $gameTemp.currentBattleActor;
+				} else {
+					currentTarget = $gameTemp.currentBattleEnemy;
+				}
+				var targetInfo = {
+					actor: currentTarget,
+					pos: {x: currentTarget.event.posX(), y: currentTarget.event.posY()}
+				};
+				var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo);
+				if(weaponResult.weapon){
+					$gameTemp.twinSupportAttack = {actor: supportAttacker.subTwin, action: {type: "attack", attack: weaponResult.weapon}};
+				}
 			}
 		}
 	}
