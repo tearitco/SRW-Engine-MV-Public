@@ -1062,6 +1062,7 @@ Window_BattleBasic.prototype.redraw = function() {
 			_this.updateScaledDiv(containerInfo.HP);
 			_this.updateScaledDiv(containerInfo.destroyedContainer);
 			_this.updateScaledImage(containerInfo.destroyed);
+			_this.updateScaledImage(containerInfo.barrier);
 		}			
 	});	
 		
