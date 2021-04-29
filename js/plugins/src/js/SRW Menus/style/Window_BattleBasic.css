@@ -1,8 +1,10 @@
 :root {
 	--main-offset-horz: 60%;	
 	--main-offset-vert: 45%;	
-	--support-offset-horz: 75%;
-	--support-offset-vert: 15%;
+	--main-twin-offset-horz: 69%;	
+	--main-twin-offset-vert: 14%;
+	--support-offset-horz: 91%;
+	--support-offset-vert: 14%;
 	--supporting-offset-horz: 47%;
 	--supporting-offset-vert: 44%;
 	
@@ -39,6 +41,8 @@
 	
 	--shadow-actor: drop-shadow(rgb(0, 0, 0) 4px 0px 2px);
 	--shadow-enemy: drop-shadow(rgb(0, 0, 0) -4px 0px 2px);
+	
+	
 }
 
 #battle_basic {
@@ -46,6 +50,11 @@
 	align-items: center;
 	justify-content: center;
 	background: rgba(0,0,0,0);
+}
+
+#battle_basic .label{
+	z-index: 5;
+	display: none;
 }
 
 #battle_basic.fadeIn {
@@ -104,7 +113,7 @@
 }
 
 #battle_basic_active_zone_container_left {
-	width: 27%;
+	width: 32%;
     height: 1000%;
     right: 51%;
 	z-index: 2;
@@ -129,7 +138,7 @@
 }
 
 #battle_basic_active_zone_container_right {
-	width: 27%;
+	width: 32%;
     height: 1000%;
     left: 51%;
 	z-index: 2;
@@ -222,14 +231,7 @@
 	display: none;
 }	
 
-#battle_basic_actor {
-	position: absolute;
-	top: var(--main-offset-vert);
-    left: var(--main-offset-horz);
-	z-index: 1;
-	overflow: hidden;
-	filter: var(--shadow-actor);
-}
+
 
 #battle_basic.beforeView #battle_basic_actor {
 	filter: grayscale(1);
@@ -238,7 +240,7 @@
 #battle_basic_actor_supporter {
 	position: absolute;
 	top: var(--support-offset-vert);
-    left: var(--support-offset-horz);
+    left: 99%;
 	z-index: 0;
 	overflow: hidden;
 	filter: var(--shadow-actor);
@@ -276,7 +278,7 @@
 #battle_basic_enemy {
 	position: absolute;
 	top: var(--main-offset-vert);
-    right: var(--main-offset-horz);
+    right: 55%;
 	z-index: 1;
 	overflow: hidden;
 	filter: var(--shadow-enemy);
@@ -293,8 +295,8 @@
 #battle_basic_enemy_supporter {
 	position: absolute;
 	top: var(--support-offset-vert);
-    right: var(--support-offset-horz);
-	z-index: 0;
+    right: 79%;
+	z-index: 1;
 	overflow: hidden;
 	filter: var(--shadow-enemy);
 }
@@ -814,14 +816,7 @@
 	animation-fill-mode: forwards;
 }
 
-.participant_container {
-	--widthpixels: 128;
-	--heightpixels: 128;
-}
 
-.participant_container img{
-	width: 100%;
-}
 
 #battle_basic .faction_color.ally {
 	background-color: rgb(110, 182, 255);
@@ -838,3 +833,139 @@
 #battle_basic .faction_color.faction_2 {
 	background-color: rgb(247, 255, 110);
 }
+
+
+#battle_basic_actor_twin {
+	position: absolute;
+	top: var(--main-twin-offset-vert);
+    left: var(--main-twin-offset-horz);
+	z-index: 0;
+	overflow: hidden;
+	filter: var(--shadow-actor);
+}
+
+#battle_basic.beforeView #battle_basic_actor_twin {
+	filter: grayscale(1);
+}
+
+#battle_basic_actor_supporter_twin {
+	position: absolute;
+	top: 45%;
+    left: 90%;
+	z-index: 0;
+	overflow: hidden;
+	filter: var(--shadow-actor);
+}
+
+#battle_basic.beforeView #battle_basic_actor_supporter_twin {
+	filter: grayscale(1);
+}
+
+#battle_basic_enemy_twin {
+	position: absolute;
+	top: var(--main-twin-offset-vert);
+    right: 48%;
+	z-index: 0;
+	overflow: hidden;
+	filter: var(--shadow-enemy);
+}
+
+#battle_basic_enemy_twin img {
+	transform: scaleX(-1);
+}
+
+#battle_basic.beforeView #battle_basic_enemy_twin {
+	filter: grayscale(1);
+}
+
+#battle_basic_enemy_supporter_twin {
+	position: absolute;
+	top: 45%;
+    right: 88%;
+	z-index: 1;
+	overflow: hidden;
+	filter: var(--shadow-enemy);
+}
+
+#battle_basic_enemy_supporter_twin img {
+	transform: scaleX(-1);
+}
+
+#battle_basic.beforeView #battle_basic_enemy_supporter_twin {
+	filter: grayscale(1);
+}
+
+.participant_container {
+	--widthpixels: 128;
+	--heightpixels: 128;
+	position: relative;
+	display: flex;    
+    align-items: center;
+    justify-content: center;
+	white-space: nowrap;
+}
+
+.participant_container .label{
+	position: absolute;
+	margin-left: auto;
+	margin-right: auto;
+	top: -20%;
+}
+
+.participant_container .unit_pic{
+	width: 100%;
+}
+
+.participant_container.actor .unit_pic{
+	filter: var(--shadow-actor);
+}
+
+.participant_container.enemy .unit_pic{
+	filter: var(--shadow-enemy); 
+
+}
+
+.participant_container .barrier {
+	position: absolute;
+	display: none;
+}
+
+.participant_container.enemy img{
+	transform: scaleX(-1);
+}	
+
+.participant_container .HP_bar {
+	background-color: #000000;
+	width: 60px;
+	height: 10px;
+	display: none;
+	top: -10%;
+}
+
+.participant_container .HP_bar .fill {
+	height: 100%;
+	width: 50%;
+	background-color: #FF0000;
+}
+
+.participant_container .destroyed_container {
+	--widthpixels: 192;
+    --heightpixels: 192;
+	overflow: hidden;
+	position: absolute;
+}
+
+.participant_container .destroyed {
+	display: none;
+}
+
+.participant_container .destroyed.active {
+	display: block;
+}
+
+#battle_basic_actor {
+	top: var(--main-offset-vert);
+    left: var(--main-offset-horz);
+	z-index: 1;
+}
+

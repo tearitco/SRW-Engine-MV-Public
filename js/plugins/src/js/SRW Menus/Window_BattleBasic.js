@@ -21,7 +21,15 @@ Window_BattleBasic.prototype.initialize = function() {
 			img: "", 
 			participating: false
 		},
+		"actor_twin": {
+			img: "", 
+			participating: false
+		},
 		"actor_supporter": {
+			img: "", 
+			participating: false
+		},
+		"actor_supporter_twin": {
 			img: "", 
 			participating: false
 		},
@@ -29,7 +37,15 @@ Window_BattleBasic.prototype.initialize = function() {
 			img: "", 
 			participating: false
 		},
+		"enemy_twin": {
+			img: "", 
+			participating: false
+		},
 		"enemy_supporter": {
+			img: "", 
+			participating: false
+		},
+		"enemy_supporter_twin": {
 			img: "", 
 			participating: false
 		}
@@ -49,14 +65,97 @@ Window_BattleBasic.prototype.getCurrentSelection = function(){
 	return this._mechList.getCurrentSelection();	
 }
 
+Window_BattleBasic.prototype.createParticpantComponents = function(componentId, side) {
+	var component = {};
+	
+	var container = document.createElement("div"); 
+	
+	container.classList.add("participant_container");
+	container.classList.add(side);
+	container.id = this.createId(componentId);
+	component.container = container;
+	
+	var image = document.createElement("img");
+	image.classList.add("unit_pic");
+	container.appendChild(image);
+	//this._participantInfo.actor.imgElem = this._actorImg;
+	component.image = image;	
+	
+	var HP = document.createElement("div");
+	HP.classList.add("label");
+	HP.classList.add("HP_bar");
+	
+	var HPFill =  document.createElement("div");
+	HPFill.classList.add("fill");
+	HP.appendChild(HPFill);	
+	
+	container.appendChild(HP);
+	//container.appendChild(HPFill);
+	
+	component.HP = HP;
+	component.HPFill = HPFill;
+	
+	var damageLabel = document.createElement("div");
+	damageLabel.classList.add("label");
+	damageLabel.classList.add("damage_label");
+	container.appendChild(damageLabel);
+	component.damageLabel = damageLabel;
+	
+	var evadeLabel = document.createElement("div");
+	evadeLabel.classList.add("evade_label");
+	evadeLabel.classList.add("scaled_text");
+	evadeLabel.classList.add("label");
+	evadeLabel.innerHTML = "MISS";
+	container.appendChild(evadeLabel);
+	component.evadeLabel = evadeLabel;
+	
+	var counterLabel = document.createElement("div");
+	counterLabel.classList.add("label");
+	counterLabel.classList.add("counter_label");
+	counterLabel.classList.add("scaled_text");
+	counterLabel.innerHTML = "COUNTER";
+	container.appendChild(counterLabel);
+	component.counterLabel = counterLabel;
+	
+	var specialEvadeLabel = document.createElement("div");
+	specialEvadeLabel.classList.add("label");
+	specialEvadeLabel.classList.add("special_evade_label");
+	specialEvadeLabel.classList.add("scaled_text");
+	specialEvadeLabel.innerHTML = "DOUBLE IMAGE";
+	container.appendChild(specialEvadeLabel);
+	component.specialEvadeLabel = specialEvadeLabel;
+	
+	var barrier = document.createElement("img");
+	barrier.classList.add("barrier");
+	barrier.setAttribute("src", this.makeImageURL("barrier"));
+	container.appendChild(barrier);
+	component.barrier = barrier;
+	
+	var destroyedContainer = document.createElement("div");
+	destroyedContainer.classList.add("destroyed_container");
+	container.appendChild(destroyedContainer);
+	component.destroyedContainer = destroyedContainer;
+	
+	var destroyed = document.createElement("img");
+	destroyed.classList.add("destroyed_anim");
+	destroyed.setAttribute("src", this.makeImageURL("destroyed"));
+	destroyedContainer.appendChild(destroyed);
+	component.destroyed = destroyed;
+	
+	this._participantComponents[componentId] = component;
+}
+
 Window_BattleBasic.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	var windowNode = this.getWindowNode();
 	
+	this._participantComponents = {};
 	
+	this.createParticpantComponents("actor", "actor");
 	//this._actor.classList.add("scaled_width");
 	//this._actor.classList.add("scaled_height");
-	this._actor = document.createElement("div");
+	/*this._actor = document.createElement("div");
 	this._actor.classList.add("participant_container");
 	this._actor.id = this.createId("actor");
 	this._actorImg = document.createElement("img");
@@ -64,6 +163,7 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._participantInfo.actor.imgElem = this._actorImg;
 	
 	this._actorHP = document.createElement("div");
+	this._actorHP.classList.add("label");
 	this._actorHP.id = this.createId("actorHP");
 	this._actorHPFill = document.createElement("div");
 	this._actorHPFill.id = this.createId("actorHPFill");
@@ -77,6 +177,7 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._participantInfo.actor_supporter.imgElem = this._actorSupporterImg;
 	
 	this._actorSupporterHP = document.createElement("div");
+	this._actorSupporterHP.classList.add("label");
 	this._actorSupporterHP.id = this.createId("actorSupporterHP");
 	this._actorSupporterHPFill = document.createElement("div");
 	this._actorSupporterHPFill.id = this.createId("actorHPFill");
@@ -90,6 +191,7 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._participantInfo.enemy.imgElem = this._enemyImg;
 	
 	this._enemyHP = document.createElement("div");
+	this._enemyHP.classList.add("label");
 	this._enemyHP.id = this.createId("enemyHP");
 	this._enemyHPFill = document.createElement("div");
 	this._enemyHPFill.id = this.createId("enemyHPFill");
@@ -103,31 +205,38 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._participantInfo.enemy_supporter.imgElem = this._enemySupporterImg;
 	
 	this._enemySupporterHP = document.createElement("div");
+	this._enemySupporterHP.classList.add("label");
 	this._enemySupporterHP.id = this.createId("enemySupporterHP");
 	this._enemySupporterHPFill = document.createElement("div");
 	this._enemySupporterHPFill.id = this.createId("enemyHPFill");
 	this._enemySupporterHP.appendChild(this._enemySupporterHPFill);	
 	
 	this._actorDamage = document.createElement("div");
+	this._actorDamage.classList.add("label");
 	this._actorDamage.id = this.createId("actor_damage");
 	
 	this._actorSupportDamage = document.createElement("div");
+	this._actorSupportDamage.classList.add("label");
 	this._actorSupportDamage.id = this.createId("actor_damage_support");
 	
 	this._actorEvade = document.createElement("div");
 	this._actorEvade.id = this.createId("actor_evade");
 	this._actorEvade.classList.add("scaled_text");
+	this._actorEvade.classList.add("label");
 	this._actorEvade.innerHTML = "MISS";
 	
 	this._enemyEvade = document.createElement("div");
 	this._enemyEvade.id = this.createId("enemy_evade");
 	this._enemyEvade.classList.add("scaled_text");
+	this._enemyEvade.classList.add("label");
 	this._enemyEvade.innerHTML = "MISS";
 	
 	this._enemyDamage = document.createElement("div");
+	this._enemyDamage.classList.add("label");
 	this._enemyDamage.id = this.createId("enemy_damage");
 	
 	this._enemySupportDamage = document.createElement("div");
+	this._enemySupportDamage.classList.add("label");
 	this._enemySupportDamage.id = this.createId("enemy_damage_support");
 	
 	this._enemyDestroyed = document.createElement("div");
@@ -171,31 +280,37 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._actorSupportDestroyed.appendChild(this._actorSupportDestroyedImageContainer);
 	
 	this._actorCounter = document.createElement("div");
+	this._actorCounter.classList.add("label");
 	this._actorCounter.id = this.createId("actor_counter");	
 	this._actorCounter.classList.add("scaled_text");
 	this._actorCounter.innerHTML = "COUNTER";
 	
 	this._enemyCounter = document.createElement("div");
+	this._enemyCounter.classList.add("label");
 	this._enemyCounter.id = this.createId("enemy_counter");
 	this._enemyCounter.classList.add("scaled_text");
 	this._enemyCounter.innerHTML = "COUNTER";
 	
 	this._actorDoubleImage = document.createElement("div");
+	this._actorDoubleImage.classList.add("label");
 	this._actorDoubleImage.id = this.createId("actor_special_evade");	
 	this._actorDoubleImage.classList.add("scaled_text");
 	this._actorDoubleImage.innerHTML = "DOUBLE IMAGE";
 	
 	this._enemyDoubleImage = document.createElement("div");
+	this._enemyDoubleImage.classList.add("label");
 	this._enemyDoubleImage.id = this.createId("enemy_special_evade");
 	this._enemyDoubleImage.classList.add("scaled_text");
 	this._enemyDoubleImage.innerHTML = "DOUBLE IMAGE";	
 	
 	this._actorSupportDoubleImage = document.createElement("div");
+	this._actorSupportDoubleImage.classList.add("label");
 	this._actorSupportDoubleImage.id = this.createId("actor_support_special_evade");	
 	this._actorSupportDoubleImage.classList.add("scaled_text");
 	this._actorSupportDoubleImage.innerHTML = "DOUBLE IMAGE";
 	
 	this._enemySupportDoubleImage = document.createElement("div");
+	this._enemySupportDoubleImage.classList.add("label");
 	this._enemySupportDoubleImage.id = this.createId("enemy_support_special_evade");
 	this._enemySupportDoubleImage.classList.add("scaled_text");
 	this._enemySupportDoubleImage.innerHTML = "DOUBLE IMAGE";
@@ -225,6 +340,64 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._enemySupportBarrier.appendChild(this._enemySupportBarrierImage);
 	
 
+	this._actor_twin = document.createElement("div");
+	this._actor_twin.classList.add("participant_container");
+	this._actor_twin.id = this.createId("actor_twin");
+	this._actorTwinImg = document.createElement("img");
+	this._actor_twin.appendChild(this._actorTwinImg);
+	this._participantInfo.actor_twin.imgElem = this._actorTwinImg;
+	
+	this._actorTwinHP = document.createElement("div");
+	this._actorTwinHP.classList.add("label");
+	this._actorTwinHP.id = this.createId("actorTwinHP");
+	this._actorTwinHPFill = document.createElement("div");
+	this._actorTwinHPFill.id = this.createId("actorTwinHPFill");
+	this._actorTwinHP.appendChild(this._actorTwinHPFill);	
+	
+	this._actorSupport_twin = document.createElement("div");
+	this._actorSupport_twin.classList.add("participant_container");
+	this._actorSupport_twin.id = this.createId("actor_supporter_twin");
+	this._actorSupportTwinImg = document.createElement("img");
+	this._actorSupport_twin.appendChild(this._actorSupportTwinImg);
+	this._participantInfo.actor_supporter_twin.imgElem = this._actorSupportTwinImg;
+	
+	this._actorSupportTwinHP = document.createElement("div");
+	this._actorSupportTwinHP.id = this.createId("actorSupportTwinHP");
+	this._actorSupportTwinHPFill = document.createElement("div");
+	this._actorSupportTwinHPFill.id = this.createId("actorSupportTwinHPFill");
+	this._actorSupportTwinHP.appendChild(this._actorSupportTwinHPFill);
+	
+	
+	this._enemy_twin = document.createElement("div");
+	this._enemy_twin.classList.add("participant_container");
+	this._enemy_twin.id = this.createId("enemy_twin");
+	this._enemyTwinImg = document.createElement("img");
+	this._enemy_twin.appendChild(this._enemyTwinImg);
+	this._participantInfo.enemy_twin.imgElem = this._enemyTwinImg;
+	
+	this._enemyTwinHP = document.createElement("div");
+	this._enemyTwinHP.classList.add("label");
+	this._enemyTwinHP.id = this.createId("enemyTwinHP");
+	this._enemyTwinHPFill = document.createElement("div");
+	this._enemyTwinHPFill.id = this.createId("enemyTwinHPFill");
+	this._enemyTwinHP.appendChild(this._enemyTwinHPFill);
+	
+	this._enemySupport_twin = document.createElement("div");
+	this._enemySupport_twin.classList.add("participant_container");
+	this._enemySupport_twin.id = this.createId("enemy_supporter_twin");
+	this._enemySupportTwinImg = document.createElement("img");
+	this._enemySupport_twin.appendChild(this._enemySupportTwinImg);
+	this._participantInfo.enemy_supporter_twin.imgElem = this._enemySupportTwinImg;
+	
+	this._enemySupportTwinHP = document.createElement("div");
+	this._enemySupportTwinHP.id = this.createId("enemySupportTwinHP");
+	this._enemySupportTwinHPFill = document.createElement("div");
+	this._enemySupportTwinHPFill.id = this.createId("enemySupportTwinHPFill");
+	this._enemySupportTwinHP.appendChild(this._enemySupportTwinHPFill);
+	
+	/*******/
+	
+	
 	
 	this._bgFadeContainer.innerHTML = "";
 	
@@ -234,7 +407,7 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._activeZone = document.createElement("div");
 	this._activeZone.id = this.createId("active_zone");
 	
-	this._activeZone.appendChild(this._actor);	
+	/*this._activeZone.appendChild(this._actor);	
 	this._activeZone.appendChild(this._actorSupporter);	
 	this._activeZone.appendChild(this._enemy);	
 	this._activeZone.appendChild(this._enemySupporter);	
@@ -269,7 +442,11 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._activeZone.appendChild(this._actorBarrier);
 	this._activeZone.appendChild(this._enemyBarrier);
 	this._activeZone.appendChild(this._actorSupportBarrier);
-	this._activeZone.appendChild(this._enemySupportBarrier);
+	this._activeZone.appendChild(this._enemySupportBarrier);*/
+	
+	Object.keys(_this._participantComponents).forEach(function(type){
+		_this._activeZone.appendChild(_this._participantComponents[type].container);
+	});
 	
 	this._activeZoneContainer.appendChild(this._activeZone);	
 	
@@ -292,6 +469,16 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._activeZoneContainerShadowRight = document.createElement("div");
 	this._activeZoneContainerShadowRight.id = this.createId("active_zone_container_shadow_right");
 	this._activeZoneContainer.appendChild(this._activeZoneContainerShadowRight);
+	
+	/*this._activeZone.appendChild(this._actor_twin);	
+	this._activeZone.appendChild(this._actorSupport_twin);	
+	this._activeZone.appendChild(this._enemy_twin);	
+	this._activeZone.appendChild(this._enemySupport_twin);
+	
+	this._activeZone.appendChild(this._actorTwinHP);	
+	this._activeZone.appendChild(this._enemyTwinHP);	
+	this._activeZone.appendChild(this._actorSupportTwinHP);
+	this._activeZone.appendChild(this._enemySupportTwinHP);*/
 	
 	this._bgFadeContainer.appendChild(this._activeZoneContainer);	
 }	
@@ -335,26 +522,50 @@ Window_BattleBasic.prototype.readBattleCache = function() {
 		_this._actionQueue[battleEffect.actionOrder] = battleEffect;
 		//battleEffect.currentAnimHP = $statCalc.getCalculatedMechStats(battleEffect.ref).currentHP - (battleEffect.HPRestored || 0);
 		if(battleEffect.side == "actor"){
-			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
-				_this._participantInfo.actor.participating = true;
-				_this._participantInfo.actor.img = $statCalc.getBasicBattleImage(battleEffect.ref);
-				_this._participantInfo.actor.ref = battleEffect.ref;
+			if(battleEffect.type == "initiator" || battleEffect.type == "defender" || battleEffect.type == "twin attack" || battleEffect.type == "twin defend"){
+				if(battleEffect.ref.isSubTwin){
+					_this._participantInfo.actor_twin.participating = true;
+					_this._participantInfo.actor_twin.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.actor_twin.ref = battleEffect.ref;
+				} else {
+					_this._participantInfo.actor.participating = true;
+					_this._participantInfo.actor.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.actor.ref = battleEffect.ref;
+				}				
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
-				_this._participantInfo.actor_supporter.participating = true;
-				_this._participantInfo.actor_supporter.img = $statCalc.getBasicBattleImage(battleEffect.ref);
-				_this._participantInfo.actor_supporter.ref = battleEffect.ref;
+				if(battleEffect.ref.isSubTwin){
+					_this._participantInfo.actor_supporter_twin.participating = true;
+					_this._participantInfo.actor_supporter_twin.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.actor_supporter_twin.ref = battleEffect.ref;
+				} else {
+					_this._participantInfo.actor_supporter.participating = true;
+					_this._participantInfo.actor_supporter.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.actor_supporter.ref = battleEffect.ref;
+				}
 			}
 		} else {
-			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
-				_this._participantInfo.enemy.participating = true;
-				_this._participantInfo.enemy.img = $statCalc.getBasicBattleImage(battleEffect.ref);
-				_this._participantInfo.enemy.ref = battleEffect.ref;
+			if(battleEffect.type == "initiator" || battleEffect.type == "defender" || battleEffect.type == "twin attack" || battleEffect.type == "twin defend"){
+				if(battleEffect.ref.isSubTwin){
+					_this._participantInfo.enemy_twin.participating = true;
+					_this._participantInfo.enemy_twin.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.enemy_twin.ref = battleEffect.ref;
+				} else {
+					_this._participantInfo.enemy.participating = true;
+					_this._participantInfo.enemy.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.enemy.ref = battleEffect.ref;
+				}
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
-				_this._participantInfo.enemy_supporter.participating = true;
-				_this._participantInfo.enemy_supporter.img = $statCalc.getBasicBattleImage(battleEffect.ref);
-				_this._participantInfo.enemy_supporter.ref = battleEffect.ref;
+				if(battleEffect.ref.isSubTwin){
+					_this._participantInfo.enemy_supporter_twin.participating = true;
+					_this._participantInfo.enemy_supporter_twin.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.enemy_supporter_twin.ref = battleEffect.ref;
+				} else {
+					_this._participantInfo.enemy_supporter.participating = true;
+					_this._participantInfo.enemy_supporter.img = $statCalc.getBasicBattleImage(battleEffect.ref);
+					_this._participantInfo.enemy_supporter.ref = battleEffect.ref;
+				}
 			}
 		}				
 	});
@@ -438,15 +649,16 @@ Window_BattleBasic.prototype.animateHP = function(elem, fillElem, startPercent, 
 	}, stepDuration);
 }
 
-Window_BattleBasic.prototype.animateDamage = function(elem, special) {
+Window_BattleBasic.prototype.animateDamage = function(type, special) {
 	var _this = this;
-	elem.style.display = "block";
-	elem.className = "scaled_text";	
-	elem.innerHTML = special.damage;
-	this.applyDoubleTime(elem);
+	var containerInfo = this._participantComponents[type];
+	containerInfo.damageLabel.display = "block";
+	containerInfo.damageLabel.className = "scaled_text label";	
+	containerInfo.damageLabel.innerHTML = special.damage;
+	this.applyDoubleTime(containerInfo.damageLabel);
 	var seName = "SRWHit";
 	if(special.crit){
-		elem.classList.add("crit");
+		containerInfo.damageLabel.classList.add("crit");
 		seName = "SRWHit_Crit";
 	}
 	if(special.barrierState == 1){
@@ -466,13 +678,16 @@ Window_BattleBasic.prototype.animateDamage = function(elem, special) {
 	AudioManager.playSe(se);
 }
 
-Window_BattleBasic.prototype.animateDestroy = function(elem, imgElem) {
-	elem.style.display = "block";
-	imgElem.className = "";	
-	imgElem.className = "destroyed_anim";	
-	this.applyDoubleTime(imgElem);
+Window_BattleBasic.prototype.animateDestroy = function(type) {
+	var containerInfo = this._participantComponents[type];
+	if(containerInfo){
+		containerInfo.container.style.display = "block";
+		containerInfo.destroyed.className = "";	
+		containerInfo.destroyed.className = "destroyed_anim active";	
+		this.applyDoubleTime(containerInfo.destroyed);
 
-	setTimeout(function(){ elem.style.display = "none" }, 400 * this.getAnimTimeRatio());
+		setTimeout(function(){ containerInfo.container.style.display = "none" }, 400 * this.getAnimTimeRatio());
+	}
 	
 	var se = {};
 	se.name = 'SRWExplosion';
@@ -747,6 +962,7 @@ Window_BattleBasic.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
+		return;
 		if(_this.initTimer > 0){
 			_this.initTimer--;
 			return;
@@ -773,7 +989,7 @@ Window_BattleBasic.prototype.update = function() {
 			}
 			if(!nextAction){
 				if(!this._finishing){
-					this._finishing = true;
+					//this._finishing = true;
 					this._finishTimer = 20;
 				}							
 			} else {
@@ -804,7 +1020,7 @@ Window_BattleBasic.prototype.update = function() {
 						});
 						if(nextAnimation.special){
 							if(nextAnimation.special.enemy_damage){
-								_this.animateDamage(_this._enemyDamage, nextAnimation.special.enemy_damage);										
+								_this.animateDamage("enemy", nextAnimation.special.enemy_damage);										
 							}
 							
 							if(nextAnimation.special.attack_start){
@@ -817,13 +1033,13 @@ Window_BattleBasic.prototype.update = function() {
 							}						
 							
 							if(nextAnimation.special.actor_damage){
-								_this.animateDamage(_this._actorDamage, nextAnimation.special.actor_damage);										
+								_this.animateDamage("actor", nextAnimation.special.actor_damage);										
 							}
 							if(nextAnimation.special.actor_damage_support){
-								_this.animateDamage(_this._actorSupportDamage, nextAnimation.special.actor_damage_support);										
+								_this.animateDamage("actor_support", nextAnimation.special.actor_damage_support);										
 							}
 							if(nextAnimation.special.enemy_damage_support){
-								_this.animateDamage(_this._enemySupportDamage, nextAnimation.special.enemy_damage_support);										
+								_this.animateDamage("enemy_support", nextAnimation.special.enemy_damage_support);										
 							}
 							if(nextAnimation.special.enemy_evade){
 								_this._enemyEvade.style.display = "block";
@@ -848,16 +1064,16 @@ Window_BattleBasic.prototype.update = function() {
 								AudioManager.playSe(se);	
 							}
 							if(nextAnimation.special.enemy_destroyed){
-								_this.animateDestroy(_this._enemyDestroyed, _this._enemyDestroyedImage);	
+								_this.animateDestroy("enemy");	
 							}
 							if(nextAnimation.special.enemy_support_destroyed){
-								_this.animateDestroy(_this._enemySupportDestroyed, _this._enemySupportDestroyedImage);									
+								_this.animateDestroy("enemy_support");									
 							}
 							if(nextAnimation.special.actor_destroyed){
-								_this.animateDestroy(_this._actorDestroyed, _this._actorDestroyedImage);									
+								_this.animateDestroy("actor");									
 							}
 							if(nextAnimation.special.actor_support_destroyed){
-								_this.animateDestroy(_this._actorSupportDestroyed, _this._actorSupportDestroyedImage);									
+								_this.animateDestroy("actor_support");									
 							}					
 							
 							if(nextAnimation.special.hp_bar_enemy){								
@@ -1024,7 +1240,7 @@ Window_BattleBasic.prototype.update = function() {
 		}
 		
 		if(Input.isTriggered('pageup')){
-			//this.requestRedraw();
+			this.requestRedraw();
 			this.readBattleCache();
 		} 	
 		
@@ -1047,12 +1263,18 @@ Window_BattleBasic.prototype.redraw = function() {
 	var _this = this;
 	Object.keys(_this._participantInfo).forEach(function(type){
 		var participant = _this._participantInfo[type];
-		if(participant.participating){
-			participant.imgElem.setAttribute("src", _this.makeImageURL(participant.img));
+		if(participant.participating && _this._participantComponents[type]){
+			//participant.imgElem.setAttribute("src", _this.makeImageURL(participant.img));
 			//_this.updateScaledImage(participant.imgElem);
+			var containerInfo = _this._participantComponents[type];
+			containerInfo.image.setAttribute("src", _this.makeImageURL(participant.img));
+			_this.updateScaledDiv(containerInfo.container);
+			_this.updateScaledDiv(containerInfo.HP);
+			_this.updateScaledDiv(containerInfo.destroyedContainer);
+			_this.updateScaledImage(containerInfo.destroyed);
 		}			
 	});	
-	_this.updateScaledImage(_this._enemyDestroyedImage);
+	/*_this.updateScaledImage(_this._enemyDestroyedImage);
 	_this.updateScaledImage(_this._actorDestroyedImage);
 	_this.updateScaledImage(_this._enemySupportDestroyedImage);
 	_this.updateScaledImage(_this._actorSupportDestroyedImage);
@@ -1081,6 +1303,12 @@ Window_BattleBasic.prototype.redraw = function() {
 	_this.updateScaledDiv(_this._actorSupporter);
 	_this.updateScaledDiv(_this._enemy);
 	_this.updateScaledDiv(_this._enemySupporter);
+	
+	_this.updateScaledDiv(_this._actor_twin);
+	_this.updateScaledDiv(_this._enemy_twin);
+	_this.updateScaledDiv(_this._actorSupport_twin);
+	_this.updateScaledDiv(_this._enemySupport_twin);*/
+	
 	Graphics._updateCanvas();
 }
 

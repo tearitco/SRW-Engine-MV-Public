@@ -1099,7 +1099,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			$gameTemp.defenderCounterActivated = true;
 		
 			if(defenderTwin){
-				appendTargetingActions(defenderTwin, defenderTwinTarget, supportDefender, attackerSide);
+				appendTargetingActions(defenderTwin, defenderTwinTarget, null, attackerSide);
 			}
 			
 			appendTargetingActions(defender, defenderTarget, null, defenderSide);	
@@ -1139,7 +1139,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 			appendTargetingActions(attacker, attackerTarget, supportDefender, attackerSide);	
 			
 			if(defenderTwin){
-				appendTargetingActions(defenderTwin, defenderTwinTarget, supportDefender, attackerSide);
+				appendTargetingActions(defenderTwin, defenderTwinTarget, null, defenderSide);
 			}
 			
 			appendTargetingActions(defender, defenderTarget, null, defenderSide);		
