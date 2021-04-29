@@ -97,7 +97,7 @@ Window_UnitSummary.prototype.redraw = function() {
 		
 		content+="</div>";
 		
-		if($gameTemp.isMapTarget(actor.event.eventId())){
+		if(actor.event && $gameTemp.isMapTarget(actor.event.eventId())){
 			var hitRate = $battleCalc.performHitCalculation(
 				{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
 				{actor: actor, action: {type: "defend"}}
