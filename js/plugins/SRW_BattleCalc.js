@@ -883,9 +883,14 @@ BattleCalc.prototype.generateBattleResult = function(){
 					aCache.attacked = sCache;
 					
 					sCache.hasActed = true;						
-					if(Math.random() < $statCalc.applyStatModsToValue(this._supportDefender.actor, 0, ["double_image_rate"])){
+					/*if(Math.random() < $statCalc.applyStatModsToValue(this._supportDefender.actor, 0, ["double_image_rate"])){
 						sCache.isDoubleImage = true;
 						isHit = 0;
+					}*/
+					var specialEvasion = this.getSpecialEvasion(this._attacker, activeDefender);
+					if(specialEvasion){
+						sCache.specialEvasion = specialEvasion;
+						isHit = false;
 					}
 				}
 				if(isHit){
@@ -1017,26 +1022,18 @@ BattleCalc.prototype.generateBattleResult = function(){
 		this._attacker.actor._cacheReference = storedCacheRef;
 	}
 	
-	BattleAction.prototype.determineTargetInfo = function(){
-		var finalTarget = this._defender;
-		var isMismatchedTwin = false;
-		var hitRate = _this.performHitCalculation(
-			this._attacker,
-			this._defender		
-		);		
-		
-		var isHit = Math.random() < hitRate;
-		var specialEvasion = null;
-		if(isHit){		
-			var weaponref = this._attacker.action.attack; 
-			var specialEvadeInfo = $statCalc.getModDefinitions(this._defender.actor, ["special_evade"]);
+	BattleAction.prototype.getSpecialEvasion = function(attacker, defender){
+			var specialEvasion = null;
+			var isHit = 1;
+			var weaponref = attacker.action.attack; 
+			var specialEvadeInfo = $statCalc.getModDefinitions(defender.actor, ["special_evade"]);
 			var weaponType = weaponref.particleType;
-			var aSkill = $statCalc.getPilotStat(this._attacker.actor, "skill");
-			var dSkill = $statCalc.getPilotStat(this._defender.actor, "skill");		
+			var aSkill = $statCalc.getPilotStat(attacker.actor, "skill");
+			var dSkill = $statCalc.getPilotStat(defender.actor, "skill");		
 			
 			var ctr = 0;
 			
-			if(!$statCalc.getActiveSpirits(this._attacker.actor).strike && !$statCalc.getActiveSpirits(this._attacker.actor).fury){
+			if(!$statCalc.getActiveSpirits(attacker.actor).strike && !$statCalc.getActiveSpirits(attacker.actor).fury){
 				while(isHit && ctr < specialEvadeInfo.length){
 					var evasionType = specialEvadeInfo[ctr].subType;
 					if(evasionType == weaponType || evasionType == "all"){
@@ -1052,11 +1049,32 @@ BattleCalc.prototype.generateBattleResult = function(){
 					ctr++;
 				}
 			}
+			return specialEvasion;
+		}
+	
+	BattleAction.prototype.determineTargetInfo = function(){
+		var finalTarget = this._defender;
+		var isMismatchedTwin = false;
+		
+		
+		
+		var hitRate = _this.performHitCalculation(
+			this._attacker,
+			this._defender		
+		);		
+		
+		var isHit = Math.random() < hitRate;
+		var specialEvasion = null;
+		if(isHit){		
+			specialEvasion = this.getSpecialEvasion(this._attacker, this._defender);
+			if(specialEvasion){
+				isHit = false;
+			}
 		}
 		if(isHit && this._supportDefender && !this._supportDefender.blockedHit){
 			this._supportDefender.blockedHit = true;
 			finalTarget = this._supportDefender;
-			isMismatchedTwin = false;
+			isMismatchedTwin = false;			
 		} else if($statCalc.isTwinMismatch(this._attacker.actor, this._defender.actor)){
 			isMismatchedTwin = true;
 		}

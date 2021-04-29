@@ -66,8 +66,14 @@ Window_BattleBasic.prototype.getCurrentSelection = function(){
 	return this._mechList.getCurrentSelection();	
 }
 
-Window_BattleBasic.prototype.createParticpantComponents = function(componentId, side) {
+Window_BattleBasic.prototype.createParticipantComponents = function(componentId, side) {
 	var component = {};
+	
+	var id = this.createId(componentId);
+	var previous = document.getElementById(id);
+	if(previous){
+		previous.parent.removeChild(previous);
+	}
 	
 	var container = document.createElement("div"); 
 	
@@ -78,9 +84,14 @@ Window_BattleBasic.prototype.createParticpantComponents = function(componentId, 
 	container.id = this.createId(componentId);
 	component.container = container;
 	
+	var unitPicContainer = document.createElement("div");
+	unitPicContainer.classList.add("unit_pic_container");
+	container.appendChild(unitPicContainer);
+	component.unitPicContainer = unitPicContainer;
+	
 	var image = document.createElement("img");
 	image.classList.add("unit_pic");
-	container.appendChild(image);
+	unitPicContainer.appendChild(image);
 	//this._participantInfo.actor.imgElem = this._actorImg;
 	component.image = image;	
 	
@@ -155,15 +166,15 @@ Window_BattleBasic.prototype.createComponents = function() {
 	
 	this._participantComponents = {};
 	
-	this.createParticpantComponents("actor", "actor");
-	this.createParticpantComponents("actor_twin", "actor");
-	this.createParticpantComponents("actor_supporter", "actor");
-	this.createParticpantComponents("actor_supporter_twin", "actor");
+	this.createParticipantComponents("actor", "actor");
+	this.createParticipantComponents("actor_twin", "actor");
+	this.createParticipantComponents("actor_supporter", "actor");
+	this.createParticipantComponents("actor_supporter_twin", "actor");
 	
-	this.createParticpantComponents("enemy", "enemy");
-	this.createParticpantComponents("enemy_twin", "enemy");
-	this.createParticpantComponents("enemy_supporter", "enemy");
-	this.createParticpantComponents("enemy_supporter_twin", "enemy");
+	this.createParticipantComponents("enemy", "enemy");
+	this.createParticipantComponents("enemy_twin", "enemy");
+	this.createParticipantComponents("enemy_supporter", "enemy");
+	this.createParticipantComponents("enemy_supporter_twin", "enemy");
 	
 	
 	
@@ -202,15 +213,6 @@ Window_BattleBasic.prototype.createComponents = function() {
 	this._activeZoneContainerShadowRight.id = this.createId("active_zone_container_shadow_right");
 	this._activeZoneContainer.appendChild(this._activeZoneContainerShadowRight);
 	
-	/*this._activeZone.appendChild(this._actor_twin);	
-	this._activeZone.appendChild(this._actorSupport_twin);	
-	this._activeZone.appendChild(this._enemy_twin);	
-	this._activeZone.appendChild(this._enemySupport_twin);
-	
-	this._activeZone.appendChild(this._actorTwinHP);	
-	this._activeZone.appendChild(this._enemyTwinHP);	
-	this._activeZone.appendChild(this._actorSupportTwinHP);
-	this._activeZone.appendChild(this._enemySupportTwinHP);*/
 	
 	this._bgFadeContainer.appendChild(this._activeZoneContainer);	
 }	
@@ -314,11 +316,12 @@ Window_BattleBasic.prototype.readBattleCache = function() {
 		}				
 	});
 	
-	Object.keys(_this._participantComponents).forEach(function(type){
+	/*Object.keys(_this._participantComponents).forEach(function(type){
 		_this._participantComponents[type].container.className = "participant_container "+_this._participantComponents[type].side;
 		_this._participantComponents[type].destroyed.className = "destroyed_anim";
 		_this._participantComponents[type].container.style.visibility = "visible";
-	});
+	});*/
+	_this.createParticipantComponents();
 }
 
 Window_BattleBasic.prototype.show = function() {
@@ -788,7 +791,46 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 		}
 		
 	} else {
+		var evadeAnimation;
 		
+		if(nextAction.attacked.specialEvasion){
+			var patternId = nextAction.attacked.specialEvasion.dodgePattern;
+			var animDef = {
+				basic_anim: "no_damage",
+				se: "SRWMiss",
+				
+			};
+			if(patternId != null && ENGINE_SETTINGS.DODGE_PATTERNS[patternId]){
+				animDef =  ENGINE_SETTINGS.DODGE_PATTERNS[patternId];
+			}
+			
+			animDef.name = nextAction.attacked.specialEvasion.name;
+			animDef.target = target;
+			
+			var evadeAnimation = animDef.basic_anim;
+			
+			
+			if(nextAction.attacked.type == "support defend"){				
+				this._animationQueue.push([{target: target, type: "supportDefend"}]);			
+			 
+				evadeAnimation = {target: target, type: evadeAnimation};
+				evadeAnimation.special = {};
+				evadeAnimation.special["special_evade"] = animDef;
+				this._animationQueue.push([evadeAnimation]);
+						
+				this._animationQueue.push([{target: target, type: "supportDefendReturn"}]);			
+			} else {
+				evadeAnimation = {target: target, type: evadeAnimation};
+				evadeAnimation.special = {};
+				evadeAnimation.special["special_evade"] = animDef;
+				this._animationQueue.push([evadeAnimation]);
+			}
+		} else {
+			evadeAnimation = {target: target, type: "evade"};
+			evadeAnimation.special = {};
+			evadeAnimation.special["evade"] = {target: target};		
+			this._animationQueue.push([evadeAnimation])	
+		}
 	}
 	
 	this._animationQueue.push([{target: initiator, type: "return"}]);
@@ -826,7 +868,7 @@ Window_BattleBasic.prototype.update = function() {
 			}
 			if(!nextAction){
 				if(!this._finishing){
-					//this._finishing = true;
+					this._finishing = true;
 					this._finishTimer = 20;
 				}							
 			} else {
@@ -848,9 +890,20 @@ Window_BattleBasic.prototype.update = function() {
 						var nextAnimation = nextAnimations[i];
 						var componentInfo = _this._participantComponents[nextAnimation.target];
 						var target = _this._participantComponents[nextAnimation.target].container;
+						target.className = "";
+						void target.offsetWidth;
 						target.className = "participant_container "+componentInfo.side;
+						
 						target.classList.add(nextAnimation.type);
 						target.style["animation-duration"] = "";
+						
+						/*componentInfo.unitPicContainer.className = "";
+						componentInfo.unitPicContainer.className = "unit_pic_container";
+						componentInfo.unitPicContainer.style["animation-duration"] = "";
+						
+						componentInfo.image.className = "";
+						componentInfo.image.className = "unit_pic";
+						componentInfo.image.style["animation-duration"] = "";*/
 						
 						_this.applyDoubleTime(target);
 						target.addEventListener("animationend", function(){
@@ -888,11 +941,12 @@ Window_BattleBasic.prototype.update = function() {
 								se.pitch = 100;
 								se.volume = 80;
 								AudioManager.playSe(se);									
-							}						
-							
-							if(nextAnimation.special.enemy_evade){
-								_this._enemyEvade.style.display = "block";
-								setTimeout(function(){ _this._enemyEvade.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
+							}	
+
+							if(nextAnimation.special.evade){
+								var target = _this._participantComponents[nextAnimation.special.evade.target].evadeLabel;
+								target.style.display = "block";
+								setTimeout(function(){ target.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
 								se.name = 'SRWMiss';
@@ -900,18 +954,24 @@ Window_BattleBasic.prototype.update = function() {
 								se.pitch = 100;
 								se.volume = 80;
 								AudioManager.playSe(se);
-							}
-							if(nextAnimation.special.actor_evade){
-								_this._actorEvade.style.display = "block";
-								setTimeout(function(){ _this._actorEvade.style.display = "none" }, 200 * _this.getAnimTimeRatio());
+							}							
+
+
+							if(nextAnimation.special.special_evade){
+								var target = _this._participantComponents[nextAnimation.special.special_evade.target].specialEvadeLabel;
+								var def = nextAnimation.special.special_evade;
+								target.style.display = "block";
+								target.innerHTML = def.name;
+								setTimeout(function(){ target.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
 
 								var se = {};
-								se.name = 'SRWMiss';
+								se.name = def.se;
 								se.pan = 0;
 								se.pitch = 100;
 								se.volume = 80;
-								AudioManager.playSe(se);	
-							}				
+								AudioManager.playSe(se);		
+							}	
+								
 							
 							
 							if(nextAnimation.special.enemy_counter){
@@ -923,103 +983,7 @@ Window_BattleBasic.prototype.update = function() {
 								setTimeout(function(){ _this._actorCounter.style.display = "none" }, 200 * _this.getAnimTimeRatio());		
 							}
 														
-							if(nextAnimation.special.enemy_special_evade){
-								var def = nextAnimation.special.enemy_special_evade;
-								_this._enemyDoubleImage.style.display = "block";
-								_this._enemyDoubleImage.innerHTML = def.name;
-								setTimeout(function(){ _this._enemyDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = def.se;
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_special_evade){
-								var def = nextAnimation.special.actor_special_evade;
-								_this._actorDoubleImage.style.display = "block";
-								_this._actorDoubleImage.innerHTML = def.name;
-								setTimeout(function(){ _this._actorDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = def.se;
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);								
-							}
-							if(nextAnimation.special.enemy_support_special_evade){
-								var def = nextAnimation.special.enemy_support_special_evade;
-								_this._enemySupportDoubleImage.style.display = "block";
-								_this._enemySupportDoubleImage.innerHTML = def.name;
-								setTimeout(function(){ _this._enemySupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = def.se;
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);		
-							}
-							if(nextAnimation.special.actor_support_special_evade){
-								var def = nextAnimation.special.actor_support_special_evade;
-								_this._actorSupportDoubleImage.style.display = "block";
-								_this._actorSupportDoubleImage.innerHTML = def.name;
-								setTimeout(function(){ _this._actorSupportDoubleImage.style.display = "none" }, 200 * _this.getAnimTimeRatio());	
-
-								var se = {};
-								se.name = def.se;
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);									
-							}
 							
-							if(nextAnimation.special.actor_barrier){
-								_this._actorBarrier.style.display = "block";
-								setTimeout(function(){ _this._actorBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());	
-
-								/*var se = {};
-								se.name = 'SRWShield';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);	*/	
-							}
-							if(nextAnimation.special.actor_support_barrier){
-								_this._actorSupportBarrier.style.display = "block";
-								setTimeout(function(){ _this._actorSupportBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());	
-								
-								/*var se = {};
-								se.name = 'SRWShield';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);	*/
-							}
-							if(nextAnimation.special.enemy_barrier){
-								_this._enemyBarrier.style.display = "block";
-								setTimeout(function(){ _this._enemyBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());		
-								
-								/*var se = {};
-								se.name = 'SRWShield';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);*/
-							}
-							if(nextAnimation.special.enemy_support_barrier){
-								_this._enemySupportBarrier.style.display = "block";
-								setTimeout(function(){ _this._enemySupportBarrier.style.display = "none" }, 600 * _this.getAnimTimeRatio());
-
-								/*var se = {};
-								se.name = 'SRWShield';
-								se.pan = 0;
-								se.pitch = 100;
-								se.volume = 80;
-								AudioManager.playSe(se);	*/
-							}
 						}
 					}
 					Graphics._updateCanvas();					
@@ -1066,8 +1030,8 @@ Window_BattleBasic.prototype.update = function() {
 		}
 		
 		if(Input.isTriggered('pageup')){
-			this.requestRedraw();
-			this.readBattleCache();
+			//this.requestRedraw();
+			//this.readBattleCache();
 		} 	
 		
 		if(Input.isTriggered('ok')){

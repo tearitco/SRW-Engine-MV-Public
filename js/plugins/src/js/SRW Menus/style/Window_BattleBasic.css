@@ -651,9 +651,9 @@
 
 
 @keyframes evade_enemy {
-	0% { transform: translate(0,0); }
-	50% { transform: translate(-30%,30%); }
-	100% { transform: translate(0,0); }
+	0% { transform: translate(0,0) scaleX(-1); }
+	50% { transform: translate(-30%,30%) scaleX(-1); }
+	100% { transform: translate(0,0) scaleX(-1); }
 }
 
 
@@ -759,11 +759,6 @@
   100% { transform: translate(0,0); }
 }
 
-.double_image {
-	animation-name: double_image;
-	animation-duration: 0.2s;
-	animation-fill-mode: forwards;
-}
 
 
 
@@ -980,7 +975,12 @@
 	animation-fill-mode: forwards;
 }
 
-.participant_container.damage{
+.participant_container .unit_pic_container{
+	width: 100%;
+	height: 100%;
+}
+
+.participant_container.damage .unit_pic_container{
 	animation-name: damage;
 	animation-duration: 0.3s;
 	animation-fill-mode: forwards;
@@ -999,7 +999,7 @@
 }
 
 .participant_container.enemy.evade .unit_pic {
-	animation-name: evade_actor;
+	animation-name: evade_enemy;
 	animation-duration: 0.2s;
 	animation-fill-mode: forwards;
 }
@@ -1010,4 +1010,11 @@
 	/*animation-timing-function: steps(2);*/
 	animation-fill-mode: forwards;
 	animation-timing-function: step-end;
+}
+
+
+.participant_container.double_image .unit_pic_container{
+	animation-name: double_image;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
 }
