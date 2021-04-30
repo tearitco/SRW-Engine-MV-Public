@@ -656,6 +656,10 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 					defender = $gameTemp.currentBattleEnemy.subTwin;
 					defenderAction = $gameTemp.enemyTwinAction;
 				}
+				if(targetType == "all"){
+					defender = $gameTemp.currentBattleEnemy;
+					defenderAction = $gameTemp.enemyAction;
+				}
 			} else {
 				if(targetType == "main"){
 					defender = $gameTemp.currentBattleActor;
@@ -664,6 +668,10 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 				if(targetType == "twin"){
 					defender = $gameTemp.currentBattleActor.subTwin;
 					defenderAction = $gameTemp.actorTwinAction;
+				}
+				if(targetType == "all"){
+					defender = $gameTemp.currentBattleActor;
+					defenderAction = $gameTemp.actorAction;
 				}
 			}		
 			

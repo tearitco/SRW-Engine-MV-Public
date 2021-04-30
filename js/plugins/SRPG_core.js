@@ -4411,38 +4411,43 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 										
 										$battleCalc.updateTwinSupportAttack();
 										
-										var supporters = $statCalc.getSupportDefendCandidates(
-											$gameSystem.getFactionId($gameTemp.currentBattleEnemy), 
-											{x: event.posX(), y: event.posY()},
-											$statCalc.getCurrentTerrain($gameTemp.currentBattleEnemy)
-										);
-										
-										if($statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_support"]) || 
-											$statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_target_support"])){
-											supporters = [];
-										}
-										
-										var supporterSelected = -1;
-										var minDamage = -1;
-										for(var i = 0; i < supporters.length; i++){
-											supporters[i].action = {type: "defend", attack: null};											
-											
-											var damageResult = $battleCalc.performDamageCalculation(
-												{actor: actorInfo.actor, action: $gameTemp.actorAction},
-												supporters[i],
-												true,
-												false,
-												true	
+										if(!$gameTemp.actorAction || !$gameTemp.actorAction.attack || !$gameTemp.actorAction.attack.isAll){
+											var supporters = $statCalc.getSupportDefendCandidates(
+												$gameSystem.getFactionId($gameTemp.currentBattleEnemy), 
+												{x: event.posX(), y: event.posY()},
+												$statCalc.getCurrentTerrain($gameTemp.currentBattleEnemy)
 											);
 											
-											if(minDamage == -1 || damageResult.damage < minDamage){
-												minDamage = damageResult.damage;
-												supporterSelected = i;
+											if($statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_support"]) || 
+												$statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_target_support"])){
+												supporters = [];
 											}
+											
+											var supporterSelected = -1;
+											var minDamage = -1;
+											for(var i = 0; i < supporters.length; i++){
+												supporters[i].action = {type: "defend", attack: null};											
+												
+												var damageResult = $battleCalc.performDamageCalculation(
+													{actor: actorInfo.actor, action: $gameTemp.actorAction},
+													supporters[i],
+													true,
+													false,
+													true	
+												);
+												
+												if(minDamage == -1 || damageResult.damage < minDamage){
+													minDamage = damageResult.damage;
+													supporterSelected = i;
+												}
+											}
+											$gameTemp.supportDefendCandidates = supporters;
+											$gameTemp.supportDefendSelected = supporterSelected;
+										} else {
+											$gameTemp.supportDefendCandidates = [];
+											$gameTemp.supportDefendSelected = -1;
 										}
-										$gameTemp.supportDefendCandidates = supporters;
-										$gameTemp.supportDefendSelected = supporterSelected;
-																														
+										$gameTemp.currentTargetingSettings = null;																				
 										$battleCalc.updateTwinActions();
 										
 										$gameTemp.setTargetEvent(event);
@@ -11521,6 +11526,10 @@ SceneManager.reloadCharacters = function(startEvent){
 					var oldHP = $statCalc.getCalculatedMechStats(battleEffect.attacked.ref).currentHP;
 					battleEffect.attacked.ref.setHp(oldHP - battleEffect.damageInflicted);
 				}
+				if(battleEffect.hasActed && battleEffect.attacked_all_sub){
+					var oldHP = $statCalc.getCalculatedMechStats(battleEffect.attacked_all_sub.ref).currentHP;
+					battleEffect.attacked_all_sub.ref.setHp(oldHP - battleEffect.damageInflicted_all_sub);
+				}
 				
 				var personalityInfo = $statCalc.getPersonalityInfo(battleEffect.ref);
 				
@@ -13252,38 +13261,42 @@ SceneManager.reloadCharacters = function(startEvent){
 			};
 		}
 		
-		var supporters = $statCalc.getSupportDefendCandidates(
-			$gameSystem.getFactionId(actorInfo.actor), 
-			actorInfo.pos,
-			$statCalc.getCurrentTerrain(actorInfo.actor)
-		);
-		
-		if($statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_support"]) || 
-			$statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_target_support"])){
-			supporters = [];
-		}
-		
-		var supporterSelected = -1;
-		var minDamage = -1;
-		for(var i = 0; i < supporters.length; i++){
-			supporters[i].action = {type: "defend", attack: null};			
-			var damageResult = $battleCalc.performDamageCalculation(
-				{actor: enemyInfo.actor, action: $gameTemp.enemyAction},
-				supporters[i],
-				true,
-				false,
-				true	
-			);				
-			if(minDamage == -1 || damageResult.damage < minDamage){
-				if(damageResult.damage < $statCalc.getCalculatedMechStats(supporters[i].actor).currentHP){
-					minDamage = damageResult.damage;
-					supporterSelected = i;
-				}				
+		if(!$gameTemp.enemyAction || !$gameTemp.enemyAction.attack || !$gameTemp.enemyAction.attack.isAll){	
+			var supporters = $statCalc.getSupportDefendCandidates(
+				$gameSystem.getFactionId(actorInfo.actor), 
+				actorInfo.pos,
+				$statCalc.getCurrentTerrain(actorInfo.actor)
+			);
+			
+			if($statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_support"]) || 
+				$statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_target_support"])){
+				supporters = [];
 			}
+			
+			var supporterSelected = -1;
+			var minDamage = -1;
+			for(var i = 0; i < supporters.length; i++){
+				supporters[i].action = {type: "defend", attack: null};			
+				var damageResult = $battleCalc.performDamageCalculation(
+					{actor: enemyInfo.actor, action: $gameTemp.enemyAction},
+					supporters[i],
+					true,
+					false,
+					true	
+				);				
+				if(minDamage == -1 || damageResult.damage < minDamage){
+					if(damageResult.damage < $statCalc.getCalculatedMechStats(supporters[i].actor).currentHP){
+						minDamage = damageResult.damage;
+						supporterSelected = i;
+					}				
+				}
+			}
+			$gameTemp.supportDefendCandidates = supporters;
+			$gameTemp.supportDefendSelected = supporterSelected;
+		} else {
+			$gameTemp.supportDefendCandidates = [];
+			$gameTemp.supportDefendSelected = -1;
 		}
-		$gameTemp.supportDefendCandidates = supporters;
-		$gameTemp.supportDefendSelected = supporterSelected;
-		
 		var supporters = $statCalc.getSupportAttackCandidates(
 			$gameSystem.getFactionId(enemyInfo.actor), 
 			{x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()},
@@ -13332,7 +13345,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.actorAction = $gameTemp.enemyAction;
 			$gameTemp.enemyAction = tmp;
 		}
-		
+		$gameTemp.currentTargetingSettings = null;	
 		$battleCalc.updateTwinActions();
 		
 		var weapon = $gameTemp.enemyWeaponSelection;

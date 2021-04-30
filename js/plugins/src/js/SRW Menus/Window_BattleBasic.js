@@ -354,11 +354,11 @@ Window_BattleBasic.prototype.show = function() {
 	});	
 };
 
-Window_BattleBasic.prototype.getHPAnimInfo = function(action) {
-	var targetMechStats = $statCalc.getCalculatedMechStats(action.attacked.ref);
+Window_BattleBasic.prototype.getHPAnimInfo = function(action, attackRef) {
+	var targetMechStats = $statCalc.getCalculatedMechStats(action["attacked"+attackRef].ref);
 
-	var startPercent = Math.floor((action.attacked.currentAnimHP / targetMechStats.maxHP)*100);
-	var endPercent = Math.floor(((action.attacked.currentAnimHP - action.damageInflicted) / targetMechStats.maxHP)*100);
+	var startPercent = Math.floor((action["attacked"+attackRef].currentAnimHP / targetMechStats.maxHP)*100);
+	var endPercent = Math.floor(((action["attacked"+attackRef].currentAnimHP - action["damageInflicted"+attackRef]) / targetMechStats.maxHP)*100);
 	if(endPercent < 0){
 		endPercent = 0;
 	}
@@ -720,6 +720,15 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	} else {
 		target = _this._participantTypeLookup[nextAction.attacked.ref._cacheReference];		
 	}
+	var allTarget;
+	if(nextAction.attacked_all_sub){
+		if(nextAction.attacked.type == "support defend" || nextAction.attacked.type == "support attack"){							
+			allTarget = _this._participantTypeLookup[nextAction.attacked_all_sub.ref._supportCacheReference];						
+		} else {
+			allTarget = _this._participantTypeLookup[nextAction.attacked_all_sub.ref._cacheReference];		
+		}
+	}
+	
 	
 	if(nextAction.counterActivated){
 		var counterAnimation =  {target: initiator, type: "counter"};
@@ -734,102 +743,145 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	} 
 	this._animationQueue.push([attackAnimation]);
 	
-	if(nextAction.hits){
-		if(nextAction.attacked.type == "support defend"){
-			this._animationQueue.push([{target: target, type: "supportDefend"}]);
-		}
-		
-		var animInfo = _this.getHPAnimInfo(nextAction);
-		var hpRecoveredAnimInfo = _this.getHPRecoveredAnimInfo(nextAction);
-		
-		nextAction.attacked.currentAnimHP = nextAction.attacked.currentAnimHP - nextAction.damageInflicted;
-		
-		
-		
-		if(nextAction.HPRestored){
-			nextAction.currentAnimHP = nextAction.currentAnimHP + nextAction.HPRestored;
-		}
-		
-		var damageAnimation;
-		if(nextAction.damageInflicted > 0){
-			damageAnimation = {target: target, type: "damage"};
-		} else {
-			damageAnimation = {target: target, type: "no_damage"};
-		}
-		
-		damageAnimation.special =  {};
-		var barrierState = 0;
-		if(nextAction.attacked.hasBarrier){
-			if(nextAction.attacked.barrierBroken){
-				barrierState = 2;
+	var attackAnimationSubQueue = {
+		supportDefendAnimation: null,
+		damageAnimation: [],
+		hpBarAnimation: [],
+		destroyAnimation: [],
+		evadeAnimation: [],
+		supportDefendReturnAnimation: null,
+	};
+	
+	processBattleAnimations("", target);
+	if(allTarget){
+		processBattleAnimations("_all_sub", allTarget);
+	}
+	
+	
+	var hpRecoveredAnimInfo = _this.getHPRecoveredAnimInfo(nextAction);
+	if(nextAction.HPRestored){
+		nextAction.currentAnimHP = nextAction.currentAnimHP + nextAction.HPRestored;
+	}
+	
+	if(hpRecoveredAnimInfo && attackAnimationSubQueue.hpBarAnimation[0]){			
+		attackAnimationSubQueue.hpBarAnimation[0].special["hp_bar_recover"] =  {target: initiator, startPercent: hpRecoveredAnimInfo.startPercent, endPercent: hpRecoveredAnimInfo.endPercent};
+	}
+	
+	if(attackAnimationSubQueue.supportDefendAnimation){
+		this._animationQueue.push([attackAnimationSubQueue.supportDefendAnimation]);
+	}
+	
+	this._animationQueue.push(attackAnimationSubQueue.damageAnimation.concat(attackAnimationSubQueue.evadeAnimation));
+	
+	if(attackAnimationSubQueue.hpBarAnimation.length){
+		this._animationQueue.push(attackAnimationSubQueue.hpBarAnimation);
+	}
+	
+	if(attackAnimationSubQueue.destroyAnimation.length){
+		this._animationQueue.push(attackAnimationSubQueue.destroyAnimation);
+	}
+	
+	if(attackAnimationSubQueue.supportDefendReturnAnimation){
+		this._animationQueue.push([attackAnimationSubQueue.supportDefendReturnAnimation]);
+	}
+	
+	
+	
+	
+	function processBattleAnimations(attackRef, target){
+		if(nextAction["hits"+attackRef]){
+			if(nextAction["attacked"+attackRef].type == "support defend"){
+				attackAnimationSubQueue.supportDefendAnimation = {target: target, type: "supportDefend"};
+			}
+			
+			var animInfo = _this.getHPAnimInfo(nextAction, attackRef);
+			
+			
+			nextAction["attacked"+attackRef].currentAnimHP = nextAction["attacked"+attackRef].currentAnimHP - nextAction["damageInflicted"+attackRef];		
+			
+			
+			
+			
+			var damageAnimation;
+			if(nextAction["damageInflicted"+attackRef] > 0){
+				damageAnimation = {target: target, type: "damage"};
 			} else {
-				barrierState = 1;
-			}
-		}
-		damageAnimation.special["damage"] = {target: target, damage: nextAction.damageInflicted, crit: nextAction.inflictedCritical, barrierState: barrierState};
-		if(nextAction.attacked.hasBarrier && !nextAction.attacked.barrierBroken){
-			damageAnimation.special["barrier"] = {target: target};
-		}
-		this._animationQueue.push([damageAnimation]);
-		
-		var hpBarAnimation = {target: target, type: "hp_bar"}
-		hpBarAnimation.special =  {};
-		hpBarAnimation.special["hp_bar"] =  {target: target, startPercent: animInfo.startPercent, endPercent: animInfo.endPercent};
-		
-		if(hpRecoveredAnimInfo){			
-			hpBarAnimation.special["hp_bar_recover"] =  {target: initiator, startPercent: hpRecoveredAnimInfo.startPercent, endPercent: hpRecoveredAnimInfo.endPercent};
-		}
-		this._animationQueue.push([hpBarAnimation]);
-				
-		if(nextAction.attacked.currentAnimHP <= 0){
-			var destroyAnimation = {target: target, type: "destroyed_participant"};
-			destroyAnimation.special = {};
-			destroyAnimation.special["destroy"] = {target: target};		
-			this._animationQueue.push([destroyAnimation]);
-		} else if(nextAction.attacked.type == "support defend"){
-			this._animationQueue.push([{target: target, type: "supportDefendReturn"}]);
-		}
-		
-	} else {
-		var evadeAnimation;
-		
-		if(nextAction.attacked.specialEvasion){
-			var patternId = nextAction.attacked.specialEvasion.dodgePattern;
-			var animDef = {
-				basic_anim: "no_damage",
-				se: "SRWMiss",
-				
-			};
-			if(patternId != null && ENGINE_SETTINGS.DODGE_PATTERNS[patternId]){
-				animDef =  ENGINE_SETTINGS.DODGE_PATTERNS[patternId];
+				damageAnimation = {target: target, type: "no_damage"};
 			}
 			
-			animDef.name = nextAction.attacked.specialEvasion.name;
-			animDef.target = target;
-			
-			var evadeAnimation = animDef.basic_anim;
-			
-			
-			if(nextAction.attacked.type == "support defend"){				
-				this._animationQueue.push([{target: target, type: "supportDefend"}]);			
-			 
-				evadeAnimation = {target: target, type: evadeAnimation};
-				evadeAnimation.special = {};
-				evadeAnimation.special["special_evade"] = animDef;
-				this._animationQueue.push([evadeAnimation]);
-						
-				this._animationQueue.push([{target: target, type: "supportDefendReturn"}]);			
-			} else {
-				evadeAnimation = {target: target, type: evadeAnimation};
-				evadeAnimation.special = {};
-				evadeAnimation.special["special_evade"] = animDef;
-				this._animationQueue.push([evadeAnimation]);
+			damageAnimation.special =  {};
+			var barrierState = 0;
+			if(nextAction["attacked"+attackRef].hasBarrier){
+				if(nextAction["attacked"+attackRef].barrierBroken){
+					barrierState = 2;
+				} else {
+					barrierState = 1;
+				}
 			}
+			damageAnimation.special["damage"] = {target: target, damage: nextAction["damageInflicted"+attackRef], crit: nextAction.inflictedCritical, barrierState: barrierState};
+			if(nextAction["attacked"+attackRef].hasBarrier && !nextAction["attacked"+attackRef].barrierBroken){
+				damageAnimation.special["barrier"] = {target: target};
+			}
+			attackAnimationSubQueue.damageAnimation.push(damageAnimation);
+			
+			var hpBarAnimation = {target: target, type: "hp_bar"}
+			hpBarAnimation.special =  {};
+			hpBarAnimation.special["hp_bar"] =  {target: target, startPercent: animInfo.startPercent, endPercent: animInfo.endPercent};
+			
+			
+			attackAnimationSubQueue.hpBarAnimation.push(hpBarAnimation);
+					
+			if(nextAction["attacked"+attackRef].currentAnimHP <= 0){
+				var destroyAnimation = {target: target, type: "destroyed_participant"};
+				destroyAnimation.special = {};
+				destroyAnimation.special["destroy"] = {target: target};		
+				attackAnimationSubQueue.destroyAnimation.push(destroyAnimation);
+			} else if(nextAction["attacked"+attackRef].type == "support defend"){
+				attackAnimationSubQueue.supportDefendReturnAnimation = {target: target, type: "supportDefendReturn"};
+			}
+			
 		} else {
-			evadeAnimation = {target: target, type: "evade"};
-			evadeAnimation.special = {};
-			evadeAnimation.special["evade"] = {target: target};		
-			this._animationQueue.push([evadeAnimation])	
+			var evadeAnimation;
+			
+			if(nextAction["attacked"+attackRef].specialEvasion){
+				var patternId = nextAction["attacked"+attackRef].specialEvasion.dodgePattern;
+				var animDef = {
+					basic_anim: "no_damage",
+					se: "SRWMiss",
+					
+				};
+				if(patternId != null && ENGINE_SETTINGS.DODGE_PATTERNS[patternId]){
+					animDef =  ENGINE_SETTINGS.DODGE_PATTERNS[patternId];
+				}
+				
+				animDef.name = nextAction["attacked"+attackRef].specialEvasion.name;
+				animDef.target = target;
+				
+				var evadeAnimation = animDef.basic_anim;
+				
+				
+				if(nextAction["attacked"+attackRef].type == "support defend"){				
+					attackAnimationSubQueue.supportDefendAnimation = {target: target, type: "supportDefend"};		
+				 
+					evadeAnimation = {target: target, type: evadeAnimation};
+					evadeAnimation.special = {};
+					evadeAnimation.special["special_evade"] = animDef;
+
+					attackAnimationSubQueue.evadeAnimation.push(evadeAnimation);
+							
+					attackAnimationSubQueue.supportDefendReturnAnimation = {target: target, type: "supportDefendReturn"};		
+				} else {
+					evadeAnimation = {target: target, type: evadeAnimation};
+					evadeAnimation.special = {};
+					evadeAnimation.special["special_evade"] = animDef;
+					attackAnimationSubQueue.evadeAnimation.push(evadeAnimation);
+				}
+			} else {
+				evadeAnimation = {target: target, type: "evade"};
+				evadeAnimation.special = {};
+				evadeAnimation.special["evade"] = {target: target};		
+				attackAnimationSubQueue.evadeAnimation.push(evadeAnimation);
+			}
 		}
 	}
 	

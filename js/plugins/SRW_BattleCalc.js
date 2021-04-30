@@ -805,24 +805,30 @@ BattleCalc.prototype.generateBattleResult = function(){
 		this.prepareBattleCache($gameTemp.twinSupportAttack, "support attack");
 	}
 	
-	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack){
+	function BattleAction(attacker, defender, supportDefender, side, isSupportAttack, allInfo){
 		this._attacker = attacker;
 		this._defender = defender;
 		this._supportDefender = supportDefender;
 		this._side = side;
 		this._isSupportAttack = isSupportAttack;
+		this._allInfo = allInfo;
 	}
 	
 	BattleAction.prototype.execute = function(orderIdx){
 		var mainAttackerCache = $gameTemp.battleEffectCache[attacker.actor._cacheReference];
 		var aCache = $gameTemp.battleEffectCache[this._attacker.actor._cacheReference];
+		
 		var storedCacheRef = this._attacker.actor._cacheReference;
 		if(this._isSupportAttack){
 			this._attacker.actor._cacheReference = null; //remove the main attacker cache ref while calculating support results for this actor 
 			//this is a hack to circumvent issues with determining ability activation when a unit has self supporting capabilites
 			aCache = $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
 		}
+		if(aCache.action.type != "attack"){
+			return;
+		}
 		aCache.side = this._side;
+		aCache.allInfo = this._allInfo;
 		if(aCache.type == "support attack"){
 			if(mainAttackerCache.isDestroyed){
 				return; //the support attacker does not get to attack if the main attacker is down
@@ -832,189 +838,206 @@ BattleCalc.prototype.generateBattleResult = function(){
 		if(aCache.type == "defender"){
 			aCache.counterActivated = $gameTemp.defenderCounterActivated;
 		}
-		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
-		var sCache;
-		if(this._supportDefender) {
-			sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
+		
+		var weaponref = this._attacker.action.attack;
+		
+		var defenders = [this._defender];
+		if(this._allInfo){
+			defenders.push(this._allInfo.otherTarget);
 		}
-		if(!aCache.isDestroyed && !dCache.isDestroyed) {
-			aCache.actionOrder = orderIdx;
-			aCache.hasActed = true;
-			var weaponref = this._attacker.action.attack;
-			aCache.attacked = dCache;
-			aCache.originalTarget = dCache;
-			$gameTemp.sortedBattleActorCaches.push(aCache);
-			
-			/*var isHit = Math.random() < _this.performHitCalculation(
-				this._attacker,
-				this._defender		
-			);*/
-			
-			var hitInfo;
-			if(this._isSupportAttack){
-				hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._supportCacheReference];
-			} else {
-				hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._cacheReference];
-			}			
-			var isHit = hitInfo.isHit;	
-			dCache.specialEvasion = hitInfo.specialEvasion;
-			
-			var activeDefender = this._defender;
-			var activeDefenderCache = dCache;						
-			
-			var damageResult = {
-				damage: 0,
-				isCritical: false,
-				barrierCost: 0,
-				hasThresholdBarrier: false,
-				thresholdBarrierBroken: false,
-				hasReductionBarrier: false,
-				hasPercentBarrier: false
-			};
-			var isSupportDefender = false;
-			if(isHit){
-				if(isHit && sCache && !sCache.hasActed){
-					isHit = 1;
-					activeDefender = this._supportDefender;
-					activeDefenderCache = sCache;
-					
-					activeDefenderCache.defended = this._defender.actor;
-					isSupportDefender = true;
-					aCache.attacked = sCache;
-					
-					sCache.hasActed = true;						
-					/*if(Math.random() < $statCalc.applyStatModsToValue(this._supportDefender.actor, 0, ["double_image_rate"])){
-						sCache.isDoubleImage = true;
-						isHit = 0;
-					}*/
-					var specialEvasion = this.getSpecialEvasion(this._attacker, activeDefender);
-					if(specialEvasion){
-						sCache.specialEvasion = specialEvasion;
-						isHit = false;
+		
+		for(var i = 0; i < defenders.length; i++){		
+			var attackedRef = "";
+			if(i == 1){
+				attackedRef = "_all_sub";
+			}
+			var dCache = $gameTemp.battleEffectCache[defenders[i].actor._cacheReference];
+			var sCache;
+			if(this._supportDefender) {
+				sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
+			}
+			if(!aCache.isDestroyed && !dCache.isDestroyed) {
+				aCache.actionOrder = orderIdx;
+				aCache.hasActed = true;
+				
+				aCache["attacked"+attackedRef] = dCache;
+				aCache.originalTarget = dCache;
+				$gameTemp.sortedBattleActorCaches.push(aCache);
+				
+				/*var isHit = Math.random() < _this.performHitCalculation(
+					this._attacker,
+					this._defender		
+				);*/
+				
+				var hitInfo;
+				if(this._isSupportAttack){
+					hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._supportCacheReference];
+				} else {
+					hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._cacheReference];
+				}			
+				var isHit = hitInfo.isHit;	
+				dCache.specialEvasion = hitInfo.specialEvasion;
+				
+				var activeDefender = defenders[i];
+				var activeDefenderCache = dCache;						
+				
+				var damageResult = {
+					damage: 0,
+					isCritical: false,
+					barrierCost: 0,
+					hasThresholdBarrier: false,
+					thresholdBarrierBroken: false,
+					hasReductionBarrier: false,
+					hasPercentBarrier: false
+				};
+				var isSupportDefender = false;
+				if(isHit){
+					if(isHit && sCache && !sCache.hasActed){
+						isHit = 1;
+						activeDefender = this._supportDefender;
+						activeDefenderCache = sCache;
+						
+						activeDefenderCache.defended = defenders[i].actor;
+						isSupportDefender = true;
+						aCache["attacked"+attackedRef] = sCache;
+						
+						sCache.hasActed = true;						
+						/*if(Math.random() < $statCalc.applyStatModsToValue(this._supportDefender.actor, 0, ["double_image_rate"])){
+							sCache.isDoubleImage = true;
+							isHit = 0;
+						}*/
+						var specialEvasion = this.getSpecialEvasion(this._attacker, activeDefender);
+						if(specialEvasion){
+							sCache.specialEvasion = specialEvasion;
+							isHit = false;
+						}
+					}
+					if(isHit){
+						damageResult = _this.performDamageCalculation(
+							this._attacker,
+							activeDefender,
+							false,
+							false,
+							isSupportDefender,
+							aCache.type == "support attack",
+							hitInfo.isMismatchedTwin
+						);	
+					} 					
+				} 
+				
+				if(isHit){
+					if(this._attacker.action.attack && this._attacker.action.attack.type == "M"){
+						aCache.madeContact = true;
+						activeDefenderCache.madeContact = true;
+						//activeDefenderCache.attacked = aCache;
 					}
 				}
-				if(isHit){
-					damageResult = _this.performDamageCalculation(
-						this._attacker,
-						activeDefender,
-						false,
-						false,
-						isSupportDefender,
-						aCache.type == "support attack",
-						hitInfo.isMismatchedTwin
-					);	
-				} 					
-			} 
-			
-			if(isHit){
-				if(this._attacker.action.attack && this._attacker.action.attack.type == "M"){
-					aCache.madeContact = true;
-					activeDefenderCache.madeContact = true;
-					//activeDefenderCache.attacked = aCache;
+				if(this._isSupportAttack && !$statCalc.applyStatModsToValue(this._attacker.actor, 0, ["full_support_damage"])){
+					damageResult.damage = Math.floor(damageResult.damage * ENGINE_SETTINGS.SUPPORT_ATTACK_RATIO);				
 				}
-			}
-			if(this._isSupportAttack && !$statCalc.applyStatModsToValue(this._attacker.actor, 0, ["full_support_damage"])){
-				damageResult.damage = Math.floor(damageResult.damage * ENGINE_SETTINGS.SUPPORT_ATTACK_RATIO);				
-			}
-			
-			aCache.hits = isHit;
-			activeDefenderCache.isHit = isHit;
-			activeDefenderCache.isAttacked = true;
-			aCache.inflictedCritical = damageResult.isCritical;
-			activeDefenderCache.tookCritical = damageResult.isCritical;
-			activeDefenderCache.barrierCost = damageResult.barrierCost;
-			activeDefenderCache.hasBarrier = damageResult.hasThresholdBarrier || damageResult.hasReductionBarrier || damageResult.hasPercentBarrier;
-			activeDefenderCache.hasThresholdBarrier = damageResult.hasThresholdBarrier;
-			activeDefenderCache.barrierBroken = damageResult.thresholdBarrierBroken;
-			
-			dCache.barrierNames = damageResult.barrierNames;
-			
-			if(this._side == "actor"){
-				if(dCache){
-					dCache.side = "enemy";
-				}
-				if(sCache){
-					sCache.side = "enemy";
-				}
-			} else {
-				if(dCache){
-					dCache.side = "actor";
-				}
-				if(sCache){
-					sCache.side = "actor";
-				}
-			}
-			
-			aCache.damageInflicted = damageResult.damage;
-			
-			var drainRatio = $statCalc.applyMaxStatModsToValue(this._attacker.actor, 0, ["hp_drain"]);
-			if(drainRatio){
-				if(!aCache.HPRestored){
-					aCache.HPRestored = 0;
-				}
-				var amount = Math.floor(aCache.damageInflicted * drainRatio);
-				aCache.HPRestored+=amount;
-				//$statCalc.recoverHP(this._attacker.actor, amount);
-				//aCache.currentAnimHP+=amount;
-			}
-			
-			activeDefenderCache.damageTaken+=damageResult.damage;
-			
-			if(activeDefenderCache.damageTaken >= activeDefenderCache.currentAnimHP + (activeDefenderCache.HPRestored || 0)){
-				if($statCalc.applyMaxStatModsToValue(this._defender.actor, 0, ["one_time_miracle"])){
-					$statCalc.setAbilityUsed(this._defender.actor, "one_time_miracle");
-					activeDefenderCache.damageTaken = activeDefenderCache.currentAnimHP + (activeDefenderCache.HPRestored || 0) - 1;
-					aCache.damageInflicted = activeDefenderCache.damageTaken;
+				
+				aCache["hits"+attackedRef] = isHit;
+				activeDefenderCache.isHit = isHit;
+				activeDefenderCache.isAttacked = true;
+				aCache.inflictedCritical = damageResult.isCritical;
+				activeDefenderCache.tookCritical = damageResult.isCritical;
+				activeDefenderCache.barrierCost = damageResult.barrierCost;
+				activeDefenderCache.hasBarrier = damageResult.hasThresholdBarrier || damageResult.hasReductionBarrier || damageResult.hasPercentBarrier;
+				activeDefenderCache.hasThresholdBarrier = damageResult.hasThresholdBarrier;
+				activeDefenderCache.barrierBroken = damageResult.thresholdBarrierBroken;
+				
+				dCache.barrierNames = damageResult.barrierNames;
+				
+				if(this._side == "actor"){
+					if(dCache){
+						dCache.side = "enemy";
+					}
+					if(sCache){
+						sCache.side = "enemy";
+					}
 				} else {
-					activeDefenderCache.isDestroyed = true;
-					activeDefenderCache.destroyer = aCache.ref;
-				}				
-			}				
-			
-			
-			var extraActionInfo = $statCalc.getModDefinitions(this._defender.actor, ["extra_action_on_damage"]);
-			var minDamageRequired = -1;
-			
-			for(var i = 0; i < extraActionInfo.length; i++){
-				if(minDamageRequired == -1 || extraActionInfo[i].value < extraActionInfo){
-					minDamageRequired = extraActionInfo[i].value;
+					if(dCache){
+						dCache.side = "actor";
+					}
+					if(sCache){
+						sCache.side = "actor";
+					}
 				}
+				
+				aCache["damageInflicted"+attackedRef] = damageResult.damage;
+				
+				var drainRatio = $statCalc.applyMaxStatModsToValue(this._attacker.actor, 0, ["hp_drain"]);
+				if(drainRatio){
+					if(!aCache.HPRestored){
+						aCache.HPRestored = 0;
+					}
+					var amount = Math.floor(aCache["damageInflicted"+attackedRef] * drainRatio);
+					aCache.HPRestored+=amount;
+					//$statCalc.recoverHP(this._attacker.actor, amount);
+					//aCache.currentAnimHP+=amount;
+				}
+				
+				activeDefenderCache.damageTaken+=damageResult.damage;
+				
+				if(activeDefenderCache.damageTaken >= activeDefenderCache.currentAnimHP + (activeDefenderCache.HPRestored || 0)){
+					if($statCalc.applyMaxStatModsToValue(defenders[i].actor, 0, ["one_time_miracle"])){
+						$statCalc.setAbilityUsed(defenders[i].actor, "one_time_miracle");
+						activeDefenderCache.damageTaken = activeDefenderCache.currentAnimHP + (activeDefenderCache.HPRestored || 0) - 1;
+						aCache["damageInflicted"+attackedRef] = activeDefenderCache.damageTaken;
+					} else {
+						activeDefenderCache.isDestroyed = true;
+						activeDefenderCache.destroyer = aCache.ref;
+					}				
+				}				
+				
+				
+				var extraActionInfo = $statCalc.getModDefinitions(defenders[i].actor, ["extra_action_on_damage"]);
+				var minDamageRequired = -1;
+				
+				for(var j = 0; j < extraActionInfo.length; j++){
+					if(minDamageRequired == -1 || extraActionInfo[j].value < extraActionInfo){
+						minDamageRequired = extraActionInfo[j].value;
+					}
+				}
+				
+				if(minDamageRequired != -1 && minDamageRequired <= damageResult.damage){
+					$statCalc.addAdditionalAction(defenders[i].actor);
+				}
+				
+				
+			
 			}
+		}
+		
+		if(aCache.action.attack && 
+			(
+				$statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct"]) ||
+				(aCache.hits && $statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct_hit"]))
+			)	
+		){
+			aCache.isDestroyed = true;
+			aCache.selfDestructed = true;
+		}
+		
+		
+		var ENCost = weaponref.ENCost;
+		if(ENCost != -1){
+			aCache.ENUsed = ENCost;
+		}
+		if(weaponref.totalAmmo != -1){
+			aCache.ammoUsed = 1;
+		}
+		
+		var activeAttackerSpirits = $statCalc.getActiveSpirits(this._attacker.actor);
+		if(activeAttackerSpirits.soul){
+			$statCalc.clearSpirit(this._attacker.actor, "soul");
+		} else {
+			$statCalc.clearSpirit(this._attacker.actor, "valor");
+		}			
+		$statCalc.clearSpirit(this._attacker.actor, "fury");
+		$statCalc.clearSpirit(this._attacker.actor, "mercy");
+		$statCalc.clearSpirit(this._attacker.actor, "snipe");				
 			
-			if(minDamageRequired != -1 && minDamageRequired <= damageResult.damage){
-				$statCalc.addAdditionalAction(this._defender.actor);
-			}
-			
-			if(aCache.action.attack && 
-				(
-					$statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct"]) ||
-					(aCache.hits && $statCalc.applyStatModsToValue(this._attacker.actor, 0, ["self_destruct_hit"]))
-				)	
-			){
-				aCache.isDestroyed = true;
-				aCache.selfDestructed = true;
-			}
-			
-			
-			var ENCost = weaponref.ENCost;
-			if(ENCost != -1){
-				aCache.ENUsed = ENCost;
-			}
-			if(weaponref.totalAmmo != -1){
-				aCache.ammoUsed = 1;
-			}
-			
-			
-			var activeAttackerSpirits = $statCalc.getActiveSpirits(this._attacker.actor);
-			if(activeAttackerSpirits.soul){
-				$statCalc.clearSpirit(this._attacker.actor, "soul");
-			} else {
-				$statCalc.clearSpirit(this._attacker.actor, "valor");
-			}			
-			$statCalc.clearSpirit(this._attacker.actor, "fury");
-			$statCalc.clearSpirit(this._attacker.actor, "mercy");
-			$statCalc.clearSpirit(this._attacker.actor, "snipe");				
-		}	
 		if(dCache && dCache.selfDestructed){
 			aCache.targetSelfDestructed = true;
 		}	
@@ -1101,14 +1124,36 @@ BattleCalc.prototype.generateBattleResult = function(){
 	}
 	
 	function appendTargetingActions(attacker, targets, supportDefender, side, isSupportAttacker){
+		var allInfo;
 		if(targets.length > 1){
 			supportDefender = null;
+			allInfo = {
+				otherTarget: targets[1]
+			};
 		} else if(targets[0].isSubTwin){
 			supportDefender = null;
 		}
-		targets.forEach(function(target){
-			actions.push(new BattleAction(attacker, target, supportDefender, side, isSupportAttacker));
-		});		
+		var otherTarget;
+		var ctr = 0;
+		/*targets.forEach(function(target){
+			var allInfo;
+			if(targets.length > 1){
+				if(ctr == 0){
+					allInfo = {
+						skip: true
+					};
+					otherTarget = target;
+				} else {
+					allInfo = {
+						skip: false,
+						otherTarget: otherTarget
+					};
+				}
+			}
+			actions.push(new BattleAction(attacker, target, supportDefender, side, isSupportAttacker, allInfo));
+			ctr++;
+		});		*/
+		actions.push(new BattleAction(attacker, targets[0], supportDefender, side, isSupportAttacker, allInfo));
 	}
 	
 		
@@ -1217,6 +1262,9 @@ BattleCalc.prototype.generateBattleResult = function(){
 	gainDonors.push($gameTemp.currentBattleEnemy);
 	if(supportDefender){
 		gainDonors.push(supportDefender.actor);
+	}
+	if($gameTemp.currentBattleEnemy.subTwin){
+		gainDonors.push($gameTemp.currentBattleEnemy.subTwin);
 	}
 	aCache.gainDonors = [];
 	gainDonors.forEach(function(gainDonor){		
@@ -1507,10 +1555,22 @@ BattleCalc.prototype.updateTwinActions = function(){
 	if(!$gameTemp.currentTargetingSettings){
 		$gameTemp.currentTargetingSettings = {
 			actor: "main",
-			actorTwin: "main",
+			actorTwin: "twin",
 			enemy: "main",
 			enemyTwin: "twin"
 		};
+	}
+	
+	if($gameTemp.actorAction && $gameTemp.actorAction.attack){
+		if($gameTemp.actorAction.attack.isAll){
+			$gameTemp.currentTargetingSettings.actor = "all";
+		}
+	}
+	
+	if($gameTemp.enemyAction && $gameTemp.enemyAction.attack){
+		if($gameTemp.enemyAction.attack.isAll){
+			$gameTemp.currentTargetingSettings.enemy = "all";
+		}
 	}
 	
 	$gameTemp.attackingTwinAction = null;
@@ -1540,9 +1600,14 @@ BattleCalc.prototype.updateTwinActions = function(){
 			pos: {x: $gameTemp.currentBattleEnemy.event.posX(), y: $gameTemp.currentBattleEnemy.event.posY()}
 		};
 		var allRequired = $gameTemp.currentTargetingSettings.actor == "all";
+		if(allRequired){
+			$gameTemp.currentTargetingSettings.actorTwin = "all";
+		}
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isActorPostMove, allRequired);
 		if(weaponResult.weapon){
 			actorTwinAction = {type: "attack", attack: weaponResult.weapon};												
+		} else {
+			actorTwinAction = {type: "defend"};				
 		}
 	}
 	
@@ -1564,9 +1629,14 @@ BattleCalc.prototype.updateTwinActions = function(){
 			pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}
 		};
 		var allRequired = $gameTemp.currentTargetingSettings.enemy == "all";
+		if(allRequired){
+			$gameTemp.currentTargetingSettings.enemyTwin = "all";
+		}
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isEnemyPostMove, allRequired);
 		if(weaponResult.weapon){
 			enemyTwinAction = {type: "attack", attack: weaponResult.weapon};												
+		} else {
+			enemyTwinAction = {type: "defend"};				
 		}
 	}
 	
