@@ -875,6 +875,9 @@ BattleCalc.prototype.generateBattleResult = function(){
 				} else {
 					hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._cacheReference];
 				}			
+				if(i == 1){
+					hitInfo = hitInfo.otherTarget;
+				}
 				var isHit = hitInfo.isHit;	
 				dCache.specialEvasion = hitInfo.specialEvasion;
 				
@@ -1076,44 +1079,51 @@ BattleCalc.prototype.generateBattleResult = function(){
 		}
 	
 	BattleAction.prototype.determineTargetInfo = function(){
-		var finalTarget = this._defender;
-		var isMismatchedTwin = false;
 		
 		
-		
-		var hitRate = _this.performHitCalculation(
-			this._attacker,
-			this._defender		
-		);		
-		
-		var isHit = Math.random() < hitRate;
-		var specialEvasion = null;
-		if(isHit){		
-			specialEvasion = this.getSpecialEvasion(this._attacker, this._defender);
-			if(specialEvasion){
-				isHit = false;
+		function getTargetInfo(attacker, defender){			
+			var finalTarget = defender;
+			var isMismatchedTwin = false;
+			
+			var hitRate = _this.performHitCalculation(
+				attacker,
+				defender		
+			);		
+			
+			var isHit = Math.random() < hitRate;
+			var specialEvasion = null;
+			if(isHit){		
+				specialEvasion = this.getSpecialEvasion(attacker, defender);
+				if(specialEvasion){
+					isHit = false;
+				}
 			}
-		}
-		if(isHit && this._supportDefender && !this._supportDefender.blockedHit){
-			this._supportDefender.blockedHit = true;
-			finalTarget = this._supportDefender;
-			isMismatchedTwin = false;			
-		} else if($statCalc.isTwinMismatch(this._attacker.actor, this._defender.actor)){
-			isMismatchedTwin = true;
-		}
+			if(isHit && this._supportDefender && !this._supportDefender.blockedHit){
+				this._supportDefender.blockedHit = true;
+				finalTarget = this._supportDefender;
+				isMismatchedTwin = false;			
+			} else if($statCalc.isTwinMismatch(attacker.actor, defender.actor)){
+				isMismatchedTwin = true;
+			}
+				
+			return 	{
+				isHit: isHit,
+				target: finalTarget,
+				initiator: attacker,
+				specialEvasion: specialEvasion,
+				hitRate: hitRate,
+				isMismatchedTwin: isMismatchedTwin
+			}
+		}	
 		var cacheRef;
 		if(this._isSupportAttack){
 			cacheRef = this._attacker.actor._supportCacheReference;
 		} else {
 			cacheRef = this._attacker.actor._cacheReference;
-		}		
-		$gameTemp.battleTargetInfo[cacheRef] = {
-			isHit: isHit,
-			target: finalTarget,
-			initiator: this._attacker,
-			specialEvasion: specialEvasion,
-			hitRate: hitRate,
-			isMismatchedTwin: isMismatchedTwin
+		}			
+		$gameTemp.battleTargetInfo[cacheRef] = getTargetInfo.call(this, this._attacker, this._defender);
+		if(this._allInfo){
+			$gameTemp.battleTargetInfo[cacheRef].otherTarget = getTargetInfo.call(this, this._attacker, this._allInfo.otherTarget);
 		}
 	}
 	
