@@ -1644,6 +1644,12 @@ StatCalc.prototype.transformOnDestruction = function(actor, force){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){		
 		var transformIntoId = actor.SRWStats.mech.destroyTransformInto;
 		var targetActorId = actor.SRWStats.mech.destroyTransformedActor;
+		
+		actor.isSubPilot = false;
+		actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
+		this.calculateSRWMechStats(actor.SRWStats.mech);
+		this.applyDeployActions(actor.SRWStats.pilot.id, actor.SRWStats.mech.id);
+		
 		if(targetActorId != null){
 			var targetActor = $gameActors.actor(targetActorId);
 			if(targetActor.actorId() != actor.actorId()){
@@ -1657,9 +1663,7 @@ StatCalc.prototype.transformOnDestruction = function(actor, force){
 				}
 			}
 		}		
-		actor.isSubPilot = false;
-		actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
-		this.calculateSRWMechStats(actor.SRWStats.mech);					
+							
 		actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 		actor.event.refreshImage();							
 	}
