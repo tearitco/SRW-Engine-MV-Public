@@ -512,8 +512,8 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 	
 	//material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATESTANDBLEND;
 	
-	material.diffuseTexture.wrapU = BABYLON.Texture.MATERIAL_ALPHATESTANDBLEND;
-    material.diffuseTexture.wrapV = BABYLON.Texture.MATERIAL_ALPHATESTANDBLEND;
+	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+    material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	
 	/*material.needDepthPrePass = true;
 	material.backFaceCulling = false;*/
