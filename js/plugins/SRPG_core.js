@@ -780,6 +780,19 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			actor.counterBehavior = args[1];
 		}
 		
+		if (command === 'setEventBattleMode') {	
+			var battlerArray = $gameSystem.EventToUnit(args[0]);
+			if (battlerArray && (battlerArray[0] === 'actor' || battlerArray[0] === 'enemy')) {
+				battlerArray[1].setBattleMode(args[1], true);			
+			}
+			if(battlerArray[0] === 'enemy'){
+				if(battlerArray[1].squadId != -1){
+					this.setSquadMode(squadId, args[1]);
+				}
+			}	
+			return true;
+		};
+		
 		if (command === 'hidePilotAbility') {	
 			$gameSystem.setPilotAbilityStatus(args[0], args[1], "hidden");
 		}
