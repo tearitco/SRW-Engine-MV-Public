@@ -324,6 +324,7 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
+
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -1550,7 +1551,7 @@ They can also be used as conditionals in IF statements.
 		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated <br>
 		* targetRegion: the id of the region that the enemy should move towards<br>	
 		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
-		* counterBehavior: Determines how an enemy will react to being attack. Possible values are: "attack", "defend", "evade", "defend\_low" and "evade\_low". The defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking.
+		* counterBehavior: Determines how an enemy will react to being attack. Possible values are: "attack", "defend", "evade", "defend\_low", "evade\_low" and "survive". defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking. survive causes the unit to defend and evade as appropriate to stay alive as long as possible. 
 
 A setting can be left blank by entering "" as its value.	
 	

@@ -4354,6 +4354,24 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 													target: 0
 												};
 											}
+										} else if(enemyInfo.actor.counterBehavior == "survive"){
+											var weaponResult = $battleCalc.getBestWeaponAndDamage(actorInfo, enemyInfo);											
+											var stats = $statCalc.getCalculatedMechStats(enemyInfo.actor);
+											if(weaponResult.damage >= stats.currentHP){
+												if(weaponResult.damage <= stats.currentHP * 2){
+													$gameTemp.enemyAction = {
+														type: "defend",
+														attack: 0,
+														target: 0
+													};
+												} else {
+													$gameTemp.enemyAction = {
+														type: "evade",
+														attack: 0,
+														target: 0
+													};
+												}												
+											}
 										}
 										
 										if(enemyInfo.actor.counterBehavior == "attack" || $gameTemp.enemyAction == null){
@@ -12734,7 +12752,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 			var damage = weaponResult.damage;
 			var hitrate = currentHitRate;
-			var formula = ENGINE_SETTINGS.ENEMY_TARGETING_FORMULA || "Math.min(hitrate, 1) * damage";
+			var canDestroy = weaponResult.damage >= $statCalc.getCalculatedMechStats(defender).currentHP ? 1 : 0;
+			var formula = ENGINE_SETTINGS.ENEMY_TARGETING_FORMULA || "Math.min(hitrate + 0.01, 1) * (damage + (canDestroy * 5000))";
 			var score = eval(formula);
 			
 			if(score > bestScore){
