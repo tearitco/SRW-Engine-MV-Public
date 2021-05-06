@@ -4546,9 +4546,12 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 									var newEN = stats.currentEN;
 									var effect;
 	
+									var baseYield;
 									if($gameTemp.supportType == "heal"){
+										baseYield = 250;
 										effect = {type: "repair", parameters: {animId: "trust", target: candidate, startAmount: stats.HPBeforeRecovery, endAmount: stats.currentHP, total: stats.maxHP}};									
 									} else {
+										baseYield = 375;
 										effect = {type: "repair", parameters: {animId: "resupply", target: candidate, startAmount: originalEN, endAmount: newEN, total: stats.maxEN}};		
 									}									
 									$gameTemp.queuedActorEffects = [effect];	
@@ -4556,8 +4559,40 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 									$gameTemp.spiritTargetActor	= candidate;						
 										
 									$gameTemp.spiritWindowDoneHandler = function(){
+										var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+										
+										var attackerLevel = actor.SRWStats.pilot.level;
+										var defenderLevel = candidate.SRWStats.pilot.level;
+										var defenderTotalYield = baseYield;
+										
+										var totalExp = eval(ENGINE_SETTINGS.EXP_YIELD.LEVEL_SCALING_FORMULA);
+										if(totalExp < ENGINE_SETTINGS.EXP_YIELD.MIN){
+											totalExp = ENGINE_SETTINGS.EXP_YIELD.MIN;
+										}
+										if(totalExp > ENGINE_SETTINGS.EXP_YIELD.MAX){
+											totalExp = ENGINE_SETTINGS.EXP_YIELD.MAX;
+										}
+										totalExp = Math.floor(totalExp);
+										var gainResults = [{actor: actor, expGain: totalExp, ppGain: 0}];			
+			
+										var expResults = [{actor: actor, details: $statCalc.addExp(actor, totalExp)}];
+													
+										
+										$gameTemp.rewardsInfo = {
+											//actor: battleEffect.ref,
+											levelResult: expResults,
+											//expGain: battleEffect.expGain,
+											//ppGain: battleEffect.ppGain,
+											itemDrops: [],
+											fundGain: 0,
+											gainResults: gainResults
+										};
+										
 										$gameTemp.popMenu = true;
-										$gameSystem.setSubBattlePhase('end_actor_turn');
+										$gameTemp.rewardsDisplayTimer = 20;	
+										$gameSystem.setSubBattlePhase("rewards_display");				
+										$gameTemp.pushMenu = "rewards";
+										//$gameSystem.setSubBattlePhase('end_actor_turn');
 									}							
 									
 									$gameSystem.setSubBattlePhase('spirit_activation');	
