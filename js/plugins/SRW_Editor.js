@@ -1811,7 +1811,7 @@ SRWEditor.prototype.showEnvironmentEditorControls = function(){
 		bgs = bgs.sort(function(a, b){return a.zoffset - b.zoffset});
 		bgs.forEach(function(bg){
 			content+="<div data-bgid='"+bg.id+"' class='bg_block tick_block'>";
-			content+="<div class='bg_controls'>";
+			content+="<div class='bg_controls' data-bgid='"+bg.id+"'>";
 			content+="<button class='bg_delete_button'>Delete</button>";	
 			
 			content+="<div class='bg_label label_visible'>Visible:</div> <input type='checkbox' data-dataid='hidden' class='param_value' "+(!bg.hidden ? "checked" : "")+"></input>";

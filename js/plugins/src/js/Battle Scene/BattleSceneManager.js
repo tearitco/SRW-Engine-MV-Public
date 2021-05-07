@@ -259,9 +259,30 @@ BattleSceneManager.prototype.init = function(attachControl){
 		this._animationBuilder = new BattleAnimationBuilder();
 		this._environmentBuilder = new BattleEnvironmentBuilder();
 		
-		
-		
 		this._attachControl = attachControl;
+		if(this._engine){
+			this._engine.dispose();
+		}
+
+		if(!this._canvas){
+			this._canvas = document.createElement("canvas");
+			this._canvas.id = "render_canvas";
+			this._container.appendChild(this._canvas);
+
+		} else {
+			var canvas = document.createElement("canvas");
+			canvas.id = "render_canvas";
+			
+			this._container.replaceChild(canvas, this._canvas);
+			this._canvas = canvas;
+		}
+
+		this._glContext = this._canvas.getContext("webgl");
+		this._engine = new BABYLON.Engine(this._canvas, true, {preserveDrawingBuffer: true, stencil: true}); // Generate the BABYLON 3D engine	
+		this._effksContext = effekseer.createContext();
+		this._effksContext.init(this._glContext);
+		 
+		
 		this.initScene();
 		
 		
@@ -308,32 +329,12 @@ BattleSceneManager.prototype.initScene = function(){
 	/*if(this._scene){
 		this._scene.dispose();
 	}*/
-	if(this._engine){
-		this._engine.dispose();
-	}
-	
-	if(!this._canvas){
-		this._canvas = document.createElement("canvas");
-		this._canvas.id = "render_canvas";
-		this._container.appendChild(this._canvas);
-
-	} else {
-		var canvas = document.createElement("canvas");
-		canvas.id = "render_canvas";
-		
-		this._container.replaceChild(canvas, this._canvas);
-		this._canvas = canvas;
-	}
-	
-	this._glContext = this._canvas.getContext("webgl");
-	this._engine = new BABYLON.Engine(this._canvas, true, {preserveDrawingBuffer: true, stencil: true}); // Generate the BABYLON 3D engine	
-	this._effksContext = effekseer.createContext();
-	this._effksContext.init(this._glContext);
-	 
 	var scene = new BABYLON.Scene(this._engine);
 	this._scene = scene;
 	this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
 	this._scene.ambientColor = new BABYLON.Color3(0, 0, 0);
+	
+	
 
 	// Add a camera to the scene and attach it to the canvas
 	//var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, new BABYLON.Vector3(0,0,5), scene);
@@ -499,8 +500,11 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 		height: height
 	};
 	var material = new BABYLON.StandardMaterial(name, this._scene);
+	material.alphaMode = BABYLON.Constants.ALPHA_PREMULTIPLIED_PORTERDUFF;
+	
+
 		
-	material.diffuseTexture = new BABYLON.Texture("img/SRWBattlebacks/"+img+".png", this._scene, false, true, BABYLON.Texture.NEAREST_NEAREST);
+	material.diffuseTexture = new BABYLON.Texture("img/SRWBattlebacks/"+img+".png", this._scene, true, true, BABYLON.Texture.NEAREST_NEAREST);
 	material.diffuseTexture.hasAlpha = true;
 	if(useDiffuseAlpha){
 		material.useAlphaFromDiffuseTexture  = true;

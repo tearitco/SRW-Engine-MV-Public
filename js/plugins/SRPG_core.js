@@ -780,6 +780,19 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 			actor.counterBehavior = args[1];
 		}
 		
+		if (command === 'setEventBattleMode') {	
+			var battlerArray = $gameSystem.EventToUnit(args[0]);
+			if (battlerArray && (battlerArray[0] === 'actor' || battlerArray[0] === 'enemy')) {
+				battlerArray[1].setBattleMode(args[1], true);			
+			}
+			if(battlerArray[0] === 'enemy'){
+				if(battlerArray[1].squadId != -1){
+					this.setSquadMode(squadId, args[1]);
+				}
+			}	
+			return true;
+		};
+		
 		if (command === 'hidePilotAbility') {	
 			$gameSystem.setPilotAbilityStatus(args[0], args[1], "hidden");
 		}
@@ -4355,6 +4368,24 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 													target: 0
 												};
 											}
+										} else if(enemyInfo.actor.counterBehavior == "survive"){
+											var weaponResult = $battleCalc.getBestWeaponAndDamage(actorInfo, enemyInfo);											
+											var stats = $statCalc.getCalculatedMechStats(enemyInfo.actor);
+											if(weaponResult.damage >= stats.currentHP){
+												if(weaponResult.damage <= stats.currentHP * 2){
+													$gameTemp.enemyAction = {
+														type: "defend",
+														attack: 0,
+														target: 0
+													};
+												} else {
+													$gameTemp.enemyAction = {
+														type: "evade",
+														attack: 0,
+														target: 0
+													};
+												}												
+											}
 										}
 										
 										if(enemyInfo.actor.counterBehavior == "attack" || $gameTemp.enemyAction == null){
@@ -4538,9 +4569,12 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 									var newEN = stats.currentEN;
 									var effect;
 	
+									var baseYield;
 									if($gameTemp.supportType == "heal"){
+										baseYield = 250;
 										effect = {type: "repair", parameters: {animId: "trust", target: candidate, startAmount: stats.HPBeforeRecovery, endAmount: stats.currentHP, total: stats.maxHP}};									
 									} else {
+										baseYield = 375;
 										effect = {type: "repair", parameters: {animId: "resupply", target: candidate, startAmount: originalEN, endAmount: newEN, total: stats.maxEN}};		
 									}									
 									$gameTemp.queuedActorEffects = [effect];	
@@ -4548,8 +4582,40 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 									$gameTemp.spiritTargetActor	= candidate;						
 										
 									$gameTemp.spiritWindowDoneHandler = function(){
+										var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+										
+										var attackerLevel = actor.SRWStats.pilot.level;
+										var defenderLevel = candidate.SRWStats.pilot.level;
+										var defenderTotalYield = baseYield;
+										
+										var totalExp = eval(ENGINE_SETTINGS.EXP_YIELD.LEVEL_SCALING_FORMULA);
+										if(totalExp < ENGINE_SETTINGS.EXP_YIELD.MIN){
+											totalExp = ENGINE_SETTINGS.EXP_YIELD.MIN;
+										}
+										if(totalExp > ENGINE_SETTINGS.EXP_YIELD.MAX){
+											totalExp = ENGINE_SETTINGS.EXP_YIELD.MAX;
+										}
+										totalExp = Math.floor(totalExp);
+										var gainResults = [{actor: actor, expGain: totalExp, ppGain: 0}];			
+			
+										var expResults = [{actor: actor, details: $statCalc.addExp(actor, totalExp)}];
+													
+										
+										$gameTemp.rewardsInfo = {
+											//actor: battleEffect.ref,
+											levelResult: expResults,
+											//expGain: battleEffect.expGain,
+											//ppGain: battleEffect.ppGain,
+											itemDrops: [],
+											fundGain: 0,
+											gainResults: gainResults
+										};
+										
 										$gameTemp.popMenu = true;
-										$gameSystem.setSubBattlePhase('end_actor_turn');
+										$gameTemp.rewardsDisplayTimer = 20;	
+										$gameSystem.setSubBattlePhase("rewards_display");				
+										$gameTemp.pushMenu = "rewards";
+										//$gameSystem.setSubBattlePhase('end_actor_turn');
 									}							
 									
 									$gameSystem.setSubBattlePhase('spirit_activation');	
@@ -12949,7 +13015,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 			var damage = weaponResult.damage;
 			var hitrate = currentHitRate;
-			var formula = ENGINE_SETTINGS.ENEMY_TARGETING_FORMULA || "Math.min(hitrate, 1) * damage";
+			var canDestroy = weaponResult.damage >= $statCalc.getCalculatedMechStats(defender).currentHP ? 1 : 0;
+			var formula = ENGINE_SETTINGS.ENEMY_TARGETING_FORMULA || "Math.min(hitrate + 0.01, 1) * (damage + (canDestroy * 5000))";
 			var score = eval(formula);
 			
 			if(score > bestScore){
