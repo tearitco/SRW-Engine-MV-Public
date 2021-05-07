@@ -235,6 +235,7 @@ BattleSceneUILayer.prototype.setStat = function(effect, type) {
 	isHidden = !$statCalc.isRevealed(effect.ref);
 	var elems = _this.getStatElements(target, type);	
 	this.updateStatContent(elems, maxValue, value, type, isHidden);
+	this.updateUnitIcons();	
 }
 
 BattleSceneUILayer.prototype.updateStatContent = function(elems, maxValue, value, type, isHidden) {
@@ -437,6 +438,23 @@ BattleSceneUILayer.prototype.showNoise = function() {
 	requestAnimationFrame(noise);
 }
 
+BattleSceneUILayer.prototype.updateUnitIcons = function(){
+	var _this = this;
+	if(_this._currentActor){
+		var menuImagePath = $statCalc.getMenuImagePath(_this._currentActor.ref);
+		this._container.querySelector("#actor_icon").innerHTML = "<img src='img/"+menuImagePath+"'>";
+	} else {		
+		this._container.querySelector("#actor_icon").innerHTML = "";
+	}
+	
+	if(_this._currentEnemy){
+		var menuImagePath = $statCalc.getMenuImagePath(_this._currentEnemy.ref);
+		this._container.querySelector("#enemy_icon").innerHTML = "<img src='img/"+menuImagePath+"'>";
+	} else {		
+		this._container.querySelector("#enemy_icon").innerHTML = "";
+	}
+}
+
 BattleSceneUILayer.prototype.hideNoise = function() {
 	this._runNoise = false;
 	if(this._noiseCanvas){
@@ -455,6 +473,9 @@ BattleSceneUILayer.prototype.redraw = function() {
 	
 	
 	var allyStatsContent = "";
+	allyStatsContent+="<div class='inner'>"
+	allyStatsContent+="<div class='icon' id='actor_icon'>"
+	allyStatsContent+="</div>"
 	allyStatsContent+="<div class='hp_row'>"
 	
 	allyStatsContent+=this.createStatsRowContent("HP");
@@ -466,10 +487,14 @@ BattleSceneUILayer.prototype.redraw = function() {
 	allyStatsContent+=this.createStatsRowContent("EN");
 	
 	allyStatsContent+="</div>"
+	allyStatsContent+="</div>"
 	this._allyStats.innerHTML = allyStatsContent;
 	_this.updateScaledDiv(this._allyStats);
 	
 	var enemyStatsContent = "";
+	enemyStatsContent+="<div class='inner'>"
+	enemyStatsContent+="<div class='icon' id='enemy_icon'>"
+	enemyStatsContent+="</div>"
 	enemyStatsContent+="<div class='hp_row'>"
 	
 	enemyStatsContent+=this.createStatsRowContent("HP", true);
@@ -480,6 +505,7 @@ BattleSceneUILayer.prototype.redraw = function() {
 	
 	enemyStatsContent+=this.createStatsRowContent("EN", true);
 	
+	enemyStatsContent+="</div>"
 	enemyStatsContent+="</div>"
 	this._enemyStats.innerHTML = enemyStatsContent;
 	_this.updateScaledDiv(this._enemyStats);
@@ -505,6 +531,11 @@ BattleSceneUILayer.prototype.redraw = function() {
 	
 	//_this.updateScaledDiv(this._allyBarrierNotification);
 	//_this.updateScaledDiv(this._enemyBarrierNotification);
+	
+	var icons = this._container.querySelectorAll(".icon");
+	icons.forEach(function(icon){
+		_this.updateScaledDiv(icon);
+	});
 	
 	
 	

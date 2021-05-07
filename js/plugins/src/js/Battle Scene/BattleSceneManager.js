@@ -3541,14 +3541,14 @@ BattleSceneManager.prototype.showScene = function() {
 		if(_this._participantInfo.actor.participating){
 			var ref = _this._participantInfo.actor.effect.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
-			_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
-			_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+			//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+			//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
 		}
 		if(_this._participantInfo.enemy.participating){
 			var ref = _this._participantInfo.enemy.effect.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
-			_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
-			_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+			//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+			//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
 		}
 		
 		var firstAction = _this._actionQueue[0];
@@ -3582,13 +3582,13 @@ BattleSceneManager.prototype.setUpActionTwinDisplay = function(action) {
 		if(action.side == "actor"){
 			_this._actorTwinSprite.sprite.setEnabled(true);		
 			_this._actorTwinSprite.sprite.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_twin_idle);
-			_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "HP");
-			_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "EN");
+			//_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "HP");
+			//_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "EN");
 		} else {
 			_this._enemyTwinSprite.sprite.setEnabled(true);		
 			_this._enemyTwinSprite.sprite.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_twin_idle);
-			_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
-			_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
+			//_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
+			//_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
 		}
 		_this.isTwinInitiating = true;
 	} else {
@@ -3657,14 +3657,14 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 				_this._actorSprite.sprite.setEnabled(false);
 				_this._actorSupporterSprite.sprite.setEnabled(true);
 				_this._actorSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_main_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
+				//_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
 			} else{		
 				_this._lastActionWasSupportAttack = false;
 				_this._actorSprite.sprite.setEnabled(true);		
 				_this._actorSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_support_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+				//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
 			}			
 		} else {
 			_this._animationDirection = -1;
@@ -3680,14 +3680,14 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 				_this._enemySprite.sprite.setEnabled(false);
 				_this._enemySupporterSprite.sprite.setEnabled(true);
 				_this._enemySupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_main_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
 			} else {			
 				_this._lastActionWasSupportAttack = false;
 				_this._enemySprite.sprite.setEnabled(true);	
 				_this._enemySupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_support_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
 			}
 		}
 		if(action.attacked){
@@ -3899,7 +3899,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 								_this._active_main.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
 								_this._active_target.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
 							}				
-							
+																					
 							if(_this.doingFadeTransition){
 								_this.swipeToBlack(direction, "out", 300).then(function(){							
 									startAnimation();

@@ -105,6 +105,23 @@
 	padding-bottom: 0;
 }
 
+#battle_scene_ui_layer .stats_container img{
+	width: 100%;
+}
+
+#battle_scene_ui_layer .stats_container .inner {
+	position: relative;
+}
+
+#battle_scene_ui_layer .stats_container .icon {
+	--widthpixels: 60;
+	--heightpixels: 60;
+	/*background-color: red;*/
+	position: absolute;
+	top: 51%;
+    left: 16%;
+}
+
 #battle_scene_ui_layer .stats_container .hp_row {
 	display: flex;
 	position: relative;
@@ -175,6 +192,13 @@
 	border-bottom-left-radius: 0px;
 	border-bottom-right-radius: 999px;
 	background-color:rgba(224, 181, 179, 0.8);	
+}
+
+#battle_scene_ui_layer_enemy_stats.stats_container .icon {
+	top: 51%;
+    right: 16%;
+	left: auto;
+	transform: scaleX(-1);
 }
 
 #battle_scene_ui_layer_enemy_stats.stats_container .label{
