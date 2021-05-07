@@ -1602,6 +1602,7 @@ BattleCalc.prototype.updateTwinActions = function(){
 		if($gameTemp.currentTargetingSettings.actorTwin == "twin" && $statCalc.isMainTwin($gameTemp.currentBattleEnemy)){
 			targetActor = $gameTemp.currentBattleEnemy.subTwin;
 		} else {
+			$gameTemp.currentTargetingSettings.actorTwin = "main";
 			targetActor = $gameTemp.currentBattleEnemy;
 		}
 		
@@ -1631,6 +1632,7 @@ BattleCalc.prototype.updateTwinActions = function(){
 		if($gameTemp.currentTargetingSettings.enemyTwin == "twin" && $statCalc.isMainTwin($gameTemp.currentBattleActor)){
 			targetActor = $gameTemp.currentBattleActor.subTwin;
 		} else {
+			$gameTemp.currentTargetingSettings.enemyTwin = "main";
 			targetActor = $gameTemp.currentBattleActor;
 		}
 		
