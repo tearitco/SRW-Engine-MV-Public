@@ -226,6 +226,17 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._targeting_arrows_2.id = this.createId("targeting_arrows_2");
 	this._targeting_arrows_2.setAttribute("src", "img/system/targeting1.png");
 	windowNode.appendChild(this._targeting_arrows_2);	
+	
+	this._targeting_arrows_enemy_1 = document.createElement("img");
+	this._targeting_arrows_enemy_1.id = this.createId("targeting_arrows_enemy_1");
+	this._targeting_arrows_enemy_1.setAttribute("src", "img/system/targeting1.png");
+	windowNode.appendChild(this._targeting_arrows_enemy_1);	
+	
+	this._targeting_arrows_enemy_2 = document.createElement("img");
+	this._targeting_arrows_enemy_2.id = this.createId("targeting_arrows_enemy_2");
+	this._targeting_arrows_enemy_2.setAttribute("src", "img/system/targeting1.png");
+	windowNode.appendChild(this._targeting_arrows_enemy_2);	
+	
 }	
 
 Window_BeforebattleTwin.prototype.update = function() {	
@@ -1280,8 +1291,48 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		}	
 	}
 	
+	_this._targeting_arrows_enemy_1.style.transform = "";
+	_this._targeting_arrows_enemy_1.style.display = "none";
+	_this._targeting_arrows_enemy_1.style.top = "";
+	_this._targeting_arrows_enemy_1.src = "img/system/targeting1.png";
+	
+	_this._targeting_arrows_enemy_2.style.transform = "";
+	_this._targeting_arrows_enemy_2.style.display = "none";
+	_this._targeting_arrows_enemy_2.style.top = "";
+	_this._targeting_arrows_enemy_2.src = "img/system/targeting1.png";
+	
+	if($gameTemp.enemyAction.type == "attack"){
+		_this._targeting_arrows_enemy_1.style.display = "";
+	}
+	
+	if($gameTemp.currentTargetingSettings.enemy == "twin"){
+		_this._targeting_arrows_enemy_1.style.transform = "rotate(-45deg)";
+	}	
+	
+	if($gameTemp.currentTargetingSettings.enemy == "all"){
+		_this._targeting_arrows_enemy_1.src = "img/system/targeting2.png";
+		_this._targeting_arrows_enemy_1.style.top = "24.5%";
+	}
+	
+	if($gameTemp.currentBattleEnemy.subTwin){
+		if($gameTemp.enemyTwinAction && $gameTemp.enemyTwinAction.type == "attack"){
+			_this._targeting_arrows_enemy_2.style.display = "";
+		}
+		if($gameTemp.currentTargetingSettings.enemyTwin == "main"){
+			_this._targeting_arrows_enemy_2.style.transform = "rotate(45deg)";
+		}	
+		if($gameTemp.currentTargetingSettings.enemy == "all"){
+			_this._targeting_arrows_enemy_2.src = "img/system/targeting2.png";
+			_this._targeting_arrows_enemy_2.style.transform = "scaleY(-1)";
+			_this._targeting_arrows_enemy_2.style.top = "54.5%";
+		}	
+	}
+	
 	_this.updateScaledImage(_this._targeting_arrows_1);
 	_this.updateScaledImage(_this._targeting_arrows_2);
+	
+	_this.updateScaledImage(_this._targeting_arrows_enemy_1);
+	_this.updateScaledImage(_this._targeting_arrows_enemy_2);
 	
 	
 	this._ally_twin.classList.remove("selected");
