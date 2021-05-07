@@ -2755,7 +2755,7 @@ BattleSceneManager.prototype.playTwinIntroAnimation = function(){
 	this._animationList[20] = [
 		{type: "set_sprite_frame", target: "active_main", params: {name: "main"}},
 		{type: "set_sprite_frame", target: "active_twin", params: {name: "in"}},
-		{type: "translate", target: "active_twin", params: { position: this._defaultPositions.ally_main_idle, duration: 15}}
+		{type: "translate", target: "active_twin", params: {startPosition: this._defaultPositions.ally_twin_idle, position: this._defaultPositions.ally_main_idle, duration: 15}}
 	];
 	this._animationList[35] = [
 		{type: "set_sprite_frame", target: "active_twin", params: {name: "main"}},
