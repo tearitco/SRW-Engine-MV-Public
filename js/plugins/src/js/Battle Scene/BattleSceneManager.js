@@ -3624,6 +3624,8 @@ BattleSceneManager.prototype.setUpActionTwinDisplay = function(action) {
 		}
 		_this.isTwinInitiating = true;
 	} else {
+		_this._actorTwinSprite.sprite.setEnabled(false);		
+		_this._enemyTwinSprite.sprite.setEnabled(false);		
 		_this.isTwinInitiating = false;
 	}
 }
@@ -3675,6 +3677,7 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 		//_this._enemyTwinSprite.sprite.setEnabled(false);
 		_this._enemyTwinSupporterSprite.sprite.setEnabled(false);
 		if(action.side == "actor"){
+			
 			_this._animationDirection = 1;
 			
 			_this.setBgScrollDirection(1, false);
