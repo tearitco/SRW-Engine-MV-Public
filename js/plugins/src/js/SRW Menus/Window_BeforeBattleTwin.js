@@ -1038,6 +1038,10 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	this._enemy_main.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy, $gameTemp.enemyAction, false, "enemy");
 	this._enemy_main.style.display = "";
 	var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
+	this._ally_support_1.innerHTML = "";
+	this._enemy_support_1.innerHTML = "";
+	this._enemy_support_1.style.display = "none";
+	this._ally_support_1.style.display = "none";
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
 			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
@@ -1057,7 +1061,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		}
 	}
 	
-	var supporter = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];
+	var supporter = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];	
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
 			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "ally");
@@ -1078,6 +1082,10 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	}
 	
 	var supporter = $gameTemp.twinSupportAttack;
+	this._ally_support_2.innerHTML = "";
+	this._ally_support_2.style.display = "none";
+	this._enemy_support_2.innerHTML = "";
+	this._enemy_support_2.style.display = "none";
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
 			this._enemy_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
