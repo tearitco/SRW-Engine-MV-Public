@@ -7185,6 +7185,61 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	};	
 	
 //====================================================================
+// ●Sprite_TwinIndicator
+//====================================================================	
+	
+	function Sprite_TwinIndicator() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_TwinIndicator.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_TwinIndicator.prototype.constructor = Sprite_TwinIndicator;
+
+	Sprite_TwinIndicator.prototype.initialize = function(character) {
+		Sprite_Base.prototype.initialize.call(this);
+		this._character = character;
+		this.bitmap =  ImageManager.loadSystem('twin');
+		this.anchor.x = 0.5;
+		this.anchor.y = 1;
+		this._frameCount = 0;
+	};
+
+	Sprite_TwinIndicator.prototype.update = function() {
+		this.x = this._character.screenX();
+		
+		this.y = this._character.screenY() - 30;
+		//this.z = this._character.screenZ() - 1;
+		var eventId = this._character.eventId();
+		var battlerArray = $gameSystem.EventToUnit(eventId);
+		
+		if(battlerArray){
+			var unit = battlerArray[1];
+			if(!$gameSystem.isEnemy(unit)){				
+				this.x = this._character.screenX() - 15;
+			} else {
+				this.x = this._character.screenX() + 15;
+			}		
+			
+			if($statCalc.isMainTwin(unit) && unit && !this._character.isErased()){
+			
+				/*this._frameCount+=2;
+				this._frameCount %= 200;
+				if(this._frameCount < 100){
+					this.opacity = this._frameCount + 120;
+				} else {
+					this.opacity = 200 + 120 - this._frameCount;
+				}*/
+				this.opacity = 255;
+			} else {
+				this.opacity = 0;
+			}
+		} else {
+			this.opacity = 0;
+		}		
+	};	
+		
+	
+//====================================================================
 // Sprite_Destroyed
 //====================================================================	
 	
@@ -7806,6 +7861,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._willIndicators = {};
 		this._defendIndicators = {};
 		this._attackIndicators = {};
+		this._twinIndicators = {};
 		$gameMap.events().forEach(function(event) {
 			this.createBShadow(event._eventId,event);			
 		}, this);
@@ -7871,6 +7927,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.createWillIndicator(event._eventId, event);
 			this.createDefendIndicator(event._eventId, event);
 			this.createAttackIndicator(event._eventId, event);
+			this.createTwinIndicator(event._eventId, event);			
 		}, this);			
 		
 		this._reticuleSprite = new Sprite_Reticule();
@@ -7939,6 +7996,15 @@ SceneManager.reloadCharacters = function(startEvent){
 			character._defendIndicator = true;
 		};
 	};
+	
+	Spriteset_Map.prototype.createTwinIndicator = function(id,character) {
+		if (!character) return;
+		if (!this._twinIndicators[id]) {
+			this._twinIndicators[id] = new Sprite_TwinIndicator(character);
+			this.addCharacterToBaseSprite(this._twinIndicators[id]);
+			character._twinIndicator = true;
+		};
+	};	
 
     var _SRPG_Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
