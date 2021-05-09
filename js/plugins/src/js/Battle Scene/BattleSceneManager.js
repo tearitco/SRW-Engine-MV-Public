@@ -654,6 +654,9 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 	
 	bg.setPositionWithLocalVector(position);
 	bg.originPosition = new BABYLON.Vector3(position.x, position.y, position.z);
+	
+	texture.update(); //ensure the texture is marked as ready
+	
 	return {sprite: bg, texture: texture, size: {width: width, height: height}};
 }
 		
@@ -1003,6 +1006,20 @@ BattleSceneManager.prototype.setBgScrollRatio = function(ratio, immediate){
 	_this._bgScrollRatio = ratio;
 }
 
+BattleSceneManager.prototype.isReady = function(){	
+    if (!this._scene.isReady()) return false;
+
+    for (let tex of this._scene.textures) {
+      if (!tex.isReady()) return false;
+    }
+
+    for (let mesh of this._scene.meshes) {
+      if (!mesh.isReady()) return false;
+    }
+
+    return true;  
+}
+
 BattleSceneManager.prototype.hookBeforeRender = function(){
 	var _this = this;
 	
@@ -1042,6 +1059,10 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 	_this._scene.registerBeforeRender(function() {
 		var frameTime = new Date().getTime();
 		//console.log("processing animation @"+frameTime);
+		/*if(!_this.isReady()){
+			this._lastAnimationTickTime = frameTime;
+			return;
+		}*/
 		var deltaTime = frameTime - _this._lastAnimationTickTime;
 		var ticksSinceLastUpdate = Math.floor(deltaTime / _this._animationTickDuration);
 		_this._ticksSinceLastUpdate = ticksSinceLastUpdate;
@@ -1866,8 +1887,18 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				swipeTime/=2;
 			}
 			_this.swipeToBlack(direction, "in", swipeTime).then(function(){
-				_this.swipeToBlack(direction, "out");
+				clearSwipe();				
 			});	
+			
+			function clearSwipe(){
+				if(!_this.isReady()){
+					setTimeout(clearSwipe, 100);
+				} else {
+					setTimeout(function(){
+						_this.swipeToBlack(direction, "out");
+					}, 100);					
+				}
+			}
 		},
 		fade_white: function(target, params){
 			var fadeTime = params.time;
@@ -3239,7 +3270,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._shakeAnimations = {};
 	_this._bgAnimations = {};	
 	_this._fadeAnimations = {};	
-	
+	_this._lastAction = null;
 	
 	_this._camera.position = _this._defaultPositions.camera_main_intro;
 	_this._camera.rotation = _this._defaultRotations.camera_main_intro;
@@ -3267,7 +3298,7 @@ BattleSceneManager.prototype.resetScene = function() {
 
 BattleSceneManager.prototype.createEnvironment = function(ref){
 	var _this = this;
-
+	_this._creatingEnvironment = true;
 	_this._bgs.forEach(function(bg){
 		bg.dispose();
 	});	
@@ -3298,6 +3329,7 @@ BattleSceneManager.prototype.createEnvironment = function(ref){
 			ctr++;
 		});
 	}
+	_this._creatingEnvironment = false;
 }	
 
 BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffset, zOffset){
@@ -3775,7 +3807,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				direction = "left";
 			}
 			
-			if((!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && _this._lastActionWasSupportAttack) || (ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && nextAction.type == "support attack")){// || _this._lastActionWasSupportDefend
+			/*if((!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && _this._lastActionWasSupportAttack) || (ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && nextAction.type == "support attack")){// || _this._lastActionWasSupportDefend
 				_this.fadeToBlack(700).then(function(){
 					_this.createEnvironment(nextAction.ref);
 					continueScene();
@@ -3783,7 +3815,8 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				});
 			} else {
 				continueScene();
-			}
+			}*/
+			continueScene();
 			
 			function continueScene(){			
 				if(_this._lastAction && _this._lastAction.attacked.ref != nextAction.ref){
@@ -3873,8 +3906,32 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							finalize();
 						}	
 						
-						function finalize(){		
-							if(nextAction.ref.isSubTwin){								
+						function finalize(){	
+							if(nextAction.type == "support attack")	{
+								_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
+								_this._active_main.setEnabled(false);		
+								_this._active_twin.setEnabled(false);
+								_this._actorTwinSupporterSprite.sprite.setEnabled(false);
+								_this._actorSupporterSprite.sprite.setEnabled(false);
+								_this._enemyTwinSupporterSprite.sprite.setEnabled(false);
+								_this._enemySupporterSprite.sprite.setEnabled(false);
+								if(nextAction.side == "actor"){									
+									if(nextAction.ref.isSubTwin){									
+										_this._active_support_attacker = _this._actorTwinSupporterSprite.sprite;
+									} else {
+										_this._active_support_attacker = _this._actorSupporterSprite.sprite;
+									}
+									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
+								} else {
+									if(nextAction.ref.isSubTwin){									
+										_this._active_support_attacker = _this._enemyTwinSupporterSprite.sprite;
+									} else {
+										_this._active_support_attacker = _this._enemySupporterSprite.sprite;
+									}
+									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+								}
+								_this._active_support_attacker.setEnabled(true);
+							} else if(nextAction.ref.isSubTwin){								
 								_this._UILayerManager.setNotification(nextAction.side, "Twin Attack");
 								_this._active_main.setEnabled(false);		
 								_this._active_twin.setEnabled(false);									

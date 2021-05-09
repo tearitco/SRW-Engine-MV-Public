@@ -197,11 +197,11 @@ ConfigManager.readConfigFpsSynch = function(config, name) {
 SceneManager.updateMainFluidTimestep = SceneManager.updateMain;
 
 SceneManager.updateMain = function() {
-    if (ConfigManager.synchFps) {
+   /* if (ConfigManager.synchFps) {
       this.updateMainFluidTimestep();
-    } else {
+    } else {*/
       this.updateMainNoFpsSynch();
-    }
+    //}
 };
 
 SceneManager.updateMainNoFpsSynch = function() {
