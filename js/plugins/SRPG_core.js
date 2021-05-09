@@ -8975,13 +8975,13 @@ SceneManager.reloadCharacters = function(startEvent){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_split, 'split');
 					}
 					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
-						if($statCalc.canSwap(_this._actor)){
+						if(!$statCalc.isShip(_this._actor) && $statCalc.canSwap(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_swap, 'swap');
 						}	
-						if($statCalc.isMainTwin(_this._actor)){
+						if(!$statCalc.isShip(_this._actor) && $statCalc.isMainTwin(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_separate, 'separate');
 						}	
-						if($statCalc.canTwin(_this._actor)){
+						if(!$statCalc.isShip(_this._actor) && $statCalc.canTwin(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_join, 'join');
 						}	
 					}
