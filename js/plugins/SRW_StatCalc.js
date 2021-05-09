@@ -1539,6 +1539,9 @@ StatCalc.prototype.twin = function(actor, otherActor){
 }
 
 StatCalc.prototype.validateTwinTarget = function(actor){
+	if(this.isShip(actor)){
+		return false;
+	}
 	if(this.isMainTwin(actor)){
 		return false;
 	}
