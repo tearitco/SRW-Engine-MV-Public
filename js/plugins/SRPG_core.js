@@ -1222,7 +1222,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 		var result = false;
 		if(this.currentMapTargets){
 			for(var i = 0; i < this.currentMapTargets.length; i++){
-				if(this.currentMapTargets[i].event.eventId() == eventId){
+				if($statCalc.getReferenceEvent(this.currentMapTargets[i]).eventId() == eventId){
 					result = true;
 				}
 			}
@@ -10384,7 +10384,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		}
 		
 		
-		if ($gameSystem.isSubBattlePhase() !== 'normal') {	
+		if ($gameSystem.isSubBattlePhase() !== 'normal' && $gameSystem.isSubBattlePhase() !== 'actor_target' && $gameSystem.isSubBattlePhase() !== 'actor_target_spirit' && $gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm') {	
 			this._summaryWindow.hide();
 			this._terrainDetailsWindow.hide();
 		}		
@@ -11364,7 +11364,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				if($gameTemp.mapAttackEffectQueue.length){
 					var effect = $gameTemp.mapAttackEffectQueue.shift();
 					var target = effect.parameters.target;
-					var event = target.event;					
+					var event = $statCalc.getReferenceEvent(target);					
 					
 					$gamePlayer.locate(event.posX(), event.posY());
 					$gameTemp.queuedActorEffects = [effect];			
