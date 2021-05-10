@@ -330,11 +330,11 @@ SRWEditor.prototype.init = function(){
 			params: ["index"],
 			desc: "Set the frame of a sprite."
 		},
-		/*	set_sprite_animation: {
+			set_sprite_animation: {
 			hasTarget: true,
 			params: ["name", "animationFrames", "holdFrame", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
 			desc: "Set the source of a sprite and specify animation details."
-		},*/
+		},
 		set_sprite_frame: {
 			hasTarget: true,
 			params: ["name"],
