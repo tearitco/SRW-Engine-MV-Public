@@ -257,10 +257,12 @@
 
 #unit_summary .hit_display {
 	position: absolute;
-	left: -26%;
+	right: 102%;
 	top: 50%;
 	--fontsize: 2px;
 	color: #FFFFFF;
+	border-radius: 999999px;
+	padding: 1.5%;
 }
 
 #unit_summary .summary_mech {

@@ -198,7 +198,14 @@ Window_UnitSummary.prototype.redraw = function() {
 			_this.updateScaledDiv(container);				
 		});
 		
-			
+		var hitDisplayContainers = _this._bgFadeContainer.querySelectorAll(".hit_display");
+		hitDisplayContainers.forEach(function(container){
+			_this.assignFactionColorClass(container, actors[0]);			
+		});
+		
+		
+		
+		
 			
 		//_this.assignFactionColorClass(_this._bgFadeContainer.querySelector(".background"), actors[0]);
 		//_this.updateScaledDiv(_this._bgFadeContainer.querySelector(".background"));
