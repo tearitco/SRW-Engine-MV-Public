@@ -8,7 +8,7 @@ var ENGINE_SETTINGS_DEFAULT = {
 		DEFAULT_ANIM: {// defines default animations
 			DESTROY: 2 // the default destroy animation
 		},
-		DEFAULT_CAMERA_POSITION: {x: 2,y: 1.15, z: -6.5},
+		DEFAULT_CAMERA_POSITION: {x: 0,y: 1.15, z: -6.5},
 		DAMAGE_OFFSETS: {top: 20, left: 62}		
 	},
 	KEEP_ENEMY_SPRITE_ORIENTATION: false, // if true enemy sprites on the map will not be flipped
