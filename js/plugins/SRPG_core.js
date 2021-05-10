@@ -7593,6 +7593,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		for(var i = 0; i < $gameMap.height(); i++){
 			this.bitmap.fillRect(0, i * $gameMap.tileHeight(), this.bitmap.width , 1, "white");
 		}*/
+		this.bitmap = new Bitmap($gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());
 		this.construct();
 		this.anchor.x = 0;
 		this.anchor.y = 0;
@@ -7601,12 +7602,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		//this.opacity = 128;
 		//this.blendMode = Graphics.BLEND_ADD;
 		this._frameCount = 0;
+		
+		
 	};
 	
 	Sprite_AreaHighlights.prototype.construct = function() {
 		var _this = this;
 		this._frameCount = 0;
-		this.bitmap = new Bitmap($gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());	
+		this.bitmap.clearRect(0, 0, $gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());			
+			
 		if($gameSystem.highlightedTiles){
 			for(var i = 0; i < $gameSystem.highlightedTiles.length; i++){
 				var highlight = $gameSystem.highlightedTiles[i];
@@ -11169,7 +11173,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gameSystem.setSubBattlePhase('actor_map_target_confirm');
 				}								
 			} else {	
-				
+				var directionChanged = false;
 				var tileCoordinates = mapAttackDef.shape;
 				if(!mapAttackDef.lockRotation){						
 					if(Input.isTriggered("up")){
@@ -11192,6 +11196,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				
 				tileCoordinates = this.getAdjustedMapAttackCoordinates(tileCoordinates, direction);
 				
+				
 				$gameTemp.clearMoveTable();	
 				$gameTemp.setResetMoveList(true);
 				for(var i = 0; i < tileCoordinates.length; i++){
@@ -11200,7 +11205,8 @@ SceneManager.reloadCharacters = function(startEvent){
 					tileCoordinates[i][1]+=deltaY;
 					$gameTemp.pushMoveList(tileCoordinates[i]);					
 				}							
-				$gameTemp.currentMapTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));										
+				$gameTemp.currentMapTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));
+																		
 			}	
 		}	
 		
