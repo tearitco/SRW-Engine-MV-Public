@@ -95,11 +95,17 @@ export default function BattleSceneManager(){
 	this._defaultShadowSize = 1;
 	this._bgScrollDirection = 1;
 	this._previousBgScrollDirection = 1;
+	var cameraMainIdle = new BABYLON.Vector3(0, 1.15, -6.5);
+	if(ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_CAMERA_POSITION){
+		cameraMainIdle.x = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_CAMERA_POSITION.x;
+		cameraMainIdle.y = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_CAMERA_POSITION.y;
+		cameraMainIdle.z = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_CAMERA_POSITION.z;
+	}
 	this._defaultPositions = {
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
 		"ally_main_idle": new BABYLON.Vector3(2, 0, 1),
 		"enemy_main_idle": new BABYLON.Vector3(-2, 0, 1),
-		"camera_main_idle": new BABYLON.Vector3(0, 1.15, -6.5), //1.15
+		"camera_main_idle": cameraMainIdle, //1.15
 		"camera_main_intro": new BABYLON.Vector3(-6, 0.75, -7),
 		"ally_support_idle": new BABYLON.Vector3(10, 1, 1),
 		"enemy_support_idle": new BABYLON.Vector3(-10, 1, 1),
@@ -2398,7 +2404,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		reset_position: function(target, params){
 			var targetObj = getTargetObject("active_target");
 			
-			var targetOffset = _this._defaultPositions.camera_main_idle.x - _this._camera.position.x;
+			var targetOffset = (_this._defaultPositions.camera_main_idle.x * _this._animationDirection * -1) - _this._camera.position.x;
 			
 			var changeScrollDirection = true;
 			if($gameTemp.defenderCounterActivated && _this._currentAnimatedAction.type != "defender"){
@@ -2420,7 +2426,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				}
 			}			
 				
-			_this._camera.position.x = 0;
+			_this._camera.position.x = _this._defaultPositions.camera_main_idle.x * _this._animationDirection * -1;
 			
 			if(_this._actorSprite && _this._actorSprite.sprite.parent_handle.wasMoved){
 				_this._actorSprite.sprite.parent_handle.position.x+=targetOffset;
