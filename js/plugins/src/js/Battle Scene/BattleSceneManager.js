@@ -2302,7 +2302,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
 				if(params.animationFrames){
 					params.animationDelay*=_this._animationTickDuration;
-					_this.registerBgAnimation(targetObj, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames, params.animationLoop*1, params.animationDelay, params.holdFrame*1);
+					_this.registerBgAnimation(targetObj, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames*1, params.animationLoop*1, params.animationDelay, params.holdFrame*1);
 				}
 			}
 		},
@@ -2312,6 +2312,16 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var action = _this._currentAnimatedAction;
 			var targetAction = _this._currentAnimatedAction.attacked;
 			if(targetObj){
+				
+				var tmp = {};
+				Object.keys(_this._bgAnimations).forEach(function(animationId){			
+					var animation = _this._bgAnimations[animationId];
+					if(targetObj != animation.targetObj){
+						tmp[animationId] = _this._bgAnimations[animationId];
+					}					
+				});	
+				_this._bgAnimations = tmp;
+				
 				if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
 					params.name = "main";
 				} else if(params.name == "hurt" || params.name == "hurt_end"){
