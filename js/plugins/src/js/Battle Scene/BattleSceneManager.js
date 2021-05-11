@@ -1541,7 +1541,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(!obj){//check sprites
 				var ctr = 0;
 				while(!obj && ctr < _this._animationSpritesInfo.length){
-					var spriteInfo = _this._animationSpritesInfo[ctr++];
+					var spriteInfo = _this._animationSpritesInfo[ctr];
 					if(spriteInfo.sprite.name == name){
 						obj = spriteInfo.sprite;
 					}
@@ -2663,7 +2663,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		
 	};
 	if(animationHandlers[animation.type] && _this._currentAnimatedAction){
-		animationHandlers[animation.type](animation.target, animation.params || {});
+		if(!animation.params.position){
+			animation.params.position = new BABYLON.Vector3(0, 0, 0);
+		}
+		animationHandlers[animation.type](animation.target.trim(), animation.params || {});
 	}
 }
 
