@@ -798,4 +798,41 @@ $SRWConfig.spirits = function(){
 			duration: 800
 		}
 	);	
+	this.addDefinition(
+		37, 
+		"Strike+", 
+		"Unit's Accuracy % becomes 100% for one turn. Also affects other unit in a twin.", 
+		function(target){
+			$statCalc.setSpirit(target, "strike");
+		},
+		"self",
+		function(actor){
+			return !$statCalc.getActiveSpirits(actor).strike;
+		}, 
+		null,
+		{
+			src: "Strike",
+			duration: 600
+		},
+		{maskedSpirit: 25}
+	);
+	
+	this.addDefinition(
+		38, 
+		"Valor+", 
+		"Increases damage dealt by 100% for one time. Also affects other unit in a twin.", 
+		function(target){
+			$statCalc.setSpirit(target, "valor");
+		},
+		"self",
+		function(actor){
+			return !$statCalc.getActiveSpirits(actor).valor;
+		}, 
+		null,
+		{
+			src: "Valor",
+			duration: 800
+		},
+		{maskedSpirit: 24}
+	);
 }
