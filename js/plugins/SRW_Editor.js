@@ -227,7 +227,7 @@ SRWEditor.prototype.init = function(){
 		},
 		create_bg: {
 			hasTarget: true,
-			params: ["path", "parent", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
+			params: ["path", "parent", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay", "holdFrame"],
 			desc: "Create a new background."
 		},
 		remove_bg: {
@@ -265,11 +265,11 @@ SRWEditor.prototype.init = function(){
 			params: ["animName"],
 			desc: "Set Spriter background animation."
 		},		
-		create_layer: {
+		/*create_layer: {
 			hasTarget: true,
 			params: ["path", "isBackground", "frameSize", "lineCount", "columnCount", "animationFrames", "animationLoop", "animationDelay"],
 			desc: "Create a new layer."
-		},
+		},*/
 		remove_layer: {
 			hasTarget: true,
 			params: [],
