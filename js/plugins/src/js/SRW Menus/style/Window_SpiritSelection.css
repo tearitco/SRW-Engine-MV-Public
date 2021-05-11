@@ -22,7 +22,7 @@
 
 #spirit_selection.twin .bg_fade_container {
 	width: 700px;
-	height: 500px;
+	height: 560px;
 }
 
 #spirit_selection .spirit_selection_content {
@@ -46,7 +46,12 @@
 }
 
 #spirit_selection.twin .spirit_selection_row.spirit_selection {
-	height: 39%;
+	height: 35%;
+}
+
+#spirit_selection.twin .spirit_selection_row.twin {
+	height: 10%;
+    margin-top: 1.4%;
 }
 
 #spirit_selection .spirit_selection_SP_display {
@@ -74,7 +79,7 @@
 }
 
 #spirit_selection.twin .spirit_selection_row.details {
-	height: 62%;
+	height: 55%;
 }
 
 #spirit_selection .spirit_selection_row .spirit_list_container {
@@ -93,6 +98,15 @@
 	height: 100%;
 }
 
+#spirit_selection .spirit_selection_row.twin .spirit_list {
+	margin-left: auto;
+	margin-right: auto;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+}
+
 #spirit_selection.twin .spirit_selection_row.details .spirit_list {
 	width: 100%;
 }
@@ -108,11 +122,34 @@
 	height: 20%;
 }
 
+#spirit_selection .spirit_selection_row.twin .column {
+	display: flex;
+	margin: 1%;
+    padding: 1%;
+	border: 0.1vw solid #FFFFFF;
+	height: 100%;
+	align-items: center;
+	width: 84.5%;
+	height: 20%;
+}
+
+#spirit_selection .spirit_selection_row.twin .column.selected {
+	background-color: var(--selected-color);
+}
+
+#spirit_selection .spirit_selection_row.twin .column.twin {
+	margin-left: auto;
+}
+
 #spirit_selection .spirit_selection_row.details .column.selected {
 	background-color: var(--selected-color);
 }
 
 #spirit_selection .spirit_selection_row.details .spirit_label {
+	--widthscaling: 10;
+}
+
+#spirit_selection .spirit_selection_row.twin .spirit_label {
 	--widthscaling: 10;
 }
 
@@ -129,17 +166,29 @@
 	color: #FF0000;
 }
 
+#spirit_selection .column.disabled {
+	color: #666666;
+}
+
+#spirit_selection .column.insufficient {
+	color: #FF0000;
+}
+
 #spirit_selection .section_column {
 	width: 50%;
 	align-items: center;
 }
 
-#spirit_selection.twin .section_column {
-	width: 38%;
+#spirit_selection.twin .spirit_selection_row.twin .section_column {
+	width: 53%;
+	display: flex;
+	--fontsize: 2px;
 }
 
 #spirit_selection .divider {
 	width: 24%;
+	text-align: center;
+	color: var(--text-color-highlight);
 }
 
 #spirit_selection .spirit_selection_block {
@@ -364,4 +413,8 @@
 
 #spirit_selection .multi_select_check.available {
 	visibility: visible;
+}
+
+#spirit_selection.twin .spirit_selection_row.twin .section_column .multi_select_check.twin.available {
+	margin: 2%;
 }

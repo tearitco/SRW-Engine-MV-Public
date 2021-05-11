@@ -1060,6 +1060,16 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 	}
 	actor.SRWStats.pilot.spirits = this.getSpiritInfo(actor, actorProperties);	
 	
+	if(actorProperties.pilotTwinSpirit){
+		var parts = actorProperties.pilotTwinSpirit.split(",");
+		var cost = String(parts[1]).trim()*1;			
+		cost = $statCalc.applyStatModsToValue(actor, cost, ["sp_cost"]);
+		actor.SRWStats.pilot.twinSpirit = {
+			idx: String(parts[0]).trim(),
+			cost: cost,
+		};	
+	}	
+	
 	actor.SRWStats.pilot.personalityInfo = this.getPersonalityDef(actorProperties);
 	
 	var subPilots = this.getSubPilots(actor);
@@ -2675,6 +2685,14 @@ StatCalc.prototype.getSpiritList = function(actor){
 		return [];
 	}	
 }	
+
+StatCalc.prototype.getTwinSpirit = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return actor.SRWStats.pilot.twinSpirit;
+	} else {
+		return [];
+	}
+}
 
 StatCalc.prototype.getActiveSpirits = function(actor){
 	if(this.isActorSRWInitialized(actor)){
