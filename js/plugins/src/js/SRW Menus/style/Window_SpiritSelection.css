@@ -20,6 +20,11 @@
 	--fontsize: 2.4px;
 }
 
+#spirit_selection.twin .bg_fade_container {
+	width: 700px;
+	height: 500px;
+}
+
 #spirit_selection .spirit_selection_content {
 	padding: 3%;
     width: 100%;
@@ -37,11 +42,14 @@
 	height: 56%;
 	margin-bottom: 1%;
 	display: flex;
-	position: relative;
-	
+	position: relative;	
 }
 
-#spirit_selection #spirit_selection_SP_display {
+#spirit_selection.twin .spirit_selection_row.spirit_selection {
+	height: 39%;
+}
+
+#spirit_selection .spirit_selection_SP_display {
 	--fontsize: 2px;
 	position: absolute;
 	left: 6.5%;
@@ -50,10 +58,23 @@
     text-align: center;
 }
 
+#spirit_selection.twin .spirit_selection_SP_display {
+	left: 4.5%;
+}
+
+#spirit_selection .spirit_selection_SP_display.right {
+	left: auto;
+	right: 4.5%;
+}
+
 #spirit_selection .spirit_selection_row.details {
 	height: 42%;
 	display: flex;	
 	--fontsize: 2px;
+}
+
+#spirit_selection.twin .spirit_selection_row.details {
+	height: 62%;
 }
 
 #spirit_selection .spirit_selection_row .spirit_list_container {
@@ -70,6 +91,10 @@
 	align-items: center;
 	width: 71%;
 	height: 100%;
+}
+
+#spirit_selection.twin .spirit_selection_row.details .spirit_list {
+	width: 100%;
 }
 
 #spirit_selection .spirit_selection_row.details .column {
@@ -109,6 +134,13 @@
 	align-items: center;
 }
 
+#spirit_selection.twin .section_column {
+	width: 38%;
+}
+
+#spirit_selection .divider {
+	width: 24%;
+}
 
 #spirit_selection .spirit_selection_block {
 	border: 0.1vw solid #FFFFFF;
@@ -118,6 +150,17 @@
 	white-space: normal;
 	padding: 2%;
 	--fontsize: 2px;
+}
+
+#spirit_selection.twin .spirit_selection_block {
+	border: 0.1vw solid #FFFFFF;
+    width: 34%;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    white-space: normal;
+    padding: 2%;
+    --fontsize: 2px;
 }
 
 #spirit_selection .spirit_selection_block .name{
@@ -156,7 +199,7 @@
 	color: var(--text-color-highlight2);
 }
 
-#spirit_selection #spirit_selection_icon {
+#spirit_selection .spirit_selection_icon {
 	width: 136px;
 	height: 136px;
 	background-color: rgba(85, 164, 255, 0.5);
@@ -166,7 +209,12 @@
 	left: 4.5%;
 }
 
-#spirit_selection #previous_selection_icon {
+#spirit_selection .spirit_selection_icon.right {
+	left: auto;
+	right: 4.5%;
+}
+
+#spirit_selection .previous_selection_icon {
 	width: 32px;
 	height: 32px;
 	background-color: rgba(85, 164, 255, 0.5);
@@ -178,7 +226,12 @@
     left: 0%;
 }
 
-#spirit_selection #next_selection_icon {
+#spirit_selection .previous_selection_icon.right {
+	left: auto;
+	right: 22.5%;
+}
+
+#spirit_selection .next_selection_icon {
 	width: 32px;
 	height: 32px;
 	background-color: rgba(85, 164, 255, 0.5);
@@ -188,6 +241,15 @@
 	position: absolute;
 	top: 81%;
     left: 25%;
+}
+
+#spirit_selection.twin .next_selection_icon {
+	left: 22.5%;
+}
+
+#spirit_selection .next_selection_icon.right {
+	left: auto;
+	right: 0%;
 }
 
 #spirit_selection .skills_block {
