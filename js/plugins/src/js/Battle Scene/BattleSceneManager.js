@@ -2663,6 +2663,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		
 	};
 	if(animationHandlers[animation.type] && _this._currentAnimatedAction){
+		if(!animation.params){
+			animation.params = {};
+		}
 		if(!animation.params.position){
 			animation.params.position = new BABYLON.Vector3(0, 0, 0);
 		}
