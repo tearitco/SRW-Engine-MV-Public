@@ -1620,7 +1620,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj = targetObj.parent_handle;
 			}
 			if(targetObj){
-				targetObj.position = _this.applyAnimationDirection(params.position);
+				targetObj.position = _this.applyAnimationDirection(params.position || new BABYLON.Vector3(0,0,0));
 			}
 		},
 		rotate_to: function(target, params){
@@ -1646,7 +1646,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				} else {
 					startPosition = targetObj.position;
 				}
-				var targetPosition = params.position;				
+				var targetPosition = params.position || new BABYLON.Vector3(0,0,0);				
 				targetPosition = JSON.parse(JSON.stringify(targetPosition));
 				if(params.relative == 1){
 					startPosition = JSON.parse(JSON.stringify(targetObj.position));					
@@ -1989,7 +1989,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				
 		},
 		spawn_sprite: function(target, params){
-			var spriteInfo = _this.createSceneSprite(target, params.path, _this.applyAnimationDirection(params.position), params.frameSize, _this._animationDirection == 1 ? false : true, params.size);	
+			var spriteInfo = _this.createSceneSprite(target, params.path, _this.applyAnimationDirection(params.position || new BABYLON.Vector3(0,0,0)), params.frameSize, _this._animationDirection == 1 ? false : true, params.size);	
 			if(params.animationFrames){
 				spriteInfo.sprite.playAnimation(0, params.animationFrames, params.animationLoop, params.animationDelay);
 			}
@@ -2663,13 +2663,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		
 	};
 	if(animationHandlers[animation.type] && _this._currentAnimatedAction){
-		if(!animation.params){
-			animation.params = {};
-		}
-		if(!animation.params.position){
-			animation.params.position = new BABYLON.Vector3(0, 0, 0);
-		}
-		animationHandlers[animation.type](animation.target.trim(), animation.params || {});
+		animationHandlers[animation.type](animation.target, animation.params || {});
 	}
 }
 
