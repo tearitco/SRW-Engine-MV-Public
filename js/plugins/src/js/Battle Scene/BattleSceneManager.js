@@ -2386,20 +2386,24 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		hide_sprite: function(target, params){
 			var targetObj = getTargetObject(target);
-			if(targetObj && targetObj.setEnabled){
-				targetObj.setEnabled(false); 
-			} else {
-				targetObj.isVisible = false;
-			}
+			if(targetObj){
+				if(targetObj.setEnabled){
+					targetObj.setEnabled(false); 
+				} else {
+					targetObj.isVisible = false;
+				}				
+			} 
 			
 		},
 		show_sprite: function(target, params){
 			var targetObj = getTargetObject(target);
-			if(targetObj && targetObj.setEnabled){
-				targetObj.setEnabled(true);				
-			} else {
-				targetObj.isVisible = false;
-			}			
+			if(targetObj){
+				if(targetObj.setEnabled){
+					targetObj.setEnabled(true); 
+				} else {
+					targetObj.isVisible = true;
+				}				
+			} 			
 		},
 		hide_bgs: function(target, params){
 			_this._bgsHidden = true;
