@@ -707,22 +707,24 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 				}
 			}		
 			
+			var realIdx = 0;
 			for(var i = 0; i < defenderInfo.length; i++){
 				var hitRate = -1;
-				if(allyOrEnemy == "ally"){				
-					hitRate = $battleCalc.performHitCalculation(
-						{actor: initiator, action: initiatorAction, isInitiator: !$gameTemp.isEnemyAttack},
-						{actor: defenderInfo[i].defender, action: defenderInfo[i].defenderAction, isInitiator: $gameTemp.isEnemyAttack}
-					);					
-				} else {				
-					hitRate = $battleCalc.performHitCalculation(				
-						{actor: initiator, action: initiatorAction, isInitiator: $gameTemp.isEnemyAttack},
-						{actor: defenderInfo[i].defender, action: defenderInfo[i].defenderAction, isInitiator: !$gameTemp.isEnemyAttack}
-					);			
-				}			
-				hitRates[i] = hitRate;
-			}
-			
+				if(defenderInfo.defender && defenderInfo.defenderAction){
+					if(allyOrEnemy == "ally"){				
+						hitRate = $battleCalc.performHitCalculation(
+							{actor: initiator, action: initiatorAction, isInitiator: !$gameTemp.isEnemyAttack},
+							{actor: defenderInfo[i].defender, action: defenderInfo[i].defenderAction, isInitiator: $gameTemp.isEnemyAttack}
+						);					
+					} else {				
+						hitRate = $battleCalc.performHitCalculation(				
+							{actor: initiator, action: initiatorAction, isInitiator: $gameTemp.isEnemyAttack},
+							{actor: defenderInfo[i].defender, action: defenderInfo[i].defenderAction, isInitiator: !$gameTemp.isEnemyAttack}
+						);			
+					}			
+					hitRates[realIdx++] = hitRate;
+				}				
+			}			
 		}
 		content+="<div>";
 		for(var i = 0; i < hitRates.length; i++){
