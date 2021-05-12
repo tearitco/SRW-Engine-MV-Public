@@ -48,7 +48,7 @@ StatCalc.prototype.getReferenceEvent = function(actor){
 	var event;
 	if(actor.isSubPilot && actor.mainPilot){		
 		event = actor.mainPilot.event;
-	} else if(actor.isSubTwin){
+	} else if(actor.isSubTwin && !actor.isEventSubTwin){
 		var mainTwin = this.getMainTwin(actor);
 		if(mainTwin){
 			event = mainTwin.event;
@@ -63,6 +63,8 @@ StatCalc.prototype.getReferenceEventId = function(actor){
 	var id;
 	if(actor.isSubPilot && actor.mainPilot){		
 		id = "sub_"+actor.mainPilot.event.eventId();
+	} else if(actor.isEventSubTwin){
+		id = "twin_"+actor.event.eventId();
 	} else if(actor.isSubTwin){
 		id = "twin_"+this.getMainTwin(actor).event.eventId();
 	} else {
@@ -115,7 +117,7 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 }
 
 StatCalc.prototype.getTileType = function(actor){
-	if(this.isActorSRWInitialized(actor) && actor.event && actor.event.posX){
+	if($dataMap && this.isActorSRWInitialized(actor) && actor.event && actor.event.posX){
 		var position = {x: actor.event.posX(), y: actor.event.posY()};
 		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
 			return "air";		

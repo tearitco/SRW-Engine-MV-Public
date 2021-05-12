@@ -6094,6 +6094,20 @@ Sample:
 			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			startHP: 20, // the start HP of the actor in percent
 			targetEndHP: 5, // the end HP of the target in percent
+			posX: 0, // the x coordinate of the position on the map where this unit stands(optional)
+			posY: 0, // the y coordinate of the position on the map where this unit stands(optional)
+			referenceEventId: 21 // if provided posX, posY and startHP will be derived from this event instead
+		},
+		actorTwin: {
+			id: 2, // the id of the actor pilot
+			action: "attack", // the action the actor will take: "attack", "defend", "evade". 
+			weapon: 3, // the id of the attack the actor will use. Only used if the action is "attack".
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+			startHP: 20, // the start HP of the actor in percent
+			targetEndHP: 5, // the end HP of the target in percent
+			posX: 0, // the x coordinate of the position on the map where this unit stands(optional)
+			posY: 0, // the y coordinate of the position on the map where this unit stands(optional)
+			referenceEventId: 21 // if provided posX, posY and startHP will be derived from this event instead
 		},
 		actorSupport: { // ommit this section if there is no actor supporter
 			id: 3, // the id of the actor pilot
@@ -6112,8 +6126,18 @@ Sample:
 			startHP: 80, // the start HP of the enemy in percent
 			targetEndHP: 5, // the end HP of the target in percent
 		},
+		enemyTwin: {
+			id: 1, // the id of the enemy pilot
+			mechId: 10, // the id of the enemy mech
+			weapon: 6, // the id of the attack the actor will use. Only used if the action is "attack".
+			action: "attack", // the action the enemy will take: "attack", "defend", "evade". 
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+			startHP: 80, // the start HP of the enemy in percent
+			targetEndHP: 5, // the end HP of the target in percent
+		},
 		enemySupport: { // ommit this section if there is no enemy supporter
 			id: 3, // the id of the enemy pilot
+			mechId: 11,
 			action: "defend", // the action the enemy will take: "attack", "defend", "evade". 
 			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			weapon: -1, // the id of the attack the actor will use. Only used if the action is "attack".
@@ -6132,7 +6156,9 @@ Game_Interpreter.prototype.prepareBattleSceneActor = function(params) {
 	}
 	params.unit = actor;
 	actor.event = {
-		eventId: function(){return 1;}
+		eventId: function(){return 1;}, 
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	
 	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
@@ -6147,7 +6173,28 @@ Game_Interpreter.prototype.prepareBattleSceneSupportActor = function(params) {
 	}
 	params.unit = actor;
 	actor.event = {
-		eventId: function(){return 3;}
+		eventId: function(){return 3;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
+	};
+	
+	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneActorTwin = function(params) {
+	var actor = new Game_Actor(params.id, 0, 0);
+	$statCalc.initSRWStats(actor);
+	actor.isEventSubTwin = true;
+	actor.isSubTwin = true;
+	if(params.mechId){
+		actor._mechClass = params.mechId;	
+		$statCalc.initSRWStats(actor);
+	}
+	params.unit = actor;
+	actor.event = {
+		eventId: function(){return 5;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	
 	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
@@ -6160,7 +6207,9 @@ Game_Interpreter.prototype.prepareBattleSceneEnemy = function(params) {
 	enemy._mechClass = params.mechId;	
 	$statCalc.initSRWStats(enemy);
 	enemy.event = {
-		eventId: function(){return 2;}
+		eventId: function(){return 2;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
 }
@@ -6172,7 +6221,25 @@ Game_Interpreter.prototype.prepareBattleSceneSupportEnemy = function(params) {
 	enemy._mechClass = params.mechId;	
 	$statCalc.initSRWStats(enemy);
 	enemy.event = {
-		eventId: function(){return 4;}
+		eventId: function(){return 4;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
+	};
+	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneEnemyTwin = function(params) {
+	var enemy = new Game_Enemy(params.id, 0, 0);
+	$statCalc.initSRWStats(enemy);
+	enemy.isEventSubTwin = true;
+	enemy.isSubTwin = true;
+	params.unit = enemy;
+	enemy._mechClass = params.mechId;	
+	$statCalc.initSRWStats(enemy);
+	enemy.event = {
+		eventId: function(){return 6;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
 }
@@ -6226,12 +6293,24 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	
 	var actorInfo = this.prepareBattleSceneActor(params.actor);
 	var enemyInfo = this.prepareBattleSceneEnemy(params.enemy);
+		
+	var actorTwinInfo;
+	if(params.actorTwin){
+		actorTwinInfo = this.prepareBattleSceneActorTwin(params.actorTwin);
+	}
+	
+	var enemyTwinInfo;
+	if(params.enemyTwin){
+		enemyTwinInfo = this.prepareBattleSceneEnemyTwin(params.enemyTwin);
+	}
 	
 	var actor = actorInfo.actor;
 	var enemy = enemyInfo.actor;
 	
 	var attacker;
+	var attackerTwin;
 	var defender;
+	var defenderTwin;
 	var attackerSide;
 	var defenderSide;
 	if(params.enemyFirst){
@@ -6239,15 +6318,27 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		defenderSide = "actor";
 		attacker = enemyInfo;
 		defender = actorInfo;
+		attackerTwin = enemyTwinInfo;
+		defenderTwin = actorTwinInfo;
 	} else {
 		attackerSide = "actor";
 		defenderSide = "enemy";
 		attacker = actorInfo;
 		defender = enemyInfo;
+		attackerTwin = actorTwinInfo;
+		defenderTwin = enemyTwinInfo;
 	}
 	
 	$battleCalc.prepareBattleCache(attacker, "initiator");
 	$battleCalc.prepareBattleCache(defender, "defender");
+	
+	if(attackerTwin){
+		$battleCalc.prepareBattleCache(attackerTwin, "twin attack");
+	}
+	
+	if(defenderTwin){
+		$battleCalc.prepareBattleCache(defenderTwin, "twin defend");
+	}
 		
 	
 	var actorCacheEntry = $gameTemp.battleEffectCache[actor._cacheReference];
@@ -6291,6 +6382,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		}	
 		enemySupportCacheEntry = $gameTemp.battleEffectCache[enemySupport._cacheReference];	
 	}	
+	
 		
 	this.setBattleSceneHP(actor, params.actor);
 	this.setBattleSceneHP(enemy, params.enemy);
@@ -6310,60 +6402,187 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		if(this._isSupportAttack){
 			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
 		}
-		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
+		aCache.damageInflicted = 0;
 		aCache.side = this._side;
-		var activeDefender = this._defender;
-		if(this._supportDefender) {
-			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
-			if(!sCache.hasActed){
-				activeDefender = this._supportDefender;
-				dCache = sCache;
-				dCache.defended = this._defender.actor;
-			}
-		}		
 		
-		if(!aCache.isDestroyed && !dCache.isDestroyed){		
-			aCache.actionOrder = orderIdx;
-			aCache.attacked = dCache;
-			aCache.originalTarget = dCache;
-			aCache.hasActed = true;
-			dCache.hasActed = true;
 			
-			if(this._side == "actor"){
-				dCache.side = "enemy";
-			} else {
-				dCache.side = "actor";
+		
+		var defenders = [this._defender];
+		if(this._attacker.action.attack && this._attacker.action.attack.isAll){
+			if(this._side == "actor" && params.enemyTwin){
+				defenders.push(enemyTwinInfo);
 			}
+			if(this._side == "enemy" && params.actorTwin){
+				defenders.push(actorTwinInfo);
+			}
+		}
+		
+		for(var i = 0; i < defenders.length; i++){	
+			var attackedRef = "";
+			if(i == 1){
+				attackedRef = "_all_sub";
+			}
+			var dCache = $gameTemp.battleEffectCache[defenders[i].actor._cacheReference];
 			
-			var isHit = this._attacker.params.hits;
-			if(isHit){
-				aCache.hits = isHit;
-				aCache.inflictedCritical = this._attacker.params.isCrit;
-				dCache.isHit = isHit;
-				dCache.tookCritical = this._attacker.params.isCrit;
-				
-				var mechStats = $statCalc.getCalculatedMechStats(activeDefender.actor);
-				var damagePercent = activeDefender.params.startHP - this._attacker.params.targetEndHP;
-				var damage = Math.floor(mechStats.maxHP * (damagePercent / 100));
-				aCache.damageInflicted = damage;
-				dCache.damageTaken = damage;
-				if(this._attacker.params.targetEndHP <= 0){
-					dCache.isDestroyed = true;
-					dCache.destroyer = aCache.ref;
+			var activeDefender = this._defender;
+			if(this._supportDefender) {
+				var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
+				if(!sCache.hasActed){
+					activeDefender = this._supportDefender;
+					dCache = sCache;
+					dCache.defended = defenders[i].actor;
 				}
-			} else {
-				aCache.damageInflicted = 0;
-				dCache.damageTaken = 0;
+			}	
+			
+			dCache.damageTaken = 0;
+			if(!aCache.isDestroyed && !dCache.isDestroyed){		
+				aCache.actionOrder = orderIdx;
+				aCache["attacked"+attackedRef] = dCache;
+				aCache.originalTarget = dCache;
+				aCache.hasActed = true;
+				dCache.hasActed = true;
+				
+				if(this._side == "actor"){
+					dCache.side = "enemy";
+				} else {
+					dCache.side = "actor";
+				}
+				
+				var isHit = this._attacker.params.hits;
+				if(isHit){
+					aCache["hits"+attackedRef] = isHit;
+					aCache.inflictedCritical = this._attacker.params.isCrit;
+					dCache.isHit = isHit;
+					dCache.tookCritical = this._attacker.params.isCrit;
+					
+					var mechStats = $statCalc.getCalculatedMechStats(activeDefender.actor);
+					var damagePercent = activeDefender.params.startHP - this._attacker.params.targetEndHP;
+					var damage = Math.floor(mechStats.maxHP * (damagePercent / 100));
+					aCache["damageInflicted"+attackedRef] = damage;
+					dCache.damageTaken+= damage;
+					if(this._attacker.params.targetEndHP <= 0){
+						dCache.isDestroyed = true;
+						dCache.destroyer = aCache.ref;
+					}
+				} 
 			}
 		}
 	}
 	
+	var currentTargetingSettings = {
+		attacker: defender,
+		attackerTwin: defenderTwin,
+		defender: attacker,
+		defenderTwin: attackerTwin
+	};
+	
+	if(params.actor){
+		var target;
+		if(params.actor.target == "twin" && params.enemyTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.defender = attackerTwin;
+			} else {
+				currentTargetingSettings.defender = attacker;
+			}			
+		} else {
+			if(target == "twin"){
+				currentTargetingSettings.attacker = defenderTwin;
+			} else {
+				currentTargetingSettings.attacker = defender;
+			}
+		}
+	} 
+	
+	if(params.actorTwin){
+		var target;
+		if(params.actorTwin.target == "twin" && params.enemyTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.defenderTwin = attackerTwin;
+			} else {
+				currentTargetingSettings.defenderTwin = attacker;
+			}			
+		} else {
+			if(target == "twin"){
+				currentTargetingSettings.attackerTwin = defenderTwin;
+			} else {
+				currentTargetingSettings.attackerTwin = defender;
+			}
+		}
+	}
+	
+	if(params.enemy){
+		var target;
+		if(params.enemy.target == "twin" && params.actorTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.attacker = defenderTwin;
+			} else {
+				currentTargetingSettings.attacker = defender;
+			}		
+		} else {			
+			if(target == "twin"){
+				currentTargetingSettings.defender = attackerTwin;
+			} else {
+				currentTargetingSettings.defender = attacker;
+			}
+		}
+	} 
+	
+	if(params.enemyTwin){
+		var target;
+		if(params.enemyTwin.target == "twin" && params.actorTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.attackerTwin = defenderTwin;
+			} else {
+				currentTargetingSettings.attackerTwin = defender;
+			}		
+		} else {			
+			if(target == "twin"){
+				currentTargetingSettings.defenderTwin = attackerTwin;
+			} else {
+				currentTargetingSettings.defenderTwin = attacker;
+			}	
+		}
+	}
+	
+	
+	
 	var actions = [];
-	if(supportAttacker){			
-		actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+	if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+		actions.push(new BattleAction(supportAttacker, currentTargetingSettings.attacker, supportDefender, attackerSide, true));								
 	}	
-	actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
-	actions.push(new BattleAction(defender, attacker, null, defenderSide));			
+	if(attackerTwin){
+		actions.push(new BattleAction(attackerTwin, currentTargetingSettings.attackerTwin, supportDefender, attackerSide));	
+	}
+	actions.push(new BattleAction(attacker, currentTargetingSettings.attacker, supportDefender, attackerSide));	
+	
+	if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+		actions.push(new BattleAction(supportAttacker, currentTargetingSettings.attacker, supportDefender, attackerSide, true));								
+	}	
+	
+	if(defenderTwin){
+		actions.push(new BattleAction(defenderTwin, currentTargetingSettings.defenderTwin, supportDefender, defenderSide));	
+	}
+	actions.push(new BattleAction(defender, currentTargetingSettings.defender, null, defenderSide));			
 	
 	
 	for(var i = 0; i < actions.length; i++){

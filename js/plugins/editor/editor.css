@@ -108,6 +108,16 @@
 	justify-content: center;
 }
 
+#srw_editor #attack_editor .preview_extra_controls_flex {
+	display: flex;
+	justify-content: center;
+}
+
+#srw_editor #attack_editor .preview_extra_controls_flex .preview_extra_controls{
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
 #srw_editor #attack_editor .preview_extra_controls {
 	margin-left: auto;
 	margin-right: auto;
@@ -116,6 +126,7 @@
 	background-color: #bfc2ff;	
 	border-radius: 5px;
 	margin-top: 10px;
+	height: fit-content;
 }
 
 #srw_editor #attack_editor .extra_control {

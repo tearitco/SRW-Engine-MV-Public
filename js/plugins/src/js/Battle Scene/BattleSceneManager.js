@@ -1609,12 +1609,14 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		} else if(name == "active_twin"){
 			return _this._active_twin
-		}else if(name == "active_target"){
+		} else if(name == "active_target"){
 			if(_this._supportDefenderActive){
 				return _this._active_support_defender;
 			} else {
 				return _this._active_target;
 			}			
+		} else if(name == "active_target_twin"){			
+			return _this._active_target_twin;						
 		} else if(name == "active_support_defender"){
 			return _this._active_support_defender;
 		} else if(name == "active_support_attacker"){
@@ -2442,9 +2444,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 						
 						var flipX;
 						var battleEffect;
-						if(target == "active_main" || target == "active_support_attacker" || target == "active_twin"){
+						if(target == "active_main" || target == "active_support_attacker" || target == "active_twin" ){
 							battleEffect = action;					
-						} else if(target == "active_target" || target == "active_support_defender"){
+						} else if(target == "active_target" || target == "active_support_defender" || target == "active_target_twin"){
 							battleEffect = targetAction;					
 						}
 						
@@ -2528,7 +2530,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			});			
 		},
 		reset_position: function(target, params){
-			var targetObj = getTargetObject("active_target");
+			if(!target){
+				target = "active_target";
+			}
+			var targetObj = getTargetObject(target);
 			
 			var targetOffset = (_this._defaultPositions.camera_main_idle.x * _this._animationDirection * -1) - _this._camera.position.x;
 			
@@ -2593,7 +2598,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					params.duration = 10;
 				}
 				
-				var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+				var targetPostion
+				if(target == "active_target_twin"){
+					targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_twin_idle);
+				} else {
+					targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+				}
+				
 				
 				/*if(targetObj == _this._actorSprite.sprite || targetObj == _this._actorSupporterSprite.sprite){
 					_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
@@ -2626,34 +2637,42 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					_this.registerMatrixAnimation("translate", targetObj.parent_handle, _this.applyAnimationDirection(targetObj.parent_handle.position), targetPostion, startTick, params.duration);
 				}
 				
-				_this._animationList[startTick + params.duration] = [				
-					{type: "show_damage", target: "", params:{}},
+				var additions = [];
+				
+				additions[startTick + params.duration] = [				
+					{type: "show_damage", target: target, params:{}},
 					
 				];
 				
 				
 				var action = _this._currentAnimatedAction.attacked;			
 				if(!action.isDestroyed && action.isHit){
-					_this._animationList[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
+					additions[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
 					
 				}
 				if(!action.isDestroyed){
 					if(targetObj.spriteConfig.type == "spriter" || targetObj.spriteConfig.type == "dragonbones"){
-						_this._animationList[startTick + params.duration + 50] = [
+						additions[startTick + params.duration + 50] = [
 							{type: "set_sprite_frame", target: target, params:{name: "hurt_end"}},
 						];
 					} else {
-						_this._animationList[startTick + params.duration + 50] = [
+						additions[startTick + params.duration + 50] = [
 							{type: "set_sprite_frame", target: target, params:{name: "main"}},
 						];
 					}				
-				}			
+				}	
+				_this.mergeAnimList(additions);		
 			}
 		},
 		destroy: function(target, params){
 			var targetObj = getTargetObject(target);
+			
+			var noWait = (params.noWait || 0) * 1;
 					
 			var action = _this._currentAnimatedAction.attacked;
+			if(target == "active_target_twin"){
+				action = _this._currentAnimatedAction.attacked_all_sub;
+			}
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
@@ -2664,16 +2683,52 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				animId = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_ANIM.DESTROY;
 			}
 			var animData = _this._animationBuilder.buildAnimation(animId, _this).mainAnimation;
-			_this.delayAnimationList(startTick + 1, animData.length);
+			if(!noWait){
+				_this.delayAnimationList(startTick + 1, animData.length);
+			}
+			
+			var additions = [];
 			Object.keys(animData).forEach(function(tick){
-				_this._animationList[startTick * 1 + tick * 1 + 1] = animData[tick];
+				var tickCommands = JSON.parse(JSON.stringify(animData[tick]));
+				if(target == "active_target_twin"){
+					//fudge the command targeting and offsets to fit the position of the twin					
+					tickCommands.forEach(function(command){
+						if(command.params){
+							if(command.params.position){
+								command.params.position.x+=(_this._defaultPositions.enemy_twin_idle.x - _this._defaultPositions.enemy_main_idle.x);
+								command.params.position.y+=(_this._defaultPositions.enemy_twin_idle.y - _this._defaultPositions.enemy_main_idle.y);
+								command.params.position.z+=(_this._defaultPositions.enemy_twin_idle.z - _this._defaultPositions.enemy_main_idle.z);
+							}							
+						}
+						if(command.target == "active_target"){
+							command.target = "active_target_twin";
+						}
+					});
+				}
+				
+				additions[startTick * 1 + tick * 1 + 1] = tickCommands;
 			});
+			_this.mergeAnimList(additions);
 		},
 		show_damage: function(target, params){	
 			var originalAction = _this._currentAnimatedAction;
 			var action = _this._currentAnimatedAction.attacked;
-			var target = action.side;			
-			_this._UILayerManager.showDamage(target, originalAction.damageInflicted);
+			var side = action.side;			
+			var offsets;
+			var displayNum = 0;
+			if(target == "active_target_twin"){
+				displayNum = 1;
+				offsets = {top: 16, left: 78};
+				if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_TWIN_OFFSET){
+					offsets = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_TWIN_OFFSET;
+				}
+			} else {
+				offsets = {top: 20, left: 60};
+				if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS){
+					offsets = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS;
+				}
+			}
+			_this._UILayerManager.showDamage(side, originalAction.damageInflicted, offsets, displayNum);
 			
 			
 			action.currentAnimHP-=originalAction.damageInflicted;
@@ -2833,14 +2888,16 @@ BattleSceneManager.prototype.playTwinIntroAnimation = function(){
 
 BattleSceneManager.prototype.mergeAnimList = function(additions){
 	var _this = this;
-	for(var i = 0; i < additions.length; i++){
-		if(additions[i]){
-			if(!_this._animationList[i]){
-				_this._animationList[i] = [];
-			}
-			_this._animationList[i] = _this._animationList[i].concat(additions[i]);
-		}			
-	}
+	if(additions){
+		for(var i = 0; i < additions.length; i++){
+			if(additions[i]){
+				if(!_this._animationList[i]){
+					_this._animationList[i] = [];
+				}
+				_this._animationList[i] = _this._animationList[i].concat(additions[i]);
+			}			
+		}
+	}	
 }
 
 BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef){
@@ -2876,6 +2933,18 @@ BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef)
 			overwriteAnimList(attackDef.onMissOverwrite);
 		}
 	}
+	if(cacheRef.attacked_all_sub){
+		if(cacheRef.hits_all_sub){		
+			_this.mergeAnimList(attackDef.onHitTwin);		
+			if(cacheRef.attacked_all_sub && cacheRef.attacked_all_sub.isDestroyed && cacheRef.attacked_all_sub.destroyer == cacheRef.ref){
+				_this.mergeAnimList(attackDef.onDestroyTwin);
+			} 	
+		} else {
+			//this._animationList = this._animationList.concat(attackDef.onMiss);			
+			_this.mergeAnimList(attackDef.onMissTwin);			
+		}
+	}
+	
 	return this.startAnimation();
 }
 
@@ -3895,26 +3964,36 @@ BattleSceneManager.prototype.processActionQueue = function() {
 					}
 					_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText).then(function(){
 						_this._currentAnimatedAction = nextAction;
+						
+						
 						if(nextAction.side == "actor"){
+							_this._enemyTwinSprite.sprite.setEnabled(false);						
 							_this._animationDirection = 1;
 							//_this.setBgScrollDirection(1, false);
 							_this._active_main = _this._actorSprite.sprite;	
 							_this._active_twin =  _this._actorTwinSprite.sprite;
 							_this._active_support_attacker = _this._actorSupporterSprite.sprite;
 							_this._active_support_defender = _this._enemySupporterSprite.sprite;
-							if(nextAction.attacked.ref.isSubTwin){
+							if(nextAction.attacked_all_sub){
+								_this._active_target = _this._enemySprite.sprite;									
+								_this._active_target_twin = _this._enemyTwinSprite.sprite;		
+							} else if(nextAction.attacked.ref.isSubTwin){
 								_this._active_target = _this._enemyTwinSprite.sprite;		
 							} else {
 								_this._active_target = _this._enemySprite.sprite;		
 							}						
 						} else {
+							_this._actorTwinSprite.sprite.setEnabled(false);
 							_this._animationDirection = -1;
 							//_this.setBgScrollDirection(-1, false);
 							_this._active_main = _this._enemySprite.sprite;
 							_this._active_twin =  _this._enemyTwinSprite.sprite;
 							_this._active_support_attacker = _this._enemySupporterSprite.sprite;
 							_this._active_support_defender = _this._actorSupporterSprite.sprite;
-			
+							if(nextAction.attacked_all_sub){
+								_this._active_target = _this._actorSprite.sprite;									
+								_this._active_target_twin = _this._actorTwinSprite.sprite;		
+							} else
 							if(nextAction.attacked.ref.isSubTwin){
 								_this._active_target = _this._actorTwinSprite.sprite;		
 							} else {
@@ -3925,12 +4004,22 @@ BattleSceneManager.prototype.processActionQueue = function() {
 						_this._active_support_attacker.barrierSprite.setEnabled(false);
 						_this._active_target.barrierSprite.setEnabled(false);
 						_this._active_support_defender.barrierSprite.setEnabled(false);
+						
 						if(nextAction.attacked.hasBarrier){
 							if(nextAction.attacked.type == "defender" || nextAction.attacked.type == "initiator"){
+								_this._active_target.barrierSprite.setEnabled(true);
+							} else if(nextAction.attacked.type == "twin defend" || nextAction.attacked.type == "twin attack"){
 								_this._active_target.barrierSprite.setEnabled(true);
 							} else {
 								_this._active_support_defender.barrierSprite.setEnabled(true);
 							}
+						}
+						if(nextAction.otherTarget && nextAction.otherTarget.hasBarrier){
+							if(nextAction.otherTarget.type == "defender" || nextAction.otherTarget.type == "initiator"){
+								_this._active_target_twin.barrierSprite.setEnabled(true);
+							} else if(nextAction.otherTarget.type == "twin defend" || nextAction.otherTarget.type == "twin attack"){
+								_this._active_target_twin.barrierSprite.setEnabled(true);
+							} 
 						}
 						var attack = nextAction.action.attack;
 						
@@ -3990,9 +4079,15 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							if(nextAction.side == "actor"){
 								_this._active_main.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
 								_this._active_target.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+								if(_this._active_target_twin){
+									_this._active_target_twin.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_twin_idle);
+								}
 							} else {
 								_this._active_main.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
 								_this._active_target.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
+								if(_this._active_target_twin){
+									_this._active_target_twin.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_twin_idle);
+								}
 							}				
 																					
 							if(_this.doingFadeTransition){

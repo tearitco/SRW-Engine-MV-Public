@@ -41,6 +41,11 @@ BattleSceneUILayer.prototype.createComponents = function() {
 	this._damageDisplay.classList.add("scaled_text");
 	windowNode.appendChild(this._damageDisplay);
 	
+	this._damageDisplayTwin = document.createElement("div");
+	this._damageDisplayTwin.id = this.createId("damage_display");	
+	this._damageDisplayTwin.classList.add("scaled_text");
+	windowNode.appendChild(this._damageDisplayTwin);
+	
 	this._allyStats = document.createElement("div");
 	this._allyStats.id = this.createId("ally_stats");
 	this._allyStats.classList.add("stats_container");
@@ -325,29 +330,38 @@ BattleSceneUILayer.prototype.setPopupNotification = function(side, barriers, add
 	Graphics._updateCanvas();
 }
 
-BattleSceneUILayer.prototype.showDamage = function(entityType, amount){
+BattleSceneUILayer.prototype.showDamage = function(entityType, amount, offsets, displayNum){
 	var _this = this;
-	this._damageDisplay.innerHTML = amount;
-	this._damageDisplay.className = "scaled_text";
-	this._damageDisplay.style.display = "block";
+	var display;
+	if(displayNum == 0){
+		display = this._damageDisplay;
+	} else {
+		display = this._damageDisplayTwin;
+	}
+	display.innerHTML = amount;
+	display.className = "scaled_text";
+	display.style.display = "block";
+	display.style.top = "";
+	display.style.left = "";
+	display.style.right = "";
 	if(entityType == "actor"){		
-		this._damageDisplay.classList.add("forActor");
-		if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS){
-			this._damageDisplay.style.top = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.top + "%";
-			this._damageDisplay.style.left = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.left + "%";
-		}
+		display.classList.add("forActor");
+		
+		display.style.top = offsets.top + "%";
+		display.style.left = offsets.left + "%";
+		
 	} 
 	if(entityType == "enemy"){		
-		this._damageDisplay.classList.add("forEnemy");
-		if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS){
-			this._damageDisplay.style.top = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.top + "%";
-			this._damageDisplay.style.right = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.left + "%";
-		}
+		display.classList.add("forEnemy");
+		
+		display.style.top = offsets.top + "%";
+		display.style.right = offsets.left + "%";
+		
 	}
 	
 	
-	this._damageDisplay.classList.add("shake");
-	setTimeout(function(){_this._damageDisplay.style.display = "none";}, 700);
+	display.classList.add("shake");
+	setTimeout(function(){display.style.display = "none";}, 700);
 }
 
 BattleSceneUILayer.prototype.showTextBox = function() {
@@ -538,6 +552,7 @@ BattleSceneUILayer.prototype.redraw = function() {
 	this.setStat("enemy", "EN", _this._enemyStatData.EN.max, _this._enemyStatData.EN.current, isHidden);*/
 	
 	_this.updateScaledDiv(this._damageDisplay);
+	_this.updateScaledDiv(this._damageDisplayTwin);
 	
 	//_this.updateScaledDiv(this._allyBarrierNotification);
 	//_this.updateScaledDiv(this._enemyBarrierNotification);

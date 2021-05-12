@@ -57,15 +57,19 @@ SRWEditor.prototype.init = function(){
 		{name: "Main", id: "mainAnimation"},
 		{name: "Hit", id: "onHit"},		
 		{name: "Hit Overwrite", id: "onHitOverwrite"},		
+		{name: "Hit Twin", id: "onHitTwin"},		
 		{name: "Miss", id: "onMiss"},
 		{name: "Miss Overwrite", id: "onMissOverwrite"},
+		{name: "Miss Twin", id: "onMissTwin"},
 		{name: "Destroy", id: "onDestroy"},
 		{name: "Destroy Overwrite", id: "onDestroyOverwrite"},
+		{name: "Destroy Twin", id: "onDestroyTwin"},
 	];
 	
 	_this._specialTargets = [
 		{name: "active_main", id: "active_main"},
 		{name: "active_target", id: "active_target"},
+		{name: "active_target_twin", id: "active_target_twin"},
 		{name: "Camera", id: "Camera"},
 	];
 	
@@ -361,13 +365,13 @@ SRWEditor.prototype.init = function(){
 			desc: "Show the default background elements."
 		},
 		reset_position: {
-			hasTarget: false,
+			hasTarget: true,
 			params: ["duration"],
 			desc: "Reset the position of the target to the default position."
 		},
 		destroy: {
-			hasTarget: false,
-			params: [],
+			hasTarget: true,
+			params: ["noWait"],
 			desc: "Play the destruction animation of the target."
 		},
 		show_damage: {
@@ -453,6 +457,7 @@ SRWEditor.prototype.init = function(){
 		commands: "A list of commands to be run to during the phase transition to set up the next phase.",
 		animationFrames: "The number of animation frames in the spritesheet.",
 		holdFrame: "If 1 the sprite will hold the final frame of the animation, ignored if animation looping is enabled.",
+		noWait: "If 1 the engine will not wait for the destruction animation to complete.",
 		animationLoop: "If 1 the animation will loop.",
 		animationDelay: "The time between animation frames in ticks.",
 		path: "The file path of the asset.",
@@ -675,6 +680,9 @@ SRWEditor.prototype.init = function(){
 		holdFrame: function(value){
 		
 		}, 
+		noWait:  function(value){
+		
+		}, 
 		animationDelay: function(value){
 		
 		},
@@ -754,9 +762,13 @@ SRWEditor.prototype.init = function(){
 	_this._editorScrollTop = 0;
 	
 	_this._currentActor = 1;
+	_this._currentActorTwin = -1;
 	_this._currentActorMech = 1;
+	_this._currentActorTwinMech = -1;
 	_this._currentEnemy = 1;
+	_this._currentEnemyTwin = -1;
 	_this._currentEnemyMech = 1;
+	_this._currentEnemyTwinMech = -1;
 	
 	//battle text
 	_this._currentBattleTextType = "default";
@@ -1947,6 +1959,10 @@ SRWEditor.prototype.applyPreferences = function(){
 			_this._currentActor = _this._preferences.actor_select;
 		}
 		
+		if(_this._preferences.actor_twin_select != null){
+			_this._currentActorTwin = _this._preferences.actor_twin_select;
+		}
+		
 		if(_this._preferences.quote_set != null){
 			_this._currentQuoteSet = _this._preferences.quote_set;
 		}
@@ -1958,6 +1974,10 @@ SRWEditor.prototype.applyPreferences = function(){
 		if(_this._preferences.actor_mech_select != null){
 			_this._currentActorMech = _this._preferences.actor_mech_select;
 		}
+		
+		if(_this._preferences.actor_twin_mech_select != null){
+			_this._currentActorTwinMech = _this._preferences.actor_twin_mech_select;
+		}
 
 		if(_this._preferences.enemy_select != null){
 			_this._currentEnemy = _this._preferences.enemy_select;
@@ -1965,6 +1985,14 @@ SRWEditor.prototype.applyPreferences = function(){
 	
 		if(_this._preferences.enemy_mech_select != null){
 			_this._currentEnemyMech = _this._preferences.enemy_mech_select;
+		}
+		
+		if(_this._preferences.enemy_twin_select != null){
+			_this._currentEnemyTwin = _this._preferences.enemy_twin_select;
+		}
+	
+		if(_this._preferences.enemy_twin_mech_select != null){
+			_this._currentEnemyTwinMech = _this._preferences.enemy_twin_mech_select;
 		}
 	}
 }
@@ -1991,6 +2019,7 @@ SRWEditor.prototype.showAttackEditor = function(){
 	content+="<img id='stop_button' src='js/plugins/editor/svg/pause-button.svg'>";
 	content+="</div>";
 	
+	content+="<div class='preview_extra_controls_flex'>";
 	content+="<div class='preview_extra_controls'>";
 	
 	content+="<div class='extra_control'>";
@@ -2059,6 +2088,33 @@ SRWEditor.prototype.showAttackEditor = function(){
 	content+="</div>";
 	
 	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Actor Twin</div>";
+	content+="<select class='has_preference' id='actor_twin_select'>";
+	content+="<option "+(_this._currentActorTwin == -1 ? "selected" : "")+" value='-1'>None</option>";
+	for(var i = 1; i < $dataActors.length; i++){
+		if($dataActors[i].name){
+			var id = $dataActors[i].id;
+			content+="<option "+(id == _this._currentActorTwin ? "selected" : "")+" value='"+id+"'>"+$dataActors[i].name+"</option>";
+		}
+	}
+	content+="</select>";
+	content+="</div>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Actor Twin Mech</div>";
+	content+="<select class='has_preference' id='actor_twin_mech_select'>";
+	content+="<option "+(_this._currentActorTwinMech == -1 ? "selected" : "")+" value='-1'>None</option>";
+	for(var i = 1; i < $dataClasses.length; i++){
+		if($dataClasses[i].name){
+			var id = $dataClasses[i].id;
+			content+="<option "+(id == _this._currentActorTwin ? "selected" : "")+" value='"+id+"'>"+$dataClasses[i].name+"</option>";
+		}
+	}
+	content+="</select>";
+	content+="</div>";
+	
+	
+	content+="<div class='extra_control'>";
 	content+="<div class='editor_label'>Enemy</div>";
 	content+="<select class='has_preference' id='enemy_select'>";
 	for(var i = 1; i < $dataEnemies.length; i++){
@@ -2082,10 +2138,37 @@ SRWEditor.prototype.showAttackEditor = function(){
 	content+="</select>";
 	content+="</div>";
 	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Enemy Twin</div>";
+	content+="<select class='has_preference' id='enemy_twin_select'>";
+	content+="<option "+(_this._currentEnemyTwin == -1 ? "selected" : "")+" value='-1'>None</option>";
+	for(var i = 1; i < $dataEnemies.length; i++){
+		if($dataEnemies[i].name){
+			var id = $dataEnemies[i].id;
+			content+="<option "+(id == _this._currentEnemyTwin ? "selected" : "")+" value='"+id+"'>"+$dataEnemies[i].name+"</option>";
+		}
+	}
+	content+="</select>";
+	content+="</div>";
+	
+	content+="<div class='extra_control'>";
+	content+="<div class='editor_label'>Enemy Twin Mech</div>";
+	content+="<select class='has_preference' id='enemy_twin_mech_select'>";
+	content+="<option "+(_this._currentEnemyTwinMech == -1 ? "selected" : "")+" value='-1'>None</option>";
+	for(var i = 1; i < $dataClasses.length; i++){
+		if($dataClasses[i].name){
+			var id = $dataClasses[i].id;
+			content+="<option "+(id == _this._currentEnemyTwinMech ? "selected" : "")+" value='"+id+"'>"+$dataClasses[i].name+"</option>";
+		}
+	}
+	content+="</select>";
 	content+="</div>";
 	
 	content+="</div>";
 	
+	content+="</div>";
+	
+	content+="</div>";
 	content+="</div>";
 	content+="</div>";
 	
@@ -2123,6 +2206,10 @@ SRWEditor.prototype.showAttackEditor = function(){
 		_this._currentActor = this.value;
 	});
 	
+	document.querySelector("#actor_twin_select").addEventListener("change", function(){
+		_this._currentActorTwin = this.value;
+	});
+	
 	document.querySelector("#quote_set").addEventListener("change", function(){
 		_this._currentQuoteSet = this.value;
 	});	
@@ -2136,12 +2223,24 @@ SRWEditor.prototype.showAttackEditor = function(){
 		_this._currentActorMech = this.value;
 	});
 	
+	document.querySelector("#actor_twin_mech_select").addEventListener("change", function(){
+		_this._currentActorTwinMech = this.value;
+	});
+	
 	document.querySelector("#enemy_select").addEventListener("change", function(){
 		_this._currentEnemy = this.value;
 	});
 	
+	document.querySelector("#enemy_twin_select").addEventListener("change", function(){
+		_this._currentEnemyTwin = this.value;
+	});
+	
 	document.querySelector("#enemy_mech_select").addEventListener("change", function(){
 		_this._currentEnemyMech = this.value;
+	});
+	
+	document.querySelector("#enemy_twin_mech_select").addEventListener("change", function(){
+		_this._currentEnemyTwinMech = this.value;
 	});
 
 	document.querySelector("#play_button").addEventListener("click", function(){
@@ -2750,7 +2849,11 @@ SRWEditor.prototype.playBattleScene = function(){
 			combinationType: null
 		}			
 		
-		$gameMap._interpreter.playBattleScene({
+		if(_this._currentQuoteSet){
+			weapon.isAll = ($dataWeapons[_this._currentQuoteSet].meta.weaponIsAll || 0) * 1;
+		}
+		
+		var demoConfig = {
 			enemyFirst: _this._enemySideAttack, // if 0 the actor will move first, if 1 the enemy will move first. This also affects the supports. If 0, the actor support will be attacking otherwise defending. If 1, the enemy support will be attacking otherwise defending.
 			songId: "Battle1", // the id of the song that should be played during the battle scene
 			actor: {
@@ -2787,7 +2890,35 @@ SRWEditor.prototype.playBattleScene = function(){
 				startHP: 100, // the start HP of the enemy in percent
 				targetEndHP: 0, // the end HP of the target in percent
 			}	*/		
-		});
+		}
+		
+		if(_this._currentActorTwin != -1 && _this._currentActorTwinMech != -1){
+			demoConfig.actorTwin = {
+				id: _this._currentActorTwin, // the id of the actor pilot
+				mechId: _this._currentActorTwinMech, // the id of the actor mech
+				action: _this._enemySideAttack ? "defend" : "attack", // the action the actor will take: "attack", "defend", "evade". 
+				weapon: weapon, // the id of the attack the actor will use. Only used if the action is "attack".
+				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+				startHP: 100, // the start HP of the actor in percent
+				targetEndHP: _this._previewAttackDestroys ? 0 : 50, // the end HP of the target in percent
+				target: "twin"
+			}
+		}
+		
+		if(_this._currentEnemyTwin != -1 && _this._currentEnemyTwinMech != -1){
+			demoConfig.enemyTwin = {
+				id: _this._currentEnemyTwin, // the id of the enemy pilot
+				mechId: _this._currentEnemyTwinMech, // the id of the enemy mech
+				weapon: weapon, // the id of the attack the actor will use. Only used if the action is "attack".
+				action: _this._enemySideAttack ? "attack" : "defend", // the action the enemy will take: "attack", "defend", "evade". 
+				hits: _this._previewAttackHits, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+				startHP: 100, // the start HP of the enemy in percent
+				targetEndHP: _this._previewAttackDestroys ? 0 : 50, // the end HP of the target in percent
+				target: "twin"
+			}
+		}
+		
+		$gameMap._interpreter.playBattleScene(demoConfig);
 		this.killAudioAfterScene();
 	}
 }
