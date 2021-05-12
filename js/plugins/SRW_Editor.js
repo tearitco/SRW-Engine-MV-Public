@@ -227,7 +227,7 @@ SRWEditor.prototype.init = function(){
 		},
 		create_bg: {
 			hasTarget: true,
-			params: ["path", "parent", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
+			params: ["path", "parent", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay", "holdFrame"],
 			desc: "Create a new background."
 		},
 		remove_bg: {
@@ -265,11 +265,11 @@ SRWEditor.prototype.init = function(){
 			params: ["animName"],
 			desc: "Set Spriter background animation."
 		},		
-		create_layer: {
+		/*create_layer: {
 			hasTarget: true,
 			params: ["path", "isBackground", "frameSize", "lineCount", "columnCount", "animationFrames", "animationLoop", "animationDelay"],
 			desc: "Create a new layer."
-		},
+		},*/
 		remove_layer: {
 			hasTarget: true,
 			params: [],
@@ -330,11 +330,11 @@ SRWEditor.prototype.init = function(){
 			params: ["index"],
 			desc: "Set the frame of a sprite."
 		},
-		/*	set_sprite_animation: {
+			set_sprite_animation: {
 			hasTarget: true,
 			params: ["name", "animationFrames", "holdFrame", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay"],
 			desc: "Set the source of a sprite and specify animation details."
-		},*/
+		},
 		set_sprite_frame: {
 			hasTarget: true,
 			params: ["name"],

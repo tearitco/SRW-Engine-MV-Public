@@ -332,10 +332,20 @@ BattleSceneUILayer.prototype.showDamage = function(entityType, amount){
 	this._damageDisplay.style.display = "block";
 	if(entityType == "actor"){		
 		this._damageDisplay.classList.add("forActor");
+		if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS){
+			this._damageDisplay.style.top = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.top + "%";
+			this._damageDisplay.style.left = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.left + "%";
+		}
 	} 
 	if(entityType == "enemy"){		
 		this._damageDisplay.classList.add("forEnemy");
+		if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS){
+			this._damageDisplay.style.top = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.top + "%";
+			this._damageDisplay.style.right = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS.left + "%";
+		}
 	}
+	
+	
 	this._damageDisplay.classList.add("shake");
 	setTimeout(function(){_this._damageDisplay.style.display = "none";}, 700);
 }

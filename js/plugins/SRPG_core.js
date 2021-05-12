@@ -47,6 +47,15 @@ var _lastActorSupportAttackId = 62;
 var _lastEnemyAttackId = 63;
 var _lastEnemySupportAttackId = 64;
 
+if(typeof ENGINE_SETTINGS == "undefined"){
+	ENGINE_SETTINGS = {};
+}
+Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
+	if(ENGINE_SETTINGS[key] == null){
+		ENGINE_SETTINGS[key] = ENGINE_SETTINGS_DEFAULT[key];
+	}
+});
+
 var $SRWEditor = new SRWEditor();
 
 var $SRWStageInfoManager = new SRWStageInfoManager();
@@ -68,14 +77,7 @@ var $inventoryManager = new SRWInventoryManager();
  
 var $battleSceneManager = new BattleSceneManager();
 
-if(typeof ENGINE_SETTINGS == "undefined"){
-	ENGINE_SETTINGS = {};
-}
-Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
-	if(ENGINE_SETTINGS[key] == null){
-		ENGINE_SETTINGS[key] = ENGINE_SETTINGS_DEFAULT[key];
-	}
-});
+
 
 (function() {
 	//TODO: Proper pre-loading/load waiting
