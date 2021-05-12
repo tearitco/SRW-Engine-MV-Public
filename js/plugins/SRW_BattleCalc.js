@@ -827,6 +827,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 		if(aCache.action.type != "attack"){
 			return;
 		}
+		
 		aCache.side = this._side;
 		aCache.allInfo = this._allInfo;
 		if(aCache.type == "support attack"){
@@ -1571,16 +1572,27 @@ BattleCalc.prototype.updateTwinActions = function(){
 		};
 	}
 	
+	var allAttackUsed = false;
+	
 	if($gameTemp.actorAction && $gameTemp.actorAction.attack){
 		if($gameTemp.actorAction.attack.isAll){
+			allAttackUsed  = true;
 			$gameTemp.currentTargetingSettings.actor = "all";
 		}
 	}
 	
 	if($gameTemp.enemyAction && $gameTemp.enemyAction.attack){
 		if($gameTemp.enemyAction.attack.isAll){
+			allAttackUsed  = true;
 			$gameTemp.currentTargetingSettings.enemy = "all";
 		}
+	}
+	
+	if(allAttackUsed){
+		$gameTemp.supportAttackCandidates = [];
+		$gameTemp.supportAttackSelected = -1;
+		$gameTemp.supportDefendCandidates = [];
+		$gameTemp.supportDefendSelected = -1;
 	}
 	
 	$gameTemp.attackingTwinAction = null;

@@ -1331,7 +1331,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		}	
 		if($gameTemp.currentTargetingSettings.enemy == "all"){
 			_this._targeting_arrows_enemy_2.src = "img/system/targeting2.png";
-			_this._targeting_arrows_enemy_2.style.transform = "scaleY(-1)";
+			_this._targeting_arrows_enemy_2.style.transform = "scaleY(-1) scaleX(-1)";
 			_this._targeting_arrows_enemy_2.style.top = "54.5%";
 		}	
 	}
