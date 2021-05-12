@@ -710,7 +710,7 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 			var realIdx = 0;
 			for(var i = 0; i < defenderInfo.length; i++){
 				var hitRate = -1;
-				if(defenderInfo.defender && defenderInfo.defenderAction){
+				if(defenderInfo[i].defender && defenderInfo[i].defenderAction){
 					if(allyOrEnemy == "ally"){				
 						hitRate = $battleCalc.performHitCalculation(
 							{actor: initiator, action: initiatorAction, isInitiator: !$gameTemp.isEnemyAttack},

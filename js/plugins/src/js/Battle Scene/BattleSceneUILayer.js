@@ -33,8 +33,23 @@ BattleSceneUILayer.prototype.createComponents = function() {
 	var windowNode = this.getWindowNode();
 	
 	this._textDisplay = document.createElement("div");
-	this._textDisplay.id = this.createId("text_display");		
+	this._textDisplay.id = this.createId("text_display");
+	
+	var content = "";
+	content+="<div id='icon_and_noise_container'>";
+	content+="<div id='icon_container'></div>";
+	
+	content+="<canvas width=144 height=144 id='noise'></canvas>";
+	content+="</div>";
+	
+	this._textDisplay.innerHTML = content;
+	this._textDisplayNameAndContent = document.createElement("div");
+	this._textDisplayNameAndContent.id = this.createId("text_display_name_and_content");		
+	this._textDisplay.appendChild(this._textDisplayNameAndContent);
 	windowNode.appendChild(this._textDisplay);
+	
+	this._noiseCanvas = this._textDisplay.querySelector("#noise");
+	this._noiseCtx = this._noiseCanvas.getContext("2d");
 	
 	this._damageDisplay = document.createElement("div");
 	this._damageDisplay.id = this.createId("damage_display");	
@@ -272,12 +287,31 @@ BattleSceneUILayer.prototype.resetTextBox = function(){
 	this.showTextBox();
 }
 
-BattleSceneUILayer.prototype.setTextBox = function(entityType, entityId, displayName, textInfo){
-	this._currentEntityType = entityType;
-	this._currentIconClassId = entityId;
-	this._currentName = displayName;
-	this._currentText = JSON.parse(JSON.stringify(textInfo)); 	
-	return this.showTextBox();
+BattleSceneUILayer.prototype.setTextBox = function(entityType, entityId, displayName, textInfo, showNoise){
+	var _this = this;
+	return new Promise(function(resolve, reject){
+		var time = Date.now();
+		if(!_this._lastTextTime || time - _this._lastTextTime > 1000){
+
+			_this._lastTextTime = time;
+			_this._currentEntityType = entityType;
+			_this._currentIconClassId = entityId;
+			_this._currentName = displayName;
+			_this._currentText = JSON.parse(JSON.stringify(textInfo)); 
+			if(showNoise){
+				_this.showNoise();
+			}
+			_this.showTextBox().then(function(){				
+				
+				resolve();
+			});					
+		} else {
+			setTimeout(function(){
+				_this.setTextBox(entityType, entityId, displayName, textInfo, showNoise);
+				resolve();
+			}, 1000);
+		}
+	});		
 }
 
 BattleSceneUILayer.prototype.showAllyNotification = function(text){
@@ -381,13 +415,7 @@ BattleSceneUILayer.prototype.showTextLines = function(lines, callback) {
 	var _this = this;
 	var line = lines.shift();
 	if(line){
-		var textDisplayContent = "";
-		textDisplayContent+="<div id='icon_and_noise_container'>";
-		textDisplayContent+="<div id='icon_container'></div>";
-		
-		textDisplayContent+="<canvas width=144 height=144 id='noise'></canvas>";
-		textDisplayContent+="</div>";
-		
+		var textDisplayContent = "";		
 		textDisplayContent+="<div id='name_container' class='text_container scaled_text'>";	
 		if(line.displayName){
 			textDisplayContent+=line.displayName;
@@ -399,31 +427,30 @@ BattleSceneUILayer.prototype.showTextLines = function(lines, callback) {
 		textDisplayContent+="\u300C "+(line.text || "")+" \u300D";
 		textDisplayContent+="</div>";
 		
-		_this._textDisplay.innerHTML = textDisplayContent;
+		_this._textDisplayNameAndContent.innerHTML = textDisplayContent;
 		_this.updateScaledDiv(_this._textDisplay, true, false);
 		
 		var iconContainer = _this._textDisplay.querySelector("#icon_and_noise_container");
-		_this.updateScaledDiv(iconContainer);
-
+		_this.updateScaledDiv(iconContainer);		
 		
-		_this._noiseCanvas = _this._textDisplay.querySelector("#noise");
-		_this._noiseCtx = _this._noiseCanvas.getContext("2d");
-		
-		if(_this._currentIconClassId != -1 && _this._currentEntityType != -1){
-			var actorIcon = _this._container.querySelector("#icon_container");
+		var actorIcon = _this._container.querySelector("#icon_container");
+		actorIcon.innerHTML = "";
+		if(_this._currentIconClassId != -1 && _this._currentEntityType != -1){			
 			/*if(_this._currentEntityType == "actor"){
 				_this.loadActorFace(_this._currentIconClassId, actorIcon);
 			} else {
 				_this.loadEnemyFace(_this._currentIconClassId, actorIcon);
 			}*/	
-			_this.loadFaceByParams(line.faceName, line.faceIndex, actorIcon);	
-		}	
+			_this.loadFaceByParams(line.faceName, line.faceIndex, actorIcon);
+			
+		} 
 		
 		Graphics._updateCanvas();
 		var duration = 90 * 1000/60;
 		if(line.duration){
 			duration = line.duration * 1000/60;
 		}
+
 		setTimeout(function(){_this.showTextLines(lines, callback)}, duration);
 	} else {
 		callback();
@@ -435,31 +462,48 @@ BattleSceneUILayer.prototype.showNoise = function() {
 	_this._runNoise = true;
 	var iconContainer = this._container.querySelector("#icon_container");
 	iconContainer.className = "";
+	void iconContainer.offsetWidth;
 	iconContainer.classList.add("shake");
 	
-	this._noiseCanvas.className = "";
-	this._noiseCanvas.classList.add("fade_in");
+	//this._noiseCanvas.className = "";
+	//void this._noiseCanvas.offsetWidth;
+	//this._noiseCanvas.className = "fade_in active";
+	//this._noiseCanvas.classList.add("fade_in");
 	this._noiseCanvas.classList.add("active");
-	function noise(){	
-		if(_this._noiseCtx){
-			var imgd = _this._noiseCtx.createImageData(_this._noiseCanvas.width, _this._noiseCanvas.height);
-			var pix = imgd.data;
+	
+	this._noiseCtr = 0;
+	this.registerNoiseUpdate();
+}
 
-			for (var i = 0, n = pix.length; i < n; i += 4) {
-			// var c = 7 + Math.sin(i/50000 + time/7); // A sine wave of the form sin(ax + bt)
-				pix[i] = pix[i+1] = pix[i+2] = 255 * Math.random() + 50; // Set a random gray
-				pix[i+3] = 255; // 100% opaque
+BattleSceneUILayer.prototype.registerNoiseUpdate = function() {
+	var _this = this;	
+	if(!_this._noiseUpdate){
+		_this._noiseUpdate = function noise(){	
+			if(_this._noiseCtx){
+				_this._noiseCtr++;
+				var imgd = _this._noiseCtx.createImageData(_this._noiseCanvas.width, _this._noiseCanvas.height);
+				var pix = imgd.data;
+
+				for (var i = 0, n = pix.length; i < n; i += 4) {
+				// var c = 7 + Math.sin(i/50000 + time/7); // A sine wave of the form sin(ax + bt)
+					pix[i] = pix[i+1] = pix[i+2] = 255 * Math.random() + 50; // Set a random gray
+					pix[i+3] = _this._noiseCtr * 4;
+				}
+
+				if(!_this._runNoise){
+					pix[i+3] = 0;
+				}
+				_this._noiseCtx.putImageData(imgd, 0, 0);
+				//time = (time + 1) % canvas.height;
+			
 			}
-
-			_this._noiseCtx.putImageData(imgd, 0, 0);
-			//time = (time + 1) % canvas.height;
-		
+			
+			requestAnimationFrame(_this._noiseUpdate);
+					
 		}
-		if(_this._runNoise){
-			requestAnimationFrame(noise);
-		}		
+		requestAnimationFrame(_this._noiseUpdate);
 	}
-	requestAnimationFrame(noise);
+	
 }
 
 BattleSceneUILayer.prototype.updateUnitIcons = function(){

@@ -215,7 +215,7 @@ SRWEditor.prototype.init = function(){
 			desc: "Fade the screen to black and set the scene up for the second phase of the attack. This command automatically brings the support defender if available and sets up the default background to match the target."
 		},
 		dodge_pattern: {
-			hasTarget: false,
+			hasTarget: true,
 			params: ["commands"],
 			desc: "Show the target's doging action. The commands provided as parameters define the evade movement of the target. If the target has a special dodge action, like Double Image, the matching animation will be played instead."
 		},

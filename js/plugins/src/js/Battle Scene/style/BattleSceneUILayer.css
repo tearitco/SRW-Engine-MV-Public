@@ -10,12 +10,20 @@
 	color: #FFFFFF;
 }
 
+#battle_scene_ui_layer_text_display_name_and_content {	
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;	
+}
+
 #battle_scene_ui_layer #icon_and_noise_container {
-	width: 110px;
-	height: 110px;
+	--widthpixels: 110;
+	--heightpixels: 110;
 	background-color: rgba(255, 255, 255, 0.5);	
 	margin: 2%;
 	position: relative;
+	flex-shrink: 0;
 }
 
 #battle_scene_ui_layer #icon_container {

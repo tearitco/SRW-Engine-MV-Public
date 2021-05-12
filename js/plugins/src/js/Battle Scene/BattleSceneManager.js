@@ -1788,6 +1788,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 	
 		set_damage_text: function(target, params){
 			var action = _this._currentAnimatedAction.attacked;
+			if(target == "active_target_twin"){
+				action = _this._currentAnimatedAction.attacked_all_sub;
+			}
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			
@@ -2021,9 +2024,14 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		dodge_pattern: function(target, params){
 			var action = _this._currentAnimatedAction.attacked;
+			if(target == "active_target_twin"){
+				action = _this._currentAnimatedAction.attacked_all_sub;
+			}
+			
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "evade", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
+			
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 			
 			var hasSpecialEvasion = false;
@@ -2644,12 +2652,18 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					
 				];
 				
-				
-				var action = _this._currentAnimatedAction.attacked;			
-				if(!action.isDestroyed && action.isHit){
-					additions[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
-					
+				if(target == "active_target_twin"){
+					var action = _this._currentAnimatedAction.attacked_all_sub;			
+					if(!action.isDestroyed && action.isHit){
+						additions[startTick + params.duration].push({type: "set_damage_text", target: target, params:{}});						
+					}
+				} else {
+					var action = _this._currentAnimatedAction.attacked;			
+					if(!action.isDestroyed && action.isHit){
+						additions[startTick + params.duration].push({type: "set_damage_text", target: target, params:{}});						
+					}
 				}
+				
 				if(!action.isDestroyed){
 					if(targetObj.spriteConfig.type == "spriter" || targetObj.spriteConfig.type == "dragonbones"){
 						additions[startTick + params.duration + 50] = [
@@ -2676,7 +2690,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
-			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
+			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText, true);
 			
 			var animId = $statCalc.getBattleSceneInfo(action.ref).deathAnimId;
 			if(animId == null){
@@ -3419,6 +3433,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._spriteManagers = {};
 	_this.setBgScrollRatio(1);
 	_this._UILayerManager.hideNoise();
+	_this._UILayerManager.resetTextBox();
 	_this._animationList = [];
 	_this._matrixAnimations = {};
 	_this._sizeAnimations = {};
