@@ -325,6 +325,7 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
+
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -362,6 +363,7 @@ Units can be given the ability to combine into other units. Combined units have 
 When working with transforming or combining mechs it usually desirable for the upgrade levels of the transformed or combined mech to match those of the base mech.
 
 \<mechInheritsUpgradesFrom:1\>: The id of the mech from which the mech will inherit upgrade levels.
+
 
 
 ### Inheriting parts
@@ -574,8 +576,8 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
 \<weaponCategory:missile\> The particle type of the weapon: missile, funnel, beam, gravity, physical or  "".	
 \<weaponIsCounter:1\> If set to 1 the weapon will always trigger a Counter on the enemy turn. <br>
+\<weaponAIHPThreshold:50\> If set AI that uses this weapon will only use the weapon when their HP falls below the specified value(percent).
 
- 
  
 Weapons can have up to two special effects.
 

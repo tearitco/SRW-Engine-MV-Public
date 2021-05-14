@@ -12885,51 +12885,133 @@ SceneManager.reloadCharacters = function(startEvent){
 		var currentBestDist = -1;
 		var improves = true;
 		var path = [];
-		var bestPath = [];
+	
+		var candidatePaths = [];
 		var targetTileCounter = 0;
+		
+		
 		
 		while(currentBestDist != targetDist && targetTileCounter < list.length){
 			var graph = new Graph(pathfindingGrid);
 			var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
-			var endNode = graph.grid[targetCoords.x][targetCoords.y];
 			
-			path = astar.search(graph, startNode, endNode, {closest: true});
-			if(path.length){		
-				var closestValidNode = null;
-				var ctr = path.length-1;
-				while(ctr >= 0 && !closestValidNode){
-					var node = path[ctr];
+			var targetNode = list[targetTileCounter];
+			var endNode = graph.grid[targetNode[0]][targetNode[1]];
+			
+			if(isValidSpace({x: endNode.x, y: endNode.y})){			
+				path = astar.search(graph, startNode, endNode, {closest: true});
+				if(path.length){		
+					var closestValidNode = null;
+					var ctr = path.length-1;
+					while(ctr >= 0 && !closestValidNode){
+						var node = path[ctr];
+						var deltaX = Math.abs(targetCoords.x - node.x);
+						var deltaY = Math.abs(targetCoords.y - node.y);
+						var dist = Math.hypot(deltaX, deltaY);			
+						
+						if(dist >= targetDist && isValidSpace({x: node.x, y: node.y})){
+							closestValidNode = node;
+						} else {
+							//pathfindingGrid[node.x][node.y] = 0;
+						}
+						ctr--;
+					}			
+					
 					var deltaX = Math.abs(targetCoords.x - node.x);
 					var deltaY = Math.abs(targetCoords.y - node.y);
-					var dist = Math.hypot(deltaX, deltaY);			
+					var dist = Math.hypot(deltaX, deltaY);
 					
-					if(dist >= targetDist && isValidSpace({x: node.x, y: node.y})){
-						closestValidNode = node;
+					/*if(currentBestDist != -1 && currentBestDist >= targetDist && currentBestDist <= dist){
+						improves = false;				
 					} else {
-						pathfindingGrid[node.x][node.y] = 0;
-					}
-					ctr--;
-				}			
-				
-				var deltaX = Math.abs(targetCoords.x - node.x);
-				var deltaY = Math.abs(targetCoords.y - node.y);
-				var dist = Math.hypot(deltaX, deltaY);
-				
-				if(currentBestDist != -1 && currentBestDist >= targetDist && currentBestDist <= dist){
-					improves = false;				
+						bestPath = path;
+						currentBestDist = dist;
+					}		*/
+					candidatePaths.push(path);				
 				} else {
-					bestPath = path;
-					currentBestDist = dist;
-				}				
-			} else {
-				improves = false;
+					improves = false;
+				}
 			}
 			targetTileCounter++;
 		}	
+		
+		var canReach = false;
+		var pathScores = [];
+		var bestPath = [];
+		candidatePaths.forEach(function(path){
+			var node = path[path.length-1];
+			var deltaX = Math.abs(targetCoords.x - node.x);
+			var deltaY = Math.abs(targetCoords.y - node.y);
+			var dist = deltaX + deltaY;
+			var environmentScore = 0;
+			var terrainDetails = $gameMap.getTilePropertiesAsObject({x: node.x, y: node.y});	
+			var terrainScore = 0;
+			if(terrainDetails){
+				terrainScore+=terrainDetails.defense / 100;
+				terrainScore+=terrainDetails.evasion / 100;
+				terrainScore+=terrainDetails.hp_regen / 100;
+				terrainScore+=terrainDetails.en_regen / 100;
+			}			
+			environmentScore+=terrainScore;
+			
+			var supporterDefenders = $statCalc.getSupportDefendCandidates(
+				$gameSystem.getFactionId(battler), 
+				{x: node.x, y: node.y},
+				$statCalc.getCurrentTerrain(battler),
+				battler.event.eventId()
+			);
+			
+			if(supporterDefenders.length){
+				environmentScore+=1;
+			}
+			
+			var supportersAttackers = $statCalc.getSupportAttackCandidates(
+				$gameSystem.getFactionId(battler), 
+				{x: node.x, y: node.y},
+				$statCalc.getCurrentTerrain(battler),
+				battler.event.eventId()
+			);
+			
+			if(supportersAttackers.length){
+				environmentScore+=0.5;
+			}
+			var distanceOK = dist <= range && dist >= minRange;
+			if(distanceOK){
+				canReach = true;
+			}
+			pathScores.push({
+				path: path,
+				distanceOK: distanceOK,
+				dist: dist,
+				environment: environmentScore
+			});
+		});
+		if(canReach){
+			pathScores.sort(function(a, b){
+				if(a.distanceOK && b.distanceOK){
+					if(b.environment - a.environment == 0){
+						return a.dist - b.dist;
+					} else {
+						return b.environment - a.environment;
+					}				
+				} else if(a.distanceOK){
+					return -1;
+				} else if(b.distanceOK) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
 
-		if(bestPath){
-			path = bestPath;
-		}	
+			if(pathScores[0]){
+				path = pathScores[0].path;
+			}
+		} else {
+			var graph = new Graph(pathfindingGrid);
+			var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
+			path = astar.search(graph, startNode, graph.grid[targetCoords.x][targetCoords.y], {closest: true});
+		}
+			
 		
 		var pathNodeLookup = {};
 		var ctr = 0;
