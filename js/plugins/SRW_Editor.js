@@ -380,7 +380,7 @@ SRWEditor.prototype.init = function(){
 			desc: "Show the damage the target has taken for the current attack."
 		},
 		drain_hp_bar: {
-			hasTarget: false,
+			hasTarget: true,
 			params: ["percent","duration"],
 			desc: "Show damage on the HP bar."
 		},

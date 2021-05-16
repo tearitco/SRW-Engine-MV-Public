@@ -9,6 +9,8 @@ export default function BattleSceneUILayer() {
 	this._currentEntityType = "";
 	this._allyStatData = {HP:{max: 50000, current: 23000}, EN: {max: 200, current: 173}};
 	this._enemyStatData = {HP:{max: 50000, current: 23000}, EN: {max: 200, current: 173}};
+	this._allyTwinStatData = {HP:{max: 50000, current: 23000}, EN: {max: 200, current: 173}};
+	this._enemyTwinStatData = {HP:{max: 50000, current: 23000}, EN: {max: 200, current: 173}};
 	
 	this._currentActor;
 	this._currentEnemy;
@@ -25,6 +27,24 @@ BattleSceneUILayer.prototype.initialize = function() {
 	window.addEventListener("resize", function () {
 		_this.redraw();
 	});
+}
+
+BattleSceneUILayer.prototype.updateTwinDisplay = function(info){
+	if(info.actor){
+		this._allyStats.classList.add("inTwinContext");
+		this._allyTwinStats.style.display = "block";
+	} else {
+		this._allyStats.classList.remove("inTwinContext");
+		this._allyTwinStats.style.display = "none";
+	}
+	
+	if(info.enemy){
+		this._enemyStats.classList.add("inTwinContext");
+		this._enemyTwinStats.style.display = "block";
+	} else {
+		this._enemyStats.classList.remove("inTwinContext");
+		this._enemyTwinStats.style.display = "none";
+	}
 }
 
 BattleSceneUILayer.prototype.createComponents = function() {
@@ -64,12 +84,24 @@ BattleSceneUILayer.prototype.createComponents = function() {
 	this._allyStats = document.createElement("div");
 	this._allyStats.id = this.createId("ally_stats");
 	this._allyStats.classList.add("stats_container");
+	this._allyStats.classList.add("isMain");
 	windowNode.appendChild(this._allyStats);
+	
+	this._allyTwinStats = document.createElement("div");
+	this._allyTwinStats.id = this.createId("ally_twin_stats");
+	this._allyTwinStats.classList.add("stats_container");
+	windowNode.appendChild(this._allyTwinStats);
 	
 	this._enemyStats = document.createElement("div");
 	this._enemyStats.id = this.createId("enemy_stats");
 	this._enemyStats.classList.add("stats_container");
+	this._enemyStats.classList.add("isMain");
 	windowNode.appendChild(this._enemyStats);	
+	
+	this._enemyTwinStats = document.createElement("div");
+	this._enemyTwinStats.id = this.createId("enemy_twin_stats");
+	this._enemyTwinStats.classList.add("stats_container");
+	windowNode.appendChild(this._enemyTwinStats);	
 	
 	this._allyNotification = document.createElement("div");
 	this._allyNotification.id = this.createId("ally_notification");
@@ -108,6 +140,7 @@ BattleSceneUILayer.prototype.createStatsRowContent = function(label, labelFirst)
 	content+="<div class='current value'>"
 	//content+=stats.current+"/";
 	content+="</div>"
+	content+="<div class='divider'>/</div>"
 	content+="<div class='max value'>"
 	//content+=stats.max;
 	content+="</div>"
@@ -128,47 +161,75 @@ BattleSceneUILayer.prototype.createStatsRowContent = function(label, labelFirst)
 	return content;
 }
 
-BattleSceneUILayer.prototype.animateHP = function(target, oldPercent, newPercent, duration) {
+BattleSceneUILayer.prototype.animateHP = function(target, slot, oldPercent, newPercent, duration) {
 	var _this = this;
 	var maxValue;
 	var isHidden;
 	if(target == "actor"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentActor.ref).maxHP;
-		isHidden = !$statCalc.isRevealed(_this._currentActor.ref);
-		_this._allyStatData.HP.max = maxValue;
-		_this._allyStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
+		if(slot == "twin"){
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentTwinActor.ref).maxHP;
+			isHidden = !$statCalc.isRevealed(_this._currentTwinActor.ref);
+			_this._allyTwinStatData.HP.max = maxValue;
+			_this._allyTwinStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
+		} else {
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentActor.ref).maxHP;
+			isHidden = !$statCalc.isRevealed(_this._currentActor.ref);
+			_this._allyStatData.HP.max = maxValue;
+			_this._allyStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
+		}		
 	}
 	if(target == "enemy"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy.ref).maxHP;
-		isHidden = !$statCalc.isRevealed(_this._currentEnemy.ref);
-		_this._enemyStatData.HP.max = maxValue;
-		_this._enemyStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
+		if(slot == "twin"){
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentTwinEnemy.ref).maxHP;
+			isHidden = !$statCalc.isRevealed(_this._currentTwinEnemy.ref);
+			_this._enemyTwinStatData.HP.max = maxValue;
+			_this._enemyTwinStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
+		} else {
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy.ref).maxHP;
+			isHidden = !$statCalc.isRevealed(_this._currentEnemy.ref);
+			_this._enemyStatData.HP.max = maxValue;
+			_this._enemyStatData.HP.current = Math.floor(maxValue / 100 * newPercent);
+		}
 	}
-	var elems = _this.getStatElements(target, "HP");
-	_this.animateStat(elems, maxValue, oldPercent, newPercent, duration, target, "HP", isHidden);
+	var elems = _this.getStatElements(target, slot, "HP");
+	_this.animateStat(slot, elems, maxValue, oldPercent, newPercent, duration, target, "HP", isHidden);
 }
 
-BattleSceneUILayer.prototype.animateEN = function(target, oldPercent, newPercent, duration) {
+BattleSceneUILayer.prototype.animateEN = function(target, slot, oldPercent, newPercent, duration) {
 	var _this = this;
 	var maxValue;
 	var isHidden;
 	if(target == "actor"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentActor.ref).maxEN;
-		isHidden = !$statCalc.isRevealed(_this._currentActor.ref);
-		_this._allyStatData.EN.max = maxValue;
-		_this._allyStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
+		if(slot == "twin"){
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentTwinActor.ref).maxEN;
+			isHidden = !$statCalc.isRevealed(_this._currentTwinActor.ref);
+			_this._allyTwinStatData.EN.max = maxValue;
+			_this._allyTwinStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
+		} else {
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentActor.ref).maxEN;
+			isHidden = !$statCalc.isRevealed(_this._currentActor.ref);
+			_this._allyStatData.EN.max = maxValue;
+			_this._allyStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
+		}
 	}
 	if(target == "enemy"){
-		maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy.ref).maxEN;
-		isHidden = !$statCalc.isRevealed(_this._currentEnemy.ref);
-		_this._enemyStatData.EN.max = maxValue;
-		_this._enemyStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
+		if(slot == "twin"){
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentTwinEnemy.ref).maxEN;
+			isHidden = !$statCalc.isRevealed(_this._currentTwinEnemy.ref);
+			_this._enemyTwinStatData.EN.max = maxValue;
+			_this._enemyTwinStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
+		} else {
+			maxValue = $statCalc.getCalculatedMechStats(_this._currentEnemy.ref).maxEN;
+			isHidden = !$statCalc.isRevealed(_this._currentEnemy.ref);
+			_this._enemyStatData.EN.max = maxValue;
+			_this._enemyStatData.EN.current = Math.floor(maxValue / 100 * newPercent);
+		}
 	}
-	var elems = _this.getStatElements(target, "EN");
-	_this.animateStat(elems, maxValue, oldPercent, newPercent, duration, target, "EN", isHidden);
+	var elems = _this.getStatElements(target, slot, "EN");
+	_this.animateStat(slot, elems, maxValue, oldPercent, newPercent, duration, target, "EN", isHidden);
 }
 
-BattleSceneUILayer.prototype.animateStat = function(elems, maxValue, oldPercent, newPercent, duration, target, type, isHidden) {
+BattleSceneUILayer.prototype.animateStat = function(slot, elems, maxValue, oldPercent, newPercent, duration, target, type, isHidden) {
 	var _this = this;
 	var ticks = duration / 10;
 	var oldValue = maxValue / 100 * oldPercent;
@@ -176,34 +237,50 @@ BattleSceneUILayer.prototype.animateStat = function(elems, maxValue, oldPercent,
 	var direction = Math.sign(newValue - oldValue);		
 	var tickValue = Math.abs((oldValue - newValue) / ticks);
 	var currentTick = 0;
-	if(_this.animationInterval){
-		clearInterval(_this.animationInterval);
+	var animIntervalKey;
+	if(slot == "twin"){
+		animIntervalKey = "animationIntervalTwin";
+	} else {
+		animIntervalKey = "animationInterval";
 	}
-	_this.animationInterval = setInterval(function(){		
+	if(_this[animIntervalKey]){
+		clearInterval(_this[animIntervalKey]);
+	}
+	_this[animIntervalKey] = setInterval(function(){		
 		var currentVal = oldValue+Math.floor(tickValue * currentTick * direction)
 		if(((oldValue < newValue) && currentVal <= newValue) || ((oldValue > newValue) && currentVal >= newValue)){		
 			if(type == "HP" && newValue <= 100000){ 
 				isHidden = false;
 				if(target == "actor"){
-					$statCalc.setRevealed(_this._currentActor.ref);
-					_this.setStat(_this._currentActor, "EN");
+					if(slot == "twin"){
+						$statCalc.setRevealed(_this._currentTwinActor.ref);
+						_this.setStat(_this._currentTwinActor, "EN");
+					} else {
+						$statCalc.setRevealed(_this._currentActor.ref);
+						_this.setStat(_this._currentActor, "EN");
+					}					
 				}
 				if(target == "enemy"){
-					$statCalc.setRevealed(_this._currentEnemy.ref);
-					_this.setStat(_this._currentEnemy, "EN");
+					if(slot == "twin"){
+						$statCalc.setRevealed(_this._currentTwinEnemy.ref);
+						_this.setStat(_this._currentTwinEnemy, "EN");
+					} else {
+						$statCalc.setRevealed(_this._currentEnemy.ref);
+						_this.setStat(_this._currentEnemy, "EN");
+					}
 				}		
 				
 			}
 			_this.updateStatContent(elems, maxValue, currentVal, type, isHidden);
 		} else {
 			_this.updateStatContent(elems, maxValue, newValue, type, isHidden);
-			clearInterval(_this.animationInterval);
+			clearInterval(_this[animIntervalKey]);
 		}		
 		currentTick++;
 	}, 10);
 }
 
-BattleSceneUILayer.prototype.getStatElements = function(target, type) {
+BattleSceneUILayer.prototype.getStatElements = function(target, slot, type) {
 	var rowClass;
 	var label;
 	var bar;
@@ -214,16 +291,30 @@ BattleSceneUILayer.prototype.getStatElements = function(target, type) {
 	if(type == "EN"){
 		rowClass = "en_row";
 	} 
-	if(target == "actor"){
-		label = this._allyStats.querySelector("."+rowClass+" .current");
-		maxLabel = this._allyStats.querySelector("."+rowClass+" .max");
-		bar = this._allyStats.querySelector("."+rowClass+" .bar .fill");
+	if(slot == "twin"){
+		if(target == "actor"){
+			label = this._allyTwinStats.querySelector("."+rowClass+" .current");
+			maxLabel = this._allyTwinStats.querySelector("."+rowClass+" .max");
+			bar = this._allyTwinStats.querySelector("."+rowClass+" .bar .fill");
+		}
+		if(target == "enemy"){
+			label = this._enemyTwinStats.querySelector("."+rowClass+" .current");
+			maxLabel = this._enemyTwinStats.querySelector("."+rowClass+" .max");
+			bar = this._enemyTwinStats.querySelector("."+rowClass+" .bar .fill");
+		}
+	} else {
+		if(target == "actor"){
+			label = this._allyStats.querySelector("."+rowClass+" .current");
+			maxLabel = this._allyStats.querySelector("."+rowClass+" .max");
+			bar = this._allyStats.querySelector("."+rowClass+" .bar .fill");
+		}
+		if(target == "enemy"){
+			label = this._enemyStats.querySelector("."+rowClass+" .current");
+			maxLabel = this._enemyStats.querySelector("."+rowClass+" .max");
+			bar = this._enemyStats.querySelector("."+rowClass+" .bar .fill");
+		}
 	}
-	if(target == "enemy"){
-		label = this._enemyStats.querySelector("."+rowClass+" .current");
-		maxLabel = this._enemyStats.querySelector("."+rowClass+" .max");
-		bar = this._enemyStats.querySelector("."+rowClass+" .bar .fill");
-	}
+	
 	return {
 		label: label,
 		bar: bar,
@@ -238,13 +329,27 @@ BattleSceneUILayer.prototype.setStat = function(effect, type) {
 	var value;
 	var target;
 	var isHidden;
-	if(effect.side == "actor"){
-		target = "actor";
-		_this._currentActor = effect;		
+	
+	var slot;
+	if(effect.ref.isSubTwin){
+		slot = "twin";
+		if(effect.side == "actor"){
+			target = "actor";
+			_this._currentTwinActor = effect;		
+		} else {
+			target = "enemy";
+			_this._currentTwinEnemy = effect;
+		}		
 	} else {
-		target = "enemy";
-		_this._currentEnemy = effect;
+		if(effect.side == "actor"){
+			target = "actor";
+			_this._currentActor = effect;		
+		} else {
+			target = "enemy";
+			_this._currentEnemy = effect;
+		}
 	}
+	
 	if(type == "HP"){
 		maxValue = stats.maxHP;
 		value = effect.currentAnimHP;
@@ -253,7 +358,7 @@ BattleSceneUILayer.prototype.setStat = function(effect, type) {
 		value = effect.currentAnimEN;
 	}
 	isHidden = !$statCalc.isRevealed(effect.ref);
-	var elems = _this.getStatElements(target, type);	
+	var elems = _this.getStatElements(target, slot, type);	
 	this.updateStatContent(elems, maxValue, value, type, isHidden);
 	this.updateUnitIcons();	
 }
@@ -274,7 +379,7 @@ BattleSceneUILayer.prototype.updateStatContent = function(elems, maxValue, value
 		currentVal = Math.round(value);
 		maxVal = Math.round(maxValue);
 	}
-	elems.label.innerHTML = currentVal+"/";
+	elems.label.innerHTML = currentVal;
 	elems.maxLabel.innerHTML = maxVal;
 	elems.bar.style.width = Math.round(value / maxValue * 100) + "%";
 }
@@ -515,11 +620,25 @@ BattleSceneUILayer.prototype.updateUnitIcons = function(){
 		this._container.querySelector("#actor_icon").innerHTML = "";
 	}
 	
+	if(_this._currentTwinActor){
+		var menuImagePath = $statCalc.getMenuImagePath(_this._currentTwinActor.ref);
+		this._container.querySelector("#actor_icon_twin").innerHTML = "<img src='img/"+menuImagePath+"'>";
+	} else {		
+		this._container.querySelector("#actor_icon_twin").innerHTML = "";
+	}
+	
 	if(_this._currentEnemy){
 		var menuImagePath = $statCalc.getMenuImagePath(_this._currentEnemy.ref);
 		this._container.querySelector("#enemy_icon").innerHTML = "<img src='img/"+menuImagePath+"'>";
 	} else {		
 		this._container.querySelector("#enemy_icon").innerHTML = "";
+	}
+	
+	if(_this._currentTwinEnemy){
+		var menuImagePath = $statCalc.getMenuImagePath(_this._currentTwinEnemy.ref);
+		this._container.querySelector("#enemy_icon_twin").innerHTML = "<img src='img/"+menuImagePath+"'>";
+	} else {		
+		this._container.querySelector("#enemy_icon_twin").innerHTML = "";
 	}
 }
 
@@ -538,31 +657,73 @@ BattleSceneUILayer.prototype.redraw = function() {
 	//_this.updateScaledImage(_this._spiritAnimImage);
 	//_this.updateScaledDiv(_this._spiritAnim);
 	
+	function createStatContent(type, slot){
+		var content = "";
+		content+="<div class='inner'>"
+		
+		if(type == "enemy"){
+			if(slot == "twin"){
+				content+="<div class='icon' id='enemy_icon_twin'>"
+				content+="</div>"
+			} else {
+				content+="<div class='icon' id='enemy_icon'>"
+				content+="</div>"
+			}			
+		}	
+		content+="<div class='hp_en'>"
+		content+="<div class='hp_row'>"
+		
+		content+=_this.createStatsRowContent("HP", type == "enemy");
+		
+		content+="</div>"
+		
+		content+="<div class='en_row'>"
+		
+		content+=_this.createStatsRowContent("EN", type == "enemy");
+		content+="</div>"
+		
+		content+="</div>"
+		
+		if(type == "ally"){			
+			if(slot == "twin"){
+				content+="<div class='icon' id='actor_icon_twin'>"
+				content+="</div>"
+			} else {
+				content+="<div class='icon' id='actor_icon'>"
+				content+="</div>"
+			}	
+		}
+		
+		
+		if(slot == "main"){
+			content+="<div class='slot main "+type+" scaled_text'>MAIN"
+			content+="</div>"
+		} else {
+			content+="<div class='slot sub "+type+" scaled_text'>TWIN"
+			content+="</div>"
+		}
+		
+		
+		content+="</div>"
+		return content;
+	}
 	
 	
-	var allyStatsContent = "";
-	allyStatsContent+="<div class='inner'>"
-	allyStatsContent+="<div class='icon' id='actor_icon'>"
-	allyStatsContent+="</div>"
-	allyStatsContent+="<div class='hp_row'>"
+
 	
-	allyStatsContent+=this.createStatsRowContent("HP");
-	
-	allyStatsContent+="</div>"
-	
-	allyStatsContent+="<div class='en_row'>"
-	
-	allyStatsContent+=this.createStatsRowContent("EN");
-	
-	allyStatsContent+="</div>"
-	allyStatsContent+="</div>"
-	this._allyStats.innerHTML = allyStatsContent;
+	this._allyStats.innerHTML = createStatContent("ally", "main");
+	this._allyTwinStats.innerHTML =  createStatContent("ally", "twin");
 	_this.updateScaledDiv(this._allyStats);
+	_this.updateScaledDiv(this._allyTwinStats);
 	
-	var enemyStatsContent = "";
+	/*var enemyStatsContent = "";
 	enemyStatsContent+="<div class='inner'>"
 	enemyStatsContent+="<div class='icon' id='enemy_icon'>"
 	enemyStatsContent+="</div>"
+	enemyStatsContent+="<div class='slot enemy scaled_text'>MAIN"
+	enemyStatsContent+="</div>"
+	
+	enemyStatsContent+="<div class='hp_en'>"
 	enemyStatsContent+="<div class='hp_row'>"
 	
 	enemyStatsContent+=this.createStatsRowContent("HP", true);
@@ -575,8 +736,11 @@ BattleSceneUILayer.prototype.redraw = function() {
 	
 	enemyStatsContent+="</div>"
 	enemyStatsContent+="</div>"
-	this._enemyStats.innerHTML = enemyStatsContent;
+	enemyStatsContent+="</div>"*/
+	this._enemyStats.innerHTML = createStatContent("enemy", "main");
+	this._enemyTwinStats.innerHTML = createStatContent("enemy", "twin");
 	_this.updateScaledDiv(this._enemyStats);
+	_this.updateScaledDiv(this._enemyTwinStats);
 	
 	
 	var bars = this._container.querySelectorAll(".bar");
@@ -585,6 +749,11 @@ BattleSceneUILayer.prototype.redraw = function() {
 	});
 	
 	var valueLabels = this._container.querySelectorAll(".values .value");
+	valueLabels.forEach(function(valueLabel){
+		_this.updateScaledDiv(valueLabel, false, true);
+	});
+	
+	var valueLabels = this._container.querySelectorAll(".values .divider");
 	valueLabels.forEach(function(valueLabel){
 		_this.updateScaledDiv(valueLabel, false, true);
 	});

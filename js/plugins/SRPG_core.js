@@ -6409,11 +6409,19 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		
 		var defenders = [this._defender];
 		if(this._attacker.action.attack && this._attacker.action.attack.isAll){
-			if(this._side == "actor" && params.enemyTwin){
-				defenders.push(enemyTwinInfo);
+			if(this._side == "actor"){ 
+				if(this._attacker.actor.isSubTwin && params.enemyTwin){
+					defenders.push(enemyInfo);
+				} else if(params.enemy){
+					defenders.push(enemyTwinInfo);
+				}				
 			}
-			if(this._side == "enemy" && params.actorTwin){
-				defenders.push(actorTwinInfo);
+			if(this._side == "enemy"){				
+				if(this._attacker.actor.isSubTwin && params.actorTwin){
+					defenders.push(actorInfo);
+				} else if(params.actor){
+					defenders.push(actorTwinInfo);
+				}
 			}
 		}
 		

@@ -1787,10 +1787,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},	
 	
 		set_damage_text: function(target, params){
-			var action = _this._currentAnimatedAction.attacked;
-			if(target == "active_target_twin"){
-				action = _this._currentAnimatedAction.attacked_all_sub;
-			}
+			var action = _this.getTargetAction(target);
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			
@@ -2023,10 +2020,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},
 		dodge_pattern: function(target, params){
-			var action = _this._currentAnimatedAction.attacked;
-			if(target == "active_target_twin"){
-				action = _this._currentAnimatedAction.attacked_all_sub;
-			}
+			var action = _this.getTargetAction(target);
 			
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
@@ -2432,9 +2426,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
 					params.name = "main";
 				} else if(params.name == "hurt" || params.name == "hurt_end"){
-					if(target == "active_main" || target == "active_support_attacker"){
+					if(target == "active_main" || target == "active_support_attacker" || target == "active_twin"){
 						battleEffect = targetAction; 					
-					} else if(target == "active_target" || target == "active_support_defender"){
+					} else if(target == "active_target" || target == "active_support_defender" || target == "active_target_twin"){
 						battleEffect = action;					
 					}
 					if(battleEffect.damageInflicted == 0){
@@ -2652,16 +2646,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					
 				];
 				
-				if(target == "active_target_twin"){
-					var action = _this._currentAnimatedAction.attacked_all_sub;			
-					if(!action.isDestroyed && action.isHit){
-						additions[startTick + params.duration].push({type: "set_damage_text", target: target, params:{}});						
-					}
-				} else {
-					var action = _this._currentAnimatedAction.attacked;			
-					if(!action.isDestroyed && action.isHit){
-						additions[startTick + params.duration].push({type: "set_damage_text", target: target, params:{}});						
-					}
+				var action = _this.getTargetAction(target);
+			
+				if(!action.isDestroyed && action.isHit){
+					additions[startTick + params.duration].push({type: "set_damage_text", target: target, params:{}});						
 				}
 				
 				if(!action.isDestroyed){
@@ -2683,10 +2671,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			
 			var noWait = (params.noWait || 0) * 1;
 					
-			var action = _this._currentAnimatedAction.attacked;
-			if(target == "active_target_twin"){
-				action = _this._currentAnimatedAction.attacked_all_sub;
-			}
+			var action = _this.getTargetAction(target);
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
@@ -2731,7 +2716,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var offsets;
 			var displayNum = 0;
 			if(target == "active_target_twin"){
-				action = _this._currentAnimatedAction.attacked_all_sub;
+				action = _this.getTargetAction(target);
 				displayNum = 1;
 				offsets = {top: 16, left: 78};
 				if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_TWIN_OFFSET){
@@ -2771,26 +2756,27 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					endPercent = 0;
 				}
 				originalAction.currentAnimHP = endValue;
-				_this._barDrainInfo[originalAction.side].HP = endPercent;
-				_this._UILayerManager.animateHP(originalAction.side, startPercent, endPercent, params.duration || 500);
+				_this._barDrainInfo[originalAction.side+ "_" + originalAction.isSubTwin ? "twin" : ""].HP = endPercent;
+				_this._UILayerManager.animateHP(originalAction.side, originalAction.ref.isSubTwin ? "twin" : "main", startPercent, endPercent, params.duration || 500);
 				_this._UILayerManager.setNotification(originalAction.side, "HP DRAIN");
 			}			
 		},
 		drain_hp_bar: function(target, params){			
 			var originalAction = _this._currentAnimatedAction;
-			var action = _this._currentAnimatedAction.attacked;
+			var action = _this.getTargetAction(target);
 			var target = action.side;
 			var stats = $statCalc.getCalculatedMechStats(action.ref);
-			if(!_this._barDrainInfo[target]) {
-				_this._barDrainInfo[target] = {};
+			var drainInfoKey = target + "_" + (action.ref.isSubTwin ? "twin" : "");
+			if(!_this._barDrainInfo[drainInfoKey]) {
+				_this._barDrainInfo[drainInfoKey] = {};
 			}	
-			if(typeof _this._barDrainInfo[target].HP == "undefined"){
-				_this._barDrainInfo[target].HP = 0;
+			if(typeof _this._barDrainInfo[drainInfoKey].HP == "undefined"){
+				_this._barDrainInfo[drainInfoKey].HP = 0;
 			}
 			
 			var totalDamage = Math.min(originalAction.damageInflicted, action.currentAnimHP);
 			
-			var startValue = action.currentAnimHP - (_this._barDrainInfo[target].HP /100 * totalDamage);
+			var startValue = action.currentAnimHP - (_this._barDrainInfo[drainInfoKey].HP /100 * totalDamage);
 			var endValue = action.currentAnimHP - (params.percent /100 * totalDamage);
 			
 			var startPercent = (startValue / stats.maxHP * 100);
@@ -2798,8 +2784,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(endPercent < 0){
 				endPercent = 0;
 			}
-			_this._barDrainInfo[target].HP = params.percent;
-			_this._UILayerManager.animateHP(target, startPercent, endPercent, params.duration || 500);
+			_this._barDrainInfo[drainInfoKey].HP = params.percent;
+			_this._UILayerManager.animateHP(target, action.ref.isSubTwin ? "twin" : "main", startPercent, endPercent, params.duration || 500);
 		},
 		drain_en_bar: function(target, params){			
 			var action = _this._currentAnimatedAction;
@@ -2807,11 +2793,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				action.ENDrainShown = true;
 				var target = action.side;
 				var stats = $statCalc.getCalculatedMechStats(action.ref);
-				if(!_this._barDrainInfo[target]) {
-					_this._barDrainInfo[target] = {};
+				var drainInfoKey = target + "_" + (action.ref.isSubTwin ? "twin" : "");
+				if(!_this._barDrainInfo[drainInfoKey]) {
+					_this._barDrainInfo[drainInfoKey] = {};
 				}	
-				if(typeof _this._barDrainInfo[target].EN == "undefined"){
-					_this._barDrainInfo[target].EN = 0;
+				if(typeof _this._barDrainInfo[drainInfoKey].EN == "undefined"){
+					_this._barDrainInfo[drainInfoKey].EN = 0;
 				}
 				var startValue = action.currentAnimEN;
 				var endValue = action.currentAnimEN - action.ENUsed;
@@ -2821,8 +2808,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(endPercent < 0){
 					endPercent = 0;
 				}
-				_this._barDrainInfo[target].EN = params.percent;
-				_this._UILayerManager.animateEN(target, startPercent, endPercent, params.duration || 500);
+				_this._barDrainInfo[drainInfoKey].EN = params.percent;
+				_this._UILayerManager.animateEN(target, action.ref.isSubTwin ? "twin" : "main", startPercent, endPercent, params.duration || 500);
 				
 			}			
 		},
@@ -2857,6 +2844,28 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 	if(animationHandlers[animation.type] && _this._currentAnimatedAction){
 		animationHandlers[animation.type](animation.target, animation.params || {});
 	}
+}
+
+BattleSceneManager.prototype.getTargetAction = function(target){
+	/*if(this._currentAnimatedAction.side == "enemy"){
+		if(target == "active_target_twin"){
+			if(this._participantInfo.actor_twin.participating){
+				return this._participantInfo.actor_twin.effect;
+			} 
+		} 
+		return this._participantInfo.actor.effect;
+	} else {
+		if(target == "active_target_twin"){
+			if(this._participantInfo.enemy_twin.participating){
+				return this._participantInfo.enemy_twin.effect;
+			} 
+		} 
+		return this._participantInfo.enemy.effect;
+	}	*/
+	if(target == "active_target_twin" && this._currentAnimatedAction.attacked_all_sub){
+		return this._currentAnimatedAction.attacked_all_sub;
+	} 
+	return this._currentAnimatedAction.attacked;
 }
 
 BattleSceneManager.prototype.startAnimation = function(){
@@ -3227,6 +3236,11 @@ BattleSceneManager.prototype.readBattleCache = function() {
 	if(!_this._enemyTwinSupporterSprite){
 		_this.updateMainSprite("enemy_twin_supporter", "enemy_twin_support", "", _this._defaultPositions.enemy_support_idle, _this._defaultSpriteSize, false, {});	
 	}
+	
+	_this._UILayerManager.updateTwinDisplay({
+		actor: _this._participantInfo.actor_twin.participating,
+		enemy: _this._participantInfo.enemy_twin.participating,
+	});
 }
 
 BattleSceneManager.prototype.resetSprite = function(mainSprite){
@@ -4166,11 +4180,25 @@ BattleSceneManager.prototype.processActionQueue = function() {
 								_this._UILayerManager.setNotification(nextAction.side, "Main Attack");
 							}
 							
-							_this._UILayerManager.setStat(nextAction, "HP");
-							_this._UILayerManager.setStat(nextAction, "EN");
+							if(_this._participantInfo.actor.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+							}
 							
-							_this._UILayerManager.setStat(nextAction.attacked, "HP");
-							_this._UILayerManager.setStat(nextAction.attacked, "EN");
+							if(_this._participantInfo.actor_twin.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "EN");
+							}
+							
+							if(_this._participantInfo.enemy.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+							}
+							
+							if(_this._participantInfo.enemy_twin.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
+							}
 							
 							if(nextAction.side == "actor"){
 								_this._active_main.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
