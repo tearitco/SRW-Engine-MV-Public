@@ -30,6 +30,9 @@ BattleSceneUILayer.prototype.initialize = function() {
 }
 
 BattleSceneUILayer.prototype.updateTwinDisplay = function(info){
+	this.resetDisplay();
+	this._allyStats.style.display = "";
+	this._enemyStats.style.display = "";
 	if(info.actor){
 		this._allyStats.classList.add("inTwinContext");
 		this._allyTwinStats.style.display = "block";
@@ -44,6 +47,49 @@ BattleSceneUILayer.prototype.updateTwinDisplay = function(info){
 	} else {
 		this._enemyStats.classList.remove("inTwinContext");
 		this._enemyTwinStats.style.display = "none";
+	}
+}
+
+BattleSceneUILayer.prototype.resetDisplay = function(info){
+	this._allyStats.style.left = "";
+	this._allyStats.style.right = "";
+	this._allyStats.style.display = "none";
+	
+	this._allyTwinStats.style.left = "";
+	this._allyTwinStats.style.right = "";
+	this._allyTwinStats.style.display = "none";
+	
+	this._enemyStats.style.left = "";
+	this._enemyStats.style.right = "";
+	this._enemyStats.style.display = "none";
+	
+	this._enemyTwinStats.style.left = "";
+	this._enemyTwinStats.style.right = "";
+	this._enemyTwinStats.style.display = "none";
+}
+
+BattleSceneUILayer.prototype.setStatBoxVisible = function(type, inTwinContext){
+	if(type == "ally"){
+		this._allyStats.style.display = "block";
+		if(inTwinContext){
+			this._allyStats.style.right = "17%";
+		} else {
+			this._allyStats.style.right = "0.5%";
+		}	
+	}
+	if(type == "allyTwin"){
+		this._allyTwinStats.style.display = "block";
+	}
+	if(type == "enemy"){
+		this._enemyStats.style.display = "block";
+		if(inTwinContext){
+			this._enemyStats.style.left = "17%";
+		} else {
+			this._enemyStats.style.left = "0.5%";
+		}
+	}
+	if(type == "enemyTwin"){
+		this._enemyTwinStats.style.display = "block";
 	}
 }
 

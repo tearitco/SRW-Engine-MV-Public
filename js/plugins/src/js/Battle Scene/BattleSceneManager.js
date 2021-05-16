@@ -2922,6 +2922,10 @@ BattleSceneManager.prototype.playTwinMainIntroAnimation = function(){
 		{type: "translate", target: "active_twin", params: {startPosition: this._defaultPositions.ally_twin_idle, position: new BABYLON.Vector3(10, 0, 3), duration: 20}},
 	];		
 	
+	this._animationList[35] = [
+		{type: "set_sprite_frame", target: "active_twin", params: {name: "main"}},
+	]
+	
 	this._animationList[60] = []; //padding
 	return this.startAnimation();
 }
@@ -4020,6 +4024,9 @@ BattleSceneManager.prototype.processActionQueue = function() {
 		}
 		
 		if(nextAction && nextAction.action.type != "defend" && nextAction.action.type != "evade" && nextAction.action.type != "none"){
+			_this._UILayerManager.resetTextBox();
+			_this._UILayerManager.hideNoise();
+			
 			_this.doingFadeTransition = false;
 			var direction;
 			if(nextAction.side == "actor"){
@@ -4092,6 +4099,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 						_this._currentAnimatedAction = nextAction;
 						
 						
+						
 						if(nextAction.side == "actor"){
 							_this._enemyTwinSprite.sprite.setEnabled(false);						
 							_this._animationDirection = 1;
@@ -4102,7 +4110,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							_this._active_support_defender = _this._enemySupporterSprite.sprite;
 							if(nextAction.attacked_all_sub){
 								_this._active_target = _this._enemySprite.sprite;									
-								_this._active_target_twin = _this._enemyTwinSprite.sprite;		
+								_this._active_target_twin = _this._enemyTwinSprite.sprite;	
 							} else if(nextAction.attacked.ref.isSubTwin){
 								_this._active_target = _this._enemyTwinSprite.sprite;		
 							} else {
@@ -4118,10 +4126,10 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							_this._active_support_defender = _this._actorSupporterSprite.sprite;
 							if(nextAction.attacked_all_sub){
 								_this._active_target = _this._actorSprite.sprite;									
-								_this._active_target_twin = _this._actorTwinSprite.sprite;		
+								_this._active_target_twin = _this._actorTwinSprite.sprite;	
 							} else
 							if(nextAction.attacked.ref.isSubTwin){
-								_this._active_target = _this._actorTwinSprite.sprite;		
+								_this._active_target = _this._actorTwinSprite.sprite;
 							} else {
 								_this._active_target = _this._actorSprite.sprite;		
 							}	
@@ -4164,41 +4172,28 @@ BattleSceneManager.prototype.processActionQueue = function() {
 						}	
 						
 						function finalize(){	
-							if(nextAction.type == "support attack")	{
-								_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
-								_this._active_main.setEnabled(false);		
-								_this._active_twin.setEnabled(false);
-								_this._actorTwinSupporterSprite.sprite.setEnabled(false);
-								_this._actorSupporterSprite.sprite.setEnabled(false);
-								_this._enemyTwinSupporterSprite.sprite.setEnabled(false);
-								_this._enemySupporterSprite.sprite.setEnabled(false);
-								if(nextAction.side == "actor"){									
-									if(nextAction.ref.isSubTwin){									
-										_this._active_support_attacker = _this._actorTwinSupporterSprite.sprite;
-									} else {
-										_this._active_support_attacker = _this._actorSupporterSprite.sprite;
-									}
-									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
+							_this._UILayerManager.resetDisplay();
+							if(nextAction.side == "actor"){
+								if(nextAction.attacked_all_sub){
+									_this._UILayerManager.setStatBoxVisible("enemyTwin", true);
+									_this._UILayerManager.setStatBoxVisible("enemy", true);	
+								} else if(nextAction.attacked.ref.isSubTwin){	
+									_this._UILayerManager.setStatBoxVisible("enemyTwin");		
 								} else {
-									if(nextAction.ref.isSubTwin){									
-										_this._active_support_attacker = _this._enemyTwinSupporterSprite.sprite;
-									} else {
-										_this._active_support_attacker = _this._enemySupporterSprite.sprite;
-									}
-									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
-								}
-								_this._active_support_attacker.setEnabled(true);
-							} else if(nextAction.ref.isSubTwin){								
-								_this._UILayerManager.setNotification(nextAction.side, "Twin Attack");
-								_this._active_main.setEnabled(false);		
-								_this._active_twin.setEnabled(false);									
-								_this._active_main = _this._active_twin;
-								_this._active_main.setEnabled(true);
+									_this._UILayerManager.setStatBoxVisible("enemy");	
+								}						
 							} else {
-								_this._active_main.setEnabled(true);		
-								_this._active_twin.setEnabled(false);	
-								_this._UILayerManager.setNotification(nextAction.side, "Main Attack");
+								if(nextAction.attacked_all_sub){	
+									_this._UILayerManager.setStatBoxVisible("allyTwin", true);
+									_this._UILayerManager.setStatBoxVisible("ally", true);	
+								} else
+								if(nextAction.attacked.ref.isSubTwin){	
+									_this._UILayerManager.setStatBoxVisible("allyTwin");
+								} else {	
+									_this._UILayerManager.setStatBoxVisible("ally");	
+								}	
 							}
+							
 							
 							if(_this._participantInfo.actor.participating){
 								_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
@@ -4219,6 +4214,63 @@ BattleSceneManager.prototype.processActionQueue = function() {
 								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
 								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
 							}
+						
+							if(nextAction.type == "support attack")	{
+								_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
+								_this._active_main.setEnabled(false);		
+								_this._active_twin.setEnabled(false);
+								_this._actorTwinSupporterSprite.sprite.setEnabled(false);
+								_this._actorSupporterSprite.sprite.setEnabled(false);
+								_this._enemyTwinSupporterSprite.sprite.setEnabled(false);
+								_this._enemySupporterSprite.sprite.setEnabled(false);
+								if(nextAction.side == "actor"){									
+									if(nextAction.ref.isSubTwin){									
+										_this._active_support_attacker = _this._actorTwinSupporterSprite.sprite;
+									} else {
+										_this._active_support_attacker = _this._actorSupporterSprite.sprite;
+									}
+									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
+									_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
+									_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
+								} else {
+									if(nextAction.ref.isSubTwin){									
+										_this._active_support_attacker = _this._enemyTwinSupporterSprite.sprite;
+									} else {
+										_this._active_support_attacker = _this._enemySupporterSprite.sprite;
+									}
+									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+									_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
+									_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
+								}
+								_this._active_support_attacker.setEnabled(true);
+								if(nextAction.side == "actor"){
+									_this._UILayerManager.setStatBoxVisible("ally");
+								} else {
+									_this._UILayerManager.setStatBoxVisible("enemy");
+								}
+							} else if(nextAction.ref.isSubTwin){								
+								_this._UILayerManager.setNotification(nextAction.side, "Twin Attack");
+								_this._active_main.setEnabled(false);		
+								_this._active_twin.setEnabled(false);									
+								_this._active_main = _this._active_twin;
+								_this._active_main.setEnabled(true);
+								if(nextAction.side == "actor"){
+									_this._UILayerManager.setStatBoxVisible("allyTwin");
+								} else {
+									_this._UILayerManager.setStatBoxVisible("enemyTwin");
+								}
+							} else {
+								_this._active_main.setEnabled(true);		
+								_this._active_twin.setEnabled(false);	
+								_this._UILayerManager.setNotification(nextAction.side, "Main Attack");
+								if(nextAction.side == "actor"){
+									_this._UILayerManager.setStatBoxVisible("ally");
+								} else {
+									_this._UILayerManager.setStatBoxVisible("enemy");
+								}
+							}
+							
+							
 							
 							if(nextAction.side == "actor"){
 								_this._active_main.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
