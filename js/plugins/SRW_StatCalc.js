@@ -278,9 +278,9 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 					currentAmmo = totalAmmo;
 				}
 				
-				var AIHPThreshold = -1;
-				if(weaponProperties.weaponAIHPThreshold){
-					AIHPThreshold = weaponProperties.weaponAIHPThreshold * 1;
+				var HPThreshold = -1;
+				if(weaponProperties.weaponHPThreshold){
+					HPThreshold = weaponProperties.weaponHPThreshold * 1;
 				}
 				result.push({
 					id: parseInt(weaponDefinition.id),
@@ -310,7 +310,7 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 					isCounter: parseInt(weaponProperties.weaponIsCounter),
 					upgradeType: parseInt(weaponProperties.weaponUpgradeType) || 0,
 					isSelfDestruct: parseInt(weaponProperties.weaponIsSelfDestruct),
-					AIHPThreshold: AIHPThreshold,
+					HPThreshold: HPThreshold,
 				});
 			}
 		}
@@ -2778,6 +2778,15 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 			canUse = false;
 			detail.isMap = true;
 		}		
+		
+		if(weapon.HPThreshold != -1){
+			var stats = this.getCalculatedMechStats(actor);
+			var ratio = stats.currentHP / stats.maxHP * 100;
+			if(ratio > weapon.HPThreshold){
+				canUse = false;
+				detail.isHPGated = true;
+			}				
+		}	
 	} else {
 		canUse = false;
 	} 	
@@ -2817,10 +2826,10 @@ StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly, d
 				return false;
 			}
 		}	
-		if(this.isAI(actor) && weapon.AIHPThreshold != -1){
+		if(weapon.HPThreshold != -1){
 			var stats = this.getCalculatedMechStats(actor);
 			var ratio = stats.currentHP / stats.maxHP * 100;
-			if(ratio > weapon.AIHPThreshold){
+			if(ratio > weapon.HPThreshold){
 				return false;
 			}				
 		}	

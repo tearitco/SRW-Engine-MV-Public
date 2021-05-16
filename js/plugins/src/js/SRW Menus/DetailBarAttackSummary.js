@@ -115,6 +115,10 @@ DetailBarAttackSummary.prototype.redraw = function(){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_participants;
 			} else if(detail.terrain){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_terrain;
+			} else if(detail.isHPGated){
+				var info = APPSTRINGS.ATTACKLIST.label_HP_gated;
+				info = info.replace("{HP_THRESHOLD}", attackData.HPThreshold);
+				detailContent+=info;
 			}    			
 		}
 	

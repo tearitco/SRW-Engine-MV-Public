@@ -255,7 +255,8 @@ APPSTRINGS.ATTACKLIST = {
 	label_no_target: "No target!",
 	label_no_map_counter: "Can't counter with map attack!",
 	label_no_participants: "No valid partner in range!",
-	label_no_terrain: "Can't hit the target terrain!"
+	label_no_terrain: "Can't hit the target terrain!",
+	label_HP_gated: "Can only be used when below {HP_THRESHOLD} percent HP!"
 }
 
 APPSTRINGS.REWARDS = {
