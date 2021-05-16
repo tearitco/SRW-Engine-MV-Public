@@ -3241,6 +3241,26 @@ BattleSceneManager.prototype.readBattleCache = function() {
 		actor: _this._participantInfo.actor_twin.participating,
 		enemy: _this._participantInfo.enemy_twin.participating,
 	});
+	
+	if(_this._participantInfo.actor.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+	}
+	
+	if(_this._participantInfo.actor_twin.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "EN");
+	}
+	
+	if(_this._participantInfo.enemy.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+	}
+	
+	if(_this._participantInfo.enemy_twin.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
+	}
 }
 
 BattleSceneManager.prototype.resetSprite = function(mainSprite){
