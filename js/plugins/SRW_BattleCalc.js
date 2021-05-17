@@ -824,11 +824,12 @@ BattleCalc.prototype.generateBattleResult = function(){
 			//this is a hack to circumvent issues with determining ability activation when a unit has self supporting capabilites
 			aCache = $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
 		}
+		aCache.side = this._side;
 		if(aCache.action.type != "attack"){
 			return;
 		}
 		
-		aCache.side = this._side;
+		
 		aCache.allInfo = this._allInfo;
 		if(aCache.type == "support attack"){
 			if(mainAttackerCache.isDestroyed){
