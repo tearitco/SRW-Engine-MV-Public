@@ -549,10 +549,14 @@ Window_BeforebattleTwin.prototype.update = function() {
 						} else {
 							_this._currentUIState = "enemy_twin_target_selection";
 						}
-						
+						$gameTemp.allAttackSelectionRequired = false;
 						_this._currentSelection = 0;
 						_this.requestRedraw();							
 					};		
+					
+					$gameTemp.attackWindowCancelCallback = function(){
+						$gameTemp.allAttackSelectionRequired = false;
+					}
 					$gameTemp.pushMenu = "attack_list";
 				}
 				if(_this._currentActionSelection == 1){
