@@ -1633,7 +1633,7 @@ BattleCalc.prototype.updateTwinActions = function(){
 			actor: targetActor,
 			pos: {x: $gameTemp.currentBattleEnemy.event.posX(), y: $gameTemp.currentBattleEnemy.event.posY()}
 		};
-		var allRequired = false;//$gameTemp.currentTargetingSettings.actor == "all";
+		var allRequired = $gameTemp.currentTargetingSettings.actor == "all";
 		
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isActorPostMove, allRequired);
 		if(weaponResult.weapon){
@@ -1664,7 +1664,7 @@ BattleCalc.prototype.updateTwinActions = function(){
 			actor: targetActor,
 			pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}
 		};
-		var allRequired = false;//$gameTemp.currentTargetingSettings.enemy == "all";
+		var allRequired = $gameTemp.currentTargetingSettings.enemy == "all";
 		
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isEnemyPostMove, allRequired);
 		if(weaponResult.weapon){

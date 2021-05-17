@@ -516,7 +516,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 					$gameTemp.allAttackSelectionRequired = false;
 					if(_this._currentTwinTargetSelection == 0){
 						if($gameTemp.currentTargetingSettings.actorTwin == "all"){
-							//$gameTemp.allAttackSelectionRequired = true;
+							$gameTemp.allAttackSelectionRequired = true;
 						}
 						$gameTemp.currentMenuUnit = {
 							actor: $gameTemp.currentBattleActor,
@@ -524,7 +524,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 						};
 					} else {
 						if($gameTemp.currentTargetingSettings.actor == "all"){
-							//$gameTemp.allAttackSelectionRequired = true;
+							$gameTemp.allAttackSelectionRequired = true;
 						}
 						$gameTemp.currentMenuUnit = {
 							actor: $gameTemp.currentBattleActor.subTwin,
@@ -1491,7 +1491,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 			_this._targeting_arrows_enemy_2.style.display = "";
 		}
 		if($gameTemp.currentTargetingSettings.enemyTwin == "main"){
-			_this._targeting_arrows_enemy_2.style.transform = "rotate(45deg)";
+			_this._targeting_arrows_enemy_2.style.transform = "rotate(135deg)";
 		}	
 		if($gameTemp.currentTargetingSettings.enemy == "all"){
 			_this._targeting_arrows_enemy_2.src = "img/system/targeting2.png";
