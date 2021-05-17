@@ -1970,7 +1970,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}				
 			
 			//support defend animation
-			if(_this._currentAnimatedAction.attacked.type == "support defend"){
+			if(_this._currentAnimatedAction.attacked && _this._currentAnimatedAction.attacked.type == "support defend"){
 				_this.delayAnimationList(startTick + 27, 140);
 				_this._animationList[startTick + 30] = [
 					{type: "teleport", target: "Camera", params: {position: _this._defaultPositions.camera_main_idle}},
@@ -2865,7 +2865,10 @@ BattleSceneManager.prototype.getTargetAction = function(target){
 	if(target == "active_target_twin" && this._currentAnimatedAction.attacked_all_sub){
 		return this._currentAnimatedAction.attacked_all_sub;
 	} 
-	return this._currentAnimatedAction.attacked;
+	if(this._currentAnimatedAction.attacked){
+		return this._currentAnimatedAction.attacked;
+	}
+	return this._currentAnimatedAction.attacked_all_sub;
 }
 
 BattleSceneManager.prototype.startAnimation = function(){
@@ -3670,22 +3673,22 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 								var targetAction = nextAction.attacked;
 								
 								var battleEffect;
-								if(target == "active_main" || target == "active_support_attacker"){
+								if(target == "active_main" || target == "active_support_attacker" || target == "active_twin"){
 									battleEffect = action;
-								} else if(target == "active_target" || target == "active_support_defender"){
+								} else if(target == "active_target" || target == "active_support_defender" || target == "active_target_twin"){
 									battleEffect = targetAction;
 								}								
+								if(battleEffect){
+									var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
 								
-								var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
-								
-								if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
-									params.name = "main";
-								}
-								
-								var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-								promises.push(_this.getBgPromise(bg));
-								_this._animationBackgroundsInfo.push(bg);
-								
+									if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
+										params.name = "main";
+									}
+									
+									var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+									promises.push(_this.getBgPromise(bg));
+									_this._animationBackgroundsInfo.push(bg);
+								}							
 							}
 							if(animCommand.type == "create_sky_box"){
 								var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
@@ -4139,20 +4142,32 @@ BattleSceneManager.prototype.processActionQueue = function() {
 						_this._active_target.barrierSprite.setEnabled(false);
 						_this._active_support_defender.barrierSprite.setEnabled(false);
 						
-						if(nextAction.attacked.hasBarrier){
+						if(nextAction.attacked && nextAction.attacked.hasBarrier){
+							var target;
+							if(nextAction.attacked.ref.isSubTwin){
+								target = _this._active_target_twin;
+							} else {
+								target = _this._active_target;
+							}
 							if(nextAction.attacked.type == "defender" || nextAction.attacked.type == "initiator"){
-								_this._active_target.barrierSprite.setEnabled(true);
+								target.barrierSprite.setEnabled(true);
 							} else if(nextAction.attacked.type == "twin defend" || nextAction.attacked.type == "twin attack"){
-								_this._active_target.barrierSprite.setEnabled(true);
+								target.barrierSprite.setEnabled(true);
 							} else {
 								_this._active_support_defender.barrierSprite.setEnabled(true);
 							}
 						}
-						if(nextAction.otherTarget && nextAction.otherTarget.hasBarrier){
-							if(nextAction.otherTarget.type == "defender" || nextAction.otherTarget.type == "initiator"){
-								_this._active_target_twin.barrierSprite.setEnabled(true);
-							} else if(nextAction.otherTarget.type == "twin defend" || nextAction.otherTarget.type == "twin attack"){
-								_this._active_target_twin.barrierSprite.setEnabled(true);
+						if(nextAction.attacked_all_sub && nextAction.attacked_all_sub.hasBarrier){
+							var target;
+							if(nextAction.attacked_all_sub.ref.isSubTwin){
+								target = _this._active_target_twin;
+							} else {
+								target = _this._active_target;
+							}
+							if(nextAction.attacked_all_sub.type == "defender" || nextAction.attacked_all_sub.type == "initiator"){
+								target.barrierSprite.setEnabled(true);
+							} else if(nextAction.attacked_all_sub.type == "twin defend" || nextAction.attacked_all_sub.type == "twin attack"){
+								target.barrierSprite.setEnabled(true);
 							} 
 						}
 						var attack = nextAction.action.attack;

@@ -4425,11 +4425,16 @@ var $battleSceneManager = new BattleSceneManager();
 											supporters = [];
 										}
 										
+										var allRequired = false;
+										if($gameTemp.actorAction && $gameTemp.actorAction.attack){
+											allRequired = $gameTemp.actorAction.attack.isAll ? 1 : -1;
+										}
+										
 										var supporterInfo = [];
 										var supporterSelected = -1;
 										var bestDamage = 0;
 										for(var i = 0; i < supporters.length; i++){
-											var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo);
+											var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo, false, false, false, allRequired);
 											if(weaponResult.weapon){
 												supporters[i].action = {type: "attack", attack: weaponResult.weapon};
 												supporterInfo.push(supporters[i]);
@@ -13683,11 +13688,16 @@ SceneManager.reloadCharacters = function(startEvent){
 			supporters = [];
 		}
 		
+		var allRequired = false;
+		if($gameTemp.enemyAction && $gameTemp.enemyAction.attack){
+			allRequired = $gameTemp.enemyAction.attack.isAll ? 1 : -1;
+		}
+		
 		var supporterInfo = [];
 		var supporterSelected = -1;
 		var bestDamage = 0;
 		for(var i = 0; i < supporters.length; i++){
-			var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], actorInfo);
+			var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], actorInfo, false, false, false, allRequired);
 			if(weaponResult.weapon){
 				supporters[i].action = {type: "attack", attack: weaponResult.weapon};
 				supporterInfo.push(supporters[i]);

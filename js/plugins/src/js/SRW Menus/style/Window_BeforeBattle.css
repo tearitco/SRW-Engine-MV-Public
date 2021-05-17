@@ -127,8 +127,6 @@
 	display: flex;
 }
 
-
-
 .participant_block .main_row .percent_indicator {
 	margin-right: auto;
 	height: 100%;
@@ -138,7 +136,11 @@
 	--fontsize: 2px;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: center;	
+}
+	
+.participant_block .percent_indicator .entry {
+	text-align: center;	
 }
 
 .participant_block .main_row .main_content {
@@ -641,6 +643,10 @@
 	--fontsize: 2px;
 	margin-right: 1.5%;
 	margin-left: 1.5%;
+}
+
+.participant_block_small .percent_indicator.all {
+	--fontsize: 1.5px;
 }
 
 

@@ -256,10 +256,12 @@ APPSTRINGS.ATTACKLIST = {
 	label_no_will: "Not enough Will!",
 	label_no_post_move: "Can't be used after moving!",
 	label_no_target: "No target!",
-	label_no_map_counter: "Can't counter with map attack!",
+	label_no_map_counter: "Can't counter with a map attack!",
 	label_no_participants: "No valid partner in range!",
 	label_no_terrain: "Can't hit the target terrain!",
-	label_no_all: "An ALL attack is required to participate!",
+	label_no_all: "An ALL attack is required!",
+	label_no_regular: "A single target attack is required!",
+	label_no_map_support: "Can't support with a map attack!"
 }
 
 APPSTRINGS.REWARDS = {

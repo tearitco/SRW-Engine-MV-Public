@@ -715,14 +715,17 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	}
 	
 	var target;
-	if(nextAction.attacked.type == "support defend" || nextAction.attacked.type == "support attack"){							
-		target = _this._participantTypeLookup[nextAction.attacked.ref._supportCacheReference];						
-	} else {
-		target = _this._participantTypeLookup[nextAction.attacked.ref._cacheReference];		
+	if(nextAction.attacked){
+		if(nextAction.attacked.type == "support defend" || nextAction.attacked.type == "support attack"){							
+			target = _this._participantTypeLookup[nextAction.attacked.ref._supportCacheReference];						
+		} else {
+			target = _this._participantTypeLookup[nextAction.attacked.ref._cacheReference];		
+		}	
 	}
+	
 	var allTarget;
 	if(nextAction.attacked_all_sub){
-		if(nextAction.attacked.type == "support defend" || nextAction.attacked.type == "support attack"){							
+		if(nextAction.attacked_all_sub.type == "support defend" || nextAction.attacked_all_sub.type == "support attack"){							
 			allTarget = _this._participantTypeLookup[nextAction.attacked_all_sub.ref._supportCacheReference];						
 		} else {
 			allTarget = _this._participantTypeLookup[nextAction.attacked_all_sub.ref._cacheReference];		
@@ -752,7 +755,10 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 		supportDefendReturnAnimation: null,
 	};
 	
-	processBattleAnimations("", target);
+	if(target){
+		processBattleAnimations("", target);
+	}
+	
 	if(allTarget){
 		processBattleAnimations("_all_sub", allTarget);
 	}

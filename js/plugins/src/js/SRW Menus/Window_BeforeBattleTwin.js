@@ -450,7 +450,11 @@ Window_BeforebattleTwin.prototype.update = function() {
 					$gameTemp.supportAttackSelected = _this._currentSupportSelection - 1;
 					if(_this._currentSupportSelection != 0){
 						var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];	
-						
+						if($gameTemp.currentTargetingSettings.actor == "all"){
+							$gameTemp.allAttackSelectionRequired = 1;
+						} else {
+							$gameTemp.allAttackSelectionRequired = -1;
+						}
 						$gameTemp.currentMenuUnit = {
 							actor: supporter.actor,
 							mech: supporter.actor.SRWStats.mech
@@ -493,8 +497,11 @@ Window_BeforebattleTwin.prototype.update = function() {
 								_this._currentSelection = 0;
 								_this.requestRedraw();	
 							}
-													
-						};		
+							$gameTemp.allAttackSelectionRequired = false;						
+						};	
+						$gameTemp.attackWindowCancelCallback = function(){
+							$gameTemp.allAttackSelectionRequired = false;
+						}	
 						$gameTemp.pushMenu = "attack_list";
 					}  else {
 						$gameTemp.twinSupportAttack = null;
@@ -509,7 +516,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 					$gameTemp.allAttackSelectionRequired = false;
 					if(_this._currentTwinTargetSelection == 0){
 						if($gameTemp.currentTargetingSettings.actorTwin == "all"){
-							$gameTemp.allAttackSelectionRequired = true;
+							//$gameTemp.allAttackSelectionRequired = true;
 						}
 						$gameTemp.currentMenuUnit = {
 							actor: $gameTemp.currentBattleActor,
@@ -517,7 +524,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 						};
 					} else {
 						if($gameTemp.currentTargetingSettings.actor == "all"){
-							$gameTemp.allAttackSelectionRequired = true;
+							//$gameTemp.allAttackSelectionRequired = true;
 						}
 						$gameTemp.currentMenuUnit = {
 							actor: $gameTemp.currentBattleActor.subTwin,
@@ -795,7 +802,7 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 		content+="<div>";
 		for(var i = 0; i < hitRates.length; i++){
 			var hitRate = hitRates[i];
-			content+="<div>";
+			content+="<div class='entry'>";
 			if(hitRate == -1){
 				content+="---";	
 			} else {
@@ -959,39 +966,125 @@ Window_BeforebattleTwin.prototype.createSmallParticipantBlock = function(ref, ac
 		content+=createPercentIndicator();		
 	}*/
 	
-	function createPercentIndicator(){		
+	function createPercentIndicator(){				
 		var content = "";
-		content+="<div class='scaled_text percent_indicator'>";
-		var hitRate = -1;
+		
+		var hitRates = [];
 		if(action.type == "attack"){	
+			var initiatorType;			
+			var slot;
+				
+			var initiatorType;			
 			if(allyOrEnemy == "ally"){
-				
-				var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
-				if(supporter){					
-					hitRate = $battleCalc.performHitCalculation(
-						{actor: supporter.actor, action: supporter.action},
-						{actor: $gameTemp.currentBattleEnemy, action: $gameTemp.enemyAction}
-					);
+				initiatorType = "actor";
+				slot = "main";
+				if(ref.isSubTwin){
+					slot = "twin";
 				}
-				
-				
 			} else {
-				
-				var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
-				if(supporter){	
-					hitRate = $battleCalc.performHitCalculation(
-						{actor: supporter.actor, action: supporter.action},
-						{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction}
-					);
+				initiatorType = "enemy";
+				slot = "main";
+				if(ref.isSubTwin){
+					slot = "twin";
 				}
-				
 			}
+		
+			
+			var initiator;			
+			var initiatorAction;	
+			if(slot == "main"){
+				var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
+				initiator = supporter.actor;
+				initiatorAction = supporter.action;
+			} else if(slot == "twin"){
+				initiator = $gameTemp.twinSupportAttack.actor;
+				initiatorAction = $gameTemp.twinSupportAttack.action;
+			} 
+			
+			var defenderInfo = [];
+			var defender;
+			var defenderAction;
+			var targetType = $gameTemp.currentTargetingSettings[initiatorType];
+			if(allyOrEnemy == "ally"){
+				if(targetType == "main"){
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleEnemy,					
+						defenderAction: $gameTemp.enemyAction
+					});
+				}
+				if(targetType == "twin"){
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleEnemy.subTwin,					
+						defenderAction: $gameTemp.enemyTwinAction
+					});
+				}
+				if(targetType == "all"){
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleEnemy,					
+						defenderAction: $gameTemp.enemyAction
+					});
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleEnemy.subTwin,					
+						defenderAction: $gameTemp.enemyTwinAction
+					});
+				}
+			} else {
+				if(targetType == "main"){
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleActor,					
+						defenderAction: $gameTemp.actorAction
+					});
+				}
+				if(targetType == "twin"){					
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleActor.subTwin,					
+						defenderAction: $gameTemp.actorTwinAction
+					});
+				}
+				if(targetType == "all"){
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleActor,					
+						defenderAction: $gameTemp.actorAction
+					});
+					defenderInfo.push({
+						defender: $gameTemp.currentBattleActor.subTwin,					
+						defenderAction: $gameTemp.actorTwinAction
+					});
+				}
+			}		
+			
+			var realIdx = 0;
+			for(var i = 0; i < defenderInfo.length; i++){
+				var hitRate = -1;
+				if(defenderInfo[i].defender && defenderInfo[i].defenderAction){
+					if(allyOrEnemy == "ally"){				
+						hitRate = $battleCalc.performHitCalculation(
+							{actor: initiator, action: initiatorAction, isInitiator: !$gameTemp.isEnemyAttack},
+							{actor: defenderInfo[i].defender, action: defenderInfo[i].defenderAction, isInitiator: $gameTemp.isEnemyAttack}
+						);					
+					} else {				
+						hitRate = $battleCalc.performHitCalculation(				
+							{actor: initiator, action: initiatorAction, isInitiator: $gameTemp.isEnemyAttack},
+							{actor: defenderInfo[i].defender, action: defenderInfo[i].defenderAction, isInitiator: !$gameTemp.isEnemyAttack}
+						);			
+					}			
+					hitRates[realIdx++] = hitRate;
+				}				
+			}			
 		}
-		if(hitRate == -1){
-			content+="---";	
-		} else {
-			content+=Math.floor(hitRate * 100)+"%";	
+		content+="<div class='scaled_text percent_indicator "+( hitRates.length > 1 ? "all" : "")+"'>";
+		content+="<div>";
+		for(var i = 0; i < hitRates.length; i++){
+			var hitRate = hitRates[i];
+			content+="<div class='entry'>";
+			if(hitRate == -1){
+				content+="---";	
+			} else {
+				content+=Math.floor(hitRate * 100)+"%";	
+			}
+			content+="</div>";
 		}
+		content+="</div>";
 		
 		content+="</div>";
 		return content;
@@ -1112,10 +1205,10 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	this._ally_support_1.style.display = "none";
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
-			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
+			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy");
 			this._enemy_support_1.style.display = "";
 		} else {
-			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "ally");
+			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally");
 			this._ally_support_1.style.display = "";
 		}
 		
@@ -1132,10 +1225,10 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	var supporter = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];	
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
-			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "ally");
+			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally");
 			this._ally_support_1.style.display = "";
 		} else {			
-			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
+			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy");
 			this._enemy_support_1.style.display = "";
 		}
 		
@@ -1156,10 +1249,10 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	this._enemy_support_2.style.display = "none";
 	if(supporter){
 		if($gameTemp.isEnemyAttack){
-			this._enemy_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "enemy");
+			this._enemy_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy");
 			this._enemy_support_2.style.display = "";
 		} else {
-			this._ally_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, true, "ally");
+			this._ally_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally");
 			this._ally_support_2.style.display = "";
 		}
 		
@@ -1363,7 +1456,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		if($gameTemp.currentTargetingSettings.actorTwin == "main"){
 			_this._targeting_arrows_2.style.transform = "rotate(45deg)";
 		}	
-		if($gameTemp.currentTargetingSettings.actor == "all"){
+		if($gameTemp.currentTargetingSettings.actorTwin == "all"){
 			_this._targeting_arrows_2.src = "img/system/targeting2.png";
 			_this._targeting_arrows_2.style.transform = "scaleY(-1)";
 			_this._targeting_arrows_2.style.top = "54.5%";

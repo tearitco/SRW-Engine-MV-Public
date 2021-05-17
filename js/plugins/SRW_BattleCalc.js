@@ -847,6 +847,25 @@ BattleCalc.prototype.generateBattleResult = function(){
 			defenders.push(this._allInfo.otherTarget);
 		}
 		
+		var hitInfoEntries = [];
+		var tmp = [];
+		for(var i = 0; i < defenders.length; i++){
+			if(!$gameTemp.battleEffectCache[defenders[i].actor._cacheReference].isDestroyed){
+				var hitInfo;
+				if(this._isSupportAttack){
+					hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._supportCacheReference];
+				} else {
+					hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._cacheReference];
+				}			
+				if(i == 1){
+					hitInfo = hitInfo.otherTarget;
+				}
+				hitInfoEntries.push(hitInfo);
+				tmp.push(defenders[i]);
+			}
+		}
+		defenders = tmp;
+		
 		for(var i = 0; i < defenders.length; i++){		
 			var attackedRef = "";
 			if(i == 1){
@@ -870,15 +889,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 					this._defender		
 				);*/
 				
-				var hitInfo;
-				if(this._isSupportAttack){
-					hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._supportCacheReference];
-				} else {
-					hitInfo = $gameTemp.battleTargetInfo[this._attacker.actor._cacheReference];
-				}			
-				if(i == 1){
-					hitInfo = hitInfo.otherTarget;
-				}
+				var hitInfo = hitInfoEntries[i];
 				var isHit = hitInfo.isHit;	
 				dCache.specialEvasion = hitInfo.specialEvasion;
 				
@@ -1195,7 +1206,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 				if($gameTemp.twinSupportAttack){
 					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
 				}
-				appendTargetingActions(supportAttacker, [defender], supportDefender, attackerSide, true);								
+				appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
 			}		
 		} else {
 			$gameTemp.defenderCounterActivated = false;
@@ -1222,7 +1233,7 @@ BattleCalc.prototype.generateBattleResult = function(){
 				if($gameTemp.twinSupportAttack){
 					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
 				}
-				appendTargetingActions(supportAttacker, [defender], supportDefender, attackerSide, true);								
+				appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
 			}	
 		}
 	} else {	
@@ -1506,7 +1517,7 @@ BattleCalc.prototype.getBestWeaponAndDamage = function(attackerInfo, defenderInf
 	var defenderHP = defenderInfo.actor.hp;
 	var canShootDown = false;
 	allWeapons.forEach(function(weapon){
-		if(!weapon.isMap && (!allRequired || weapon.isAll) && $statCalc.canUseWeapon(attackerInfo.actor, weapon, postMoveEnabledOnly, defenderInfo.actor) && (ignoreRange || _this.isTargetInRange(attackerInfo.pos, defenderInfo.pos, $statCalc.getRealWeaponRange(attackerInfo.actor, weapon), $statCalc.getRealWeaponMinRange(attackerInfo.actor, weapon)))){
+		if(!weapon.isMap && (!allRequired || (allRequired == 1 && weapon.isAll) || (allRequired == -1 && !weapon.isAll)) && $statCalc.canUseWeapon(attackerInfo.actor, weapon, postMoveEnabledOnly, defenderInfo.actor) && (ignoreRange || _this.isTargetInRange(attackerInfo.pos, defenderInfo.pos, $statCalc.getRealWeaponRange(attackerInfo.actor, weapon), $statCalc.getRealWeaponMinRange(attackerInfo.actor, weapon)))){
 			var damageResult = _this.performDamageCalculation(
 				{actor: attackerInfo.actor, action: {type: "attack", attack: weapon}},
 				{actor: defenderInfo.actor, action: {type: "none"}},
@@ -1588,12 +1599,12 @@ BattleCalc.prototype.updateTwinActions = function(){
 		}
 	}
 	
-	if(allAttackUsed){
+	/*if(allAttackUsed){
 		$gameTemp.supportAttackCandidates = [];
 		$gameTemp.supportAttackSelected = -1;
 		$gameTemp.supportDefendCandidates = [];
 		$gameTemp.supportDefendSelected = -1;
-	}
+	}*/
 	
 	$gameTemp.attackingTwinAction = null;
 	$gameTemp.defendingTwinAction = null;
@@ -1622,7 +1633,7 @@ BattleCalc.prototype.updateTwinActions = function(){
 			actor: targetActor,
 			pos: {x: $gameTemp.currentBattleEnemy.event.posX(), y: $gameTemp.currentBattleEnemy.event.posY()}
 		};
-		var allRequired = $gameTemp.currentTargetingSettings.actor == "all";
+		var allRequired = false;//$gameTemp.currentTargetingSettings.actor == "all";
 		
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isActorPostMove, allRequired);
 		if(weaponResult.weapon){
@@ -1653,7 +1664,7 @@ BattleCalc.prototype.updateTwinActions = function(){
 			actor: targetActor,
 			pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}
 		};
-		var allRequired = $gameTemp.currentTargetingSettings.enemy == "all";
+		var allRequired = false;//$gameTemp.currentTargetingSettings.enemy == "all";
 		
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isEnemyPostMove, allRequired);
 		if(weaponResult.weapon){

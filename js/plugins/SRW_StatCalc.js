@@ -3024,9 +3024,13 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 			canUse = false;
 			detail.postMove = true;
 		}
-		if(allRequired && !weapon.isAll){
+		if(allRequired == 1 && !weapon.isAll){
 			canUse = false;
 			detail.isAll = true;
+		}
+		if(allRequired == -1 && weapon.isAll){
+			canUse = false;
+			detail.isRegular = true;
 		}
 		var pos = {
 			x: this.getReferenceEvent(actor).posX(),
