@@ -33,7 +33,7 @@ Window_AttackList.prototype.validateAttack = function(attack) {
 	if($gameTemp.currentBattleEnemy){
 		rangeTarget = $gameTemp.currentBattleEnemy;
 	}
-	return $statCalc.canUseWeaponDetail(actor, attack, isPostMoveOnly, rangeTarget);	
+	return $statCalc.canUseWeaponDetail(actor, attack, isPostMoveOnly, rangeTarget, $gameTemp.allAttackSelectionRequired);	
 }
 
 Window_AttackList.prototype.createComponents = function() {

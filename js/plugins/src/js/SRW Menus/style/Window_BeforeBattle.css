@@ -535,8 +535,7 @@
 }
 
 #before_battle.twin #before_battle_btn_action {
-	left: 40%;
-    top: 92.5%;
+	display: none;
 }
 
 #before_battle.twin #before_battle_enemy_header {
@@ -758,3 +757,14 @@
     background-color: var(--section-bg-color-solid);
 }
 
+#before_battle.twin #before_battle_action_selection.slot_0 {
+	z-index: 5;
+	top: 24%;
+    left: 43.5%;
+}
+
+#before_battle.twin #before_battle_action_selection.slot_1 {
+	z-index: 5;
+	top: 56%;
+    left: 43.5%;
+}

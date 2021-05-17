@@ -2998,7 +2998,7 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 	return result;
 }
 
-StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledOnly, rangeTarget){
+StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledOnly, rangeTarget, allRequired){
 	var canUse = true;
 	var detail = {};
 	if(this.isActorSRWInitialized(actor)){
@@ -3023,6 +3023,10 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 		if(postMoveEnabledOnly && !weapon.postMoveEnabled){
 			canUse = false;
 			detail.postMove = true;
+		}
+		if(allRequired && !weapon.isAll){
+			canUse = false;
+			detail.isAll = true;
 		}
 		var pos = {
 			x: this.getReferenceEvent(actor).posX(),
@@ -3059,7 +3063,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 		}  else if(rangeTarget){
 			canUse = false;
 			detail.isMap2 = true;
-		}			
+		} 				
 	} else {
 		canUse = false;
 	} 	

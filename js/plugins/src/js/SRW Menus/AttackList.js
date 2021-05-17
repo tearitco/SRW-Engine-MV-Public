@@ -152,6 +152,14 @@ AttackList.prototype.createAttributeBlock = function(attack) {
 	}	
 	content+="</div>";
 	
+	if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+		content+="<div class='attribute_block_entry all scaled_width scaled_height scaled_text fitted_text'>";
+		if(attack.isAll){
+			content+="ALL";
+		} 
+		content+="</div>";
+	}
+	
 	
 	content+="</div>";
 	return content;

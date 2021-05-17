@@ -44,10 +44,14 @@ Window_BeforebattleTwin.prototype.getMaxMainSelection = function(){
 	if(!$gameTemp.currentBattleActor.isActor()){
 		return 2;
 	} else if($gameTemp.isEnemyAttack){
-		return 4;
+		return 3;
 	} else {
 		return 3;
 	}
+}
+
+Window_BeforebattleTwin.prototype.isALLContext = function(){
+	return $gameTemp.currentTargetingSettings.actor == "all" || $gameTemp.currentTargetingSettings.actorTwin == "all";
 }
 
 Window_BeforebattleTwin.prototype.incrementMainSelection = function(){
@@ -273,10 +277,15 @@ Window_BeforebattleTwin.prototype.update = function() {
 				SoundManager.playCursor();	
 				_this._currentEnemySelection++;
 				
-				if(_this._currentEnemySelection > 1){
-					_this._currentEnemySelection = 1;
-				}
-				
+				if($statCalc.isMainTwin($gameTemp.currentBattleEnemy)){
+					if(_this._currentEnemySelection > 1){
+						_this._currentEnemySelection = 1;
+					}
+				} else {
+					if(_this._currentEnemySelection > 0){
+						_this._currentEnemySelection = 0;
+					}
+				}				
 			}
 			
 		
@@ -291,7 +300,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 				SoundManager.playCursor();
 				_this.decrementActionSelection();
 			} else if(this._currentUIState == "main_selection"){
-				if($statCalc.isMainTwin($gameTemp.currentBattleEnemy)){
+				//if($statCalc.isMainTwin($gameTemp.currentBattleEnemy)){
 					SoundManager.playCursor();
 					if($statCalc.isMainTwin($gameTemp.currentBattleActor)){
 						_this._currentTwinTargetSelection = 1;
@@ -299,7 +308,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 						_this._currentTwinTargetSelection = 0;
 					}					
 					_this._currentUIState = "actor_twin_target_selection";
-				}				
+				//}				
 			} else if(this._currentUIState == "actor_twin_target_selection"){					
 				_this._currentTwinTargetSelection--;
 				if(_this._currentTwinTargetSelection < 0){
@@ -497,30 +506,83 @@ Window_BeforebattleTwin.prototype.update = function() {
 				this.requestRedraw();
 				if(_this._currentActionSelection == 0){
 					$gameTemp.actorAction.type == "attack";
-					$gameTemp.currentMenuUnit = {
-						actor: $gameTemp.currentBattleActor,
-						mech: $gameTemp.currentBattleActor.SRWStats.mech
-					};
+					$gameTemp.allAttackSelectionRequired = false;
+					if(_this._currentTwinTargetSelection == 0){
+						if($gameTemp.currentTargetingSettings.actorTwin == "all"){
+							$gameTemp.allAttackSelectionRequired = true;
+						}
+						$gameTemp.currentMenuUnit = {
+							actor: $gameTemp.currentBattleActor,
+							mech: $gameTemp.currentBattleActor.SRWStats.mech
+						};
+					} else {
+						if($gameTemp.currentTargetingSettings.actor == "all"){
+							$gameTemp.allAttackSelectionRequired = true;
+						}
+						$gameTemp.currentMenuUnit = {
+							actor: $gameTemp.currentBattleActor.subTwin,
+							mech: $gameTemp.currentBattleActor.subTwin.SRWStats.mech
+						};
+					}
 					$gameTemp.attackWindowCallback = function(attack){
 						$gameTemp.popMenu = true;	
-						$gameTemp.actorAction.type = "attack";
-						$gameTemp.actorAction.attack = attack;
-						_this._currentUIState = "main_selection";
+						var allSelected = false;
+						if(_this._currentTwinTargetSelection == 0){
+							$gameTemp.actorAction.type = "attack";
+							$gameTemp.actorAction.attack = attack;
+							if(attack.isAll){
+								$gameTemp.actorTwinAction.type = "defend";	
+								$gameTemp.currentTargetingSettings.actor = "all";
+								allSelected = true;
+							}
+						} else {
+							$gameTemp.actorTwinAction.type = "attack";
+							$gameTemp.actorTwinAction.attack = attack;
+							if(attack.isAll){
+								$gameTemp.actorAction.type = "defend";	
+								$gameTemp.currentTargetingSettings.actorTwin = "all";
+								allSelected = true;
+							}
+						}
+						if(allSelected){
+							_this._currentUIState = "main_selection";
+						} else {
+							_this._currentUIState = "enemy_twin_target_selection";
+						}
+						
 						_this._currentSelection = 0;
 						_this.requestRedraw();							
 					};		
 					$gameTemp.pushMenu = "attack_list";
 				}
 				if(_this._currentActionSelection == 1){
-					$gameTemp.actorAction.type = "defend";					
+					if(_this._currentTwinTargetSelection == 0){
+						$gameTemp.actorAction.type = "defend";	
+					} else {
+						$gameTemp.actorTwinAction.type = "defend";	
+					}	
+					_this._currentUIState = "main_selection";
 				}
 				if(_this._currentActionSelection == 2){
-					$gameTemp.actorAction.type = "evade";
+					if(_this._currentTwinTargetSelection == 0){
+						$gameTemp.actorAction.type = "evade";	
+					} else {
+						$gameTemp.actorTwinAction.type = "evade";	
+					}	
 					_this._currentUIState = "main_selection";
 				}
 			} else if(this._currentUIState == "actor_twin_target_selection"){
 				SoundManager.playOk();
-				_this._currentUIState = "enemy_twin_target_selection";
+				//_this._currentUIState = "enemy_twin_target_selection";
+				if(_this._currentTwinTargetSelection == 0){
+					if($gameTemp.isEnemyAttack){
+						_this._currentUIState = "action_selection";
+					} else if($gameTemp.currentTargetingSettings.actor != "all"){
+						_this._currentUIState = "enemy_twin_target_selection";
+					}
+				} else {
+					_this._currentUIState = "action_selection";
+				}				
 				this.requestRedraw();
 			} else if(this._currentUIState == "enemy_twin_target_selection"){
 				SoundManager.playOk();
@@ -537,7 +599,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 						$gameTemp.currentTargetingSettings.actorTwin = "twin";
 					}
 				}
-				//_this._currentUIState = "main_selection";
+				_this._currentUIState = "main_selection";
 				this.requestRedraw();
 			}					
 		}
@@ -1115,7 +1177,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		} else {
 			action = $gameTemp.actorTwinAction;
 		}
-		this._ally_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor.subTwin, action, true, "ally");
+		this._ally_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor.subTwin, action, false, "ally");
 		this._ally_twin.style.display = "";
 	} else {
 		this._ally_twin.innerHTML = "";
@@ -1129,7 +1191,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		} else {
 			action = $gameTemp.enemyTwinAction;
 		}
-		this._enemy_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy.subTwin, action, true, "enemy");
+		this._enemy_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy.subTwin, action, false, "enemy");
 		this._enemy_twin.style.display = "";
 	} else {
 		this._enemy_twin.innerHTML = "";
@@ -1172,7 +1234,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		_this._btn_demo.innerHTML = "DEMO: OFF";
 	}
 	
-	if(!$gameTemp.currentBattleActor.isActor()){
+	/*if(!$gameTemp.currentBattleActor.isActor()){
 		_this._btn_action.style.display = "none";
 		_this._btn_assist.style.display = "none";
 	} else {
@@ -1183,7 +1245,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		} else {
 			_this._btn_action.style.display = "none";
 		}
-	}	
+	}*/	
 	
 	_this._enemy_header.classList.remove("support_selection_header");
 	_this.assignFactionColorClass(_this._enemy_header, $gameTemp.currentBattleEnemy);
@@ -1235,7 +1297,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	
 	content = "";
 	content+="<div class='action_block "+(_this._currentActionSelection == 0 ? "selected" : "")+"'>";
-	content+="Counter";
+	content+="Attack";
 	content+="</div>";
 	content+="<div class='action_block "+(_this._currentActionSelection == 1 ? "selected" : "")+"'>";
 	content+="Defend";
@@ -1249,6 +1311,9 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		_this._action_selection.style.display = "";
 	}
 	_this._action_selection.innerHTML = content;
+	_this._action_selection.classList.remove("slot_0");
+	_this._action_selection.classList.remove("slot_1");
+	_this._action_selection.classList.add("slot_"+_this._currentTwinTargetSelection);
 	
 	var pilotIcons = this.getWindowNode().querySelectorAll(".pilot_icon");
 	pilotIcons.forEach(function(pilotIcon){
@@ -1348,7 +1413,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	this._ally_twin.classList.remove("selected");
 	this._ally_main.classList.remove("selected");
 	if(this._currentUIState == "actor_twin_target_selection" || this._currentUIState == "enemy_twin_target_selection"){
-		_this._ally_label.innerHTML = "Change Target";
+		_this._ally_label.innerHTML = "Select Action";
 		_this._ally_header.classList.add("support_selection_header");
 		if(_this._currentTwinTargetSelection == 0){
 			this._ally_main.classList.add("selected");

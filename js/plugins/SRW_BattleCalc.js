@@ -1623,11 +1623,12 @@ BattleCalc.prototype.updateTwinActions = function(){
 			pos: {x: $gameTemp.currentBattleEnemy.event.posX(), y: $gameTemp.currentBattleEnemy.event.posY()}
 		};
 		var allRequired = $gameTemp.currentTargetingSettings.actor == "all";
-		if(allRequired){
-			$gameTemp.currentTargetingSettings.actorTwin = "all";
-		}
+		
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isActorPostMove, allRequired);
 		if(weaponResult.weapon){
+			if(allRequired){
+				$gameTemp.currentTargetingSettings.actorTwin = "all";
+			}
 			actorTwinAction = {type: "attack", attack: weaponResult.weapon};												
 		} else {
 			actorTwinAction = {type: "defend"};				
@@ -1653,11 +1654,12 @@ BattleCalc.prototype.updateTwinActions = function(){
 			pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}
 		};
 		var allRequired = $gameTemp.currentTargetingSettings.enemy == "all";
-		if(allRequired){
-			$gameTemp.currentTargetingSettings.enemyTwin = "all";
-		}
+		
 		var weaponResult = this.getBestWeaponAndDamage(twinInfo, targetInfo, false, false, isEnemyPostMove, allRequired);
 		if(weaponResult.weapon){
+			if(allRequired){
+				$gameTemp.currentTargetingSettings.enemyTwin = "all";
+			}
 			enemyTwinAction = {type: "attack", attack: weaponResult.weapon};												
 		} else {
 			enemyTwinAction = {type: "defend"};				
