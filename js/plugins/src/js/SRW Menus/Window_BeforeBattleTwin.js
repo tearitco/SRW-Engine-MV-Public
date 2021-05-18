@@ -515,16 +515,15 @@ Window_BeforebattleTwin.prototype.update = function() {
 					$gameTemp.actorAction.type == "attack";
 					$gameTemp.allAttackSelectionRequired = false;
 					if(_this._currentTwinTargetSelection == 0){
-						if($gameTemp.currentTargetingSettings.actorTwin == "all"){
-							$gameTemp.allAttackSelectionRequired = true;
-						}
 						$gameTemp.currentMenuUnit = {
 							actor: $gameTemp.currentBattleActor,
 							mech: $gameTemp.currentBattleActor.SRWStats.mech
 						};
 					} else {
 						if($gameTemp.currentTargetingSettings.actor == "all"){
-							$gameTemp.allAttackSelectionRequired = true;
+							$gameTemp.allAttackSelectionRequired = 1;
+						} else {
+							$gameTemp.allAttackSelectionRequired = -1;
 						}
 						$gameTemp.currentMenuUnit = {
 							actor: $gameTemp.currentBattleActor.subTwin,
@@ -534,19 +533,44 @@ Window_BeforebattleTwin.prototype.update = function() {
 					$gameTemp.attackWindowCallback = function(attack){
 						$gameTemp.popMenu = true;	
 						var allSelected = false;
+						var allRequired = 0;
 						if(_this._currentTwinTargetSelection == 0){
 							$gameTemp.actorAction.type = "attack";
 							$gameTemp.actorAction.attack = attack;
-							if(attack.isAll){
-								$gameTemp.actorTwinAction.type = "defend";	
+							if(attack.isAll){												
 								$gameTemp.currentTargetingSettings.actor = "all";
 								allSelected = true;
+								allRequired = 1;
+							} else {
+								allRequired = -1;
+							} 
+							var target;
+							if($gameTemp.currentBattleEnemy.subTwin){
+								target = $gameTemp.currentBattleEnemy.subTwin;
+							} else {
+								target = $gameTemp.currentBattleEnemy;
+							}
+							var enemyInfo = {actor: $gameTemp.currentBattleEnemy, pos: {x: $gameTemp.currentBattleEnemy.event.posX(), y: $gameTemp.currentBattleEnemy.event.posY()}};
+							var actorInfo = {actor: $gameTemp.currentBattleActor.subTwin, pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}};
+
+							var weaponResult = $battleCalc.getBestWeaponAndDamage(actorInfo, enemyInfo, false, false, false, allRequired);
+							if(weaponResult.weapon){
+								$gameTemp.actorTwinAction.type = "attack";
+								$gameTemp.actorTwinAction.attack = weaponResult.weapon;
+								if(allSelected){
+									$gameTemp.currentTargetingSettings.actorTwin = "all";
+								} else if($gameTemp.currentBattleEnemy.subTwin){
+									$gameTemp.currentTargetingSettings.actorTwin = "twin";
+								} else {
+									$gameTemp.currentTargetingSettings.actorTwin = "main";
+								}
+							} else {
+								$gameTemp.actorTwinAction.type = "defend";	
 							}
 						} else {
 							$gameTemp.actorTwinAction.type = "attack";
 							$gameTemp.actorTwinAction.attack = attack;
 							if(attack.isAll){
-								$gameTemp.actorAction.type = "defend";	
 								$gameTemp.currentTargetingSettings.actorTwin = "all";
 								allSelected = true;
 							}
