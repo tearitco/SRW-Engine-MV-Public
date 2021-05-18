@@ -340,7 +340,7 @@ var $battleSceneManager = new BattleSceneManager();
 				actorId = $gameVariables.value(parts[1]);
 			}
 			
-			var event = $gameMap.event($gameSystem.ActorToEvent(actorId));
+			var event = $statCalc.getReferenceEvent($gameActors.actor(actorId));
 			if(event && !event.isErased()){
 				$gamePlayer.locate(event.posX(), event.posY());
 			}
@@ -356,6 +356,7 @@ var $battleSceneManager = new BattleSceneManager();
 			var deployInfo = $gameSystem.getDeployInfo();
 			deployInfo.count = 0;
 			deployInfo.assigned = {};
+			deployInfo.assignedSub = {};
 			deployInfo.assignedShips = {};
 			deployInfo.lockedSlots = {};
 			$gameSystem.setDeployInfo(deployInfo);
@@ -377,6 +378,19 @@ var $battleSceneManager = new BattleSceneManager();
 				actorId = $gameVariables.value(parts[1]);
 			}
 			deployInfo.assigned[args[0]] = actorId;
+			$gameSystem.setDeployInfo(deployInfo);
+        }
+		
+		if (command === 'assignSlotSub') {
+			//args[0]: slot 
+			//args[1]: actor id
+			var deployInfo = $gameSystem.getDeployInfo();
+			var actorId = args[1];
+			var parts = actorId.match(/\<(.*)\>/);	
+			if(parts && parts.length > 1){
+				actorId = $gameVariables.value(parts[1]);
+			}
+			deployInfo.assignedSub[args[0]] = actorId;
 			$gameSystem.setDeployInfo(deployInfo);
         }
 		
@@ -1752,7 +1766,7 @@ var $battleSceneManager = new BattleSceneManager();
 		});
 	}
 	
-	Game_System.prototype.deployActor = function(actor_unit, event, toAnimQueue) {
+	Game_System.prototype.deployActor = function(actor_unit, event, toAnimQueue, subId) {
 		var _this = this;
 		actor_unit.event = event;
 		_this.pushSrpgAllActors(event.eventId());
@@ -1803,6 +1817,10 @@ var $battleSceneManager = new BattleSceneManager();
 			deployInfo.assigned[currentMaxSlot+1] = actor_unit.actorId();
 		}
 		$gameSystem.setDeployInfo(deployInfo);
+		
+		if(subId != null){
+			actor_unit.subTwinId = subId;
+		}
 		
 		$statCalc.invalidateAbilityCache();
 		$statCalc.initSRWStats(actor_unit);
@@ -1936,7 +1954,7 @@ var $battleSceneManager = new BattleSceneManager();
 							validPosition = true;
 						}
 						if(validPosition){
-							_this.deployActor(actor_unit, event, toAnimQueue);
+							_this.deployActor(actor_unit, event, toAnimQueue, deployInfo.assignedSub[i]);
 						} else {
 							event.erase();
 						}						
@@ -2309,6 +2327,7 @@ var $battleSceneManager = new BattleSceneManager();
 			info = {
 				count: 0,
 				assigned: {},
+				assignedSub: {},
 				assignedShips: {},
 				lockedSlots: {},
 				favorites: {}

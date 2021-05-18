@@ -155,10 +155,6 @@ The rest of the pilot properties are set using metadata tags in the note field. 
 
 \<pilotGrantsGainsTo:1\> If specified all exp, kills and PP gained by this pilot will be added to the pilot with the specified id instead.<br>
 
-
-\<pilotSubTwinOnly:1\> If specified the pilot is forced to be the sub twin when twinned with a pilot that does not have this flag set.
-\<pilotMainTwinOnly:1\> If specified the pilot is forced to be the main twin when twinned with a pilot that does not have this flag set.
-
 #### Stat growth rates
 
 
@@ -329,6 +325,9 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
+
+
+
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -366,6 +365,9 @@ Units can be given the ability to combine into other units. Combined units have 
 When working with transforming or combining mechs it usually desirable for the upgrade levels of the transformed or combined mech to match those of the base mech.
 
 \<mechInheritsUpgradesFrom:1\>: The id of the mech from which the mech will inherit upgrade levels.
+
+
+
 
 
 ### Inheriting parts
@@ -578,8 +580,8 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
 \<weaponCategory:missile\> The particle type of the weapon: missile, funnel, beam, gravity, physical or  "".	
 \<weaponIsCounter:1\> If set to 1 the weapon will always trigger a Counter on the enemy turn. <br>
+\<weaponHPThreshold:50\> If set this weapon will only be usable when the user's HP falls below the specified value(percent). This property is also respected by the enemy AI.
 
- 
  
 Weapons can have up to two special effects.
 
@@ -760,6 +762,7 @@ The following example implements the commander ability:
 					{type: "hit", modType: "addFlat", value: 15, range: 1},{type: "evade", modType: "addFlat", value: 15, range: 1},
 					{type: "hit", modType: "addFlat", value: 12, range: 2},{type: "evade", modType: "addFlat", value: 12, range: 2},
 					{type: "hit", modType: "addFlat", value: 8, range: 3},{type: "evade", modType: "addFlat", value: 8, range: 3},
+
 				],
 				[//level 3
 					{type: "hit", modType: "addFlat", value: 20, range: 1},{type: "evade", modType: "addFlat", value: 20, range: 1},
@@ -1175,6 +1178,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	◆Plugin Command：assignSlot 0 <65>
 
 	This example first sets game variable 65 to a value of 1 and then assigns the content of that variable to slot 0. The end result is that actor 1 is assigned to slot 0.
+	
+* assignSlotSub slot actor\_id
+	Assign an actor to the subtwin position of a slot for the next deployment. Indirect id assignment is possible by providing the actor\_id in the form of \<game_variable\>.
 
 * assignShipSlot slot actor\_id
 	
@@ -1572,14 +1578,6 @@ A setting can be left blank by entering "" as its value.
 		* endId: the final event id 
 		<br>
 	This command will turn all the event ids between startId and endId into enemies with the same properties.
-
-* this.addSubTwinEnemy(mainEventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior)
-	
-	Spawn a sub twin for an already spawned enemy. Must be called after the main enemy has been added.
-
-	The parameters for this command are the same as for addEnemy, with the exception of:<br>
-		* mainEventId: the event id of the enemy for which this enemy will become the sub twin
-	
 
 * this.processEnemyAppearQueue()
 

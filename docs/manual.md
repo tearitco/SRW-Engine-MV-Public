@@ -327,6 +327,7 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
+
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -364,6 +365,7 @@ Units can be given the ability to combine into other units. Combined units have 
 When working with transforming or combining mechs it usually desirable for the upgrade levels of the transformed or combined mech to match those of the base mech.
 
 \<mechInheritsUpgradesFrom:1\>: The id of the mech from which the mech will inherit upgrade levels.
+
 
 
 
@@ -1176,6 +1178,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	◆Plugin Command：assignSlot 0 <65>
 
 	This example first sets game variable 65 to a value of 1 and then assigns the content of that variable to slot 0. The end result is that actor 1 is assigned to slot 0.
+	
+* assignSlotSub slot actor\_id
+	Assign an actor to the subtwin position of a slot for the next deployment. Indirect id assignment is possible by providing the actor\_id in the form of \<game_variable\>.
 
 * assignShipSlot slot actor\_id
 	
