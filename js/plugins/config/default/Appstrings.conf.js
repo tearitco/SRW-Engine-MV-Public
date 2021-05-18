@@ -284,7 +284,8 @@ APPSTRINGS.DEPLOYMENT = {
 	available: "Available",
 	label_selected: "selected",
 	title_selection: "Deploy a unit",
-	label_in_stage: "Press start to deploy"
+	label_in_stage: "Press start to deploy",
+	label_will_deploy: "will be deployed"
 }
 
 APPSTRINGS.REASSIGN = {

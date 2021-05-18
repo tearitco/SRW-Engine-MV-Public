@@ -2321,6 +2321,27 @@ var $battleSceneManager = new BattleSceneManager();
         return flag;
     };
 	
+	Game_System.prototype.getTwinInfo = function() {
+		if(!$gameSystem.twinInfo){
+			$gameSystem.twinInfo = {};
+		} 
+		return $gameSystem.twinInfo;
+    };
+	
+	Game_System.prototype.getIsTwinInfo = function() {
+		if(!$gameSystem.isTwinInfo){
+			$gameSystem.isTwinInfo = {};
+		} 
+		return $gameSystem.isTwinInfo;
+    };
+	
+	Game_System.prototype.getPreferredSlotInfo = function() {
+		if(!$gameSystem.preferredSlotInfo){
+			$gameSystem.preferredSlotInfo = {};
+		} 
+		return $gameSystem.preferredSlotInfo;
+    };
+	
 	Game_System.prototype.getDeployInfo = function() {
 		var info = $gameVariables.value(_nextMapDeployVariable);
 		if(!info){
@@ -9785,7 +9806,12 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.createDeploymentWindow = function() {
 		var _this = this;
-		this._deploymentWindow = new Window_Deployment(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+			this._deploymentWindow = new Window_DeploymentTwin(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		} else {
+			this._deploymentWindow = new Window_Deployment(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		}
+		
 		this._deploymentWindow.close();
 		this.addWindow(this._deploymentWindow);
 		this._deploymentWindow.hide();

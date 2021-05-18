@@ -85,6 +85,9 @@ window.Window_BeforeBattle = Window_BeforeBattle;
 import Window_BeforebattleTwin from "./Window_BeforebattleTwin.js";
 window.Window_BeforebattleTwin = Window_BeforebattleTwin;
 
+import Window_DeploymentTwin from "./Window_DeploymentTwin.js";
+window.Window_DeploymentTwin = Window_DeploymentTwin;
+
 
 import "./style/SRW_Menus.css";
 

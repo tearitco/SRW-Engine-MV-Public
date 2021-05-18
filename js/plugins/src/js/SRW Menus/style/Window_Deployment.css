@@ -16,8 +16,10 @@
 
 .available_list {	
     top: 16%;
-	height: 53.5%;
-	width: 61%;
+    height: 53.5%;
+    width: 64.5%;
+    overflow: hidden;
+    left: 8%;
 }
 
 .list_label {
@@ -113,9 +115,9 @@
 	position: absolute;
     border: 0.1vw solid #FFFFFF;
     height: 53.5%;
-    width: 20%;
+    width: 19%;
     top: 16%;
-    left: 70.8%;
+    left: 73%;
     background-color: var(--section-bg-color);
     border-radius: 1vw;
 }
@@ -147,4 +149,52 @@
     left: 70.8%;
     background-color: var(--section-bg-color);
     border-radius: 1vw;
+}
+
+.list_row .twin {
+	display: flex;
+	align-items: center;
+	padding: 0.5%;
+	border: 0.1vw solid #FFFFFF;
+	border-radius: 10px;
+	position: relative;
+	margin: 0.5%;
+	/*background-color: rgba(127, 127, 127, 0.5);*/
+	--widthpixels: 126;
+}
+
+.list_row .twin.deployable {
+	background-color: rgba(127, 200, 127, 0.5);
+}
+
+.list_row .twin.deployable.locked {
+	background-color: rgba(200, 127, 127, 0.5);
+}
+
+.list_row .twin .entry{
+	margin: 1.25%;
+}
+
+.list_row .twin .locked_icon{
+	position: absolute;
+	top: 0;
+	right: 0;
+	filter: var(--white-filter);
+	width: 13%;
+}
+
+.list_row .twin .deployed_icon {
+	position: absolute;
+	top: -5%;
+	right: -5%;
+	filter: var(--white-filter);
+	width: 30%;
+}
+
+.list_row .twin .order_icon {
+	position: absolute;
+	right: 3%;
+	bottom: -5%;
+	color: var(--text-color-highlight);
+	--fontsize: 1.5px;
 }
