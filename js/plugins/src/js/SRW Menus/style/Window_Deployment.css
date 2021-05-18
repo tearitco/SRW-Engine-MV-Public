@@ -179,6 +179,12 @@
 	background-color: rgba(200, 127, 127, 0.5);
 }
 
+.list_row .twin.swap {
+	border-color:  rgba(60, 255, 60, 1);
+	box-shadow: 0px 0px 0px 2px #99ff99;
+}
+
+
 .list_row .twin .entry{
 	margin: 1.25%;
 }

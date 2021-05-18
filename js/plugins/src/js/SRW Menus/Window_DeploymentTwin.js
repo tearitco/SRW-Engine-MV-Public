@@ -31,12 +31,14 @@ Window_DeploymentTwin.prototype.initialize = function() {
 	this._rearrageSelection = 0;
 	
 	this._swapSource = -1;
+	this._twinSwapSource = -1;
 }
 
 Window_DeploymentTwin.prototype.resetSelection = function(){
 	this._currentSelection = 0;
 	this._currentPage = 0;
 	this._swapSource = -1;
+	this._twinSwapSource = -1;
 	this._rearrageSelection = 0;
 }
 
@@ -209,17 +211,142 @@ Window_DeploymentTwin.prototype.update = function() {
 		
 		if(Input.isTriggered('ok')){	
 			//if(this._UIState == "rearrange_slots"){
+			function swapSlots(sourceActorId, sourceSlot, sourceType, targetActorId, targetSlot, targetType, leaveDanglingSub){
+				var deployInfo = $gameSystem.getDeployInfo();			
+				
+			
+				if(targetSlot < deployInfo.count * 1 || sourceSlot < deployInfo.count * 1){
+					var sourceInfo;
+					var targetInfo;	
+					
+					if(targetType == "main"){
+						targetInfo = deployInfo.assigned;								
+					} else {									
+						targetInfo = deployInfo.assignedSub;																			
+					}
+					if(sourceType == "main"){
+						sourceInfo = deployInfo.assigned;								
+					} else {
+						sourceInfo = deployInfo.assignedSub;		
+					}
+					
+					if(targetSlot <= deployInfo.count){
+						if(sourceActorId != -1){
+							targetInfo[targetSlot] = sourceActorId;
+						} else {
+							delete targetInfo[targetSlot];
+						}
+					}
+					
+					if(sourceSlot <= deployInfo.count){
+						if(targetActorId != -1){
+							sourceInfo[sourceSlot] = targetActorId;
+						} else {
+							delete sourceInfo[sourceSlot];
+						}
+					}
+					
+					if(!leaveDanglingSub){
+						if(!deployInfo.assigned[targetSlot] && deployInfo.assignedSub[targetSlot]){
+							deployInfo.assigned[targetSlot] = deployInfo.assignedSub[targetSlot];
+							delete deployInfo.assignedSub[targetSlot];
+						}
+						if(!deployInfo.assigned[sourceSlot] && deployInfo.assignedSub[sourceSlot]){
+							deployInfo.assigned[sourceSlot] = deployInfo.assignedSub[sourceSlot];
+							delete deployInfo.assignedSub[sourceSlot];
+						}
+					}
+					
+					
+					_this.updateDeployInfo(deployInfo);
+				} 
+				var preferredSlotInfo = $gameSystem.getPreferredSlotInfo();
+				
+				
+				Object.keys(preferredSlotInfo).forEach(function(slot){
+					var info = preferredSlotInfo[slot];
+					
+					if(info.main == sourceActorId || info.main == targetActorId){
+						info.main = -1;
+					}
+					if(info.sub == sourceActorId || info.sub == targetActorId){
+						info.sub = -1;
+					}
+				});
+				
+				if(!preferredSlotInfo[targetSlot]){
+					preferredSlotInfo[targetSlot] = {
+						main: -1,
+						sub: -1
+					};
+				}							
+				if(sourceActorId != -1){
+					if(targetType == "main"){
+						preferredSlotInfo[targetSlot].main = sourceActorId;								
+					} else {
+						preferredSlotInfo[targetSlot].sub = sourceActorId;			
+					}								
+				}
+				
+				if(!preferredSlotInfo[sourceSlot]){
+					preferredSlotInfo[sourceSlot] = {
+						main: -1,
+						sub: -1
+					};
+				}
+				if(targetActorId != -1){								
+					if(sourceType == "main"){
+						preferredSlotInfo[sourceSlot].main = targetActorId;								
+					} else {
+						preferredSlotInfo[sourceSlot].sub = targetActorId;			
+					}
+				}		
+			}
+				
+				
 				var currentSelection = this._availableList.querySelector(".active");
 				if(currentSelection){				
 					var isLocked = currentSelection.getAttribute("data-islocked") * 1;
 					this.requestRedraw();
-					var deployInfo = $gameSystem.getDeployInfo();
+					
 					if(isLocked){
 						SoundManager.playBuzzer();
 					} else {
 						var swapSelection = this._availableList.querySelector(".swap");
 						if(!swapSelection){
 							this._swapSource = this._rearrageSelection;
+						} else if(swapSelection.classList.contains("twin")){	
+							currentSelection = currentSelection.closest(".twin");
+							var targetSlot = Math.floor(_this._rearrageSelection / 2);
+							var sourceSlot = Math.floor(_this._twinSwapSource);
+							
+							var sourceActorId = swapSelection.querySelector(".entry.main").getAttribute("data-actorid") * 1;
+							var targetActorId = currentSelection.querySelector(".entry.main").getAttribute("data-actorid") * 1;
+							
+							swapSlots(
+								sourceActorId, 
+								sourceSlot, 
+								"main",
+								targetActorId,
+								targetSlot,
+								"main",
+								true
+							);
+
+							var sourceActorId = swapSelection.querySelector(".entry.sub").getAttribute("data-actorid") * 1;
+							var targetActorId = currentSelection.querySelector(".entry.sub").getAttribute("data-actorid") * 1;
+							
+							swapSlots(
+								sourceActorId, 
+								sourceSlot, 
+								"sub",
+								targetActorId,
+								targetSlot,
+								"sub",
+								true
+							);							
+							
+							this._twinSwapSource = -1;
 						} else if(this._swapSource != this._rearrageSelection){	
 							var sourceActorId = swapSelection.getAttribute("data-actorid") * 1;
 							var targetActorId = currentSelection.getAttribute("data-actorid") * 1;
@@ -227,160 +354,51 @@ Window_DeploymentTwin.prototype.update = function() {
 							var targetSlot = Math.floor(_this._rearrageSelection / 2);
 							var sourceSlot = Math.floor(_this._swapSource / 2);
 						
-							if(_this._rearrageSelection / 2 <= deployInfo.count || _this._swapSource / 2 <= deployInfo.count){
-								var sourceInfo;
-								var targetInfo;	
-								
-								if(!(_this._rearrageSelection % 2)){
-									targetInfo = deployInfo.assigned;								
-								} else {
-									//if(deployInfo.assigned[targetSlot] == null){
-									//	targetInfo = deployInfo.assigned;		
-									//} else {
-										targetInfo = deployInfo.assignedSub;		
-									//}									
-								}
-								if(!(_this._swapSource % 2)){
-									sourceInfo = deployInfo.assigned;								
-								} else {
-									sourceInfo = deployInfo.assignedSub;		
-								}
-								
-								if(_this._rearrageSelection / 2 <= deployInfo.count){
-									if(sourceActorId != -1){
-										targetInfo[targetSlot] = sourceActorId;
-									} else {
-										delete targetInfo[targetSlot];
-									}
-								}
-								
-								if(_this._swapSource / 2 <= deployInfo.count){
-									if(targetActorId != -1){
-										sourceInfo[sourceSlot] = targetActorId;
-									} else {
-										delete sourceInfo[sourceSlot];
-									}
-								}
-								
-								if(!deployInfo.assigned[targetSlot] && deployInfo.assignedSub[targetSlot]){
-									deployInfo.assigned[targetSlot] = deployInfo.assignedSub[targetSlot];
-									delete deployInfo.assignedSub[targetSlot];
-								}
-								if(!deployInfo.assigned[sourceSlot] && deployInfo.assignedSub[sourceSlot]){
-									deployInfo.assigned[sourceSlot] = deployInfo.assignedSub[sourceSlot];
-									delete deployInfo.assignedSub[sourceSlot];
-								}
-								
-								this.updateDeployInfo(deployInfo);
-							} 
-							
-							//var twinInfo = $gameSystem.getTwinInfo();
-							//var isTwinInfo = $gameSystem.getIsTwinInfo();
-							var preferredSlotInfo = $gameSystem.getPreferredSlotInfo();
-							
-							/*if(sourceActorId != -1){
-								if(!(_this._swapSource % 2)){
-									delete isTwinInfo[sourceActorId];								
-								} else {
-									isTwinInfo[sourceActorId] = true;	
-								}
-							}
-							
-							if(targetActorId != -1){
-								if(!(_this._rearrageSelection % 2)){
-									delete isTwinInfo[targetActorId];								
-								} else {
-									isTwinInfo[targetActorId] = true;	
-								}
-							}*/
-							
-							Object.keys(preferredSlotInfo).forEach(function(slot){
-								var info = preferredSlotInfo[slot];
-								
-								if(info.main == sourceActorId || info.main == targetActorId){
-									info.main = -1;
-								}
-								if(info.sub == sourceActorId || info.sub == targetActorId){
-									info.sub = -1;
-								}
-							});
-							
-							if(!preferredSlotInfo[targetSlot]){
-								preferredSlotInfo[targetSlot] = {
-									main: -1,
-									sub: -1
-								};
-							}							
-							if(sourceActorId != -1){
-								if(!(_this._rearrageSelection % 2)){
-									preferredSlotInfo[targetSlot].main = sourceActorId;								
-								} else {
-									preferredSlotInfo[targetSlot].sub = sourceActorId;			
-								}								
-							}
-							
-							if(!preferredSlotInfo[sourceSlot]){
-								preferredSlotInfo[sourceSlot] = {
-									main: -1,
-									sub: -1
-								};
-							}
-							if(targetActorId != -1){								
-								if(!(_this._swapSource % 2)){
-									preferredSlotInfo[sourceSlot].main = targetActorId;								
-								} else {
-									preferredSlotInfo[sourceSlot].sub = targetActorId;			
-								}
-							}							
+							swapSlots(
+								sourceActorId, 
+								sourceSlot, 
+								!(_this._swapSource % 2) ? "main" : "sub",
+								targetActorId,
+								targetSlot,
+								!(_this._rearrageSelection % 2) ? "main" : "sub",
+							);	
 							
 							this._swapSource = -1;
 						}
 						SoundManager.playOk();
 					}
 				}				
-			/*} else {
-				var availableUnits = this.getAvailableUnits();
-				var slotLookup = this.getSlotLookup();
-				var deployInfo = $gameSystem.getDeployInfo();
-				var actorId = availableUnits[this._deployedSelection].actorId()
-				var slot = slotLookup[actorId];
-				var ctr = 0;
-				while(ctr < deployInfo.count && typeof slot == "undefined"){
-					if(!deployInfo.assigned[ctr]){
-						slot = ctr;
-					}
-					ctr++;
-				}
-				if(typeof slot == "undefined" || deployInfo.lockedSlots[slot] || $statCalc.isShip($gameActors.actor(actorId))){
-					SoundManager.playBuzzer();
-				} else {
-					this.requestRedraw();
-					if(typeof deployInfo.assigned[slot] == "undefined"){
-						deployInfo.assigned[slot] = actorId;
-					} else {
-						delete deployInfo.assigned[slot];
-					}
-					this.updateDeployInfo(deployInfo);
-				}	
-			}*/
+			
 					
 		}
 		
 		if(Input.isTriggered('shift')){
-			if(this._UIState == "select_deploy_slot"){
-				var availableUnits = this.getAvailableUnits();
-				var deployInfo = $gameSystem.getDeployInfo();
-				var actorId = availableUnits[this._deployedSelection].actorId();
-				if(!$statCalc.isShip($gameActors.actor(actorId))){
-					deployInfo.favorites[actorId] = !deployInfo.favorites[actorId];		
-					this.requestRedraw();	
-					this.updateDeployInfo(deployInfo);
-				}				
+			var currentSelection = this._availableList.querySelector(".active");
+			if(currentSelection){				
+				var isLocked = currentSelection.getAttribute("data-islocked") * 1;
+				this.requestRedraw();
+				if(isLocked){
+					SoundManager.playBuzzer();
+				} else {
+					var swapSelection = this._availableList.querySelector(".swap");
+					if(!swapSelection){
+						this._twinSwapSource = Math.floor(this._rearrageSelection / 2);
+					}
+				}
 			}
+				
 		}
 		
 		if(Input.isTriggered('cancel')){	
-			this.onCancel();	
+			if(this._twinSwapSource != -1){
+				this.requestRedraw();
+				this._twinSwapSource = -1;
+			} else if(this._swapSource != -1){
+				this.requestRedraw();
+				this._swapSource = -1;
+			} else {
+				this.onCancel();
+			}				
 		}
 		if(Input.isTriggered('menu')){	
 			this.onMenu();	
@@ -445,17 +463,19 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		var content = "";
 		var displayClass = "";
 		
-		if(2 * idx == _this._swapSource){
+		var realIdx = 2 * idx;
+		
+		if(realIdx == _this._swapSource){
 			displayClass = "swap";
-		} else if(2 * idx == _this._rearrageSelection){
+		} else if(realIdx == _this._rearrageSelection){
 			displayClass = "active";
 		}
 		
-		content+="<div  class='twin "+(slot != null ? "deployable" : "")+" "+(deployInfo.lockedSlots[slot] ? "locked" : "")+"'>"
+		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(deployInfo.lockedSlots[slot] ? "locked" : "")+"'>"
 		if(listedUnits[actorId]){
 			actorId = null;
 		}
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+"'>"
+		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+" main'>"
 		//var actorId = deployInfo.assigned[i];
 		if(actorId != null && !listedUnits[actorId] && $statCalc.isValidForDeploy($gameActors.actor(actorId))){
 			listedUnits[actorId] = true;
@@ -477,7 +497,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		if(listedUnits[subActorId]){
 			subActorId = null;
 		}
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+"'>"
+		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+" sub'>"
 		//var actorId = deployInfo.assignedSub[i];
 		if(subActorId != null && !listedUnits[subActorId] && $statCalc.isValidForDeploy($gameActors.actor(subActorId))){
 			listedUnits[subActorId] = true;
@@ -516,17 +536,22 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	var unitsWithPreferredSlots = {};
 	Object.keys(preferredSlotInfo).forEach(function(slot){
 		var info = preferredSlotInfo[slot];
-		unitsWithPreferredSlots[info.main] = true;
-		unitsWithPreferredSlots[info.sub] = true;
+		if(slot >= deployInfo.count * 1){	
+			unitsWithPreferredSlots[info.main] = {status: "active", slot: slot};
+			unitsWithPreferredSlots[info.sub] = {status: "active", slot: slot};
+		} else {
+			unitsWithPreferredSlots[info.main] = {status: "overwritten", slot: slot};
+			unitsWithPreferredSlots[info.sub] = {status: "overwritten", slot: slot};
+		}
 	});
 	
-	function getUnassignedActorId(){
+	function getUnassignedActorId(slot){
 		var result;
 		var ctr = 0;
 		while(!result && ctr < availableUnits.length){
 			var actor = availableUnits[ctr++];
 			var actorId = actor.actorId();
-			if(!listedUnits[actorId] && !unitsWithPreferredSlots[actorId] && !$statCalc.isShip(actor)){
+			if(!listedUnits[actorId] && (!unitsWithPreferredSlots[actorId] || unitsWithPreferredSlots[actorId].status == "overwritten") && !$statCalc.isShip(actor)){
 				result = actorId;
 			}
 		}
@@ -543,40 +568,25 @@ Window_DeploymentTwin.prototype.redraw = function() {
 			availableContent+=createTwinEntry(deployInfo.assigned[i], deployInfo.assignedSub[i], i, rowCtr);
 			rowCtr++;
 		} else {
-			/*var availableUnitIdx = i - deployInfo.count;
-			if(availableUnitIdx < availableUnits.length){
-				var actorId = availableUnits[availableUnitIdx].actorId();
-				if(preferredSlotInfo[i] != null && preferredSlotInfo[i] != actorId){
-					skippedIds.push(actorId);
-					actorId = preferredSlotInfo[i];
-				}
-				if(!isTwinInfo[actorId] && !$statCalc.isShip($gameActors.actor(actorId))){
-					availableContent+=createTwinEntry(actorId, twinInfo[actorId], null, rowCtr);
-					rowCtr++;
-				} else {
-					availableContent+=createTwinEntry(null, null, null, rowCtr);
-					rowCtr++;
-				}
-			} else if(skippedIds.length){
-				var actorId = skippedIds.shift();
-				if(!isTwinInfo[actorId] && !$statCalc.isShip($gameActors.actor(actorId))){
-					availableContent+=createTwinEntry(actorId, twinInfo[actorId], null, rowCtr);
-					rowCtr++;
-				} else {
-					availableContent+=createTwinEntry(null, null, null, rowCtr);
-					rowCtr++;
-				}
-			} else {
-				availableContent+=createTwinEntry(null, null, null, rowCtr);
-				rowCtr++;
-			}*/
-			if(preferredSlotInfo[i]){
+			
+			if(preferredSlotInfo[i] && (preferredSlotInfo[i].main != -1 || preferredSlotInfo[i].sub != -1)){
 				availableContent+=createTwinEntry(preferredSlotInfo[i].main, preferredSlotInfo[i].sub, null, rowCtr);
 				rowCtr++;
 			} else {
-				var actorId = getUnassignedActorId();
+				var actorId = getUnassignedActorId(i);
 				if(actorId){
-					availableContent+=createTwinEntry(actorId, null, null, rowCtr);
+					var slotInfo = {
+						main: actorId,
+						sub: -1
+					};
+					if(unitsWithPreferredSlots[actorId] && unitsWithPreferredSlots[actorId].status == "overwritten"){
+						slotInfo = preferredSlotInfo[unitsWithPreferredSlots[actorId].slot];
+						
+						delete preferredSlotInfo[unitsWithPreferredSlots[actorId].slot];
+					} 
+					preferredSlotInfo[i] = slotInfo;
+					
+					availableContent+=createTwinEntry(slotInfo.main, slotInfo.sub, null, rowCtr);
 					rowCtr++;
 				} else {
 					availableContent+=createTwinEntry(null, null, null, rowCtr);
@@ -586,71 +596,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		}		
 	}
 	
-	/*for(var i = 0; i < deployInfo.count; i++) { //
-		if(rowCtr != 0 && !(rowCtr % _this._rearrageRowSize)){
-			availableContent+="</div>";
-			availableContent+="<div class='list_row'>"
-		}
-		
-		var displayClass = "";
-		if(this._UIState == "rearrange_slots"){
-			if(i == _this._swapSource){
-				displayClass = "swap";
-			} else if(i == _this._rearrageSelection){
-				displayClass = "active";
-			}
-		}		
-		availableContent+=createTwinEntry(deployInfo.assigned[i], deployInfo.assignedSub[i], i, rowCtr);
-		rowCtr++;	
-		
-	}
 	
-	for(var i = 0; i < availableUnits.length; i++) { //
-		if(rowCtr != 0 && !(rowCtr % _this._availableRowSize)){
-			availableContent+="</div>";
-			availableContent+="<div class='list_row'>"
-		}
-		if(!$statCalc.isShip($gameActors.actor(availableUnits[i].actorId()))){
-			availableContent+=createTwinEntry(availableUnits[i].actorId(), null, null, rowCtr);
-			rowCtr++;
-		}		
-	}
-	availableContent+="</div>";
-	/*for(var i = 0; i < availableUnits.length; i++) { //
-		if(rowCtr != 0 && !(rowCtr % _this._availableRowSize)){
-			availableContent+="</div>";
-			availableContent+="<div class='list_row'>"
-		}
-		rowCtr++;
-		if(availableUnits[i] && $statCalc.isValidForDeploy(availableUnits[i])) {
-			availableContent+="<div class='entry "+(this._UIState == "select_deploy_slot" && _this._deployedSelection == i ? "active" : "")+"'>"
-		
-			var menuImagePath = $statCalc.getMenuImagePath(availableUnits[i]);
-			availableContent+="<img class='actor_img' src='img/"+menuImagePath+"'>";
-			
-			var actorId = availableUnits[i].actorId()
-			var slot = slotLookup[actorId];
-			if(deployInfo.lockedSlots[slot]){				
-				availableContent+="<img class='locked_icon' src='svg/padlock.svg'/>";
-			} else if(deployInfo.assigned[slot] != null){				
-				availableContent+="<img class='deployed_icon' src='svg/check_mark.svg'/>";
-			}
-			if(deployInfo.assigned[slot] != null){				
-				availableContent+="<div class='order_icon scaled_text'>"+(slot * 1 + 1)+"</div>";
-			}
-			
-			if(deployInfo.favorites[actorId]){
-				availableContent+="<img class='fav_icon' src='svg/round_star.svg'/>";
-			}
-			
-			if($statCalc.isShip($gameActors.actor(actorId))){
-				availableContent+="<img class='ship_icon' src='svg/anchor.svg'/>";
-			}
-		
-		
-			availableContent+="</div>";
-		}
-	}*/
 	availableContent+="</div>";
 	_this._availableList.innerHTML = availableContent;
 	
