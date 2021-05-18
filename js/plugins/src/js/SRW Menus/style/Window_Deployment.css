@@ -14,6 +14,14 @@
 	height: 22%;    
 }
 
+#deployment.twin .deployed_list {	
+    top: 71%;
+    height: 24.5%;  
+	left: 8%;
+	width: 84%;
+	display: flex;
+}
+
 .available_list {	
     top: 16%;
     height: 53.5%;
@@ -197,4 +205,122 @@
 	bottom: -5%;
 	color: var(--text-color-highlight);
 	--fontsize: 1.5px;
+}
+
+#deployment .left_items {
+	width: 40%;
+    height: 100%;	
+	display: inline-block;
+}
+
+#deployment .left_items .icon_hp_EN {
+	display: flex;
+	width: 100%;
+	height: 35%;
+}
+
+#deployment .right_items {
+	width: 20%;
+    height: 100%;	
+	display: inline-block;
+	margin-left: 2%;
+}
+
+#deployment .ability_block_row {
+	height: 2.7px;
+}
+
+#deployment .right_items .ability_block_row {
+	justify-content: center;
+}
+
+#deployment .right_items .pilot_stat_container {
+	width: 100%;
+	text-align: center;
+}
+
+#deployment .right_items .pilot_stat_container .stat_value{
+	margin-left: 0px;
+	margin-right: 0px;
+}
+
+#deployment .center_items .pilot_stat_container {
+	width: 10px;
+}
+
+#deployment .center_items {
+	width: 35%;
+    height: 100%;	
+	display: inline-block;
+	margin-left: 2%;
+}
+
+#deployment .stat_section {
+	height: 20%;
+}
+
+#deployment .stat_section_armor {
+	left: 1%;
+    top: 0%;	
+    width: 22.5%;
+}
+
+#deployment .stat_section_mobility {
+	left: 1%;
+    top: 20%;
+	width: 22.5%;
+}
+
+#deployment .stat_section_accuracy {
+	left: 1%;
+    top: 40%;
+	width: 22.5%;
+}
+
+#deployment .stat_section_size {
+	left: 25%;
+    top: 40%;
+	width: 25%;
+}
+
+#deployment .stat_section_move {
+	top: 20%;
+	width: 25%;
+	left: 25%;
+}
+
+#deployment .stat_section_terrain {
+	top: 0%;
+    width: 25%;
+    display: flex;
+    left: 25%;
+    align-items: center;
+}
+
+#deployment .pilot_stat_container {
+	border: 0px;
+}
+
+#deployment .pilot_stat_container.on {
+	color: var(--text-color-highlight2);	
+}
+
+#deployment .pilot_stat_container.off {
+	color: #888888;	
+}
+
+#deployment .stat_section_terrain .stat_label {
+	color: var(--text-color-highlight2);	
+}
+
+#deployment #detail_list_icon {
+	display: none;
+}
+
+#deployment .mech_hp_en_container {
+	position: relative;
+    width: 45%;
+    height: 114%;
+    margin-left: 1%;
+    margin-top: -1%;
 }

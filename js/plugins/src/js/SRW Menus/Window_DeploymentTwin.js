@@ -1,5 +1,5 @@
 import Window_CSS from "./Window_CSS.js";
-
+import DetailBarMechDetail from "./DetailBarMechDetail.js";
 import "./style/Window_Deployment.css"
 
 export default function Window_DeploymentTwin() {
@@ -50,6 +50,7 @@ Window_DeploymentTwin.prototype.getCurrentSelection = function(){
 }
 
 Window_DeploymentTwin.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -70,12 +71,29 @@ Window_DeploymentTwin.prototype.createComponents = function() {
 	this._deployedList.classList.add("deployed_list");
 	windowNode.appendChild(this._deployedList);	
 	
-	this._deployedListLabel = document.createElement("div");
+	this._detailBarMechDetail = new DetailBarMechDetail(this._deployedList, {
+		getCurrentSelection: function(){
+			var actorId;
+			var activeElem = _this._availableList.querySelector(".active");
+			if(activeElem){
+				actorId = activeElem.getAttribute("data-actorid");
+			}
+			
+			var pilotData;
+			if(actorId)	{
+				pilotData = $gameActors.actor(actorId);
+			}
+			return {actor: pilotData, mech: pilotData.SRWStats.mech};
+		}
+	});
+	this._detailBarMechDetail.createComponents();
+	
+	/*this._deployedListLabel = document.createElement("div");
 	this._deployedListLabel.classList.add("deployed_list_label");
 	this._deployedListLabel.classList.add("list_label");
 	this._deployedListLabel.classList.add("scaled_text");
 	this._deployedListLabel.innerHTML = APPSTRINGS.DEPLOYMENT.order;
-	windowNode.appendChild(this._deployedListLabel);	
+	windowNode.appendChild(this._deployedListLabel);	*/
 	
 	this._availableList = document.createElement("div");
 	this._availableList.classList.add("scrolled_list");
@@ -711,6 +729,10 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	});
 	
 	_this.updateScaledDiv(windowNode.querySelector("#deploy_pilot_icon"));
+	
+	if(pilotData && pilotData.SRWStats.mech.id != -1){
+		this._detailBarMechDetail.redraw();		
+	}
 	
 	Graphics._updateCanvas();
 	
