@@ -1180,88 +1180,63 @@ BattleCalc.prototype.generateBattleResult = function(){
 	}
 	
 		
-	if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
-		if(defenderCounterActivates){
-			$gameTemp.defenderCounterActivated = true;
+	
+	if(defenderCounterActivates){
+		$gameTemp.defenderCounterActivated = true;
+	
+		if(defenderTwin){
+			appendTargetingActions(defenderTwin, defenderTwinTarget, null, attackerSide);
+		}
 		
-			if(defenderTwin){
-				appendTargetingActions(defenderTwin, defenderTwinTarget, null, attackerSide);
+		appendTargetingActions(defender, defenderTarget, null, defenderSide);	
+		
+		if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){	
+			if($gameTemp.twinSupportAttack){
+				appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
 			}
-			
-			appendTargetingActions(defender, defenderTarget, null, defenderSide);	
-			
-			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){	
-				if($gameTemp.twinSupportAttack){
-					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
-				}
-				appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
-			}
-
-			if(attackerTwin){
-				appendTargetingActions(attackerTwin, attackerTwinTarget, supportDefender, attackerSide);
-			}	
-			
-			appendTargetingActions(attacker, attackerTarget, supportDefender, attackerSide);				
-
-			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){		
-				if($gameTemp.twinSupportAttack){
-					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
-				}
-				appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
-			}		
-		} else {
-			$gameTemp.defenderCounterActivated = false;
-			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){	
-				if($gameTemp.twinSupportAttack){
-					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
-				}
-				appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
-			}
-
-			if(attackerTwin){
-				appendTargetingActions(attackerTwin, attackerTwinTarget, supportDefender, attackerSide);
-			}	
-			
-			appendTargetingActions(attacker, attackerTarget, supportDefender, attackerSide);	
-			
-			if(defenderTwin){
-				appendTargetingActions(defenderTwin, defenderTwinTarget, null, defenderSide);
-			}
-			
-			appendTargetingActions(defender, defenderTarget, null, defenderSide);		
-
-			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-				if($gameTemp.twinSupportAttack){
-					appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
-				}
-				appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
-			}	
+			appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
 		}
-	} else {	
-		if(defenderCounterActivates){
-			$gameTemp.defenderCounterActivated = true;
-			actions.push(new BattleAction(defender, attacker, null, defenderSide));
-			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-			}	
-			actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));		
-			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-			}	
-		} else {
-			$gameTemp.defenderCounterActivated = false;
-			if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-			}					
-			
-			actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
-			
-			actions.push(new BattleAction(defender, attacker, null, defenderSide));		
 
-			if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
-				actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
-			}	
+		if(attackerTwin){
+			appendTargetingActions(attackerTwin, attackerTwinTarget, supportDefender, attackerSide);
+		}	
+		
+		appendTargetingActions(attacker, attackerTarget, supportDefender, attackerSide);				
+
+		if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){		
+			if($gameTemp.twinSupportAttack){
+				appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
+			}
+			appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
+		}		
+	} else {
+		$gameTemp.defenderCounterActivated = false;
+		if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){	
+			if($gameTemp.twinSupportAttack){
+				appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
+			}
+			appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
 		}
+
+		if(attackerTwin){
+			appendTargetingActions(attackerTwin, attackerTwinTarget, supportDefender, attackerSide);
+		}	
+		
+		appendTargetingActions(attacker, attackerTarget, supportDefender, attackerSide);	
+		
+		if(defenderTwin){
+			appendTargetingActions(defenderTwin, defenderTwinTarget, null, defenderSide);
+		}
+		
+		appendTargetingActions(defender, defenderTarget, null, defenderSide);		
+
+		if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+			if($gameTemp.twinSupportAttack){
+				appendTargetingActions($gameTemp.twinSupportAttack, attackerTarget, supportDefender, attackerSide, true);		
+			}
+			appendTargetingActions(supportAttacker, attackerTarget, supportDefender, attackerSide, true);								
+		}	
+		
 	}
 	$gameTemp.battleTargetInfo = {};	
 	for(var i = 0; i < actions.length; i++){
