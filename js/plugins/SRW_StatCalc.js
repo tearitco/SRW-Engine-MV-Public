@@ -1327,6 +1327,10 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			result.attribute2 = mechProperties.mechAttribute2.trim();
 		}
 		
+		if(mechProperties.mechNoTwin){
+			result.noTwin = mechProperties.mechNoTwin * 1;
+		}
+		
 		//result.transformedActor = mechProperties.mechTransformedActor;
 
 		/*var mechOnDeployMain;
@@ -1550,19 +1554,24 @@ StatCalc.prototype.twin = function(actor, otherActor){
 	}
 }
 
-StatCalc.prototype.validateTwinTarget = function(actor){
-	if(this.isShip(actor)){
-		return false;
-	}
-	if(this.isMainTwin(actor)){
-		return false;
-	}
-	if(this.getCurrentWill(actor) < 110){
-		return false;
-	}
-	if(actor.SRWStats.battleTemp.hasFinishedTurn){
-		return false;
-	}
+StatCalc.prototype.validateTwinTarget = function(actor, noWillRequired){
+	if(actor){
+		if(this.isShip(actor)){
+			return false;
+		}
+		if(this.isMainTwin(actor)){
+			return false;
+		}
+		if(this.getCurrentWill(actor) < 110 && !noWillRequired){
+			return false;
+		}
+		if(actor.SRWStats.battleTemp.hasFinishedTurn){
+			return false;
+		}
+		if(actor.SRWStats.mech.noTwin){
+			return false;
+		}
+	}	
 	return true;
 }
 

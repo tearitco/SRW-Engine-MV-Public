@@ -328,6 +328,7 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
+
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -521,6 +522,11 @@ Some mechs can not be deployed directly, these are usually mechs that other mech
 
 \<mechNotDeployable:1\>
 
+#### Mech that can't twin
+
+\<mechNoTwin: 1\> If specified the mech cannot be twinned with another unit.
+
+
 ### Attacks
 
 The attacks available to the mech, identified by a Weapon ID. Optional a second parameter can be provided, if set to 1 the attack will be locked for the mech until it is unlocked using the unlockMechWeapon plugin command.<br>
@@ -558,6 +564,8 @@ Image files for the battle scene are stored in the img/SRWBattleScene directory 
 \<mechBattleReferenceSize:3\> The world space size of the Mech's sprite. This size is used for determining the size and position of the unit's barrier.<br>
 \<mechBattleSceneDeathAnim:1\> Specifies the id of a battle animation to be played when the mech is destroyed. If omitted the default death animation is used.
 \<mechBattleYOffset: 1\> If specified the main sprite for the unit will be offset by the given amount. The offset is specified in world units.
+
+
 
 # Attacks
 

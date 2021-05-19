@@ -58,6 +58,7 @@ Window_DeploymentTwin.prototype.createComponents = function() {
 	var windowNode = this.getWindowNode();
 	
 	windowNode.classList.add("twin");
+	windowNode.classList.add("deployment");
 	
 	this._header = document.createElement("div");
 	this._header.id = this.createId("header");
@@ -76,7 +77,7 @@ Window_DeploymentTwin.prototype.createComponents = function() {
 	this._detailBarMechDetail = new DetailBarMechDetail(this._deployedList, {
 		getCurrentSelection: function(){
 			var actorId;
-			var activeElem = _this._availableList.querySelector(".active");
+			var activeElem = _this._availableList.querySelector(".focus");
 			if(activeElem){
 				actorId = activeElem.getAttribute("data-actorid");
 			}
@@ -211,165 +212,110 @@ Window_DeploymentTwin.prototype.update = function() {
 		
 		if(Input.isTriggered('ok')){	
 			//if(this._UIState == "rearrange_slots"){
-			function swapSlots(sourceActorId, sourceSlot, sourceType, targetActorId, targetSlot, targetType, leaveDanglingSub){
-				var deployInfo = $gameSystem.getDeployInfo();			
+			function swapSlots(sourceActorId, sourceSlot, sourceType, targetActorId, targetSlot, targetType, inBatch){
+				var deployList = $gameSystem.getDeployList();					
 				
-			
-				if(targetSlot < deployInfo.count * 1 || sourceSlot < deployInfo.count * 1){
-					var sourceInfo;
-					var targetInfo;	
-					
-					if(targetType == "main"){
-						targetInfo = deployInfo.assigned;								
-					} else {									
-						targetInfo = deployInfo.assignedSub;																			
-					}
-					if(sourceType == "main"){
-						sourceInfo = deployInfo.assigned;								
-					} else {
-						sourceInfo = deployInfo.assignedSub;		
-					}
-					
-					if(targetSlot <= deployInfo.count){
-						if(sourceActorId != -1){
-							targetInfo[targetSlot] = sourceActorId;
-						} else {
-							delete targetInfo[targetSlot];
-						}
-					}
-					
-					if(sourceSlot <= deployInfo.count){
-						if(targetActorId != -1){
-							sourceInfo[sourceSlot] = targetActorId;
-						} else {
-							delete sourceInfo[sourceSlot];
-						}
-					}
-					
-					if(!leaveDanglingSub){
-						if(!deployInfo.assigned[targetSlot] && deployInfo.assignedSub[targetSlot]){
-							deployInfo.assigned[targetSlot] = deployInfo.assignedSub[targetSlot];
-							delete deployInfo.assignedSub[targetSlot];
-						}
-						if(!deployInfo.assigned[sourceSlot] && deployInfo.assignedSub[sourceSlot]){
-							deployInfo.assigned[sourceSlot] = deployInfo.assignedSub[sourceSlot];
-							delete deployInfo.assignedSub[sourceSlot];
-						}
-					}
-					
-					
-					_this.updateDeployInfo(deployInfo);
-				} 
-				var preferredSlotInfo = $gameSystem.getPreferredSlotInfo();
-				
-				
-				Object.keys(preferredSlotInfo).forEach(function(slot){
-					var info = preferredSlotInfo[slot];
-					
-					if(info.main == sourceActorId || info.main == targetActorId){
-						info.main = -1;
-					}
-					if(info.sub == sourceActorId || info.sub == targetActorId){
-						info.sub = -1;
-					}
-				});
-				
-				if(!preferredSlotInfo[targetSlot]){
-					preferredSlotInfo[targetSlot] = {
-						main: -1,
-						sub: -1
-					};
-				}							
-				if(sourceActorId != -1){
-					if(targetType == "main"){
-						preferredSlotInfo[targetSlot].main = sourceActorId;								
-					} else {
-						preferredSlotInfo[targetSlot].sub = sourceActorId;			
-					}								
-				}
-				
-				if(!preferredSlotInfo[sourceSlot]){
-					preferredSlotInfo[sourceSlot] = {
-						main: -1,
-						sub: -1
+				if(!deployList[sourceSlot]){
+					deployList[sourceSlot] = {
+						main: null,
+						sub: null
 					};
 				}
-				if(targetActorId != -1){								
-					if(sourceType == "main"){
-						preferredSlotInfo[sourceSlot].main = targetActorId;								
-					} else {
-						preferredSlotInfo[sourceSlot].sub = targetActorId;			
-					}
-				}		
-			}
+				if(targetActorId && targetActorId != -1){	
+					deployList[sourceSlot][sourceType] = targetActorId;
+				} else {
+					deployList[sourceSlot][sourceType] = null;
+				}
 				
 				
-				var currentSelection = this._availableList.querySelector(".active");
-				if(currentSelection){				
-					var isLocked = currentSelection.getAttribute("data-islocked") * 1;
-					this.requestRedraw();
-					
-					if(isLocked){
-						SoundManager.playBuzzer();
-					} else {
-						var swapSelection = this._availableList.querySelector(".swap");
-						if(!swapSelection){
-							this._swapSource = this._rearrageSelection;
-						} else if(swapSelection.classList.contains("twin")){	
-							currentSelection = currentSelection.closest(".twin");
-							var targetSlot = Math.floor(_this._rearrageSelection / 2);
-							var sourceSlot = Math.floor(_this._twinSwapSource);
-							
-							var sourceActorId = swapSelection.querySelector(".entry.main").getAttribute("data-actorid") * 1;
-							var targetActorId = currentSelection.querySelector(".entry.main").getAttribute("data-actorid") * 1;
-							
-							swapSlots(
-								sourceActorId, 
-								sourceSlot, 
-								"main",
-								targetActorId,
-								targetSlot,
-								"main",
-								true
-							);
-
-							var sourceActorId = swapSelection.querySelector(".entry.sub").getAttribute("data-actorid") * 1;
-							var targetActorId = currentSelection.querySelector(".entry.sub").getAttribute("data-actorid") * 1;
-							
-							swapSlots(
-								sourceActorId, 
-								sourceSlot, 
-								"sub",
-								targetActorId,
-								targetSlot,
-								"sub",
-								true
-							);							
-							
-							this._twinSwapSource = -1;
-						} else if(this._swapSource != this._rearrageSelection){	
-							var sourceActorId = swapSelection.getAttribute("data-actorid") * 1;
-							var targetActorId = currentSelection.getAttribute("data-actorid") * 1;
-							
-							var targetSlot = Math.floor(_this._rearrageSelection / 2);
-							var sourceSlot = Math.floor(_this._swapSource / 2);
+				if(!deployList[targetSlot]){
+					deployList[targetSlot] = {
+						main: null,
+						sub: null
+					};
+				}
+				if(sourceActorId && sourceActorId != -1){	
+					deployList[targetSlot][targetType] = sourceActorId;
+				} else {
+					deployList[targetSlot][targetType] = null;
+				}
+				
+			}				
+				
+			var currentSelection = this._availableList.querySelector(".active");
+			if(currentSelection){				
+				var isLocked = currentSelection.getAttribute("data-islocked") * 1;
+				this.requestRedraw();
+				
+				if(isLocked){
+					SoundManager.playBuzzer();
+				} else {
+					var swapSelection = this._availableList.querySelector(".swap");
+					if(!swapSelection){
+						this._swapSource = this._rearrageSelection;
+					} else if(swapSelection.classList.contains("twin")){	
+						currentSelection = currentSelection.closest(".twin");
+						var targetSlot = Math.floor(_this._rearrageSelection / 2);
 						
-							swapSlots(
-								sourceActorId, 
-								sourceSlot, 
-								!(_this._swapSource % 2) ? "main" : "sub",
-								targetActorId,
-								targetSlot,
-								!(_this._rearrageSelection % 2) ? "main" : "sub",
-							);	
+						var sourceSlot = Math.floor(_this._twinSwapSource);
+						
+						var sourceActorId = swapSelection.querySelector(".entry.main").getAttribute("data-actorid") * 1;
+						var targetActorId = currentSelection.querySelector(".entry.main").getAttribute("data-actorid") * 1;
+						
+						swapSlots(
+							sourceActorId, 
+							sourceSlot, 
+							"main",
+							targetActorId,
+							targetSlot,
+							"main"
+						);
+
+						var sourceActorId = swapSelection.querySelector(".entry.sub").getAttribute("data-actorid") * 1;
+						var targetActorId = currentSelection.querySelector(".entry.sub").getAttribute("data-actorid") * 1;
+						
+						swapSlots(
+							sourceActorId, 
+							sourceSlot, 
+							"sub",
+							targetActorId,
+							targetSlot,
+							"sub"
+						);							
+						_this.updateDeployInfo();		
+						this._twinSwapSource = -1;
+					} else if(this._swapSource != this._rearrageSelection){	
+						
+						
+						var sourceActorId = swapSelection.getAttribute("data-actorid") * 1;
+						var targetActorId = currentSelection.getAttribute("data-actorid") * 1;
+						
+						var targetSlot = Math.floor(_this._rearrageSelection / 2);
+						var sourceSlot = Math.floor(_this._swapSource / 2);
+						
 							
-							this._swapSource = -1;
+						
+						
+						if(!_this.validateTwinSlot(sourceActorId, _this._swapSource, targetActorId, _this._rearrageSelection)){							
+							SoundManager.playBuzzer();
+							return;
 						}
-						SoundManager.playOk();
+						var noTwin = !$statCalc.validateTwinTarget($gameActors.actor(sourceActorId)) || !$statCalc.validateTwinTarget($gameActors.actor(sourceActorId));
+						
+						swapSlots(
+							sourceActorId, 
+							sourceSlot, 
+							!(_this._swapSource % 2) ? "main" : "sub",
+							targetActorId,
+							targetSlot,
+							!(_this._rearrageSelection % 2) ? "main" : "sub",
+						);	
+						_this.updateDeployInfo();		
+						this._swapSource = -1;
 					}
-				}				
-			
-					
+					SoundManager.playOk();
+				}
+			}						
 		}
 		
 		if(Input.isTriggered('shift')){
@@ -408,6 +354,49 @@ Window_DeploymentTwin.prototype.update = function() {
 	}		
 };
 
+Window_DeploymentTwin.prototype.validateTwinSlot = function(sourceActorId, sourceSelection, targetActorId, targetSelection) {
+	var deployList = $gameSystem.getDeployList();
+	
+	var targetSlot = Math.floor(targetSelection / 2);
+	var sourceSlot = Math.floor(sourceSelection / 2);
+	
+	var targetEntry = deployList[targetSlot] || {};
+	var sourceEntry = deployList[sourceSlot] || {}; 
+	var isValid = true;
+	if(!$statCalc.validateTwinTarget($gameActors.actor(sourceActorId), true)){
+		if(!(targetSelection % 2)){
+			if(targetEntry && targetEntry.sub && targetEntry.sub != sourceActorId){
+				isValid = false;
+			}
+		} else {
+			if(targetEntry && targetEntry.main && targetEntry.main != sourceActorId){
+				isValid = false;
+			}
+		}
+	}
+	
+	if((targetSelection % 2)){
+		if(targetEntry && targetEntry.main && targetEntry.main != sourceActorId){
+			if(!$statCalc.validateTwinTarget($gameActors.actor(targetEntry.main), true)){
+				isValid = false;
+			}
+		}
+	}
+	
+	if(!$statCalc.validateTwinTarget($gameActors.actor(targetActorId), true)){
+		if(!(sourceSelection % 2)){
+			if(sourceEntry && sourceEntry.sub){
+				isValid = false;
+			}
+		} else {
+			if(sourceEntry && sourceEntry.main){
+				isValid = false;
+			}
+		}
+	}
+	return isValid;
+}
+
 Window_DeploymentTwin.prototype.onCancel = function() {
 	SoundManager.playCancel();
 	if(this._UIState == "rearrange_slots" && this._swapSource != -1){
@@ -425,8 +414,16 @@ Window_DeploymentTwin.prototype.onMenu = function(){
 }
 
 Window_DeploymentTwin.prototype.updateDeployInfo = function(deployInfo) {
-	$gameSystem.setDeployInfo(deployInfo);
-	this._slotLookup = null;
+	//$gameSystem.setDeployInfo(deployInfo);
+	//this._slotLookup = null;
+	var deployList = $gameSystem.getDeployList();
+	for(var i = 0; i < deployList.length; i++){
+		if(deployList[i] && !deployList[i].main && deployList[i].sub){
+			deployList[i].main = deployList[i].sub;
+			deployList[i].sub = null;
+		} 
+	}
+	$gameSystem.syncPreferredSlots();
 }
 
 Window_DeploymentTwin.prototype.getAvailableUnits = function() {
@@ -457,25 +454,51 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	var windowNode = this.getWindowNode();
 	var deployInfo = $gameSystem.getDeployInfo();
 	var slotLookup = _this.getSlotLookup();
+	var deployList = $gameSystem.getDeployList();
 	var deployedContent = "";
 	
 	function createTwinEntry(actorId, subActorId, slot, idx){
 		var content = "";
 		var displayClass = "";
+		var displayClassValid = "";
+		var displayClassFocus = "";
 		
 		var realIdx = 2 * idx;
 		
+		var validTwinSlot = true;
+		if(_this._swapSource != -1){
+			var swapSelection = _this._availableList.querySelector(".swap");	
+			var sourceSlot = Math.floor(_this._swapSource / 2);
+			var entry = deployList[sourceSlot] || {};
+			var sourceActorId;
+			if(!(_this._swapSource % 2)){
+				sourceActorId = entry.main;
+			} else {
+				sourceActorId = entry.sub;
+			}
+			var targetActorId = actorId;
+			if(sourceActorId != null){
+				if(!_this.validateTwinSlot(sourceActorId, _this._swapSource, targetActorId, 2 * idx)){
+					displayClassValid = "invalid";
+				}
+			}			
+		}
+		
 		if(realIdx == _this._swapSource){
 			displayClass = "swap";
-		} else if(realIdx == _this._rearrageSelection){
-			displayClass = "active";
+		} else if(realIdx == _this._rearrageSelection){			
+			displayClass = "active";						
+		}
+		
+		if(realIdx == _this._rearrageSelection){			
+			displayClassFocus = "focus";						
 		}
 		
 		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(deployInfo.lockedSlots[slot] ? "locked" : "")+"'>"
 		if(listedUnits[actorId]){
 			actorId = null;
 		}
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+" main'>"
+		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+" "+displayClassValid+" "+displayClassFocus+" main'>"
 		//var actorId = deployInfo.assigned[i];
 		if(actorId != null && !listedUnits[actorId] && $statCalc.isValidForDeploy($gameActors.actor(actorId))){
 			listedUnits[actorId] = true;
@@ -488,16 +511,40 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		content+="</div>";
 		
 		displayClass = "";
+		displayClassValid = "";
+		displayClassFocus = "";
+		var validTwinSlot = true;
+		if(_this._swapSource != -1){
+			var swapSelection = _this._availableList.querySelector(".swap");	
+			var sourceSlot = Math.floor(_this._swapSource / 2);
+			var entry = deployList[sourceSlot] || {};
+			var sourceActorId;
+			if(!(_this._swapSource % 2)){
+				sourceActorId = entry.main;
+			} else {
+				sourceActorId = entry.sub;
+			}
+			var targetActorId = subActorId;
+			if(sourceActorId != null){
+				if(!_this.validateTwinSlot(sourceActorId, _this._swapSource, targetActorId, 2 * idx + 1)){
+					displayClassValid = "invalid";
+				}
+			}
+		}
+		
 		if(2 * idx + 1 == _this._swapSource){
 			displayClass = "swap";
-		} else if(2 * idx + 1 == _this._rearrageSelection){
-			displayClass = "active";
+		} else if(2 * idx + 1 == _this._rearrageSelection){		
+			displayClass = "active";				
+		}
+		if(2 * idx + 1 == _this._rearrageSelection){		
+			displayClassFocus = "focus";				
 		}
 		
 		if(listedUnits[subActorId]){
 			subActorId = null;
 		}
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+" sub'>"
+		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+" "+displayClassValid+"  "+displayClassFocus+" sub'>"
 		//var actorId = deployInfo.assignedSub[i];
 		if(subActorId != null && !listedUnits[subActorId] && $statCalc.isValidForDeploy($gameActors.actor(subActorId))){
 			listedUnits[subActorId] = true;
@@ -533,69 +580,37 @@ Window_DeploymentTwin.prototype.redraw = function() {
 
 	availableContent+="<div class='list_row'>";
 	
-	var unitsWithPreferredSlots = {};
-	Object.keys(preferredSlotInfo).forEach(function(slot){
-		var info = preferredSlotInfo[slot];
-		if(slot >= deployInfo.count * 1){	
-			unitsWithPreferredSlots[info.main] = {status: "active", slot: slot};
-			unitsWithPreferredSlots[info.sub] = {status: "active", slot: slot};
-		} else {
-			unitsWithPreferredSlots[info.main] = {status: "overwritten", slot: slot};
-			unitsWithPreferredSlots[info.sub] = {status: "overwritten", slot: slot};
-		}
-	});
-	
 	function getUnassignedActorId(slot){
 		var result;
 		var ctr = 0;
 		while(!result && ctr < availableUnits.length){
 			var actor = availableUnits[ctr++];
 			var actorId = actor.actorId();
-			if(!listedUnits[actorId] && (!unitsWithPreferredSlots[actorId] || unitsWithPreferredSlots[actorId].status == "overwritten") && !$statCalc.isShip(actor)){
+			if(!listedUnits[actorId] && !$statCalc.isShip(actor)){
 				result = actorId;
 			}
 		}
 		return result;
 	}
 	
+	
 	for(var i = 0; i < 40; i++) {
 		if(rowCtr != 0 && !(rowCtr % _this._rearrageRowSize)){
 			availableContent+="</div>";
 			availableContent+="<div class='list_row'>";
-			//usedSlots[i] = true;
 		}
+		
+		var deploySlot = null;
 		if(i < deployInfo.count){
-			availableContent+=createTwinEntry(deployInfo.assigned[i], deployInfo.assignedSub[i], i, rowCtr);
-			rowCtr++;
+			deploySlot = i;
+		}
+		if(deployList[i]){
+			availableContent+=createTwinEntry(deployList[i].main, deployList[i].sub, deploySlot, rowCtr);			
 		} else {
-			
-			if(preferredSlotInfo[i] && (preferredSlotInfo[i].main != -1 || preferredSlotInfo[i].sub != -1)){
-				availableContent+=createTwinEntry(preferredSlotInfo[i].main, preferredSlotInfo[i].sub, null, rowCtr);
-				rowCtr++;
-			} else {
-				var actorId = getUnassignedActorId(i);
-				if(actorId){
-					var slotInfo = {
-						main: actorId,
-						sub: -1
-					};
-					if(unitsWithPreferredSlots[actorId] && unitsWithPreferredSlots[actorId].status == "overwritten"){
-						slotInfo = preferredSlotInfo[unitsWithPreferredSlots[actorId].slot];
-						
-						delete preferredSlotInfo[unitsWithPreferredSlots[actorId].slot];
-					} 
-					preferredSlotInfo[i] = slotInfo;
-					
-					availableContent+=createTwinEntry(slotInfo.main, slotInfo.sub, null, rowCtr);
-					rowCtr++;
-				} else {
-					availableContent+=createTwinEntry(null, null, null, rowCtr);
-					rowCtr++;
-				}				
-			}
-		}		
-	}
-	
+			availableContent+=createTwinEntry(null, null, deploySlot, rowCtr);
+		}
+		rowCtr++;
+	}	
 	
 	availableContent+="</div>";
 	_this._availableList.innerHTML = availableContent;
@@ -604,7 +619,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	_this._availableListLabel.innerHTML = deployInfo.count + " " + APPSTRINGS.DEPLOYMENT.label_will_deploy;
 	
 	var actorId;
-	var activeElem = _this._availableList.querySelector(".active");
+	var activeElem = _this._availableList.querySelector(".focus");
 	if(activeElem){
 		actorId = activeElem.getAttribute("data-actorid");
 	}

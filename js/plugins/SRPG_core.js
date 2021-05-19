@@ -362,6 +362,10 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.setDeployInfo(deployInfo);
         }
 		
+		if (command === 'populateDeployList') {
+			$gameSystem.constructDeployList();
+		}
+		
 		if (command === 'setDeployCount') {
 			var deployInfo = $gameSystem.getDeployInfo();
 			deployInfo.count = args[0];
@@ -569,6 +573,14 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 		
 		if (command === 'deployAll') {
+			var deployInfo = $gameSystem.getDeployInfo();
+			var deployList = $gameSystem.getDeployList();
+			//$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()))
+			var activeDeployList = [];
+			for(var i = 0; i < deployInfo.count; i++){
+				activeDeployList.push(deployList[i]);
+			}
+			$gameSystem.setActiveDeployList(activeDeployList);
 			$gameSystem.deployActors(args[0]);
 		}
 		
@@ -1801,7 +1813,7 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameMap.setEventImages();			
 		}
 		
-		var deployInfo = $gameSystem.getDeployInfo();
+		/*var deployInfo = $gameSystem.getDeployInfo();
 		var currentSlot = -1;
 		var currentMaxSlot = -1;
 		
@@ -1816,7 +1828,7 @@ var $battleSceneManager = new BattleSceneManager();
 		if(currentSlot == -1){
 			deployInfo.assigned[currentMaxSlot+1] = actor_unit.actorId();
 		}
-		$gameSystem.setDeployInfo(deployInfo);
+		$gameSystem.setDeployInfo(deployInfo);*/
 		
 		if(subId != null){
 			actor_unit.subTwinId = subId;
@@ -1934,18 +1946,17 @@ var $battleSceneManager = new BattleSceneManager();
 	Game_System.prototype.deployActors = function(toAnimQueue, lockedOnly, validatePositions) {
 		var _this = this;
 		var deployInfo = _this.getDeployInfo();
+		var deployList = _this.getActiveDeployList();
 		var i = 0;
         $gameMap.events().forEach(function(event) {
             if (event.isType() === 'actor' && !event.isDeployed) {
               	var actor_unit;
-				var actorId = deployInfo.assigned[i];		
-				if(!lockedOnly || deployInfo.lockedSlots[i]){
+				var entry = deployList[i] || {};
+				var actorId =entry.main;		
+				if((!lockedOnly || deployInfo.lockedSlots[i])){
 					if(typeof actorId != "undefined"){
 						actor_unit = $gameActors.actor(actorId);
-					}
-					
-					
-					
+					}				
 					if (actor_unit) {
 						var validPosition;
 						if(validatePositions && !deployInfo.lockedSlots[i]){
@@ -1954,7 +1965,7 @@ var $battleSceneManager = new BattleSceneManager();
 							validPosition = true;
 						}
 						if(validPosition){
-							_this.deployActor(actor_unit, event, toAnimQueue, deployInfo.assignedSub[i]);
+							_this.deployActor(actor_unit, event, toAnimQueue, entry.sub);
 						} else {
 							event.erase();
 						}						
@@ -2336,11 +2347,125 @@ var $battleSceneManager = new BattleSceneManager();
     };
 	
 	Game_System.prototype.getPreferredSlotInfo = function() {
-		if(!$gameSystem.preferredSlotInfo){
-			$gameSystem.preferredSlotInfo = {};
+		if(!this.preferredSlotInfo){
+			this.preferredSlotInfo = {};
 		} 
-		return $gameSystem.preferredSlotInfo;
+		return this.preferredSlotInfo;
     };
+
+	
+	Game_System.prototype.invalidateDeployList = function() {
+		$gameSystem.deployList = null;
+	}
+	
+	Game_System.prototype.getDeployList = function() {
+		if(!$gameSystem.deployList){
+			this.constructDeployList();
+		}
+		return $gameSystem.deployList;
+	}
+	
+	Game_System.prototype.getActiveDeployList = function() {
+		return this._activeDeploylist;
+	}
+	
+	Game_System.prototype.setActiveDeployList = function(list) {
+		this._activeDeploylist = list;
+	}
+	
+	Game_System.prototype.constructDeployList = function() {
+		$gameSystem.deployList = [];
+		var deployInfo = this.getDeployInfo();
+		var usedUnits = {};
+		var slotLookup = {};
+		
+		var validActors = {};
+		var candidates = $gameSystem.getAvailableUnits();	
+		var tmp = [];
+		candidates.forEach(function(candidate){
+			if($statCalc.isValidForDeploy(candidate) && !$statCalc.isShip(candidate)){
+				validActors[candidate.actorId()] = true;
+				tmp.push(candidate);
+			}
+		});	
+		candidates = tmp;
+		
+		var sortedCandidates = [];
+		var usedActors = {};
+		var preferredSlotInfo = this.getPreferredSlotInfo();
+		Object.keys(preferredSlotInfo).forEach(function(slot){
+			var info = preferredSlotInfo[slot];			
+			var entry = {
+				main: null,
+				sub: null
+			};
+			isValid = false;
+			if(info.main != -1 && validActors[info.main]){
+				entry.main = info.main;
+				isValid = true;
+				usedActors[entry.main] = true;
+			}
+			if(info.sub != -1 && validActors[info.sub]){
+				entry.sub = info.sub;
+				isValid = true;
+				usedActors[entry.sub] = true;
+			}
+			if(isValid){
+				sortedCandidates.push(entry);
+			}
+		});
+		
+		tmp.forEach(function(candidate){
+			if(!usedActors[candidate.actorId()]){
+				sortedCandidates.push({
+					main: candidate.actorId(),
+					sub: null
+				});
+			}
+		});	
+				
+		
+		var i = 0;
+		while(sortedCandidates.length){	
+			var entry = {};
+			if(i < deployInfo.count){				
+				var isPredefined = false;
+				if(deployInfo.assigned[i]){
+					entry.main = deployInfo.assigned[i];
+					isPredefined = true;
+				}
+				if(deployInfo.assignedSub[i]){
+					entry.sub = deployInfo.assignedSub[i];
+					isPredefined = true;
+				}
+				if(!isPredefined){
+					entry = sortedCandidates.pop();
+				} 				
+			} else {
+				entry = sortedCandidates.pop();
+			}
+			if(usedUnits[entry.main]){
+				entry.main = null;
+			}
+			if(usedUnits[entry.sub]){
+				entry.sub = null;
+			}
+			if(entry.main || entry.sub){
+				$gameSystem.deployList.push(entry);							
+				usedUnits[entry.main] = true;
+				usedUnits[entry.sub] = true;
+			}
+			i++;
+		}
+	}
+	
+	Game_System.prototype.syncPreferredSlots = function() {
+		var deployInfo = this.getDeployList();
+		this.preferredSlotInfo = {};
+		for(var i = 0; i < deployInfo.length; i++){
+			this.preferredSlotInfo[i] = deployInfo[i];
+		}
+	}
 	
 	Game_System.prototype.getDeployInfo = function() {
 		var info = $gameVariables.value(_nextMapDeployVariable);
@@ -2360,6 +2485,7 @@ var $battleSceneManager = new BattleSceneManager();
     };
 	
 	Game_System.prototype.setDeployInfo = function(info) {
+		this.invalidateDeployList();
 		$gameVariables.setValue(_nextMapDeployVariable, JSON.stringify(info));
     };
 	
@@ -5967,7 +6093,7 @@ Game_Interpreter.prototype.manualDeploy = function(){
 	$gameTemp.disableHighlightGlow = true;
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
 	$gameTemp.pushMenu = "in_stage_deploy";
-	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployInfo()));
+	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()));
 	
 }
 
@@ -10849,7 +10975,8 @@ SceneManager.reloadCharacters = function(startEvent){
 				});
 				if(event && event.isType() == "actor"){				
 					var slot = $gameSystem.getEventDeploySlot(event);
-					var deployInfo = $gameSystem.getDeployInfo();					
+					var deployInfo = $gameSystem.getDeployInfo();	
+					var deployList = $gameSystem.getActiveDeployList();	
 					if(!deployInfo.lockedSlots[slot]){
 						SoundManager.playOk();	
 						if($gameTemp.currentSwapSource == -1){
@@ -10860,12 +10987,15 @@ SceneManager.reloadCharacters = function(startEvent){
 							var swapSource = $gameTemp.currentSwapSource;
 							var selection = slot;									
 							
-							var sourceActor = deployInfo.assigned[swapSource];
-							var targetActor = deployInfo.assigned[selection];
+							var sourceEntry = deployList[swapSource] || {};
+							var targetEntry = deployList[selection] || {};
+							
+							var sourceActor = sourceEntry.main;
+							var targetActor = targetEntry.main;
 							
 							var validPositions = (!sourceActor || $statCalc.canStandOnTile($gameActors.actor(sourceActor), {x: event.posX(), y: event.posY()})) && (!targetActor || $statCalc.canStandOnTile($gameActors.actor(targetActor), $gameTemp.currentSwapSourcePosition));
 							if(validPositions){
-								if(typeof sourceActor != undefined){
+								/*if(typeof sourceActor != undefined){
 									deployInfo.assigned[selection] = sourceActor;
 								} else {
 									delete deployInfo.assigned[selection];
@@ -10876,7 +11006,13 @@ SceneManager.reloadCharacters = function(startEvent){
 								} else {
 									delete deployInfo.assigned[swapSource];
 								}
-								$gameSystem.setDeployInfo(deployInfo);
+								$gameSystem.setDeployInfo(deployInfo);*/
+								
+								var tmp = deployList[swapSource];
+								deployList[swapSource] = deployList[selection];
+								
+								deployList[selection] = tmp;
+								
 								$gameTemp.currentSwapSource = -1;
 								
 								$gameSystem.redeployActors();
@@ -10912,7 +11048,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			if(Input.isTriggered("cancel")){
 				SoundManager.playCancel();	
 				if($gameTemp.currentSwapSource == -1){
-					$gameSystem.setDeployInfo($gameTemp.originalDeployInfo);
+					//$gameSystem.deployList = JSON.parse(JSON.stringify( $gameTemp.originalDeployInfo));
 					$gameSystem.setSubBattlePhase("deploy_selection_window");
 					$gameTemp.pushMenu = "in_stage_deploy";
 					$gameSystem.undeployActors();		
