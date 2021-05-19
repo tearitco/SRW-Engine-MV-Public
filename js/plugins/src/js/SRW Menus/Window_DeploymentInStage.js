@@ -34,6 +34,11 @@ Window_DeploymentInStage.prototype.initialize = function() {
 	
 	this._swapSource = -1;
 	this._twinSwapSource = -1;
+	this._maxSlots = 40;
+	if(!this.isTwinMode()){
+		this._rearrageRowSize = 9;
+		this._maxSlots = 36;
+	}
 }
 var Window_Deployment_createComponents = Window_DeploymentTwin.prototype.createComponents;
 Window_DeploymentInStage.prototype.createComponents = function() {

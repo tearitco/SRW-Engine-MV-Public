@@ -366,11 +366,11 @@ Window_CSS.prototype.updateScaledImage = function(img) {
 	img.style.width = (img.naturalWidth * Graphics.getScale()) + "px";
 }
 
-Window_CSS.prototype.updateScaledDiv = function(div, noWidth, noHeight) {
+Window_CSS.prototype.updateScaledDiv = function(div, noWidth, noHeight, ignoreOriginalDimensions) {
 	if(div){
 		var computedStyle = getComputedStyle(div);
 		var originalWidth = div.getAttribute("original-width");
-		if(!originalWidth){
+		if(!originalWidth || ignoreOriginalDimensions){
 			originalWidth = computedStyle.getPropertyValue('--widthpixels');
 			if(!originalWidth){
 				originalWidth = computedStyle.width.replace("px", "");
@@ -378,7 +378,7 @@ Window_CSS.prototype.updateScaledDiv = function(div, noWidth, noHeight) {
 			div.setAttribute("original-width", originalWidth);
 		}
 		var originalHeight = div.getAttribute("original-height");
-		if(!originalHeight){
+		if(!originalHeight || ignoreOriginalDimensions){
 			originalHeight = computedStyle.getPropertyValue('--heightpixels');
 			if(!originalHeight){
 				originalHeight = computedStyle.height.replace("px", "");

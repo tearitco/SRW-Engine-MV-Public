@@ -7,8 +7,8 @@
 }
 
 #spirit_selection .bg_fade_container {
-	width: 600px;
-	height: 350px;
+	--widthpixels: 600;
+	--heightpixels: 350;
 	background-color: var(--menu-bg-color);
 	-webkit-mask-image: none;
 	border-radius: 10px;
@@ -21,8 +21,8 @@
 }
 
 #spirit_selection.twin .bg_fade_container {
-	width: 700px;
-	height: 560px;
+	--widthpixels: 700;
+	--heightpixels: 560;
 }
 
 #spirit_selection .spirit_selection_content {
@@ -249,8 +249,8 @@
 }
 
 #spirit_selection .spirit_selection_icon {
-	width: 136px;
-	height: 136px;
+	--widthpixels: 136;
+	--heightpixels: 136;
 	background-color: rgba(85, 164, 255, 0.5);
     border: 0.1vw solid #99e3ff;
 	flex-shrink: 0;
@@ -264,8 +264,8 @@
 }
 
 #spirit_selection .previous_selection_icon {
-	width: 32px;
-	height: 32px;
+	--widthpixels: 32;
+	--heightpixels: 32;
 	background-color: rgba(85, 164, 255, 0.5);
     border: 0.1vw solid #99e3ff;
 	margin-right: 2%;
@@ -281,8 +281,8 @@
 }
 
 #spirit_selection .next_selection_icon {
-	width: 32px;
-	height: 32px;
+	--widthpixels: 32;
+	--heightpixels: 32;
 	background-color: rgba(85, 164, 255, 0.5);
     border: 0.1vw solid #99e3ff;
 	margin-left: 2%;

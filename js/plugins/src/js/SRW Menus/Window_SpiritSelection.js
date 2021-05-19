@@ -136,8 +136,10 @@ Window_SpiritSelection.prototype.update = function() {
 			this.requestRedraw();
 			if(!this._twinSpiritSelection){
 				if((this.getCurrentSelection() + 1) % this._selectionRowSize == 0) {
-					this._twinSpiritSelection = true;
-					SoundManager.playCursor();
+					if(this._isTwinDisplay){
+						this._twinSpiritSelection = true;					
+						SoundManager.playCursor();
+					}
 				} else {
 					this.incrementSelection();
 				}
@@ -349,6 +351,9 @@ Window_SpiritSelection.prototype.update = function() {
 Window_SpiritSelection.prototype.getSpiritEnabledState = function(listIdx, slot, isTwin){
 	var result = 1;
 	var caster = this.getAvailableActors(slot)[this.getCurrentActor(slot)];
+	if(!caster){
+		return true;// don't check for non populated twin slot
+	}
 	var target = $gameTemp.currentMenuUnit.actor;
 	if(slot == null){
 		slot = this._currentSlot;
@@ -765,7 +770,7 @@ Window_SpiritSelection.prototype.redraw = function() {
 	content+="</div>";
 	_this._bgFadeContainer.innerHTML = content;
 	
-	this.updateScaledDiv(_this._bgFadeContainer);
+	this.updateScaledDiv(_this._bgFadeContainer, false, false, true);
 	//this.updateScaledDiv(_this._bgFadeContainer.querySelector("#spirit_selection_icon"));
 	//this.updateScaledDiv(_this._bgFadeContainer.querySelector("#previous_selection_icon"));
 	//this.updateScaledDiv(_this._bgFadeContainer.querySelector("#next_selection_icon"));

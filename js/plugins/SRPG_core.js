@@ -9932,11 +9932,9 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.createDeploymentWindow = function() {
 		var _this = this;
-		if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
-			this._deploymentWindow = new Window_DeploymentTwin(0, 0, Graphics.boxWidth, Graphics.boxHeight);
-		} else {
-			this._deploymentWindow = new Window_Deployment(0, 0, Graphics.boxWidth, Graphics.boxHeight);
-		}
+		
+		this._deploymentWindow = new Window_DeploymentTwin(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		
 		
 		this._deploymentWindow.close();
 		this.addWindow(this._deploymentWindow);

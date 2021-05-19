@@ -32,6 +32,15 @@ Window_DeploymentTwin.prototype.initialize = function() {
 	
 	this._swapSource = -1;
 	this._twinSwapSource = -1;
+	this._maxSlots = 40;
+	if(!this.isTwinMode()){
+		this._rearrageRowSize = 9;
+		this._maxSlots = 36;
+	}
+}
+
+Window_DeploymentTwin.prototype.isTwinMode = function(){
+	return ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM;
 }
 
 Window_DeploymentTwin.prototype.resetSelection = function(){
@@ -43,7 +52,7 @@ Window_DeploymentTwin.prototype.resetSelection = function(){
 }
 
 Window_DeploymentTwin.prototype.getMaxDeploySlots = function(){
-	return 40 * 2;
+	return this._maxSlots * 2;
 }
 
 Window_DeploymentTwin.prototype.getCurrentSelection = function(){
@@ -150,15 +159,23 @@ Window_DeploymentTwin.prototype.decrementRow = function() {
 	}  
 }
 
-Window_DeploymentTwin.prototype.incrementColumn = function() {	
-	if((this.getCurrentRowIndex() % this.getCurrentRowSize() + 1) < this.getCurrentRowSize()){
-		this.setCurrentSelection(this.getCurrentSelection() + 1);
+Window_DeploymentTwin.prototype.incrementColumn = function() {		
+	var increment = 1;
+	if(!this.isTwinMode()){
+		increment = 2;
+	}
+	if((this.getCurrentRowIndex() % this.getCurrentRowSize() + increment) < this.getCurrentRowSize()){
+		this.setCurrentSelection(this.getCurrentSelection() + increment);
 	}		
 }
 
 Window_DeploymentTwin.prototype.decrementColumn = function() {	
-	if((this.getCurrentRowIndex() % this.getCurrentRowSize() - 1) >= 0){		
-		this.setCurrentSelection(this.getCurrentSelection() - 1);
+	var decrement = 1;
+	if(!this.isTwinMode()){
+		decrement = 2;
+	}
+	if((this.getCurrentRowIndex() % this.getCurrentRowSize() - decrement) >= 0){		
+		this.setCurrentSelection(this.getCurrentSelection() - decrement);
 	}		
 }
 
@@ -319,6 +336,9 @@ Window_DeploymentTwin.prototype.update = function() {
 		}
 		
 		if(Input.isTriggered('shift')){
+			if(!this.isTwinMode()){
+				return;
+			}
 			var currentSelection = this._availableList.querySelector(".active");
 			if(currentSelection){				
 				var isLocked = currentSelection.getAttribute("data-islocked") * 1;
@@ -355,6 +375,9 @@ Window_DeploymentTwin.prototype.update = function() {
 };
 
 Window_DeploymentTwin.prototype.validateTwinSlot = function(sourceActorId, sourceSelection, targetActorId, targetSelection) {
+	if(!this.isTwinMode()){
+		return true;
+	}
 	var deployList = $gameSystem.getDeployList();
 	
 	var targetSlot = Math.floor(targetSelection / 2);
@@ -494,7 +517,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 			displayClassFocus = "focus";						
 		}
 		
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(deployInfo.lockedSlots[slot] ? "locked" : "")+"'>"
+		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(deployInfo.lockedSlots[slot] ? "locked" : "")+" "+(!_this.isTwinMode() ? "single" : "")+"'>"
 		if(listedUnits[actorId]){
 			actorId = null;
 		}
@@ -540,6 +563,8 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		if(2 * idx + 1 == _this._rearrageSelection){		
 			displayClassFocus = "focus";				
 		}
+		
+		
 		
 		if(listedUnits[subActorId]){
 			subActorId = null;
@@ -594,7 +619,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	}
 	
 	
-	for(var i = 0; i < 40; i++) {
+	for(var i = 0; i < _this._maxSlots; i++) {
 		if(rowCtr != 0 && !(rowCtr % _this._rearrageRowSize)){
 			availableContent+="</div>";
 			availableContent+="<div class='list_row'>";
