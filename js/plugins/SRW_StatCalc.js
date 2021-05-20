@@ -823,7 +823,13 @@ StatCalc.prototype.softRefreshUnits = function(){
 StatCalc.prototype.createEmptyActor = function(level){
 	var _this = this;
 	var result = {
-		SRWStats: _this.createEmptySRWStats()
+		SRWStats: _this.createEmptySRWStats(),
+		name: function(){
+			return "";
+		},
+		actorId: function(){
+			return -1;
+		}
 	}	
 	
 	result.isEmpty = true;

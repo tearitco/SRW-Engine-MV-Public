@@ -1116,8 +1116,8 @@ MechList.prototype.redraw = function() {
 	if(_this._currentSortIdx == -1){
 		_this._currentSortIdx = contentDef.sortStart;
 	}
-	_this.sortViewData();
-	var sortedViewData =  this.getAvailableUnits();
+	
+	var sortedViewData =  _this.sortViewData();
 	var tableContent = "";
 	tableContent+="<div class='unit_list_table "+contentDef.cssClass+" scaled_text' id='mech_list_table'>";
 	tableContent+="<div class='list_table_row scaled_height'>";

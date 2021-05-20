@@ -5,13 +5,29 @@
 * DS4 with DS4Windows, 'Hide DS4 Controller' must be enabled! 
 * DS5 with DS4Windows, 'Hide DS4 Controller' must be enabled!
 
-## The Deployment window
+## Intermission Menu
+
+![](img/player/Intermission.PNG)
+
+The Intermission Menu is where you will be sent between stages. This menu allows you to view and upgrade pilots and mechs, equip parts to mechs, set up the deployment for the next stage, swap pilots around, change game options, save or load the game and proceed to the next stage.
+
+### Unit and Mech list
+
+#### Controls
+
+* Arrows: Select a unit, move the a different page
+* Z/Cross: View the details of a unit
+* X/Circle: return to the main menu
+* Page up/L1: Change the current sorted field
+* Page down/R1: Change the current sorted field
+
+### Deployment Window
 
 The deployment window is available from the intermission menu. It can be used to set up which units will be deployed on the next map. The deployment window can also be shown at the start of the stage. The changes made during the intermission will be present in the on-map version so you only need to set up deploys for the next stage once.
 
 In the deployment window certain slots may be locked, indicated by a lock icon. These slots are for units that will take part in events on the next map and can not be changed.
 
-### Controls
+#### Controls
 
 * Arrows: Select a unit
 * Z/Cross: Swap units around
