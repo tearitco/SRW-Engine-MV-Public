@@ -138,6 +138,20 @@ var $battleSceneManager = new BattleSceneManager();
 		return false;
 	};
 	
+	/*Input._pollGamepads = function() {
+		if (navigator.getGamepads) {
+			var gamepads = navigator.getGamepads();
+			if (gamepads) {
+				for (var i = 0; i < gamepads.length; i++) {
+					var gamepad = gamepads[i];
+					if (gamepad && gamepad.connected && gamepad.id == "Xbox 360 Controller (XInput STANDARD GAMEPAD)") {
+						this._updateGamepadState(gamepad);
+					}
+				}
+			}
+		}
+	};*/
+	
 	TouchInput._onWheel = function(event) {
 		
 	}

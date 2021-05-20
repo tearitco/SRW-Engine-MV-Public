@@ -299,7 +299,8 @@ Window_DeploymentTwin.prototype.update = function() {
 							targetSlot,
 							"sub"
 						);							
-						_this.updateDeployInfo();		
+						_this.updateDeployInfo();	
+						//compressDeployList();	
 						this._twinSwapSource = -1;
 					} else if(this._swapSource != this._rearrageSelection){	
 						
@@ -328,6 +329,7 @@ Window_DeploymentTwin.prototype.update = function() {
 							!(_this._rearrageSelection % 2) ? "main" : "sub",
 						);	
 						_this.updateDeployInfo();		
+						//compressDeployList();	
 						this._swapSource = -1;
 					}
 					SoundManager.playOk();
@@ -368,7 +370,101 @@ Window_DeploymentTwin.prototype.update = function() {
 		}
 		if(Input.isTriggered('menu')){	
 			this.onMenu();	
+		}	
+
+		function compressDeployList(){
+			var deployList = $gameSystem.getDeployList();
+			var tmp = [];
+			for(var i = 0; i < deployList.length; i++){
+				if(deployList[i] && (deployList[i].main || deployList[i].sub)){
+					tmp.push(deployList[i]);
+				}
+			}
+			$gameSystem.deployList = tmp;
 		}		
+		
+		function placeMovedEntry(movedEntry){
+			var deployList = $gameSystem.getDeployList();
+			var deployInfo = $gameSystem.getDeployInfo();
+			var placed = false;
+			var i = 0;
+			while(i < deployList.length && !placed){
+				if(!deployInfo.lockedSlots[i]  && (!deployList[i] || (!deployList[i].main && !deployList[i].sub))){
+					placed = true;
+					deployList[i] = movedEntry;
+				}
+				i++;
+			}
+			compressDeployList();
+			if(!placed){
+				deployList.push(movedEntry);
+			}
+		}
+		
+		if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){ //L, move to front of list
+			this.requestRedraw();
+			var currentSelection = this._availableList.querySelector(".active");
+			var isLocked = currentSelection.getAttribute("data-islocked") * 1;				
+			if(isLocked){
+				SoundManager.playBuzzer();
+			} else {
+				var deployList = $gameSystem.getDeployList();	
+				var deployInfo = $gameSystem.getDeployInfo();
+				var targetSlot = Math.floor(_this._rearrageSelection / 2);
+				var movedEntry = deployList[targetSlot];
+				if(movedEntry && (movedEntry.main || movedEntry.sub)){
+					deployList[targetSlot] = null;
+					var i = targetSlot - 1;
+					while(i >= 0){
+						if(!deployInfo.lockedSlots[i]){
+							var target = i;
+							var newIdx = i + 1;
+							while(newIdx < deployList.length && deployInfo.lockedSlots[newIdx]){
+								newIdx++;
+							}
+							if(newIdx >= 0 && newIdx < deployList.length){
+								deployList[newIdx] = deployList[target];
+								deployList[target] = null;
+							}							
+						}
+						i--;
+					}
+				}
+				placeMovedEntry(movedEntry);
+			}
+			
+		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {//R, move to back of list
+			this.requestRedraw();
+			var currentSelection = this._availableList.querySelector(".active");
+			var isLocked = currentSelection.getAttribute("data-islocked") * 1;				
+			if(isLocked){
+				SoundManager.playBuzzer();
+			} else {
+				var deployList = $gameSystem.getDeployList();	
+				var deployInfo = $gameSystem.getDeployInfo();
+				var targetSlot = Math.floor(_this._rearrageSelection / 2);
+				var movedEntry = deployList[targetSlot];
+				if(movedEntry && (movedEntry.main || movedEntry.sub)){
+					deployList[targetSlot] = null;
+					var i = targetSlot + 1;
+					while(i < deployList.length){
+						if(!deployInfo.lockedSlots[i]){
+							var target = i;
+							var newIdx = i - 1;
+							while(newIdx > 0 && deployInfo.lockedSlots[newIdx]){
+								newIdx--;
+							}
+							if(newIdx >= 0 && newIdx < deployList.length){
+								deployList[newIdx] = deployList[target];
+								deployList[target] = null;
+							}							
+						}
+						i++;
+					}
+				}
+				placeMovedEntry(movedEntry);
+			}	
+		}
 		
 		this.refresh();
 	}		
