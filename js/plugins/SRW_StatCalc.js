@@ -2584,8 +2584,8 @@ StatCalc.prototype.getCurrentPilot = function(mechId, includeUndeployed){
 	var result;
 	if(includeUndeployed){
 		for(var i = 0; i < $dataActors.length; i++){
-			var actor = $dataActors[i];
-			if(actor && actor.name && actor.classId == mechId){
+			var actor = $gameActors.actor(i);
+			if(actor && actor._name && actor._classId == mechId){
 				result = $gameActors.actor(i);
 			}
 		}
@@ -4960,13 +4960,23 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 	var affectedActors = [];
 	
 	if(deployActions){
+		
+		var lockedPilots = {};
+		var deployInfo = $gameSystem.getDeployInfo();
+		
+		Object.keys(deployInfo.assigned).forEach(function(slot){
+			if(deployInfo.lockedSlots[slot]){
+				lockedPilots[$gameActors.actor(deployInfo.assigned[slot]).SRWStats.pilot.id] = true;
+			}
+		});
+		
 		Object.keys(deployActions).forEach(function(targetMechId){
 			var reservedActors = {};
 			var actions = deployActions[targetMechId];
 			
 			actions.forEach(function(action){		
 				var sourceId = _this.getSourceId(action.source);
-				if(sourceId != 0 && sourceId != -1){
+				if(sourceId != 0 && sourceId != -1 && !lockedPilots[sourceId]){
 					reservedActors[sourceId] = true;
 				}
 			});
@@ -4999,22 +5009,24 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 				var sourceId = sourceDef.realId;
 				
 				if(sourceId != 0 && sourceId != -1){
-					var targetPilot = $gameActors.actor(sourceId);					
-					if(targetDef.type == "main"){
-						targetPilot._classId = targetMechId;
-						targetPilot.isSubPilot = false;
-						$statCalc.initSRWStats(targetPilot);
-					} else {
-						var targetMech = $statCalc.getMechData($dataClasses[targetMechId], true);
-						targetMech.subPilots[targetDef.slot] = targetPilot.actorId();
-						$statCalc.storeMechData(targetMech);
-						
-						//ensure the live copy of the unit is also updated
-						var currentPilot = $statCalc.getCurrentPilot(targetMechId);
-						if(currentPilot){
-							$statCalc.initSRWStats(currentPilot);
+					var targetPilot = $gameActors.actor(sourceId);	
+					if(!lockedPilots[sourceId]){
+						if(targetDef.type == "main"){
+							targetPilot._classId = targetMechId;
+							targetPilot.isSubPilot = false;
+							$statCalc.initSRWStats(targetPilot);
+						} else {
+							var targetMech = $statCalc.getMechData($dataClasses[targetMechId], true);
+							targetMech.subPilots[targetDef.slot] = targetPilot.actorId();
+							$statCalc.storeMechData(targetMech);
+							
+							//ensure the live copy of the unit is also updated
+							var currentPilot = $statCalc.getCurrentPilot(targetMechId);
+							if(currentPilot){
+								$statCalc.initSRWStats(currentPilot);
+							}
 						}
-					}
+					}					
 				}
 			});
 		});		
