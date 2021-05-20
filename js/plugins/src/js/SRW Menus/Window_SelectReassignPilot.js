@@ -17,6 +17,12 @@ Window_SelectReassignPilot.prototype.initialize = function() {
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
 }
 
+Window_SelectReassignPilot.prototype.resetSelection = function(){
+	if(this._mechList){
+		this._mechList.setCurrentSelection(0);
+	}	
+}
+
 Window_SelectReassignPilot.prototype.getAvailableUnits = function(){
 	var _this = this;
 	

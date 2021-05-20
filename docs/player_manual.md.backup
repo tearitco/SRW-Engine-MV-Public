@@ -5,21 +5,54 @@
 * DS4 with DS4Windows, 'Hide DS4 Controller' must be enabled! 
 * DS5 with DS4Windows, 'Hide DS4 Controller' must be enabled!
 
+
+# Menus
+## Controls
+
+The controls in menus are generally the following:
+
+* Arrows: Navigate
+* Z/Cross: OK
+* X/Circle: Cancel
+* Page up/L1: Previous item
+* Page down/R1: Next item
+
+Some menus may have additional controls, those will be listed below.
+
 ## Intermission Menu
 
 ![](img/player/Intermission.PNG)
 
 The Intermission Menu is where you will be sent between stages. This menu allows you to view and upgrade pilots and mechs, equip parts to mechs, set up the deployment for the next stage, swap pilots around, change game options, save or load the game and proceed to the next stage.
 
-### Unit and Mech list
+### Pilot and Mech list
+
+![](img/player/Lists.PNG)
+
+These lists displays show information about your pilots and mechs. The lists have multiple views and can be sorted according to each field.
 
 #### Controls
 
 * Arrows: Select a unit, move the a different page
 * Z/Cross: View the details of a unit
-* X/Circle: return to the main menu
+* X/Circle: Return to the main menu
 * Page up/L1: Change the current sorted field
-* Page down/R1: Move the current unit to the back, shifting the other units in the list
+* Page down/R1: Change the current sorted field
+* Home/L2: Change the current list view
+* End/R2: Change the current list view
+* Ins/L3: Change the sort order between ascending and descending
+
+### Upgrade Mech
+
+Upgrade the stats of your mechs. If a mech is upgraded enough you will unlock its Full Upgrade Bonus.
+
+### Equip Parts
+
+Equip parts you have collected to your mechs. These parts will give your mechs certain bonuses or can be consumables that restore HP, EN or SP. Consumables can only be used once per stage but are returned after the end of the stage if used.
+
+### Upgrade Pilot
+
+Upgrade the stats of your pilots and teach them new abilities. PP(Pilot Points) are required. Pilots gain PP by shooting down enemies. PP is not shared between pilots.
 
 ### Deployment Window
 
@@ -35,3 +68,13 @@ In the deployment window certain slots may be locked, indicated by a lock icon. 
 * Shift/Square: Select a whole twin unit to swap around
 * Page up/L1: Move the current unit to the front, shifting the other units in the list
 * Page down/R1: Move the current unit to the back, shifting the other units in the list
+
+### Deployment Window
+
+## Stage menus
+
+These are the menus you will use when playing a stage.
+
+### Map Menu
+The map menu can be accessed by hitting Z/Cross while on an empty space on the map.
+

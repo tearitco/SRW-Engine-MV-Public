@@ -941,7 +941,7 @@ MechList.prototype.getCurrentInfoPage = function(){
 }
 
 MechList.prototype.getCurrentSelection = function(){	
-	var availableUnits = this.getAvailableUnits();
+	var availableUnits =  this.sortViewData();
 	var idx = this._currentSelection + this._currentPage * this._maxPageSize;
 	if(idx >= availableUnits.length){
 		this._currentSelection = 0;
@@ -958,7 +958,7 @@ MechList.prototype.getCurrentSelection = function(){
 }
 
 MechList.prototype.getCurrentPageAmount = function(){
-	this._availableUnits = this.getAvailableUnits();
+	this._availableUnits = this.sortViewData();
 	var start = this._currentPage * this._maxPageSize;
 	if(start + this._maxPageSize >= this._availableUnits.length){
 		return this._availableUnits.length - start;
