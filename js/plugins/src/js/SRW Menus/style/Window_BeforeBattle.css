@@ -555,6 +555,10 @@
 	width: 46%;
 }
 
+#before_battle.twin.no_twins #before_battle_ally_main {
+	top: 29%;
+}
+
 #before_battle.twin #before_battle_ally_main.selected {
 	border-color: var(--text-color-highlight);
     box-shadow: 0px 0px 1px 5px var(--text-color-highlight);
@@ -584,6 +588,12 @@
 	top: 12%;
 	width: 46%;
 }
+
+#before_battle.twin.no_twins #before_battle_enemy_main {
+	top: 29%;
+	width: 46%;
+}
+
 
 #before_battle.twin #before_battle_enemy_main.selected {
 	border-color: var(--text-color-highlight);

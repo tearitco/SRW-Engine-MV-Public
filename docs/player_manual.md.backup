@@ -69,7 +69,21 @@ In the deployment window certain slots may be locked, indicated by a lock icon. 
 * Page up/L1: Move the current unit to the front, shifting the other units in the list
 * Page down/R1: Move the current unit to the back, shifting the other units in the list
 
-### Deployment Window
+### Swap Pilots
+
+Move pilots between mechs they can pilot. First select a mech then select a pilot to assign. If a mech has multiple seats you select a seat before selecting a pilot.
+
+### Options
+
+Change game options.
+
+### Data
+
+Save and Load save data.
+
+### Next Map
+
+Continue to the next map.
 
 ## Stage menus
 
@@ -78,3 +92,54 @@ These are the menus you will use when playing a stage.
 ### Map Menu
 The map menu can be accessed by hitting Z/Cross while on an empty space on the map.
 
+![](img/player/Map Menu.png)
+
+* End Turn: Pass the turn to the enemy. If you have units with remaining actions you will be prompted to confirm. The player turn will not end automatically so you always need to use this option.
+
+* Unit List: Show a list of available units
+
+* Conditions: Toggle the conditions display on or off
+
+* Options: Change the game options
+
+* Quick Save: Create a quick save. Only one quick save can exists at a time. It is possible to instantly reload the last quick save by pressing Z/Cross + X/Circle + Page up/L1 + Page down/R1 at the same time.
+
+* Exit: Return to the main menu or exit the game
+
+### Unit Menu
+The unit menu can be accessed by hitting Z/Cross while the cursor is over an allied unit.
+Depending on the abilities of the units some or all of the following options may be available:
+
+* Move: Move the unit to a new position. After moving you can attack targets provided the unit has attacks that can be used after moving.
+
+* Attack: Choose an attack and a target to initiate combat.
+
+* Spirit: Choose a spirit from the unit's list of available spirits
+	![](img/player/Spirits.png)
+#### Controls
+
+	* Arrows: Select a spirit
+	* Z/Cross: Activate a spirit, or all batched spirits
+	* X/Circle: Return to the Unit menu
+	* Shift/Square: Add or remove a Spirit from the batch list. Only Spirits with a checkbox can be batched.
+	* Page up/L1: Previous (sub-)pilot
+	* Page down/R1: Next (sub-)pilot
+* Repair: Restore 50% HP to an adjacent ally.
+
+* Resupply: Restore 100EN to an adjacent ally. They will lose 10 Will.
+
+* Fly/Land: Switch the unit between in the air and on the ground. Only available for units that can fly and not available on Space terrain. 
+
+* Transform: Transform the unit.
+
+* Combine: Combine the unit into a new unit if all required units are adjacent.
+
+* Split: Split a combined unit into its parts.
+
+* Join: Twin up with an adjacent unit. Only available if both units have at least 110 Will.
+
+* Separate: Split up a Twin formation.
+
+* Swap: Switch the main and sub positions of a Twin unit.
+
+* Wait: End the unit's turn.

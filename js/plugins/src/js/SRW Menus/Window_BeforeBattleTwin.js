@@ -550,23 +550,25 @@ Window_BeforebattleTwin.prototype.update = function() {
 							} else {
 								target = $gameTemp.currentBattleEnemy;
 							}
-							var enemyInfo = {actor: $gameTemp.currentBattleEnemy, pos: {x: $gameTemp.currentBattleEnemy.event.posX(), y: $gameTemp.currentBattleEnemy.event.posY()}};
-							var actorInfo = {actor: $gameTemp.currentBattleActor.subTwin, pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}};
+							if($gameTemp.currentBattleActor.subTwin){
+								var enemyInfo = {actor: $gameTemp.currentBattleEnemy, pos: {x: $gameTemp.currentBattleEnemy.event.posX(), y: $gameTemp.currentBattleEnemy.event.posY()}};
+								var actorInfo = {actor: $gameTemp.currentBattleActor.subTwin, pos: {x: $gameTemp.currentBattleActor.event.posX(), y: $gameTemp.currentBattleActor.event.posY()}};
 
-							var weaponResult = $battleCalc.getBestWeaponAndDamage(actorInfo, enemyInfo, false, false, false, allRequired);
-							if(weaponResult.weapon){
-								$gameTemp.actorTwinAction.type = "attack";
-								$gameTemp.actorTwinAction.attack = weaponResult.weapon;
-								if(allSelected){
-									$gameTemp.currentTargetingSettings.actorTwin = "all";
-								} else if($gameTemp.currentBattleEnemy.subTwin){
-									$gameTemp.currentTargetingSettings.actorTwin = "twin";
-								} else {
-									$gameTemp.currentTargetingSettings.actorTwin = "main";
+								var weaponResult = $battleCalc.getBestWeaponAndDamage(actorInfo, enemyInfo, false, false, false, allRequired);
+								if(weaponResult.weapon){
+									$gameTemp.actorTwinAction.type = "attack";
+									$gameTemp.actorTwinAction.attack = weaponResult.weapon;
+									if(allSelected){
+										$gameTemp.currentTargetingSettings.actorTwin = "all";
+									} else if($gameTemp.currentBattleEnemy.subTwin){
+										$gameTemp.currentTargetingSettings.actorTwin = "twin";
+									} else {
+										$gameTemp.currentTargetingSettings.actorTwin = "main";
+									}
+								} else if($gameTemp.actorTwinAction){
+									$gameTemp.actorTwinAction.type = "defend";	
 								}
-							} else {
-								$gameTemp.actorTwinAction.type = "defend";	
-							}
+							}							
 						} else {
 							$gameTemp.actorTwinAction.type = "attack";
 							$gameTemp.actorTwinAction.attack = attack;
@@ -1219,6 +1221,15 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	var mechIcon = this._container.querySelector("#detail_pages_weapons_name_icon");
 	this.loadMechMiniSprite(this.getCurrentSelection().mech.id, mechIcon);	
 */
+	var noTwins = false;
+	var windowNode = this.getWindowNode();
+	windowNode.classList.remove("no_twins");
+	
+	if(!$gameTemp.currentBattleActor.subTwin && !$gameTemp.currentBattleEnemy.subTwin){
+		noTwins = true;
+		windowNode.classList.add("no_twins");
+	}
+
 	this._ally_main.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor, $gameTemp.actorAction, false, "ally");
 	this._enemy_main.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy, $gameTemp.enemyAction, false, "enemy");
 	this._enemy_main.style.display = "";
@@ -1450,6 +1461,10 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		_this.loadEnemyFace(pilotId, pilotIcon);
 	});
 	
+	var arrowsOffset = 0;
+	if(noTwins){
+		arrowsOffset = 18;
+	}
 	_this._targeting_arrows_1.style.transform = "";
 	_this._targeting_arrows_1.style.display = "none";
 	_this._targeting_arrows_1.style.top = "";
@@ -1462,15 +1477,17 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	
 	if($gameTemp.actorAction.type == "attack"){
 		_this._targeting_arrows_1.style.display = "";
+		_this._targeting_arrows_1.style.top = (24 + arrowsOffset)+"%";
 	}
 	
 	if($gameTemp.currentTargetingSettings.actor == "twin"){
 		_this._targeting_arrows_1.style.transform = "rotate(-45deg)";
+		_this._targeting_arrows_1.style.top = (24 + arrowsOffset)+"%";
 	}	
 	
-	if($gameTemp.currentTargetingSettings.actor == "all"){
+	if($gameTemp.currentTargetingSettings.actor == "all" && $gameTemp.currentBattleEnemy.subTwin){
 		_this._targeting_arrows_1.src = "img/system/targeting2.png";
-		_this._targeting_arrows_1.style.top = "24.5%";
+		_this._targeting_arrows_1.style.top = (24.5 + arrowsOffset)+"%";
 	}
 	
 	if($gameTemp.currentBattleActor.subTwin){
@@ -1480,7 +1497,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		if($gameTemp.currentTargetingSettings.actorTwin == "main"){
 			_this._targeting_arrows_2.style.transform = "rotate(45deg)";
 		}	
-		if($gameTemp.currentTargetingSettings.actorTwin == "all"){
+		if($gameTemp.currentTargetingSettings.actorTwin == "all" && $gameTemp.currentBattleEnemy.subTwin){
 			_this._targeting_arrows_2.src = "img/system/targeting2.png";
 			_this._targeting_arrows_2.style.transform = "scaleY(-1)";
 			_this._targeting_arrows_2.style.top = "54.5%";
@@ -1497,17 +1514,21 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	_this._targeting_arrows_enemy_2.style.top = "";
 	_this._targeting_arrows_enemy_2.src = "img/system/targeting1.png";
 	
+	
+	
 	if($gameTemp.enemyAction.type == "attack"){
 		_this._targeting_arrows_enemy_1.style.display = "";
+		_this._targeting_arrows_enemy_1.style.top = (24 + arrowsOffset)+"%";
 	}
 	
 	if($gameTemp.currentTargetingSettings.enemy == "twin"){
 		_this._targeting_arrows_enemy_1.style.transform = "rotate(-45deg)";
+		_this._targeting_arrows_enemy_1.style.top = (24 + arrowsOffset)+"%";
 	}	
 	
-	if($gameTemp.currentTargetingSettings.enemy == "all"){
+	if($gameTemp.currentTargetingSettings.enemy == "all" && $gameTemp.currentBattleActor.subTwin){
 		_this._targeting_arrows_enemy_1.src = "img/system/targeting2.png";
-		_this._targeting_arrows_enemy_1.style.top = "24.5%";
+		_this._targeting_arrows_enemy_1.style.top = (24.5 + arrowsOffset)+"%";
 	}
 	
 	if($gameTemp.currentBattleEnemy.subTwin){
@@ -1517,7 +1538,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		if($gameTemp.currentTargetingSettings.enemyTwin == "main"){
 			_this._targeting_arrows_enemy_2.style.transform = "rotate(135deg)";
 		}	
-		if($gameTemp.currentTargetingSettings.enemy == "all"){
+		if($gameTemp.currentTargetingSettings.enemy == "all" && $gameTemp.currentBattleActor.subTwin){
 			_this._targeting_arrows_enemy_2.src = "img/system/targeting2.png";
 			_this._targeting_arrows_enemy_2.style.transform = "scaleY(-1) scaleX(-1)";
 			_this._targeting_arrows_enemy_2.style.top = "54.5%";
