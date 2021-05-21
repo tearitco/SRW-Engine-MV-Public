@@ -145,6 +145,8 @@ Each stage has Victory conditions,  Defeat conditions and Mastery conditions. Th
 * Enter/Start:
 	- Empty Tile: Toggle the Will indicator for each unit on the map
 	- Unit: Show the details of the unit
+* Shift/Square: (held)Speed up the cursor
+	  
 # Menus
 ## Controls
 
