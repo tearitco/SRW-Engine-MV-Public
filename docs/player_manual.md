@@ -6,6 +6,32 @@
 * DS5 with DS4Windows, 'Hide DS4 Controller' must be enabled!
 
 
+# Game play
+
+## Spirit Commands
+Spirit commands are buffs and debuffs a pilot can use by expending SP.
+
+These are the kinds of buffs and debuffs Spirit commands can apply:
+
+* accel: Grant +3 movement for one move
+* alert: Avoid the next attack, overrides Strike
+* analyse: Take 10% more damage and deal 10% less damage
+* charge: Gain the ability to use weapons after moving that normally cannot. Applies to one move
+* disrupt: Accuracy halved
+* focus: Final Evasion and Accuracy +30%
+* fortune: Next time funds are gained, gain double
+* gain: Next time exp is gained, gain double
+* mercy: Next time a target would be shot down, leave them at 10HP instead. Only works if the attacker has higher Skill
+* persist: Next time the unit is hit they only take 10 damage from the attack
+* snipe: Extend the range of move by 2. Does not apply to moves with 1 range.
+* soul: Deal 2.5 times damage on the next attack
+* strike: 100% hit rate for one turn
+* valor: Deal 2 times damage on the next attack
+* wall: Take 1/4 damage for one turn
+* zeal: Gain one extra action(cannot be stacked)
+
+Some Spirit commands may apply multiple of these at the same time.
+
 # Menus
 ## Controls
 
@@ -144,3 +170,22 @@ Depending on the abilities of the units some or all of the following options may
 
 * Wait: End the unit's turn.
 
+### Before Battle Window
+The before battle window gives an overview of which actions each participant in the upcoming battle will take. 
+
+![](img/player/Before Battle.png)
+
+The main participants have all their info listed:
+
+* Action: Attack, Defend, Evade or None(-----)
+* General info: Name, level will, current HP etc.
+* The attack that will be used if applicable
+* The chance of hitting the target
+* Which Spirit command effects current apply to the participant
+
+When on the defending side you can select which action your unit will take: counter attack, defend or evade. If you have supporters available you can select which one to use with the 'Select Assist' option. You can enable or disable to full battle animations using the DEMO setting. Choosing the 'Start Battle' option will begin the battle
+
+#### Controls
+
+* Page up/L1: Quick swap between counter attack, defend or evade
+* Page down/R1: Quick swap between counter attack, defend or evade
