@@ -8,6 +8,69 @@
 
 # Game play
 
+
+
+## Pilots
+
+### Will
+Will is a resource that a pilot gains over the course of a stage. It is reset at the start of each stage. Will boosts damage output and defense and some attacks can only be used if the pilot has enough Will. 
+Will is gained at a rate of 1 per turn and additional will is rewarded to all members of a faction(ally/enemy) if an opposing unit is shot down. Pilots may also gain will for actions like evading, hitting an enemy, taking a hit, etc. according to their personality.
+
+### Main stats
+* Melee: Determines how much damage melee attacks used by the pilot will do
+* Ranged: Determines how much damage ranged attacks used by the pilot will do
+* Skill: Determines how often the pilot will land a critical and how often a critical will land on them. Also used as a requirement for some abilities.
+* Defense: Determines how much damages the pilot's mech will take
+* Evade: Determines how well the pilot dodges enemy attacks
+* Hit: Determines the hit rate of attacks
+
+### Abilities
+A pilot can have up to 6 abilities. These abilities unlock through leveling up or can be purchased and equipped from the pilot upgrade menu in the intermission.
+
+#### Ace Bonus
+The Ace Bonus is a special ability a pilot gains once they become an Ace Pilot. A pilot becomes an Ace Pilot by shooting down the required amount of enemies in battle. An Ace Pilot will also deploy with a bit more Will at the start of a stage.
+
+### Spirit Commands
+Spirit commands are buffs and debuffs a pilot can use by expending SP. A pilot has up to 6 Spirit Commands. A pilot gains Spirit commands by leveling up and the cost of a command can vary by pilot.
+
+## Mechs
+
+### Main stats
+* HP: The health of the mech, a mech will be destroyed if its health reaches 0
+* EN: The Energy of the Mech, expended to use attacks
+* Armor: Determines how much damage the mech takes
+* Mobility: Determines how well the mech dodges enemy attacks
+* Accuracy: Determines the hit rate against targets
+* Move: How the maximum number of tiles the mech can move per turn
+* Size: S(Small), M(Medium), L(Large), LL(Extra large). The size has an effect on the damage taken and accuracy of a mech. In general a larger mech will take less damage but have worse hit and evade rates and a smaller mech will take more damage but have better evade and hit rates.
+
+### Abilities
+A mech can have up to 6 abilities. Abilities are built into the mech but additional abilities may be granted by equiping certain Parts.
+
+### Parts
+Parts are items a mech can equip, up to a maximum of 4 but some Mechs may have less item slots. Parts can give buffs to stats or grant abilities like barriers. Some Parts are consumable allowing the pilot of the mech to use them during a stage. Consumables can only be used once per stage but are returned after the stage.
+Parts are equipped from the intermission menu.
+
+## Attacks
+A mech will have one or more attacks, sometimes referred to as weapons.
+
+### Attributes
+* Main Type: Melee or Ranged
+* Attributes: Additional attributes of the attack represented by a letter or abbreviation
+	* Special effects: Indicates if the attack has any special effects. A weapon can have up to two special effect. Ex.: Barrier Piercing, inflict armor down, etc. Indicated by an S
+	* Is Post Move: If an attack is Post Move it can be used after moving otherwise it cannot. Indicated by a P
+	* Is Counter: If an attack is a Counter attack it will always go first, even on the enemy turn. Indicated by a C
+	* Sub Type: A more detailed categorization of the attack, common types are: missile, funnel, beam, gravity, physical. This categorization is used to work with certain abilities. Indicated my as abbreviation, Ex.: Missile = Mi
+	* Is ALL: If an attack is an ALL type attack it will hit both targets in a twin. Indicated by ALL
+* Power: The base power of the attack
+* Range: The maximum and minimum range of the attack
+* Hit bonus
+* Crit bonus
+* Required EN: How much energy is spent to use the attack
+* Ammo: If applicable the current and max ammo of the attack. One ammo is used for each usage of the attack.
+* Terrain rating: How well the attack works against targets on certain terrain types
+* Required Will: How much Will the pilot must have to be able to use the attack
+
 ## Spirit Commands
 Spirit commands are buffs and debuffs a pilot can use by expending SP.
 
@@ -20,6 +83,7 @@ These are the kinds of buffs and debuffs Spirit commands can apply:
 * disrupt: Accuracy halved
 * focus: Final Evasion and Accuracy +30%
 * fortune: Next time funds are gained, gain double
+* fury: On the next attack ignore defensive abilities(barriers, after image, etc.) of the target
 * gain: Next time exp is gained, gain double
 * mercy: Next time a target would be shot down, leave them at 10HP instead. Only works if the attacker has higher Skill
 * persist: Next time the unit is hit they only take 10 damage from the attack
@@ -32,6 +96,55 @@ These are the kinds of buffs and debuffs Spirit commands can apply:
 
 Some Spirit commands may apply multiple of these at the same time.
 
+## Terrain
+Terrain plays an important role in this SRPG. Each tile on the map has a certain terrain and pilots, mechs and weapons will perform better or worse depending on the terrain.
+
+### Types
+* Air
+* Land
+* Water
+* Space
+
+Some mechs may only be placed on certain types of terrain. Ex.: A unit that can't fly can't be placed on a tile that represents an Abyss.
+
+### Ranking
+Pilots, mechs and weapons have a ranking for each terrain that ranges from D(worst) to S(best). 
+
+For pilots and mechs the combined terrain ranking is used:
+
+* D + D = D
+* D + C = C
+* C + C = C
+* C + B = B
+* B + B = B
+* B + A = A
+* A + A = A
+* A + S = A
+* A + S = S
+
+### Bonuses
+Some types of terrain may give certain bonuses to units that are on them. These bonus can be to Evasion, Defense, HP Regeneration and EN Regeneration.
+
+# Stages
+The main game play happens on grid based stages. There are separate enemy and ally turns, during a turn each unit of a faction can make a move after which the turn is passed to the next faction. 
+
+Each stage has Victory conditions,  Defeat conditions and Mastery conditions. The mastery condition is a bonus condition that awards you with a Mastery Point when completed. The Victory and Defeat conditions may change over the course of a stage.
+
+#### Controls
+
+* Arrows: Select a tile/unit. A summary of a unit and terrain will be shown when the cursor is on a tile.
+* Z/Cross: 
+	- Empty Tile: Show the Map Menu
+	- Ally Unit: Choose an action or show the details if the unit has already finished their turn
+	- Enemy Unit: Show the movement range of the unit
+* X/Circle: Cancel
+* Page up/L1: Previous ally unit
+* Page down/R1: 
+	* Normal: Next ally unit
+	* While a unit is moving: Speed up the movement animation
+* Enter/Start:
+	- Empty Tile: Toggle the Will indicator for each unit on the map
+	- Unit: Show the details of the unit
 # Menus
 ## Controls
 
@@ -175,7 +288,7 @@ The before battle window gives an overview of which actions each participant in 
 
 ![](img/player/Before Battle.png)
 
-The main participants have all their info listed:
+The main participants have their info listed:
 
 * Action: Attack, Defend, Evade or None(-----)
 * General info: Name, level will, current HP etc.
