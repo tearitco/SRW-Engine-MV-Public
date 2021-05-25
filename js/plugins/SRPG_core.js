@@ -1803,7 +1803,7 @@ var $battleSceneManager = new BattleSceneManager();
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 		actor_unit.isSubPilot = false;
 		
-		//$statCalc.initSRWStats(actor_unit);
+		$statCalc.initSRWStats(actor_unit);
 		
 		$statCalc.applyDeployActions(actor_unit.SRWStats.pilot.id, actor_unit.SRWStats.mech.id);
 		
@@ -4459,7 +4459,7 @@ var $battleSceneManager = new BattleSceneManager();
 										actor: battlerArray[1],
 										mech: battlerArray[1].SRWStats.mech
 									};
-									
+									$gameTemp.detailPageMode = "map";
 									$gameSystem.setSubBattlePhase('enemy_unit_summary');
 									$gameTemp.pushMenu = "detail_pages";
 									
@@ -11442,6 +11442,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					actor: summaryUnit,
 					mech: summaryUnit.SRWStats.mech
 				};
+				$gameTemp.detailPageMode = "map";
 				$gameSystem.setSubBattlePhase('enemy_unit_summary');
 				$gameTemp.pushMenu = "detail_pages";
 			}			

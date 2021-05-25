@@ -1062,34 +1062,34 @@ BattleCalc.prototype.generateBattleResult = function(){
 	}
 	
 	BattleAction.prototype.getSpecialEvasion = function(attacker, defender){
-			var specialEvasion = null;
-			var isHit = 1;
-			var weaponref = attacker.action.attack; 
-			var specialEvadeInfo = $statCalc.getModDefinitions(defender.actor, ["special_evade"]);
-			var weaponType = weaponref.particleType;
-			var aSkill = $statCalc.getPilotStat(attacker.actor, "skill");
-			var dSkill = $statCalc.getPilotStat(defender.actor, "skill");		
-			
-			var ctr = 0;
-			
-			if(!$statCalc.getActiveSpirits(attacker.actor).strike && !$statCalc.getActiveSpirits(attacker.actor).fury){
-				while(isHit && ctr < specialEvadeInfo.length){
-					var evasionType = specialEvadeInfo[ctr].subType;
-					if(evasionType == weaponType || evasionType == "all"){
-						if(specialEvadeInfo[ctr].activation == "skill"){
-							isHit = dSkill < aSkill;
-						} else if(specialEvadeInfo[ctr].activation == "random"){
-							isHit = Math.random() > specialEvadeInfo[ctr].value;
-						}
-						if(!isHit){
-							specialEvasion = specialEvadeInfo[ctr];
-						}
+		var specialEvasion = null;
+		var isHit = 1;
+		var weaponref = attacker.action.attack; 
+		var specialEvadeInfo = $statCalc.getModDefinitions(defender.actor, ["special_evade"]);
+		var weaponType = weaponref.particleType;
+		var aSkill = $statCalc.getPilotStat(attacker.actor, "skill");
+		var dSkill = $statCalc.getPilotStat(defender.actor, "skill");		
+		
+		var ctr = 0;
+		
+		if(!$statCalc.getActiveSpirits(attacker.actor).strike && !$statCalc.getActiveSpirits(attacker.actor).fury){
+			while(isHit && ctr < specialEvadeInfo.length){
+				var evasionType = specialEvadeInfo[ctr].subType;
+				if(evasionType == weaponType || evasionType == "all"){
+					if(specialEvadeInfo[ctr].activation == "skill"){
+						isHit = dSkill < aSkill;
+					} else if(specialEvadeInfo[ctr].activation == "random"){
+						isHit = Math.random() > specialEvadeInfo[ctr].value;
 					}
-					ctr++;
+					if(!isHit){
+						specialEvasion = specialEvadeInfo[ctr];
+					}
 				}
+				ctr++;
 			}
-			return specialEvasion;
 		}
+		return specialEvasion;
+	}
 	
 	BattleAction.prototype.determineTargetInfo = function(){
 		

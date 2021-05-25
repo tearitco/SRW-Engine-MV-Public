@@ -113,6 +113,7 @@ Window_MechList.prototype.update = function() {
 			}*/
 			SoundManager.playOk();
 			$gameTemp.currentMenuUnit = this.getCurrentSelection();
+			$gameTemp.detailPageMode = "menu";
 			$gameTemp.pushMenu = "detail_pages";	
 		}
 		if(Input.isTriggered('cancel')){		

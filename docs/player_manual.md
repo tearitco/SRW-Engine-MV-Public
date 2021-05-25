@@ -174,7 +174,7 @@ These lists displays show information about your pilots and mechs. The lists hav
 
 #### Controls
 
-* Arrows: Select a unit, move the a different page
+* Arrows: Select a unit, move to a different page
 * Z/Cross: View the details of a unit
 * X/Circle: Return to the main menu
 * Page up/L1: Change the current sorted field
