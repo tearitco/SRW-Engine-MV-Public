@@ -4111,10 +4111,14 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							_this._active_twin =  _this._actorTwinSprite.sprite;
 							_this._active_support_attacker = _this._actorSupporterSprite.sprite;
 							_this._active_support_defender = _this._enemySupporterSprite.sprite;
+							if(nextAction.attacked.type == "support defend" && nextAction.attacked.ref.isSubTwin){
+								
+								_this._active_support_defender = _this._enemyTwinSupporterSprite.sprite;
+							}
 							if(nextAction.attacked_all_sub){
 								_this._active_target = _this._enemySprite.sprite;									
 								_this._active_target_twin = _this._enemyTwinSprite.sprite;	
-							} else if(nextAction.attacked.ref.isSubTwin){
+							} else if(nextAction.originalTarget.ref.isSubTwin){
 								_this._active_target = _this._enemyTwinSprite.sprite;		
 							} else {
 								_this._active_target = _this._enemySprite.sprite;		
@@ -4127,11 +4131,14 @@ BattleSceneManager.prototype.processActionQueue = function() {
 							_this._active_twin =  _this._enemyTwinSprite.sprite;
 							_this._active_support_attacker = _this._enemySupporterSprite.sprite;
 							_this._active_support_defender = _this._actorSupporterSprite.sprite;
+							if(nextAction.attacked.type == "support defend" && nextAction.attacked.ref.isSubTwin){
+								_this._active_support_defender = _this._actorTwinSupporterSprite.sprite;
+							}
 							if(nextAction.attacked_all_sub){
 								_this._active_target = _this._actorSprite.sprite;									
 								_this._active_target_twin = _this._actorTwinSprite.sprite;	
 							} else
-							if(nextAction.attacked.ref.isSubTwin){
+							if(nextAction.originalTarget.ref.isSubTwin){
 								_this._active_target = _this._actorTwinSprite.sprite;
 							} else {
 								_this._active_target = _this._actorSprite.sprite;		
@@ -4229,6 +4236,21 @@ BattleSceneManager.prototype.processActionQueue = function() {
 								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
 								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
 							}
+							
+							if(nextAction.attacked.type == "support defend"){
+								if(nextAction.side == "actor"){
+									if(nextAction.attacked.ref.isSubTwin){
+										_this._UILayerManager.setStat(_this._participantInfo.enemy_twin_supporter.effect, "HP");
+										_this._UILayerManager.setStat(_this._participantInfo.enemy_twin_supporter.effect, "EN");
+									} 					
+								} else {
+									if(nextAction.attacked.ref.isSubTwin){
+										_this._UILayerManager.setStat(_this._participantInfo.actor_twin_supporter.effect, "HP");
+										_this._UILayerManager.setStat(_this._participantInfo.actor_twin_supporter.effect, "EN");
+									} 
+								}
+							}
+							
 						
 							if(nextAction.type == "support attack")	{
 								_this._UILayerManager.setNotification(nextAction.side, "Support Attack");

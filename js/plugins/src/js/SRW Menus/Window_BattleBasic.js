@@ -797,7 +797,11 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 	function processBattleAnimations(attackRef, target){
 		if(nextAction["hits"+attackRef]){
 			if(nextAction["attacked"+attackRef].type == "support defend"){
-				attackAnimationSubQueue.supportDefendAnimation = {target: target, type: "supportDefend"};
+				if(nextAction["attacked"+attackRef].ref.isSubTwin){
+					attackAnimationSubQueue.supportDefendAnimation = {target: target, type: "supportDefendSub"};
+				} else {
+					attackAnimationSubQueue.supportDefendAnimation = {target: target, type: "supportDefend"};
+				}				
 			}
 			
 			var animInfo = _this.getHPAnimInfo(nextAction, attackRef);
@@ -843,7 +847,11 @@ Window_BattleBasic.prototype.setUpAnimations = function(nextAction) {
 				destroyAnimation.special["destroy"] = {target: target};		
 				attackAnimationSubQueue.destroyAnimation.push(destroyAnimation);
 			} else if(nextAction["attacked"+attackRef].type == "support defend"){
-				attackAnimationSubQueue.supportDefendReturnAnimation = {target: target, type: "supportDefendReturn"};
+				if(nextAction["attacked"+attackRef].ref.isSubTwin){
+					attackAnimationSubQueue.supportDefendReturnAnimation = {target: target, type: "supportDefendSubReturn"};
+				} else {
+					attackAnimationSubQueue.supportDefendReturnAnimation = {target: target, type: "supportDefendReturn"};
+				}
 			}
 			
 		} else {

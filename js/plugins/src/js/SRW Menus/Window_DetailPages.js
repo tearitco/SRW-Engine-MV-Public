@@ -502,17 +502,31 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 		if(type == "twin"){
 			if(offset == -1){
 				if(actor.isSubTwin){
-					_this.loadActorFace($statCalc.getMainTwin(actor).actorId(), selectionIcon);
+					if(actor.isActor()){
+						_this.loadActorFace($statCalc.getMainTwin(actor).actorId(), selectionIcon);
+					} else {
+						_this.loadEnemyFace($statCalc.getMainTwin(actor).enemyId(), selectionIcon);
+					}
+					
 				}
 			} else {
 				if(actor.subTwin){
-					_this.loadActorFace(actor.subTwin.actorId(), selectionIcon);
+					if(actor.isActor()){
+						_this.loadActorFace(actor.subTwin.actorId(), selectionIcon);
+					} else {
+						_this.loadEnemyFace(actor.subTwin.enemyId(), selectionIcon);
+					}
 				}
 			}
 		} else {
 			var subPilotIds = $statCalc.getSubPilots(actor);
 			var list = JSON.parse(JSON.stringify(subPilotIds));
-			list.unshift(actor.actorId());
+			if(actor.isActor()){
+				list.unshift(actor.actorId());
+			} else {
+				list.unshift(actor.enemyId());
+			}
+			
 			var idx = _this._subPilotIdx + offset;
 			if(idx == -1){
 				idx = list.length - 1;

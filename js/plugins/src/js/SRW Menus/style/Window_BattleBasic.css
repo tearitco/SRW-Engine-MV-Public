@@ -1018,3 +1018,103 @@
 	animation-duration: 0.2s;
 	animation-fill-mode: forwards;
 }
+
+.participant_container.actor.supportDefendSub  {
+	animation-name: actor_sub_support_defend;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes actor_sub_support_defend {
+  
+  0% { left: 90%; top:  45%;}
+  100% { left: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
+}
+
+.participant_container.actor.supportDefendSubReturn  {
+	animation-name: actor_sub_support_defend_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes actor_sub_support_defend_return {
+
+  0% {left: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
+  100% {left:  90%; top: 45%;}
+  
+}
+
+.participant_container.enemy.supportDefendSub {
+	animation-name: enemy_sub_support_defend;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+ 
+
+@keyframes enemy_sub_support_defend {
+	 0% { right: 88%; top: 45%;}
+  100% { right: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
+}
+
+.participant_container.enemy.supportDefendSubReturn {
+	animation-name: enemy_sub_support_defend_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes enemy_sub_support_defend_return {
+	 0% {right: var(--supporting-offset-horz); top: var(--supporting-offset-vert); }
+  100% { right: 88%; top: 45%;}
+}
+
+
+#battle_basic_enemy_supporter_twin.damage {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.no_damage {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.hp_bar {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.destroyed_participant {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.double_image {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+
+#battle_basic_actor_supporter_twin.damage {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.no_damage {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.hp_bar {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.destroyed_participant {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.double_image {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
