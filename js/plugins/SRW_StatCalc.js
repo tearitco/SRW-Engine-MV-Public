@@ -1484,6 +1484,13 @@ StatCalc.prototype.swapEvent = function(event, force){
 	}
 }
 
+StatCalc.prototype.clearTwinPositionInfo = function(actor){
+	actor.positionBeforeTwin = null;
+	if(actor.subTwin){
+		actor.subTwin.positionBeforeTwin = null;
+	}
+}
+
 StatCalc.prototype.separate = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
 		if(this.isMainTwin(actor)){		
@@ -1493,7 +1500,7 @@ StatCalc.prototype.separate = function(actor){
 			//twin.mainTwin = null;
 			twin.isSubTwin = false;
 			
-			if(actor.positionBeforeTwin){
+			if(actor.positionBeforeTwin && this.isFreeSpace(actor.positionBeforeTwin)){
 				actor.event.locate(actor.positionBeforeTwin.x, actor.positionBeforeTwin.y);
 			}
 
@@ -1501,18 +1508,19 @@ StatCalc.prototype.separate = function(actor){
 			
 			var event = twin.event;
 			if(!event){
-				event = $gameMap.requestDynamicEvent()
+				event = $gameMap.requestDynamicEvent();
 				twin.event = event;
 				event.setType("actor");
 				$gameSystem.setEventToUnit(twin.event.eventId(), 'actor', twin.actorId());
 			}
 			if(event){				
 				var space;
-				if(twin.positionBeforeTwin){
+				if(twin.positionBeforeTwin && this.isFreeSpace(twin.positionBeforeTwin)){
 					space = twin.positionBeforeTwin;
 				} else {
 					space = this.getAdjacentFreeSpace({x: actor.event.posX(), y: actor.event.posY()});
-				}				
+				}		
+					
 				event.appear();
 				event.locate(space.x, space.y);
 				

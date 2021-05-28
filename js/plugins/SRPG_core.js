@@ -5236,6 +5236,7 @@ var $battleSceneManager = new BattleSceneManager();
 					$gameTemp.followMove = false;
 					$gameSystem.setSrpgWaitMoving(false);
 					$statCalc.invalidateAbilityCache();
+					$statCalc.clearTwinPositionInfo(battlerArray[1]);
 				} else {				
 					this.setMoveSpeed(6);
 					if(followMove){
@@ -5279,6 +5280,7 @@ var $battleSceneManager = new BattleSceneManager();
 						$gameTemp.followMove = false;
 						$gameSystem.setSrpgWaitMoving(false);
 						$statCalc.invalidateAbilityCache();
+						$statCalc.clearTwinPositionInfo(battlerArray[1]);
 					}	
 				}
 			}
