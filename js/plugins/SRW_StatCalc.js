@@ -1562,6 +1562,10 @@ StatCalc.prototype.twin = function(actor, otherActor){
 			otherActor.event.erase();
 			otherActor.event.isUnused = true;
 			otherActor.event = null;	
+			if(!this.canFly(actor) || !this.canFly(otherActor)){
+				this.setFlying(actor, false);
+				this.setFlying(otherActor, false);
+			}
 			this.invalidateAbilityCache();
 		}		
 	}
@@ -2921,7 +2925,17 @@ StatCalc.prototype.canBeOnSpace = function(actor){
 
 StatCalc.prototype.canFly = function(actor){
 	if(this.isActorSRWInitialized(actor)){
-		return ((actor.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(actor, 0, ["fly"])) && this.getTileType(actor) != "space");
+		var validTwin = true;
+		if(actor.subTwin && !(actor.subTwin.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(actor.subTwin, 0, ["fly"]))){
+			validTwin = false;
+		}
+		if(actor.isSubTwin){
+			var mainTwin = this.getMainTwin(actor);
+			if(!(mainTwin.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(mainTwin, 0, ["fly"]))){
+				validTwin = false;
+			}
+		}
+		return ((actor.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(actor, 0, ["fly"])) && this.getTileType(actor) != "space" && validTwin);
 	} else {
 		return false;
 	}		
