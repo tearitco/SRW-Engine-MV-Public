@@ -1837,7 +1837,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},
 		enable_support_defender: function(target, params){
 			_this._supportDefenderActive = true;			
-			var action = _this._currentAnimatedAction.attacked;
+			var action = _this.getTargetAction(target);
 			var ref = _this._currentAnimatedAction.attacked.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
 			var currentHP;
@@ -1854,21 +1854,26 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		
 		disable_support_defender: function(target, params){
 			_this._supportDefenderActive = false;
-			var action = _this._currentAnimatedAction.attacked;
-			if(action.side == "actor"){
-				action = _this._participantInfo.actor.effect;
-			} else {
-				action = _this._participantInfo.enemy.effect;
-			}			
+			var action = _this._currentAnimatedAction.originalTarget;		
 			var ref = action.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
 			var currentHP;
-			if(action.side == "actor"){
-				currentHP = _this._participantInfo.actor.tempHP;
-				_this._actorSprite.sprite.setEnabled(true);
-			} else {
-				currentHP = _this._participantInfo.enemy.tempHP;
-				_this._enemySprite.sprite.setEnabled(true);
+			if(action.side == "actor"){				
+				if(action.ref.isSubTwin){
+					currentHP = _this._participantInfo.actor_twin.tempHP;
+					_this._actorTwinSprite.sprite.setEnabled(true);
+				} else {
+					currentHP = _this._participantInfo.actor_twin.tempHP;
+					_this._actorSprite.sprite.setEnabled(true);
+				}				
+			} else {				
+				if(action.ref.isSubTwin){
+					currentHP = _this._participantInfo.enemy.tempHP;
+					_this._enemyTwinSprite.sprite.setEnabled(true);
+				} else {
+					currentHP = _this._participantInfo.enemy.tempHP;
+					_this._enemySprite.sprite.setEnabled(true);
+				}
 			}
 			_this._UILayerManager.setStat(action, "HP");
 			_this._UILayerManager.setStat(action, "EN");
@@ -2764,6 +2769,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		drain_hp_bar: function(target, params){			
 			var originalAction = _this._currentAnimatedAction;
 			var action = _this.getTargetAction(target);
+			var originalTarget = target;
 			var target = action.side;
 			var stats = $statCalc.getCalculatedMechStats(action.ref);
 			var drainInfoKey = target + "_" + (action.ref.isSubTwin ? "twin" : "");
@@ -2774,7 +2780,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				_this._barDrainInfo[drainInfoKey].HP = 0;
 			}
 			
-			var totalDamage = Math.min(originalAction.damageInflicted, action.currentAnimHP);
+			var totalDamage;
+
+			if(originalTarget == "active_target_twin"){
+				totalDamage = Math.min(originalAction.damageInflicted_all_sub, action.currentAnimHP);
+			} else {
+				totalDamage = Math.min(originalAction.damageInflicted, action.currentAnimHP);
+			}			
 			
 			var startValue = action.currentAnimHP - (_this._barDrainInfo[drainInfoKey].HP /100 * totalDamage);
 			var endValue = action.currentAnimHP - (params.percent /100 * totalDamage);
@@ -2788,7 +2800,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			_this._UILayerManager.animateHP(target, action.ref.isSubTwin ? "twin" : "main", startPercent, endPercent, params.duration || 500);
 		},
 		drain_en_bar: function(target, params){			
-			var action = _this._currentAnimatedAction;
+			var action = _this.getTargetAction(target);
 			if(action.ENUsed != -1){
 				action.ENDrainShown = true;
 				var target = action.side;
@@ -3025,6 +3037,15 @@ BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef)
 			_this.mergeAnimList(attackDef.onMissTwin);			
 		}
 	}
+	
+	//force participating sprites to their idle stance
+	if(!_this._animationList[0]){
+		_this._animationList[0] = [];
+	}
+	_this._animationList[0].unshift({type: "set_sprite_frame", target: "active_target", params: {name: "main"}});
+	_this._animationList[0].unshift({type: "set_sprite_frame", target: "active_target_twin", params: {name: "main"}});
+	_this._animationList[0].unshift({type: "set_sprite_frame", target: "active_support_defender", params: {name: "main"}});
+	_this._animationList[0].unshift({type: "set_sprite_frame", target: "active_main", params: {name: "main"}});
 	
 	return this.startAnimation();
 }
