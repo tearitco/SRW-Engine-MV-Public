@@ -652,6 +652,19 @@ var $battleSceneManager = new BattleSceneManager();
 			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
 			event.srpgMoveToPoint(position, true);
 			if(args[3] * 1){
+				$gamePlayer.locate(event.posX(), event.posY());
+				$gameTemp.followMove = true;
+			}			
+		}
+		
+		if (command === 'moveActorToPoint') {
+			$gameMap._interpreter.setWaitMode("move_to_point");
+			$gameSystem.setSrpgWaitMoving(true);
+			var event = $statCalc.getReferenceEvent($gameActors.actor(args[0]));
+			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
+			event.srpgMoveToPoint(position, true);
+			if(args[3] * 1){
+				$gamePlayer.locate(event.posX(), event.posY());
 				$gameTemp.followMove = true;
 			}			
 		}
@@ -748,6 +761,24 @@ var $battleSceneManager = new BattleSceneManager();
 			se.pitch = 100;
 			se.volume = 80;
 			AudioManager.playSe(se);
+		}
+		
+		if (command === 'separateActor') {
+			var actor = $gameActors.actor(args[0]);
+			if(actor.isSubTwin){
+				actor = $statCalc.getMainTwin(actor);
+			}
+			if(actor.subTwin || actor.isSubTwin){
+				$statCalc.separate(actor, true);
+			}			
+		}
+		
+		if (command === 'makeActorMainTwin') {
+			var actor = $gameActors.actor(args[0]);
+			if(actor.isSubTwin){
+				actor = $statCalc.getMainTwin(actor);
+				$statCalc.swap(actor, true);
+			}			
 		}
 		
 		if (command === 'preventActorDeathQuote') {
