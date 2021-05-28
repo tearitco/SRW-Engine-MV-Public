@@ -214,6 +214,10 @@
 	width: 13%;
 }
 
+.list_row .twin.single .locked_icon{
+	width: 25%;
+}
+
 .list_row .twin .deployed_icon {
 	position: absolute;
 	top: -5%;

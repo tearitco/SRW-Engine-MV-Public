@@ -40,7 +40,7 @@ Window_DeploymentTwin.prototype.initialize = function() {
 }
 
 Window_DeploymentTwin.prototype.isTwinMode = function(){
-	return ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM;
+	return ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM && !ENGINE_SETTINGS.DISABLE_ALLY_TWINS;
 }
 
 Window_DeploymentTwin.prototype.resetSelection = function(){

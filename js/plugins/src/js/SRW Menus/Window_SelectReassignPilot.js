@@ -166,7 +166,8 @@ Window_SelectReassignPilot.prototype.update = function() {
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
 			}*/		
-			if(this.rowEnabled(this.getCurrentSelection().actor) && $gameTemp.reassignTargetMech){
+			var selection = this.getCurrentSelection();
+			if(selection && this.rowEnabled(selection.actor) && $gameTemp.reassignTargetMech){
 				SoundManager.playOk();
 				var target = $gameTemp.reassignTargetMech;
 				var mechId = target.id;

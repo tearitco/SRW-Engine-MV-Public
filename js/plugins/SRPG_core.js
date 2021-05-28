@@ -2475,11 +2475,11 @@ var $battleSceneManager = new BattleSceneManager();
 			var entry = {};
 			if(i < deployInfo.count){				
 				var isPredefined = false;
-				if(deployInfo.assigned[i]){
+				if(deployInfo.assigned[i] && validActors[deployInfo.assigned[i]]){
 					entry.main = deployInfo.assigned[i];
 					isPredefined = true;
 				}
-				if(deployInfo.assignedSub[i]){
+				if(deployInfo.assignedSub[i] && validActors[deployInfo.assigned[i]]){
 					entry.sub = deployInfo.assignedSub[i];
 					isPredefined = true;
 				}
@@ -9425,7 +9425,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					if($statCalc.isCombined(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_split, 'split');
 					}
-					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM && !ENGINE_SETTINGS.DISABLE_ALLY_TWINS){
 						if(!$statCalc.isShip(_this._actor) && $statCalc.canSwap(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_swap, 'swap');
 						}	
@@ -9464,7 +9464,7 @@ SceneManager.reloadCharacters = function(startEvent){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_repair, 'heal');
 					}
 					
-					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM && !ENGINE_SETTINGS.DISABLE_ALLY_TWINS){
 						if($statCalc.canTwin(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_join, 'join');
 						}	

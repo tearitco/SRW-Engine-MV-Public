@@ -56,7 +56,10 @@ Window_SelectReassignMech.prototype.rowEnabled = function(actor){
 	
 	Object.keys(deployInfo.assigned).forEach(function(slot){
 		if(deployInfo.lockedSlots[slot]){
-			lockedMechs[$gameActors.actor(deployInfo.assigned[slot]).SRWStats.mech.id] = true;
+			var actor = $gameActors.actor(deployInfo.assigned[slot]);
+			if(actor.SRWStats){
+				lockedMechs[actor.SRWStats.mech.id] = true;
+			}			
 		}
 	});
 	
