@@ -121,7 +121,11 @@ DetailBarAttackSummary.prototype.redraw = function(){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_all;
 			} else if(detail.isRegular){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_regular;
-			}        			
+			} else if(detail.isHPGated){
+				var info = APPSTRINGS.ATTACKLIST.label_HP_gated;
+				info = info.replace("{HP_THRESHOLD}", attackData.HPThreshold);
+				detailContent+=info;
+			}    			
 		}
 	
 		detailContent+="</div>";

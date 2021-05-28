@@ -330,10 +330,6 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
-
-
-
-
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -595,6 +591,8 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponIsCounter:1\> If set to 1 the weapon will always trigger a Counter on the enemy turn. <br>
 \<weaponHPThreshold:50\> If set this weapon will only be usable when the user's HP falls below the specified value(percent). This property is also respected by the enemy AI.<br>
 \<weaponIsAll:1\> If set to 1 this weapon is treated as an ALL weapon and will hit both targets when targeting a twin. A note will be shown in the attack list to identify the weapon as an ALL weapon.
+\<weaponHPThreshold:50\> If set this weapon will only be usable when the user's HP falls below the specified value(percent). This property is also respected by the enemy AI.
+
  
 Weapons can have up to two special effects.
 

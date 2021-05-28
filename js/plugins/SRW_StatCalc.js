@@ -311,6 +311,11 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 				} else {
 					currentAmmo = totalAmmo;
 				}
+				
+				var HPThreshold = -1;
+				if(weaponProperties.weaponHPThreshold){
+					HPThreshold = weaponProperties.weaponHPThreshold * 1;
+				}
 				result.push({
 					id: parseInt(weaponDefinition.id),
 					name: weaponDefinition.name,
@@ -340,6 +345,8 @@ StatCalc.prototype.getMechWeapons = function(actor, mechProperties, previousWeap
 					upgradeType: parseInt(weaponProperties.weaponUpgradeType) || 0,
 					isSelfDestruct: parseInt(weaponProperties.weaponIsSelfDestruct),
 					isAll: parseInt(weaponProperties.weaponIsAll),
+					HPThreshold: HPThreshold,
+
 				});
 			}
 		}
@@ -3079,10 +3086,21 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 		} else if($gameTemp.isEnemyAttack){
 			canUse = false;
 			detail.isMap = true;
+
 		}  else if(rangeTarget){
 			canUse = false;
 			detail.isMap2 = true;
 		} 				
+
+		if(weapon.HPThreshold != -1){
+			var stats = this.getCalculatedMechStats(actor);
+			var ratio = stats.currentHP / stats.maxHP * 100;
+			if(ratio > weapon.HPThreshold){
+				canUse = false;
+				detail.isHPGated = true;
+			}				
+		}	
+
 	} else {
 		canUse = false;
 	} 	
@@ -3121,7 +3139,14 @@ StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly, d
 			if(terrainRank == "-"){
 				return false;
 			}
-		}		
+		}	
+		if(weapon.HPThreshold != -1){
+			var stats = this.getCalculatedMechStats(actor);
+			var ratio = stats.currentHP / stats.maxHP * 100;
+			if(ratio > weapon.HPThreshold){
+				return false;
+			}				
+		}	
 	} else {
 		return false;
 	} 	
@@ -3628,11 +3653,11 @@ StatCalc.prototype.canSupportAttack = function(supportedActor, supportingActor){
 	return result;
 }
 
-StatCalc.prototype.getSupportAttackCandidates = function(factionId, position, terrain){
+StatCalc.prototype.getSupportAttackCandidates = function(factionId, position, terrain, eventId){
 	var _this = this;
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){
-		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1 && !actor.isSubTwin){
+		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1 && (eventId == null || event.eventId() != eventId) && !actor.isSubTwin){
 			var maxSupportAttacks = $statCalc.applyStatModsToValue(actor, 0, ["support_attack"]);
 			if(maxSupportAttacks > actor.SRWStats.battleTemp.supportAttackCount && (!actor.SRWStats.battleTemp.hasFinishedTurn || ENGINE_SETTINGS.ALLOW_TURN_END_SUPPORT)){
 				var validTerrain = true;
@@ -3689,11 +3714,11 @@ StatCalc.prototype.canSupportDefend = function(supportedActor, supportingActor){
 	return result;
 }
 	
-StatCalc.prototype.getSupportDefendCandidates = function(factionId, position, terrain){
+StatCalc.prototype.getSupportDefendCandidates = function(factionId, position, terrain, eventId){
 	var _this = this;
 	var result = [];
 	this.iterateAllActors(null, function(actor, event){
-		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1){
+		if(!event.isErased() && (Math.abs(event.posX() - position.x) + Math.abs(event.posY() - position.y)) == 1 && (eventId == null || event.eventId() != eventId)){
 			var maxSupportDefends = $statCalc.applyStatModsToValue(actor, 0, ["support_defend"]);			
 			if(maxSupportDefends > actor.SRWStats.battleTemp.supportDefendCount){
 				var validTerrain = true;
