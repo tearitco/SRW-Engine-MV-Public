@@ -138,6 +138,20 @@ var $battleSceneManager = new BattleSceneManager();
 		return false;
 	};
 	
+	/*Input._pollGamepads = function() {
+		if (navigator.getGamepads) {
+			var gamepads = navigator.getGamepads();
+			if (gamepads) {
+				for (var i = 0; i < gamepads.length; i++) {
+					var gamepad = gamepads[i];
+					if (gamepad && gamepad.connected && gamepad.id == "Xbox 360 Controller (XInput STANDARD GAMEPAD)") {
+						this._updateGamepadState(gamepad);
+					}
+				}
+			}
+		}
+	};*/
+	
 	TouchInput._onWheel = function(event) {
 		
 	}
@@ -340,7 +354,7 @@ var $battleSceneManager = new BattleSceneManager();
 				actorId = $gameVariables.value(parts[1]);
 			}
 			
-			var event = $gameMap.event($gameSystem.ActorToEvent(actorId));
+			var event = $statCalc.getReferenceEvent($gameActors.actor(actorId));
 			if(event && !event.isErased()){
 				$gamePlayer.locate(event.posX(), event.posY());
 			}
@@ -356,10 +370,15 @@ var $battleSceneManager = new BattleSceneManager();
 			var deployInfo = $gameSystem.getDeployInfo();
 			deployInfo.count = 0;
 			deployInfo.assigned = {};
+			deployInfo.assignedSub = {};
 			deployInfo.assignedShips = {};
 			deployInfo.lockedSlots = {};
 			$gameSystem.setDeployInfo(deployInfo);
         }
+		
+		if (command === 'populateDeployList') {
+			$gameSystem.constructDeployList();
+		}
 		
 		if (command === 'setDeployCount') {
 			var deployInfo = $gameSystem.getDeployInfo();
@@ -377,6 +396,19 @@ var $battleSceneManager = new BattleSceneManager();
 				actorId = $gameVariables.value(parts[1]);
 			}
 			deployInfo.assigned[args[0]] = actorId;
+			$gameSystem.setDeployInfo(deployInfo);
+        }
+		
+		if (command === 'assignSlotSub') {
+			//args[0]: slot 
+			//args[1]: actor id
+			var deployInfo = $gameSystem.getDeployInfo();
+			var actorId = args[1];
+			var parts = actorId.match(/\<(.*)\>/);	
+			if(parts && parts.length > 1){
+				actorId = $gameVariables.value(parts[1]);
+			}
+			deployInfo.assignedSub[args[0]] = actorId;
 			$gameSystem.setDeployInfo(deployInfo);
         }
 		
@@ -555,6 +587,14 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 		
 		if (command === 'deployAll') {
+			var deployInfo = $gameSystem.getDeployInfo();
+			var deployList = $gameSystem.getDeployList();
+			//$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()))
+			var activeDeployList = [];
+			for(var i = 0; i < deployInfo.count; i++){
+				activeDeployList.push(deployList[i]);
+			}
+			$gameSystem.setActiveDeployList(activeDeployList);
 			$gameSystem.deployActors(args[0]);
 		}
 		
@@ -612,6 +652,19 @@ var $battleSceneManager = new BattleSceneManager();
 			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
 			event.srpgMoveToPoint(position, true);
 			if(args[3] * 1){
+				$gamePlayer.locate(event.posX(), event.posY());
+				$gameTemp.followMove = true;
+			}			
+		}
+		
+		if (command === 'moveActorToPoint') {
+			$gameMap._interpreter.setWaitMode("move_to_point");
+			$gameSystem.setSrpgWaitMoving(true);
+			var event = $statCalc.getReferenceEvent($gameActors.actor(args[0]));
+			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
+			event.srpgMoveToPoint(position, true);
+			if(args[3] * 1){
+				$gamePlayer.locate(event.posX(), event.posY());
 				$gameTemp.followMove = true;
 			}			
 		}
@@ -708,6 +761,24 @@ var $battleSceneManager = new BattleSceneManager();
 			se.pitch = 100;
 			se.volume = 80;
 			AudioManager.playSe(se);
+		}
+		
+		if (command === 'separateActor') {
+			var actor = $gameActors.actor(args[0]);
+			if(actor.isSubTwin){
+				actor = $statCalc.getMainTwin(actor);
+			}
+			if(actor.subTwin || actor.isSubTwin){
+				$statCalc.separate(actor, true);
+			}			
+		}
+		
+		if (command === 'makeActorMainTwin') {
+			var actor = $gameActors.actor(args[0]);
+			if(actor.isSubTwin){
+				actor = $statCalc.getMainTwin(actor);
+				$statCalc.swap(actor, true);
+			}			
 		}
 		
 		if (command === 'preventActorDeathQuote') {
@@ -1224,7 +1295,7 @@ var $battleSceneManager = new BattleSceneManager();
 		var result = false;
 		if(this.currentMapTargets){
 			for(var i = 0; i < this.currentMapTargets.length; i++){
-				if(this.currentMapTargets[i].event.eventId() == eventId){
+				if($statCalc.getReferenceEvent(this.currentMapTargets[i]).eventId() == eventId){
 					result = true;
 				}
 			}
@@ -1752,7 +1823,7 @@ var $battleSceneManager = new BattleSceneManager();
 		});
 	}
 	
-	Game_System.prototype.deployActor = function(actor_unit, event, toAnimQueue) {
+	Game_System.prototype.deployActor = function(actor_unit, event, toAnimQueue, subId) {
 		var _this = this;
 		actor_unit.event = event;
 		_this.pushSrpgAllActors(event.eventId());
@@ -1763,7 +1834,7 @@ var $battleSceneManager = new BattleSceneManager();
 		_this.setEventToUnit(event.eventId(), 'actor', actor_unit.actorId());
 		actor_unit.isSubPilot = false;
 		
-		//$statCalc.initSRWStats(actor_unit);
+		$statCalc.initSRWStats(actor_unit);
 		
 		$statCalc.applyDeployActions(actor_unit.SRWStats.pilot.id, actor_unit.SRWStats.mech.id);
 		
@@ -1787,7 +1858,7 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameMap.setEventImages();			
 		}
 		
-		var deployInfo = $gameSystem.getDeployInfo();
+		/*var deployInfo = $gameSystem.getDeployInfo();
 		var currentSlot = -1;
 		var currentMaxSlot = -1;
 		
@@ -1802,7 +1873,11 @@ var $battleSceneManager = new BattleSceneManager();
 		if(currentSlot == -1){
 			deployInfo.assigned[currentMaxSlot+1] = actor_unit.actorId();
 		}
-		$gameSystem.setDeployInfo(deployInfo);
+		$gameSystem.setDeployInfo(deployInfo);*/
+		
+		if(subId != null){
+			actor_unit.subTwinId = subId;
+		}
 		
 		$statCalc.invalidateAbilityCache();
 		$statCalc.initSRWStats(actor_unit);
@@ -1916,18 +1991,17 @@ var $battleSceneManager = new BattleSceneManager();
 	Game_System.prototype.deployActors = function(toAnimQueue, lockedOnly, validatePositions) {
 		var _this = this;
 		var deployInfo = _this.getDeployInfo();
+		var deployList = _this.getActiveDeployList();
 		var i = 0;
         $gameMap.events().forEach(function(event) {
             if (event.isType() === 'actor' && !event.isDeployed) {
               	var actor_unit;
-				var actorId = deployInfo.assigned[i];		
-				if(!lockedOnly || deployInfo.lockedSlots[i]){
+				var entry = deployList[i] || {};
+				var actorId =entry.main;		
+				if((!lockedOnly || deployInfo.lockedSlots[i])){
 					if(typeof actorId != "undefined"){
 						actor_unit = $gameActors.actor(actorId);
-					}
-					
-					
-					
+					}				
 					if (actor_unit) {
 						var validPosition;
 						if(validatePositions && !deployInfo.lockedSlots[i]){
@@ -1936,7 +2010,7 @@ var $battleSceneManager = new BattleSceneManager();
 							validPosition = true;
 						}
 						if(validPosition){
-							_this.deployActor(actor_unit, event, toAnimQueue);
+							_this.deployActor(actor_unit, event, toAnimQueue, entry.sub);
 						} else {
 							event.erase();
 						}						
@@ -2303,12 +2377,148 @@ var $battleSceneManager = new BattleSceneManager();
         return flag;
     };
 	
+	Game_System.prototype.getTwinInfo = function() {
+		if(!$gameSystem.twinInfo){
+			$gameSystem.twinInfo = {};
+		} 
+		return $gameSystem.twinInfo;
+    };
+	
+	Game_System.prototype.getIsTwinInfo = function() {
+		if(!$gameSystem.isTwinInfo){
+			$gameSystem.isTwinInfo = {};
+		} 
+		return $gameSystem.isTwinInfo;
+    };
+	
+	Game_System.prototype.getPreferredSlotInfo = function() {
+		if(!this.preferredSlotInfo){
+			this.preferredSlotInfo = {};
+		} 
+		return this.preferredSlotInfo;
+    };
+
+	
+	Game_System.prototype.invalidateDeployList = function() {
+		$gameSystem.deployList = null;
+	}
+	
+	Game_System.prototype.getDeployList = function() {
+		if(!$gameSystem.deployList){
+			this.constructDeployList();
+		}
+		return $gameSystem.deployList;
+	}
+	
+	Game_System.prototype.getActiveDeployList = function() {
+		return this._activeDeploylist;
+	}
+	
+	Game_System.prototype.setActiveDeployList = function(list) {
+		this._activeDeploylist = list;
+	}
+	
+	Game_System.prototype.constructDeployList = function() {
+		$gameSystem.deployList = [];
+		var deployInfo = this.getDeployInfo();
+		var usedUnits = {};
+		var slotLookup = {};
+		
+		var validActors = {};
+		var candidates = $gameSystem.getAvailableUnits();	
+		var tmp = [];
+		candidates.forEach(function(candidate){
+			if($statCalc.isValidForDeploy(candidate) && !$statCalc.isShip(candidate)){
+				validActors[candidate.actorId()] = true;
+				tmp.push(candidate);
+			}
+		});	
+		candidates = tmp;
+		
+		var sortedCandidates = [];
+		var usedActors = {};
+		var preferredSlotInfo = this.getPreferredSlotInfo();
+		Object.keys(preferredSlotInfo).forEach(function(slot){
+			var info = preferredSlotInfo[slot];			
+			var entry = {
+				main: null,
+				sub: null
+			};
+			isValid = false;
+			if(info.main != -1 && validActors[info.main]){
+				entry.main = info.main;
+				isValid = true;
+				usedActors[entry.main] = true;
+			}
+			if(info.sub != -1 && validActors[info.sub]){
+				entry.sub = info.sub;
+				isValid = true;
+				usedActors[entry.sub] = true;
+			}
+			if(isValid){
+				sortedCandidates.push(entry);
+			}
+		});
+		
+		tmp.forEach(function(candidate){
+			if(!usedActors[candidate.actorId()]){
+				sortedCandidates.push({
+					main: candidate.actorId(),
+					sub: null
+				});
+			}
+		});	
+				
+		
+		var i = 0;
+		while(sortedCandidates.length){	
+			var entry = {};
+			if(i < deployInfo.count){				
+				var isPredefined = false;
+				if(deployInfo.assigned[i]){
+					entry.main = deployInfo.assigned[i];
+					isPredefined = true;
+				}
+				if(deployInfo.assignedSub[i]){
+					entry.sub = deployInfo.assignedSub[i];
+					isPredefined = true;
+				}
+				if(!isPredefined){
+					entry = sortedCandidates.pop();
+				} 				
+			} else {
+				entry = sortedCandidates.pop();
+			}
+			if(usedUnits[entry.main]){
+				entry.main = null;
+			}
+			if(usedUnits[entry.sub]){
+				entry.sub = null;
+			}
+			if(entry.main || entry.sub){
+				$gameSystem.deployList.push(entry);							
+				usedUnits[entry.main] = true;
+				usedUnits[entry.sub] = true;
+			}
+			i++;
+		}
+	}
+	
+	Game_System.prototype.syncPreferredSlots = function() {
+		var deployInfo = this.getDeployList();
+		this.preferredSlotInfo = {};
+		for(var i = 0; i < deployInfo.length; i++){
+			this.preferredSlotInfo[i] = deployInfo[i];
+		}
+	}
+	
 	Game_System.prototype.getDeployInfo = function() {
 		var info = $gameVariables.value(_nextMapDeployVariable);
 		if(!info){
 			info = {
 				count: 0,
 				assigned: {},
+				assignedSub: {},
 				assignedShips: {},
 				lockedSlots: {},
 				favorites: {}
@@ -2320,6 +2530,7 @@ var $battleSceneManager = new BattleSceneManager();
     };
 	
 	Game_System.prototype.setDeployInfo = function(info) {
+		this.invalidateDeployList();
 		$gameVariables.setValue(_nextMapDeployVariable, JSON.stringify(info));
     };
 	
@@ -2360,7 +2571,8 @@ var $battleSceneManager = new BattleSceneManager();
 		if($gameTemp.editMode){
 			return $SRWEditor.getBattleEnvironmentId();
 		} else {
-			var region = $gameMap.regionId(actor.event.posX(), actor.event.posY());
+			var event = $statCalc.getReferenceEvent(actor);
+			var region = $gameMap.regionId(event.posX(), event.posY());
 			if($statCalc.isFlying(actor)){
 				if($gameSystem.regionSkyBattleEnv[region] != null){
 					return $gameSystem.regionSkyBattleEnv[region];
@@ -4278,7 +4490,7 @@ var $battleSceneManager = new BattleSceneManager();
 										actor: battlerArray[1],
 										mech: battlerArray[1].SRWStats.mech
 									};
-									
+									$gameTemp.detailPageMode = "map";
 									$gameSystem.setSubBattlePhase('enemy_unit_summary');
 									$gameTemp.pushMenu = "detail_pages";
 									
@@ -4424,11 +4636,16 @@ var $battleSceneManager = new BattleSceneManager();
 											supporters = [];
 										}
 										
+										var allRequired = false;
+										if($gameTemp.actorAction && $gameTemp.actorAction.attack){
+											allRequired = $gameTemp.actorAction.attack.isAll ? 1 : -1;
+										}
+										
 										var supporterInfo = [];
 										var supporterSelected = -1;
 										var bestDamage = 0;
 										for(var i = 0; i < supporters.length; i++){
-											var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo);
+											var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo, false, false, false, allRequired);
 											if(weaponResult.weapon){
 												supporters[i].action = {type: "attack", attack: weaponResult.weapon};
 												supporterInfo.push(supporters[i]);
@@ -4441,37 +4658,46 @@ var $battleSceneManager = new BattleSceneManager();
 										$gameTemp.supportAttackCandidates = supporterInfo;
 										$gameTemp.supportAttackSelected = supporterSelected;
 										
-										var supporters = $statCalc.getSupportDefendCandidates(
-											$gameSystem.getFactionId($gameTemp.currentBattleEnemy), 
-											{x: event.posX(), y: event.posY()},
-											$statCalc.getCurrentTerrain($gameTemp.currentBattleEnemy)
-										);
+										$battleCalc.updateTwinSupportAttack();
 										
-										if($statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_support"]) || 
-											$statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_target_support"])){
-											supporters = [];
-										}
-										
-										var supporterSelected = -1;
-										var minDamage = -1;
-										for(var i = 0; i < supporters.length; i++){
-											supporters[i].action = {type: "defend", attack: null};											
-											
-											var damageResult = $battleCalc.performDamageCalculation(
-												{actor: actorInfo.actor, action: $gameTemp.actorAction},
-												supporters[i],
-												true,
-												false,
-												true	
+										if(!$gameTemp.actorAction || !$gameTemp.actorAction.attack || !$gameTemp.actorAction.attack.isAll){
+											var supporters = $statCalc.getSupportDefendCandidates(
+												$gameSystem.getFactionId($gameTemp.currentBattleEnemy), 
+												{x: event.posX(), y: event.posY()},
+												$statCalc.getCurrentTerrain($gameTemp.currentBattleEnemy)
 											);
 											
-											if(minDamage == -1 || damageResult.damage < minDamage){
-												minDamage = damageResult.damage;
-												supporterSelected = i;
+											if($statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_support"]) || 
+												$statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_target_support"])){
+												supporters = [];
 											}
+											
+											var supporterSelected = -1;
+											var minDamage = -1;
+											for(var i = 0; i < supporters.length; i++){
+												supporters[i].action = {type: "defend", attack: null};											
+												
+												var damageResult = $battleCalc.performDamageCalculation(
+													{actor: actorInfo.actor, action: $gameTemp.actorAction},
+													supporters[i],
+													true,
+													false,
+													true	
+												);
+												
+												if(minDamage == -1 || damageResult.damage < minDamage){
+													minDamage = damageResult.damage;
+													supporterSelected = i;
+												}
+											}
+											$gameTemp.supportDefendCandidates = supporters;
+											$gameTemp.supportDefendSelected = supporterSelected;
+										} else {
+											$gameTemp.supportDefendCandidates = [];
+											$gameTemp.supportDefendSelected = -1;
 										}
-										$gameTemp.supportDefendCandidates = supporters;
-										$gameTemp.supportDefendSelected = supporterSelected;
+										$gameTemp.currentTargetingSettings = null;																				
+										$battleCalc.updateTwinActions();
 										
 										$gameTemp.setTargetEvent(event);
 										$statCalc.invalidateAbilityCache();
@@ -4614,6 +4840,30 @@ var $battleSceneManager = new BattleSceneManager();
 									$gameTemp.pushMenu = "spirit_activation";
 										            
 								}
+							}
+						}
+					});			
+                } else if ($gameSystem.isSubBattlePhase() === 'twin_selection') {					
+					$gameMap.eventsXy(x, y).forEach(function(event) {
+						if (event.isTriggerIn(triggers) && !event.isErased()) {
+							if (event.isType() == 'actor') {
+								var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+								var candidate = $gameSystem.EventToUnit(event.eventId())[1];
+								
+								if($statCalc.canTwin(actor, candidate)){
+									$statCalc.twin(actor, candidate);
+									
+									if($gameTemp.isPostMove){
+										$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
+										$gameSystem.setSubBattlePhase('post_move_command_window');
+									} else {
+										$gameSystem.setSubBattlePhase('normal');
+									}								
+									$gameTemp.hasTwinned = true;	
+									$gameSystem.highlightedActionTiles = [];
+									$gameSystem.highlightsRefreshed = true;
+								}
+								Input.clear();
 							}
 						}
 					});			
@@ -5558,6 +5808,57 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
     return true;
 };
 
+Game_Interpreter.prototype.addSubTwinEnemy = function(eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior) {
+	var enemy_unit = new Game_Enemy(enemyId, 0, 0);
+    var event = $gameMap.event(eventId);
+	if(typeof squadId == "undefined" || squadId == ""){
+		squadId = -1;
+	}
+	if(typeof targetRegion == "undefined"|| targetRegion == ""){
+		targetRegion = -1;
+	}
+	if(typeof factionId == "undefined"|| factionId == ""){
+		factionId = 0;
+	}
+    if (enemy_unit && event) { 	
+		var mainEnemy = $gameSystem.EventToUnit(eventId)[1];
+		
+		enemy_unit._mechClass = mechClass;	
+		enemy_unit.squadId = squadId;	
+		enemy_unit.targetRegion = targetRegion;	
+		enemy_unit.factionId = factionId;	
+		enemy_unit.targetUnitId = targetId || "";
+		enemy_unit.counterBehavior = counterBehavior || "attack";
+		if (enemy_unit) {
+			
+			if (mode) {
+				enemy_unit.setBattleMode(mode);
+			}
+			enemy_unit.initTp(); //TPを初期化
+			var faceName = enemy_unit.enemy().meta.faceName; //顔グラフィックをプリロードする
+			if (faceName) {
+				var bitmap = ImageManager.loadFace(faceName);
+			} else {
+				if ($gameSystem.isSideView()) {
+					var bitmap = ImageManager.loadSvEnemy(enemy_unit.battlerName(), enemy_unit.battlerHue());
+				} else {
+					var bitmap = ImageManager.loadEnemy(enemy_unit.battlerName(), enemy_unit.battlerHue());
+				}
+			}
+			var oldValue = $gameVariables.value(_existEnemyVarID);
+			$gameVariables.setValue(_existEnemyVarID, oldValue + 1);			
+			$statCalc.initSRWStats(enemy_unit, level, items);
+			$statCalc.applyBattleStartWill(enemy_unit);
+			
+			enemy_unit.isSubTwin = true;			
+			mainEnemy.subTwin = enemy_unit;
+			mainEnemy.subTwinId = enemy_unit.enemyId();
+		}
+    }
+	$statCalc.invalidateAbilityCache();
+    return true;
+}
+
 Game_Interpreter.prototype.destroyEvents = function(startId, endId) {
 	for(var i = startId; i <= endId; i++){
 		this.destroyEvent(i);
@@ -5837,7 +6138,7 @@ Game_Interpreter.prototype.manualDeploy = function(){
 	$gameTemp.disableHighlightGlow = true;
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
 	$gameTemp.pushMenu = "in_stage_deploy";
-	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployInfo()));
+	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()));
 	
 }
 
@@ -6009,6 +6310,20 @@ Sample:
 			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			startHP: 20, // the start HP of the actor in percent
 			targetEndHP: 5, // the end HP of the target in percent
+			posX: 0, // the x coordinate of the position on the map where this unit stands(optional)
+			posY: 0, // the y coordinate of the position on the map where this unit stands(optional)
+			referenceEventId: 21 // if provided posX, posY and startHP will be derived from this event instead
+		},
+		actorTwin: {
+			id: 2, // the id of the actor pilot
+			action: "attack", // the action the actor will take: "attack", "defend", "evade". 
+			weapon: 3, // the id of the attack the actor will use. Only used if the action is "attack".
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+			startHP: 20, // the start HP of the actor in percent
+			targetEndHP: 5, // the end HP of the target in percent
+			posX: 0, // the x coordinate of the position on the map where this unit stands(optional)
+			posY: 0, // the y coordinate of the position on the map where this unit stands(optional)
+			referenceEventId: 21 // if provided posX, posY and startHP will be derived from this event instead
 		},
 		actorSupport: { // ommit this section if there is no actor supporter
 			id: 3, // the id of the actor pilot
@@ -6027,8 +6342,18 @@ Sample:
 			startHP: 80, // the start HP of the enemy in percent
 			targetEndHP: 5, // the end HP of the target in percent
 		},
+		enemyTwin: {
+			id: 1, // the id of the enemy pilot
+			mechId: 10, // the id of the enemy mech
+			weapon: 6, // the id of the attack the actor will use. Only used if the action is "attack".
+			action: "attack", // the action the enemy will take: "attack", "defend", "evade". 
+			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
+			startHP: 80, // the start HP of the enemy in percent
+			targetEndHP: 5, // the end HP of the target in percent
+		},
 		enemySupport: { // ommit this section if there is no enemy supporter
 			id: 3, // the id of the enemy pilot
+			mechId: 11,
 			action: "defend", // the action the enemy will take: "attack", "defend", "evade". 
 			hits: 1, // if 0 the attack performed by this unit will miss, if 1 the attack will hit 
 			weapon: -1, // the id of the attack the actor will use. Only used if the action is "attack".
@@ -6047,7 +6372,9 @@ Game_Interpreter.prototype.prepareBattleSceneActor = function(params) {
 	}
 	params.unit = actor;
 	actor.event = {
-		eventId: function(){return 1;}
+		eventId: function(){return 1;}, 
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	
 	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
@@ -6062,7 +6389,28 @@ Game_Interpreter.prototype.prepareBattleSceneSupportActor = function(params) {
 	}
 	params.unit = actor;
 	actor.event = {
-		eventId: function(){return 3;}
+		eventId: function(){return 3;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
+	};
+	
+	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneActorTwin = function(params) {
+	var actor = new Game_Actor(params.id, 0, 0);
+	$statCalc.initSRWStats(actor);
+	actor.isEventSubTwin = true;
+	actor.isSubTwin = true;
+	if(params.mechId){
+		actor._mechClass = params.mechId;	
+		$statCalc.initSRWStats(actor);
+	}
+	params.unit = actor;
+	actor.event = {
+		eventId: function(){return 5;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	
 	return {actor: actor, action: this.prepareBattleSceneAction(params), params: params};
@@ -6075,7 +6423,9 @@ Game_Interpreter.prototype.prepareBattleSceneEnemy = function(params) {
 	enemy._mechClass = params.mechId;	
 	$statCalc.initSRWStats(enemy);
 	enemy.event = {
-		eventId: function(){return 2;}
+		eventId: function(){return 2;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
 }
@@ -6087,7 +6437,25 @@ Game_Interpreter.prototype.prepareBattleSceneSupportEnemy = function(params) {
 	enemy._mechClass = params.mechId;	
 	$statCalc.initSRWStats(enemy);
 	enemy.event = {
-		eventId: function(){return 4;}
+		eventId: function(){return 4;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
+	};
+	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
+}
+
+Game_Interpreter.prototype.prepareBattleSceneEnemyTwin = function(params) {
+	var enemy = new Game_Enemy(params.id, 0, 0);
+	$statCalc.initSRWStats(enemy);
+	enemy.isEventSubTwin = true;
+	enemy.isSubTwin = true;
+	params.unit = enemy;
+	enemy._mechClass = params.mechId;	
+	$statCalc.initSRWStats(enemy);
+	enemy.event = {
+		eventId: function(){return 6;},
+		posX: function(){return params.posX || 0},
+		posY: function(){return params.posY || 0},
 	};
 	return {actor: enemy, action: this.prepareBattleSceneAction(params), params: params};
 }
@@ -6141,12 +6509,24 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 	
 	var actorInfo = this.prepareBattleSceneActor(params.actor);
 	var enemyInfo = this.prepareBattleSceneEnemy(params.enemy);
+		
+	var actorTwinInfo;
+	if(params.actorTwin){
+		actorTwinInfo = this.prepareBattleSceneActorTwin(params.actorTwin);
+	}
+	
+	var enemyTwinInfo;
+	if(params.enemyTwin){
+		enemyTwinInfo = this.prepareBattleSceneEnemyTwin(params.enemyTwin);
+	}
 	
 	var actor = actorInfo.actor;
 	var enemy = enemyInfo.actor;
 	
 	var attacker;
+	var attackerTwin;
 	var defender;
+	var defenderTwin;
 	var attackerSide;
 	var defenderSide;
 	if(params.enemyFirst){
@@ -6154,15 +6534,27 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		defenderSide = "actor";
 		attacker = enemyInfo;
 		defender = actorInfo;
+		attackerTwin = enemyTwinInfo;
+		defenderTwin = actorTwinInfo;
 	} else {
 		attackerSide = "actor";
 		defenderSide = "enemy";
 		attacker = actorInfo;
 		defender = enemyInfo;
+		attackerTwin = actorTwinInfo;
+		defenderTwin = enemyTwinInfo;
 	}
 	
 	$battleCalc.prepareBattleCache(attacker, "initiator");
 	$battleCalc.prepareBattleCache(defender, "defender");
+	
+	if(attackerTwin){
+		$battleCalc.prepareBattleCache(attackerTwin, "twin attack");
+	}
+	
+	if(defenderTwin){
+		$battleCalc.prepareBattleCache(defenderTwin, "twin defend");
+	}
 		
 	
 	var actorCacheEntry = $gameTemp.battleEffectCache[actor._cacheReference];
@@ -6206,6 +6598,7 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		}	
 		enemySupportCacheEntry = $gameTemp.battleEffectCache[enemySupport._cacheReference];	
 	}	
+	
 		
 	this.setBattleSceneHP(actor, params.actor);
 	this.setBattleSceneHP(enemy, params.enemy);
@@ -6225,60 +6618,195 @@ Game_Interpreter.prototype.playBattleScene = function(params) {
 		if(this._isSupportAttack){
 			aCache =  $gameTemp.battleEffectCache[this._attacker.actor._supportCacheReference];
 		}
-		var dCache = $gameTemp.battleEffectCache[this._defender.actor._cacheReference];
+		aCache.damageInflicted = 0;
 		aCache.side = this._side;
-		var activeDefender = this._defender;
-		if(this._supportDefender) {
-			var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
-			if(!sCache.hasActed){
-				activeDefender = this._supportDefender;
-				dCache = sCache;
-				dCache.defended = this._defender.actor;
-			}
-		}		
 		
-		if(!aCache.isDestroyed && !dCache.isDestroyed){		
-			aCache.actionOrder = orderIdx;
-			aCache.attacked = dCache;
-			aCache.originalTarget = dCache;
-			aCache.hasActed = true;
-			dCache.hasActed = true;
 			
-			if(this._side == "actor"){
-				dCache.side = "enemy";
-			} else {
-				dCache.side = "actor";
+		
+		var defenders = [this._defender];
+		if(this._attacker.action.attack && this._attacker.action.attack.isAll){
+			if(this._side == "actor"){ 
+				if(this._attacker.actor.isSubTwin && params.enemyTwin){
+					defenders.push(enemyInfo);
+				} else if(params.enemy){
+					defenders.push(enemyTwinInfo);
+				}				
 			}
-			
-			var isHit = this._attacker.params.hits;
-			if(isHit){
-				aCache.hits = isHit;
-				aCache.inflictedCritical = this._attacker.params.isCrit;
-				dCache.isHit = isHit;
-				dCache.tookCritical = this._attacker.params.isCrit;
-				
-				var mechStats = $statCalc.getCalculatedMechStats(activeDefender.actor);
-				var damagePercent = activeDefender.params.startHP - this._attacker.params.targetEndHP;
-				var damage = Math.floor(mechStats.maxHP * (damagePercent / 100));
-				aCache.damageInflicted = damage;
-				dCache.damageTaken = damage;
-				if(this._attacker.params.targetEndHP <= 0){
-					dCache.isDestroyed = true;
-					dCache.destroyer = aCache.ref;
+			if(this._side == "enemy"){				
+				if(this._attacker.actor.isSubTwin && params.actorTwin){
+					defenders.push(actorInfo);
+				} else if(params.actor){
+					defenders.push(actorTwinInfo);
 				}
-			} else {
-				aCache.damageInflicted = 0;
-				dCache.damageTaken = 0;
+			}
+		}
+		
+		for(var i = 0; i < defenders.length; i++){	
+			var attackedRef = "";
+			if(i == 1){
+				attackedRef = "_all_sub";
+			}
+			var dCache = $gameTemp.battleEffectCache[defenders[i].actor._cacheReference];
+			
+			var activeDefender = this._defender;
+			if(this._supportDefender) {
+				var sCache = $gameTemp.battleEffectCache[this._supportDefender.actor._supportCacheReference];
+				if(!sCache.hasActed){
+					activeDefender = this._supportDefender;
+					dCache = sCache;
+					dCache.defended = defenders[i].actor;
+				}
+			}	
+			
+			dCache.damageTaken = 0;
+			if(!aCache.isDestroyed && !dCache.isDestroyed){		
+				aCache.actionOrder = orderIdx;
+				aCache["attacked"+attackedRef] = dCache;
+				aCache.originalTarget = dCache;
+				aCache.hasActed = true;
+				dCache.hasActed = true;
+				
+				if(this._side == "actor"){
+					dCache.side = "enemy";
+				} else {
+					dCache.side = "actor";
+				}
+				
+				var isHit = this._attacker.params.hits;
+				if(isHit){
+					aCache["hits"+attackedRef] = isHit;
+					aCache.inflictedCritical = this._attacker.params.isCrit;
+					dCache.isHit = isHit;
+					dCache.tookCritical = this._attacker.params.isCrit;
+					
+					var mechStats = $statCalc.getCalculatedMechStats(activeDefender.actor);
+					var damagePercent = activeDefender.params.startHP - this._attacker.params.targetEndHP;
+					var damage = Math.floor(mechStats.maxHP * (damagePercent / 100));
+					aCache["damageInflicted"+attackedRef] = damage;
+					dCache.damageTaken+= damage;
+					if(this._attacker.params.targetEndHP <= 0){
+						dCache.isDestroyed = true;
+						dCache.destroyer = aCache.ref;
+					}
+				} 
 			}
 		}
 	}
 	
+	var currentTargetingSettings = {
+		attacker: defender,
+		attackerTwin: defenderTwin,
+		defender: attacker,
+		defenderTwin: attackerTwin
+	};
+	
+	if(params.actor){
+		var target;
+		if(params.actor.target == "twin" && params.enemyTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.defender = attackerTwin;
+			} else {
+				currentTargetingSettings.defender = attacker;
+			}			
+		} else {
+			if(target == "twin"){
+				currentTargetingSettings.attacker = defenderTwin;
+			} else {
+				currentTargetingSettings.attacker = defender;
+			}
+		}
+	} 
+	
+	if(params.actorTwin){
+		var target;
+		if(params.actorTwin.target == "twin" && params.enemyTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.defenderTwin = attackerTwin;
+			} else {
+				currentTargetingSettings.defenderTwin = attacker;
+			}			
+		} else {
+			if(target == "twin"){
+				currentTargetingSettings.attackerTwin = defenderTwin;
+			} else {
+				currentTargetingSettings.attackerTwin = defender;
+			}
+		}
+	}
+	
+	if(params.enemy){
+		var target;
+		if(params.enemy.target == "twin" && params.actorTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.attacker = defenderTwin;
+			} else {
+				currentTargetingSettings.attacker = defender;
+			}		
+		} else {			
+			if(target == "twin"){
+				currentTargetingSettings.defender = attackerTwin;
+			} else {
+				currentTargetingSettings.defender = attacker;
+			}
+		}
+	} 
+	
+	if(params.enemyTwin){
+		var target;
+		if(params.enemyTwin.target == "twin" && params.actorTwin){
+			target = "twin";
+		} else {
+			target = "main";
+		}
+		if(params.enemyFirst){
+			if(target == "twin"){
+				currentTargetingSettings.attackerTwin = defenderTwin;
+			} else {
+				currentTargetingSettings.attackerTwin = defender;
+			}		
+		} else {			
+			if(target == "twin"){
+				currentTargetingSettings.defenderTwin = attackerTwin;
+			} else {
+				currentTargetingSettings.defenderTwin = attacker;
+			}	
+		}
+	}
+	
+	
+	
 	var actions = [];
-	if(supportAttacker){			
-		actions.push(new BattleAction(supportAttacker, defender, supportDefender, attackerSide, true));								
+	if(!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+		actions.push(new BattleAction(supportAttacker, currentTargetingSettings.attacker, supportDefender, attackerSide, true));								
 	}	
-	actions.push(new BattleAction(attacker, defender, supportDefender, attackerSide));	
-	actions.push(new BattleAction(defender, attacker, null, defenderSide));			
+	if(attackerTwin){
+		actions.push(new BattleAction(attackerTwin, currentTargetingSettings.attackerTwin, supportDefender, attackerSide));	
+	}
+	actions.push(new BattleAction(attacker, currentTargetingSettings.attacker, supportDefender, attackerSide));	
+	
+	if(ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && supportAttacker){			
+		actions.push(new BattleAction(supportAttacker, currentTargetingSettings.attacker, supportDefender, attackerSide, true));								
+	}	
+	
+	if(defenderTwin){
+		actions.push(new BattleAction(defenderTwin, currentTargetingSettings.defenderTwin, supportDefender, defenderSide));	
+	}
+	actions.push(new BattleAction(defender, currentTargetingSettings.defender, null, defenderSide));			
 	
 	
 	for(var i = 0; i < actions.length; i++){
@@ -7102,6 +7630,61 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	};	
 	
 //====================================================================
+// ●Sprite_TwinIndicator
+//====================================================================	
+	
+	function Sprite_TwinIndicator() {
+		this.initialize.apply(this, arguments);
+	}
+
+	Sprite_TwinIndicator.prototype = Object.create(Sprite_Base.prototype);
+	Sprite_TwinIndicator.prototype.constructor = Sprite_TwinIndicator;
+
+	Sprite_TwinIndicator.prototype.initialize = function(character) {
+		Sprite_Base.prototype.initialize.call(this);
+		this._character = character;
+		this.bitmap =  ImageManager.loadSystem('twin');
+		this.anchor.x = 0.5;
+		this.anchor.y = 1;
+		this._frameCount = 0;
+	};
+
+	Sprite_TwinIndicator.prototype.update = function() {
+		this.x = this._character.screenX();
+		
+		this.y = this._character.screenY() - 30;
+		//this.z = this._character.screenZ() - 1;
+		var eventId = this._character.eventId();
+		var battlerArray = $gameSystem.EventToUnit(eventId);
+		
+		if(battlerArray){
+			var unit = battlerArray[1];
+			if(!$gameSystem.isEnemy(unit)){				
+				this.x = this._character.screenX() - 15;
+			} else {
+				this.x = this._character.screenX() + 15;
+			}		
+			
+			if($statCalc.isMainTwin(unit) && unit && !this._character.isErased()){
+			
+				/*this._frameCount+=2;
+				this._frameCount %= 200;
+				if(this._frameCount < 100){
+					this.opacity = this._frameCount + 120;
+				} else {
+					this.opacity = 200 + 120 - this._frameCount;
+				}*/
+				this.opacity = 255;
+			} else {
+				this.opacity = 0;
+			}
+		} else {
+			this.opacity = 0;
+		}		
+	};	
+		
+	
+//====================================================================
 // Sprite_Destroyed
 //====================================================================	
 	
@@ -7140,16 +7723,32 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if(this._animationFrame > this._frames){
 			this.visible = false;
 			this._character.isDoingDeathAnim = false;
+			this._processedDeath = false;
+			this._animationFrame = 0;
 		} else {
+			var eventId = this._character.eventId();
+			var battlerArray = $gameSystem.EventToUnit(eventId);
 			
-			if(this._animationFrame == 3){
-				this._character.erase();				
+			if(this._animationFrame == 3 && !this._processedDeath){
+				this._processedDeath = true;
+				if(this._character.isDoingSubTwinDeath){
+					$statCalc.swapEvent(this._character, true);
+					//_this._currentDeath.event.appear();
+					//this._character.refreshImage();
+					$statCalc.getMainTwin(battlerArray[1]).subTwin = null;
+				} else if(this._character.isDoingMainTwinDeath){	
+					$statCalc.swapEvent(this._character, true);
+					$statCalc.getMainTwin(battlerArray[1]).subTwin = null;
+					//battlerArray[1].subTwin.isSubTwin = false;
+					//battlerArray[1].subTwin = null;
+				} else {	
+					this._character.erase();	
+				}							
 			}				
 			this.x = this._character.screenX();
 			this.y = this._character.screenY();
 			this.z = this._character.screenZ() + 1;
-			var eventId = this._character.eventId();
-			var battlerArray = $gameSystem.EventToUnit(eventId);
+			
 			if(battlerArray && battlerArray[1]){
 				if (this._character.isDoingDeathAnim) {
 					if(this._animationFrame == 1){
@@ -7439,6 +8038,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		for(var i = 0; i < $gameMap.height(); i++){
 			this.bitmap.fillRect(0, i * $gameMap.tileHeight(), this.bitmap.width , 1, "white");
 		}*/
+		this.bitmap = new Bitmap($gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());
 		this.construct();
 		this.anchor.x = 0;
 		this.anchor.y = 0;
@@ -7447,12 +8047,15 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		//this.opacity = 128;
 		//this.blendMode = Graphics.BLEND_ADD;
 		this._frameCount = 0;
+		
+		
 	};
 	
 	Sprite_AreaHighlights.prototype.construct = function() {
 		var _this = this;
 		this._frameCount = 0;
-		this.bitmap = new Bitmap($gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());	
+		this.bitmap.clearRect(0, 0, $gameMap.tileWidth() * $gameMap.width(), $gameMap.tileHeight() * $gameMap.height());			
+			
 		if($gameSystem.highlightedTiles){
 			for(var i = 0; i < $gameSystem.highlightedTiles.length; i++){
 				var highlight = $gameSystem.highlightedTiles[i];
@@ -7472,6 +8075,13 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		if($gameSystem.highlightedMapRetargetTiles){
 			for(var i = 0; i < $gameSystem.highlightedMapRetargetTiles.length; i++){
 				var highlight = $gameSystem.highlightedMapRetargetTiles[i];
+				this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), highlight.color);
+			}
+		}
+		
+		if($gameSystem.highlightedActionTiles){
+			for(var i = 0; i < $gameSystem.highlightedActionTiles.length; i++){
+				var highlight = $gameSystem.highlightedActionTiles[i];
 				this.bitmap.fillRect(highlight.x * $gameMap.tileWidth(), highlight.y * $gameMap.tileHeight(), $gameMap.tileWidth(), $gameMap.tileHeight(), highlight.color);
 			}
 		}
@@ -7700,6 +8310,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._willIndicators = {};
 		this._defendIndicators = {};
 		this._attackIndicators = {};
+		this._twinIndicators = {};
 		$gameMap.events().forEach(function(event) {
 			this.createBShadow(event._eventId,event);			
 		}, this);
@@ -7765,6 +8376,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.createWillIndicator(event._eventId, event);
 			this.createDefendIndicator(event._eventId, event);
 			this.createAttackIndicator(event._eventId, event);
+			this.createTwinIndicator(event._eventId, event);			
 		}, this);			
 		
 		this._reticuleSprite = new Sprite_Reticule();
@@ -7833,6 +8445,15 @@ SceneManager.reloadCharacters = function(startEvent){
 			character._defendIndicator = true;
 		};
 	};
+	
+	Spriteset_Map.prototype.createTwinIndicator = function(id,character) {
+		if (!character) return;
+		if (!this._twinIndicators[id]) {
+			this._twinIndicators[id] = new Sprite_TwinIndicator(character);
+			this.addCharacterToBaseSprite(this._twinIndicators[id]);
+			character._twinIndicator = true;
+		};
+	};	
 
     var _SRPG_Spriteset_Map_update = Spriteset_Map.prototype.update;
     Spriteset_Map.prototype.update = function() {
@@ -8801,7 +9422,19 @@ SceneManager.reloadCharacters = function(startEvent){
 					}	
 					if($statCalc.isCombined(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_split, 'split');
-					}		
+					}
+					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+						if(!$statCalc.isShip(_this._actor) && $statCalc.canSwap(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_swap, 'swap');
+						}	
+						if(!$statCalc.isShip(_this._actor) && $statCalc.isMainTwin(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_separate, 'separate');
+						}	
+						if(!$statCalc.isShip(_this._actor) && $statCalc.canTwin(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_join, 'join');
+						}	
+					}
+					
 					if($statCalc.canTransform(_this._actor)){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_transform, 'transform');
 					}	
@@ -8827,6 +9460,12 @@ SceneManager.reloadCharacters = function(startEvent){
 					}
 					if($statCalc.applyStatModsToValue(_this._actor, 0, ["heal"])){
 						_this.addCommand(APPSTRINGS.MAPMENU.cmd_repair, 'heal');
+					}
+					
+					if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+						if($statCalc.canTwin(_this._actor)){
+							_this.addCommand(APPSTRINGS.MAPMENU.cmd_join, 'join');
+						}	
 					}
 					_this.addWaitCommand();
 				}
@@ -9338,7 +9977,10 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.createDeploymentWindow = function() {
 		var _this = this;
-		this._deploymentWindow = new Window_Deployment(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		
+		this._deploymentWindow = new Window_DeploymentTwin(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		
+		
 		this._deploymentWindow.close();
 		this.addWindow(this._deploymentWindow);
 		this._deploymentWindow.hide();
@@ -9528,6 +10170,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._mapSrpgActorCommandWindow.setHandler('combine', this.combineActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('split', this.splitActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('transform', this.transformActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('swap', this.swapActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('separate', this.separateActorMenuCommand.bind(this));
+		this._mapSrpgActorCommandWindow.setHandler('join', this.joinActorMenuCommand.bind(this));		
 		
 		
         this._mapSrpgActorCommandWindow.setHandler('cancel', this.cancelActorMenuCommand.bind(this));
@@ -9599,7 +10244,12 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.createBeforeBattleWindow = function() {
 		var _this = this;
-		_this._beforeBattleWindow = new Window_BeforeBattle(0, 0, Graphics.boxWidth, Graphics.boxHeight);		
+		if(ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM){
+			_this._beforeBattleWindow = new Window_BeforebattleTwin(0, 0, Graphics.boxWidth, Graphics.boxHeight);		
+		} else {
+			_this._beforeBattleWindow = new Window_BeforeBattle(0, 0, Graphics.boxWidth, Graphics.boxHeight);		
+		}
+		
 		this._beforeBattleWindow.registerCallback("selected", function(spiritInfo){
 			_this.commandBattleStart();
 		});
@@ -9865,11 +10515,19 @@ SceneManager.reloadCharacters = function(startEvent){
 			
 			if($gameSystem.isSubBattlePhase() === 'process_death'){
 				if(_this._startDeath){
+					_this._currentDeath.event.isDoingSubTwinDeath = false;
+					_this._currentDeath.event.isDoingMainTwinDeath = false;
+					if(_this._currentDeath.actor.isSubTwin){
+						$statCalc.swapEvent($statCalc.getMainTwin(_this._currentDeath.actor).event, true);						
+						_this._currentDeath.event.isDoingSubTwinDeath = true;
+					} else if($statCalc.isMainTwin(_this._currentDeath.actor)){
+						_this._currentDeath.event.isDoingMainTwinDeath = true;
+					}
 					_this._startDeath = false;
 					_this._currentDeath.event.isDoingDeathAnim = true;
 				}
 				if(_this._deathTimer <= 0){
-					_this._currentDeath.event.isUnused = true;
+					
 					//_this._currentDeath.event.erase();
 					if (_this._currentDeath.actor.isActor()) {
 						var oldValue = $gameVariables.value(_existActorVarID);
@@ -9889,6 +10547,13 @@ SceneManager.reloadCharacters = function(startEvent){
 						var oldValue = $gameVariables.value(_enemiesDestroyed);
 						$gameVariables.setValue(_enemiesDestroyed, oldValue + 1);
 					}
+					
+					if(_this._currentDeath.actor.isSubTwin){
+						
+					} else {
+						_this._currentDeath.event.isUnused = true;
+					}
+					
 					$gameSystem.setSubBattlePhase("process_death_queue");
 				}				
 				_this._deathTimer--;
@@ -10100,7 +10765,19 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gameSystem.setSubBattlePhase("actor_command_window");    
 					_this._mapSrpgActorCommandWindow.activate();					
                 }
-            } /*else {
+            } else if ($gameSystem.isSubBattlePhase() === 'twin_selection') {
+                if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
+					$gameSystem.highlightedActionTiles = [];
+					$gameSystem.highlightsRefreshed = true;
+					var battlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+                    SoundManager.playCancel();
+					$gameTemp.clearMoveTable();
+					$gamePlayer.locate($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
+                    $gameSystem.setSrpgActorCommandWindowNeedRefresh(battlerArray);
+					$gameSystem.setSubBattlePhase("actor_command_window");    
+					_this._mapSrpgActorCommandWindow.activate();					
+                }
+            }/*else {
                 _SRPG_SceneMap_updateCallMenu.call(this);
             }*/
         } else {
@@ -10159,7 +10836,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		}
 		
 		
-		if ($gameSystem.isSubBattlePhase() !== 'normal') {	
+		if ($gameSystem.isSubBattlePhase() !== 'normal' && $gameSystem.isSubBattlePhase() !== 'actor_target' && $gameSystem.isSubBattlePhase() !== 'actor_target_spirit' && $gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm') {	
 			this._summaryWindow.hide();
 			this._terrainDetailsWindow.hide();
 		}		
@@ -10341,7 +11018,8 @@ SceneManager.reloadCharacters = function(startEvent){
 				});
 				if(event && event.isType() == "actor"){				
 					var slot = $gameSystem.getEventDeploySlot(event);
-					var deployInfo = $gameSystem.getDeployInfo();					
+					var deployInfo = $gameSystem.getDeployInfo();	
+					var deployList = $gameSystem.getActiveDeployList();	
 					if(!deployInfo.lockedSlots[slot]){
 						SoundManager.playOk();	
 						if($gameTemp.currentSwapSource == -1){
@@ -10352,12 +11030,15 @@ SceneManager.reloadCharacters = function(startEvent){
 							var swapSource = $gameTemp.currentSwapSource;
 							var selection = slot;									
 							
-							var sourceActor = deployInfo.assigned[swapSource];
-							var targetActor = deployInfo.assigned[selection];
+							var sourceEntry = deployList[swapSource] || {};
+							var targetEntry = deployList[selection] || {};
+							
+							var sourceActor = sourceEntry.main;
+							var targetActor = targetEntry.main;
 							
 							var validPositions = (!sourceActor || $statCalc.canStandOnTile($gameActors.actor(sourceActor), {x: event.posX(), y: event.posY()})) && (!targetActor || $statCalc.canStandOnTile($gameActors.actor(targetActor), $gameTemp.currentSwapSourcePosition));
 							if(validPositions){
-								if(typeof sourceActor != undefined){
+								/*if(typeof sourceActor != undefined){
 									deployInfo.assigned[selection] = sourceActor;
 								} else {
 									delete deployInfo.assigned[selection];
@@ -10368,7 +11049,13 @@ SceneManager.reloadCharacters = function(startEvent){
 								} else {
 									delete deployInfo.assigned[swapSource];
 								}
-								$gameSystem.setDeployInfo(deployInfo);
+								$gameSystem.setDeployInfo(deployInfo);*/
+								
+								var tmp = deployList[swapSource];
+								deployList[swapSource] = deployList[selection];
+								
+								deployList[selection] = tmp;
+								
 								$gameTemp.currentSwapSource = -1;
 								
 								$gameSystem.redeployActors();
@@ -10404,7 +11091,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			if(Input.isTriggered("cancel")){
 				SoundManager.playCancel();	
 				if($gameTemp.currentSwapSource == -1){
-					$gameSystem.setDeployInfo($gameTemp.originalDeployInfo);
+					//$gameSystem.deployList = JSON.parse(JSON.stringify( $gameTemp.originalDeployInfo));
 					$gameSystem.setSubBattlePhase("deploy_selection_window");
 					$gameTemp.pushMenu = "in_stage_deploy";
 					$gameSystem.undeployActors();		
@@ -10689,10 +11376,14 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.actorAction = {};
 			$gameTemp.enemyAction = {};
 			$gameTemp.isEnemyAttack = false;
+			$gameTemp.currentBattleEnemy = null;
+			$gameTemp.currentBattleActor = null;
 			$gameTemp.battleOccurred = false;
 			$gameTemp.mapAttackOccurred = false;
 			$gameTemp.supportAttackSelected = -1;
 			$gameTemp.supportDefendSelected = -1;
+			$gameTemp.attackingTwinAction = null;
+			$gameTemp.defendingTwinAction = null;
 			$gameTemp.isPostMove = false;
 			$gameTemp.isHitAndAway = false;		
 			$gameTemp.currentMapTargets	= [];
@@ -10782,6 +11473,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					actor: summaryUnit,
 					mech: summaryUnit.SRWStats.mech
 				};
+				$gameTemp.detailPageMode = "map";
 				$gameSystem.setSubBattlePhase('enemy_unit_summary');
 				$gameTemp.pushMenu = "detail_pages";
 			}			
@@ -10940,7 +11632,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gameSystem.setSubBattlePhase('actor_map_target_confirm');
 				}								
 			} else {	
-				
+				var directionChanged = false;
 				var tileCoordinates = mapAttackDef.shape;
 				if(!mapAttackDef.lockRotation){						
 					if(Input.isTriggered("up")){
@@ -10963,6 +11655,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				
 				tileCoordinates = this.getAdjustedMapAttackCoordinates(tileCoordinates, direction);
 				
+				
 				$gameTemp.clearMoveTable();	
 				$gameTemp.setResetMoveList(true);
 				for(var i = 0; i < tileCoordinates.length; i++){
@@ -10971,7 +11664,8 @@ SceneManager.reloadCharacters = function(startEvent){
 					tileCoordinates[i][1]+=deltaY;
 					$gameTemp.pushMoveList(tileCoordinates[i]);					
 				}							
-				$gameTemp.currentMapTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));										
+				$gameTemp.currentMapTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));
+																		
 			}	
 		}	
 		
@@ -11135,7 +11829,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				if($gameTemp.mapAttackEffectQueue.length){
 					var effect = $gameTemp.mapAttackEffectQueue.shift();
 					var target = effect.parameters.target;
-					var event = target.event;					
+					var event = $statCalc.getReferenceEvent(target);					
 					
 					$gamePlayer.locate(event.posX(), event.posY());
 					$gameTemp.queuedActorEffects = [effect];			
@@ -11217,7 +11911,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gameTemp.destroyTransformQueue.push({actor: battleEffect.ref, event: battleEffect.ref.event});
 				} else {
 					//battleEffect.ref.event._erased = true;
-					$gameTemp.deathQueue.push({actor: battleEffect.ref, event: battleEffect.ref.event});
+					$gameTemp.deathQueue.push({actor: battleEffect.ref, event: $statCalc.getReferenceEvent(battleEffect.ref)});
 					if($statCalc.isShip(battleEffect.ref)){
 						var boardedUnits = $statCalc.getBoardedUnits(battleEffect.ref)
 						for(var i = 0; i < boardedUnits.length; i++){
@@ -11274,7 +11968,16 @@ SceneManager.reloadCharacters = function(startEvent){
 					}
 					entry.expGain+=gain;
 				});
-			});									
+			});	
+
+			if($statCalc.isMainTwin(battleEffect.ref)){
+				var subTwin = battleEffect.ref.subTwin;
+				var gainModifier = 0.75;
+				if($statCalc.applyStatModsToValue(subTwin, 0, ["full_twin_gains"])){
+					gainModifier = 1;
+				}
+				gainResults.unshift({actor: subTwin, expGain: Math.floor(battleEffect.expGain * gainModifier), ppGain: Math.floor(battleEffect.ppGain * gainModifier)});	
+			}	
 			
 			gainResults.unshift({actor: battleEffect.ref, expGain: battleEffect.expGain, ppGain: battleEffect.ppGain});			
 			
@@ -11419,6 +12122,10 @@ SceneManager.reloadCharacters = function(startEvent){
 				if(battleEffect.hasActed && battleEffect.attacked){
 					var oldHP = $statCalc.getCalculatedMechStats(battleEffect.attacked.ref).currentHP;
 					battleEffect.attacked.ref.setHp(oldHP - battleEffect.damageInflicted);
+				}
+				if(battleEffect.hasActed && battleEffect.attacked_all_sub){
+					var oldHP = $statCalc.getCalculatedMechStats(battleEffect.attacked_all_sub.ref).currentHP;
+					battleEffect.attacked_all_sub.ref.setHp(oldHP - battleEffect.damageInflicted_all_sub);
 				}
 				
 				var personalityInfo = $statCalc.getPersonalityInfo(battleEffect.ref);
@@ -11854,6 +12561,39 @@ SceneManager.reloadCharacters = function(startEvent){
 		AudioManager.playSe(se);
     };	
 	
+	Scene_Map.prototype.swapActorMenuCommand = function() {   
+		$statCalc.swap($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
+    };
+	
+	Scene_Map.prototype.separateActorMenuCommand = function() {   
+		$statCalc.separate($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
+    };	
+	
+	Scene_Map.prototype.joinActorMenuCommand = function() {   
+		//$statCalc.separate($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+		
+		$gameSystem.highlightedActionTiles = [];
+		$gameSystem.highlightsRefreshed = true;
+		var x = $gameTemp.activeEvent().posX();
+		var y = $gameTemp.activeEvent().posY();
+		
+		$gameSystem.highlightedActionTiles.push({x: x-1, y: y+1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x, y: y+1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x+1, y: y+1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x-1, y: y, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x+1, y: y, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x-1, y: y-1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x, y: y-1, color: "#009bff"});
+		$gameSystem.highlightedActionTiles.push({x: x+1, y: y-1, color: "#009bff"});
+		
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('twin_selection');
+    };	
+	
 	Scene_Map.prototype.splitActorMenuCommand = function() {   
 		$statCalc.split($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
@@ -11906,6 +12646,10 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameSystem.setSubBattlePhase('actor_move');
 		} else if($gameTemp.isPostMove){
 			$gameSystem.setSubBattlePhase('actor_move');
+			if($gameTemp.hasTwinned){
+				$gameTemp.hasTwinned = false;
+				$statCalc.separate($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+			}
 			//var event = $gameTemp.activeEvent();
 			//event.locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);
 		} else {
@@ -13197,38 +13941,42 @@ SceneManager.reloadCharacters = function(startEvent){
 			};
 		}
 		
-		var supporters = $statCalc.getSupportDefendCandidates(
-			$gameSystem.getFactionId(actorInfo.actor), 
-			actorInfo.pos,
-			$statCalc.getCurrentTerrain(actorInfo.actor)
-		);
-		
-		if($statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_support"]) || 
-			$statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_target_support"])){
-			supporters = [];
-		}
-		
-		var supporterSelected = -1;
-		var minDamage = -1;
-		for(var i = 0; i < supporters.length; i++){
-			supporters[i].action = {type: "defend", attack: null};			
-			var damageResult = $battleCalc.performDamageCalculation(
-				{actor: enemyInfo.actor, action: $gameTemp.enemyAction},
-				supporters[i],
-				true,
-				false,
-				true	
-			);				
-			if(minDamage == -1 || damageResult.damage < minDamage){
-				if(damageResult.damage < $statCalc.getCalculatedMechStats(supporters[i].actor).currentHP){
-					minDamage = damageResult.damage;
-					supporterSelected = i;
-				}				
+		if(!$gameTemp.enemyAction || !$gameTemp.enemyAction.attack || !$gameTemp.enemyAction.attack.isAll){	
+			var supporters = $statCalc.getSupportDefendCandidates(
+				$gameSystem.getFactionId(actorInfo.actor), 
+				actorInfo.pos,
+				$statCalc.getCurrentTerrain(actorInfo.actor)
+			);
+			
+			if($statCalc.applyStatModsToValue($gameTemp.currentBattleActor, 0, ["disable_support"]) || 
+				$statCalc.applyStatModsToValue($gameTemp.currentBattleEnemy, 0, ["disable_target_support"])){
+				supporters = [];
 			}
+			
+			var supporterSelected = -1;
+			var minDamage = -1;
+			for(var i = 0; i < supporters.length; i++){
+				supporters[i].action = {type: "defend", attack: null};			
+				var damageResult = $battleCalc.performDamageCalculation(
+					{actor: enemyInfo.actor, action: $gameTemp.enemyAction},
+					supporters[i],
+					true,
+					false,
+					true	
+				);				
+				if(minDamage == -1 || damageResult.damage < minDamage){
+					if(damageResult.damage < $statCalc.getCalculatedMechStats(supporters[i].actor).currentHP){
+						minDamage = damageResult.damage;
+						supporterSelected = i;
+					}				
+				}
+			}
+			$gameTemp.supportDefendCandidates = supporters;
+			$gameTemp.supportDefendSelected = supporterSelected;
+		} else {
+			$gameTemp.supportDefendCandidates = [];
+			$gameTemp.supportDefendSelected = -1;
 		}
-		$gameTemp.supportDefendCandidates = supporters;
-		$gameTemp.supportDefendSelected = supporterSelected;
-		
 		var supporters = $statCalc.getSupportAttackCandidates(
 			$gameSystem.getFactionId(enemyInfo.actor), 
 			{x: $gameTemp.activeEvent().posX(), y: $gameTemp.activeEvent().posY()},
@@ -13247,11 +13995,16 @@ SceneManager.reloadCharacters = function(startEvent){
 			supporters = [];
 		}
 		
+		var allRequired = false;
+		if($gameTemp.enemyAction && $gameTemp.enemyAction.attack){
+			allRequired = $gameTemp.enemyAction.attack.isAll ? 1 : -1;
+		}
+		
 		var supporterInfo = [];
 		var supporterSelected = -1;
 		var bestDamage = 0;
 		for(var i = 0; i < supporters.length; i++){
-			var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], actorInfo);
+			var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], actorInfo, false, false, false, allRequired);
 			if(weaponResult.weapon){
 				supporters[i].action = {type: "attack", attack: weaponResult.weapon};
 				supporterInfo.push(supporters[i]);
@@ -13264,6 +14017,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gameTemp.supportAttackCandidates = supporterInfo;
 		$gameTemp.supportAttackSelected = supporterSelected;
 		
+		$battleCalc.updateTwinSupportAttack();
+		
 		//hack to make sure that the actor attacks from the correct side of the screen when dealing with AI actors
 		if($gameTemp.currentBattleEnemy.isActor() && !$gameSystem.isEnemy($gameTemp.currentBattleEnemy)){
 			$gameTemp.isEnemyAttack = false;
@@ -13275,6 +14030,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.actorAction = $gameTemp.enemyAction;
 			$gameTemp.enemyAction = tmp;
 		}
+		$gameTemp.currentTargetingSettings = null;	
+		$battleCalc.updateTwinActions();
 		
 		var weapon = $gameTemp.enemyWeaponSelection;
 		var range = $statCalc.getRealWeaponRange(actionArray[1], weapon);
@@ -13568,6 +14325,7 @@ Scene_Gameover.prototype.gotoTitle = function() {
 	SceneManager.snap = function() {
 		return Bitmap.snap(this._scene);
 	};
+	
 
 //====================================================================
 // ●Scene_Equip

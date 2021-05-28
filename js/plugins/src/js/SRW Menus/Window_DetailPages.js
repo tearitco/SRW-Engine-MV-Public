@@ -30,6 +30,7 @@ Window_DetailPages.prototype.initialize = function() {
 	window.addEventListener("resize", function(){
 		_this.requestRedraw();
 	});	
+	this._subPilotIdx = 0;
 }
 
 
@@ -38,11 +39,20 @@ Window_DetailPages.prototype.resetSelection = function(){
 	this._currentPage = 0;
 	this._selectedTab = 0;
 	this._uiState = "normal";
+	this._subPilotIdx = 0;
 	this.validateTab();
 }
 
 Window_DetailPages.prototype.getCurrentSelection = function(){
-	return $gameTemp.currentMenuUnit;	
+	var unit = $gameTemp.currentMenuUnit;	
+	if(this._subPilotIdx != 0){
+		var subPilots = $statCalc.getSubPilots(unit.actor);
+		var subPilotId = subPilots[this._subPilotIdx - 1];
+		if(subPilotId != null){
+			unit = {actor: $gameActors.actor(subPilotId), mech: unit.actor.SRWStats.mech};
+		}
+	}
+	return unit;
 }
 
 Window_DetailPages.prototype.createComponents = function() {
@@ -245,36 +255,73 @@ Window_DetailPages.prototype.update = function() {
 		
 		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger')){
 			this.requestRedraw();
+			//if($gameTemp.detailPageMode == "map"){
+				this._subPilotIdx--;
+				if(this._subPilotIdx < 0){
+					var subPilots = $statCalc.getSubPilots($gameTemp.currentMenuUnit.actor);
+					if(subPilots.length){
+						this._subPilotIdx = subPilots.length;// main pilot is idx 0
+					}					
+				}
+			//}
 			
 		} else if (Input.isTriggered('right_trigger') || Input.isRepeated('right_trigger')) {
 			this.requestRedraw();
-			
+			//if($gameTemp.detailPageMode == "map"){
+				this._subPilotIdx++;
+				var subPilots = $statCalc.getSubPilots($gameTemp.currentMenuUnit.actor);
+				if(this._subPilotIdx > subPilots.length){// main pilot is idx 0
+					this._subPilotIdx = 0;
+				}
+			//}
 		}
 		
 		if(this._uiState == "normal"){
 			if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
 				this.requestRedraw();
-				if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
-					if($gameTemp.listContext == "actor"){
-						$gameTemp.currentMenuUnit = this.getPreviousAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
-					} else {
-						$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				if($gameTemp.detailPageMode == "map"){
+					if($gameTemp.currentMenuUnit.actor.isSubTwin){
+						var actor = $statCalc.getMainTwin($gameTemp.currentMenuUnit.actor);
+						$gameTemp.currentMenuUnit = {mech: actor.SRWStats.mech, actor: actor}
+					} else if($gameTemp.currentMenuUnit.actor.subTwin){
+						var actor = $gameTemp.currentMenuUnit.actor.subTwin;
+						$gameTemp.currentMenuUnit = {mech: actor.SRWStats.mech, actor: actor}
 					}
-					
-					this._attackList.resetSelection();
+				} else {
+					if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
+						if($gameTemp.listContext == "actor"){
+							$gameTemp.currentMenuUnit = this.getPreviousAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
+						} else {
+							$gameTemp.currentMenuUnit = this.getPreviousAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+						}
+						
+						this._attackList.resetSelection();
+					}
 				}
+				this._subPilotIdx = 0;
 				
 			} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
 				this.requestRedraw();
-				if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
-					if($gameTemp.listContext == "actor"){
-						$gameTemp.currentMenuUnit = this.getNextAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
-					} else {
-						$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+				if($gameTemp.detailPageMode == "map"){
+					if($gameTemp.currentMenuUnit.actor.isSubTwin){
+						var actor = $statCalc.getMainTwin($gameTemp.currentMenuUnit.actor);
+						$gameTemp.currentMenuUnit = {mech: actor.SRWStats.mech, actor: actor}
+					} else if($gameTemp.currentMenuUnit.actor.subTwin){
+						var actor = $gameTemp.currentMenuUnit.actor.subTwin;
+						$gameTemp.currentMenuUnit = {mech: actor.SRWStats.mech, actor: actor}
 					}
-					
-					this._attackList.resetSelection();
+				} else {
+					if($gameSystem.isSubBattlePhase() !== 'enemy_unit_summary'){
+						if($gameTemp.listContext == "actor"){
+							$gameTemp.currentMenuUnit = this.getNextAvailablePilotGlobal(this.getCurrentSelection().actor.SRWStats.pilot.id);
+						} else {
+							$gameTemp.currentMenuUnit = this.getNextAvailableUnitGlobal(this.getCurrentSelection().mech.id);
+						}
+						
+						this._attackList.resetSelection();
+					}
 				}
+				this._subPilotIdx = 0;
 			}
 		}
 		if(Input.isTriggered('L3')){
@@ -333,6 +380,7 @@ Window_DetailPages.prototype.validateTab = function() {
 }
 
 Window_DetailPages.prototype.drawPilotStats1 = function() {
+	var _this = this;
 	var detailContent = "";
 	var actor = this.getCurrentSelection().actor;
 	var calculatedStats = actor.SRWStats.pilot.stats.calculated;
@@ -340,6 +388,32 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	var currentLevel = $statCalc.getCurrentLevel(actor);
 	
 	detailContent+="<div class='bar_pilot_stats details'>";
+	detailContent+="<div class='twin_type scaled_text fitted_text type_indicator'>";
+	var referenceActor = actor;
+	if(actor.isSubPilot){
+		referenceActor = referenceActor.mainPilot;
+	}
+	if(!referenceActor.isSubTwin){
+		detailContent+="Main Twin";
+	} else {
+		detailContent+="Sub Twin";
+	}
+	detailContent+="</div>";
+	
+	detailContent+="<div data-offset=-1 data-type=twin class='left twin selection_icon'></div>";//icon 
+	detailContent+="<div data-offset=1 data-type=twin class='right twin selection_icon'></div>";//icon 
+	
+	detailContent+="<div class='pilot_type scaled_text fitted_text type_indicator'>";
+	if(!actor.isSubPilot){
+		detailContent+="Main Pilot";
+	} else {
+		detailContent+="Sub Pilot";
+	}
+	detailContent+="</div>";
+	
+	detailContent+="<div data-offset=-1 data-type=sub class='left sub selection_icon'></div>";//icon 
+	detailContent+="<div data-offset=1 data-type=sub class='right sub selection_icon'></div>";//icon 
+	
 	detailContent+="<div id='bar_pilot_stats_icon' class=''></div>";//icon
 	detailContent+="</div>";
 	
@@ -411,6 +485,61 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	} else {
 		this.loadEnemyFace(actor.enemyId(), actorIcon);
 	}	
+	var typeIndicators = this._pilotStats1.querySelectorAll(".type_indicator");
+	typeIndicators.forEach(function(indicator){
+		_this.updateScaledDiv(indicator);
+	});
+	
+	var selectionIcons =  this._pilotStats1.querySelectorAll(".selection_icon")
+	selectionIcons.forEach(function(selectionIcon){
+		_this.updateScaledDiv(selectionIcon);
+		var type = selectionIcon.getAttribute("data-type");
+		var offset = selectionIcon.getAttribute("data-offset")*1;
+		var actor = _this.getCurrentSelection().actor;
+		if(actor.isSubPilot){
+			actor = actor.mainPilot;
+		}
+		if(type == "twin"){
+			if(offset == -1){
+				if(actor.isSubTwin){
+					if(actor.isActor()){
+						_this.loadActorFace($statCalc.getMainTwin(actor).actorId(), selectionIcon);
+					} else {
+						_this.loadEnemyFace($statCalc.getMainTwin(actor).enemyId(), selectionIcon);
+					}
+					
+				}
+			} else {
+				if(actor.subTwin){
+					if(actor.isActor()){
+						_this.loadActorFace(actor.subTwin.actorId(), selectionIcon);
+					} else {
+						_this.loadEnemyFace(actor.subTwin.enemyId(), selectionIcon);
+					}
+				}
+			}
+		} else {
+			var subPilotIds = $statCalc.getSubPilots(actor);
+			var list = JSON.parse(JSON.stringify(subPilotIds));
+			if(actor.isActor()){
+				list.unshift(actor.actorId());
+			} else {
+				list.unshift(actor.enemyId());
+			}
+			
+			var idx = _this._subPilotIdx + offset;
+			if(idx == -1){
+				idx = list.length - 1;
+			}
+			if(idx == list.length){
+				idx = 0;
+			}
+			if(list.length > 1 && list[idx]){
+				_this.loadActorFace(list[idx], selectionIcon);
+			}
+			
+		}
+	});
 }
 
 Window_DetailPages.prototype.drawPilotStats2 = function() {

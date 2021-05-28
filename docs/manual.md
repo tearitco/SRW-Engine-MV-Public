@@ -14,6 +14,8 @@ The config for the plugins that make up SRW Engine MV lives in the js/plugins/co
 This config file allows configuration of engine level settings.
 ```javascript
 	var ENGINE_SETTINGS = {
+		ENABLE_TWIN_SYSTEM: true, //if true the twinning is enabled from the map menu. Twin deployment is also enabled.
+		USE_STRICT_TWIN_SLOTS: false, //if true two units that are locked to the same twin slot(main/sub) can not team up.
 		DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
 		BATTLE_SCENE: {
 			SPRITES_FILTER_MODE: "NEAREST", // set the filtering mode for textures in the battle scene: NEAREST or TRILINEAR
@@ -154,6 +156,8 @@ The rest of the pilot properties are set using metadata tags in the note field. 
 \<pilotPPYield:10\><br>
 
 \<pilotGrantsGainsTo:1\> If specified all exp, kills and PP gained by this pilot will be added to the pilot with the specified id instead.<br>
+\<pilotSubTwinOnly:1> If specified the unit can only be the sub twin in a paired unit. If two units with this property are paired together this restriction is lifted.<br>
+\<pilotMainTwinOnly:1\> If specified the unit can only be the main twin in a paired unit. If two units with this property are paired together this restriction is lifted.
 
 #### Stat growth rates
 
@@ -326,7 +330,6 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
-
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -364,6 +367,7 @@ Units can be given the ability to combine into other units. Combined units have 
 When working with transforming or combining mechs it usually desirable for the upgrade levels of the transformed or combined mech to match those of the base mech.
 
 \<mechInheritsUpgradesFrom:1\>: The id of the mech from which the mech will inherit upgrade levels.
+
 
 
 
@@ -434,7 +438,7 @@ In the file itself the definition looks as follows:
 }; 
   ```
 
-This definition describes what changes to pilot assignment should occur when a specific pilot becomes the main pilot of the unit this definition is assigned to. These actions are also applied when a unit is deployed, either directly or when it is transformed, combined into or split into.
+This definition describes what changes to pilot assignment should occur when a specific pilot becomes the main pilot of the unit this definition is assigned to. These actions are also applied when a unit is deployed, either directly or when it is transformed into, combined into or split into.
 
 These are the rules defined by the example above:
 
@@ -519,6 +523,11 @@ Some mechs can not be deployed directly, these are usually mechs that other mech
 
 \<mechNotDeployable:1\>
 
+#### Mechs that can't twin
+
+\<mechNoTwin: 1\> If specified the mech cannot be twinned with another unit.
+
+
 ### Attacks
 
 The attacks available to the mech, identified by a Weapon ID. Optional a second parameter can be provided, if set to 1 the attack will be locked for the mech until it is unlocked using the unlockMechWeapon plugin command.<br>
@@ -557,6 +566,8 @@ Image files for the battle scene are stored in the img/SRWBattleScene directory 
 \<mechBattleSceneDeathAnim:1\> Specifies the id of a battle animation to be played when the mech is destroyed. If omitted the default death animation is used.
 \<mechBattleYOffset: 1\> If specified the main sprite for the unit will be offset by the given amount. The offset is specified in world units.
 
+
+
 # Attacks
 
 ## Definition
@@ -578,6 +589,8 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponAnimId:3\>The battle scene attack animation id that will be played for this weapon. If no id is provided the default animation will play.<br>
 \<weaponCategory:missile\> The particle type of the weapon: missile, funnel, beam, gravity, physical or  "".	
 \<weaponIsCounter:1\> If set to 1 the weapon will always trigger a Counter on the enemy turn. <br>
+\<weaponHPThreshold:50\> If set this weapon will only be usable when the user's HP falls below the specified value(percent). This property is also respected by the enemy AI.<br>
+\<weaponIsAll:1\> If set to 1 this weapon is treated as an ALL weapon and will hit both targets when targeting a twin. A note will be shown in the attack list to identify the weapon as an ALL weapon.
 \<weaponHPThreshold:50\> If set this weapon will only be usable when the user's HP falls below the specified value(percent). This property is also respected by the enemy AI.
 
  
@@ -637,6 +650,7 @@ Spirit commands are buff, debuff and healing commands that units can use when ta
 Spirit commands are managed in: js/plugins/config/active/Spirits.conf.js
 
 [A list of default Spirit commands is available here.](default_spirits.md)
+
 
 The format of a Spirit command definition is as follows:
 
@@ -991,13 +1005,13 @@ It is recommended to create all new stages by creating a copy of a demo stage so
 The battleStart event runs when the stage first starts. This event is used to set up the stage as well as to show any story events that should occur before the stage starts.<br>
 It will normally have the following responsibilities:
 
-* Set the normal and sky battle background and parallax for the battle scene by using the setSRWBattleBg, setSRWBattleParallax1, setSRWSkyBattleBg and setSRWSkyBattleParallax1 plugin commands
+* Set the battle environments for the map using the setDefaultBattleEnv, setSkyBattleEnv and setRegionBattleEnv commands
 
 * Set the stage theme song using the setStageSong plugin command
 
 * Set the enemy upgrade level using the setEnemyUpgradeLevel plugin command
 
-* Set the stage victory, loss and mastery conditions
+* Set the stage victory, loss and mastery condition texts
 
 * Spawn initial enemies using the this.addEnemy script command
 
@@ -1176,6 +1190,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	◆Plugin Command：assignSlot 0 <65>
 
 	This example first sets game variable 65 to a value of 1 and then assigns the content of that variable to slot 0. The end result is that actor 1 is assigned to slot 0.
+	
+* assignSlotSub slot actor\_id
+	Assign an actor to the subtwin position of a slot for the next deployment. Indirect id assignment is possible by providing the actor\_id in the form of \<game_variable\>.
 
 * assignShipSlot slot actor\_id
 	
@@ -1243,7 +1260,11 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 * moveEventToPoint event\_id x y follow
 
-	Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
+	Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time, this includes moveActorToPoint.
+	
+* moveActorToPoint actor\_id x y follow
+
+	Move the specified actor to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time, this includes moveEventToPoint.
 
 * setEventFlying event\_id
 
@@ -1294,6 +1315,14 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * splitActor actor\_id 
 
 	Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
+
+* separateActor actor\_id
+
+	Separate any twin the specified actor is currently part of.
+	
+* makeActorMainTwin actor\_id
+
+	Make the specified actor the main twin if they are currently a sub twin.
 
 * preventActorDeathQuote actor\_id 
 
@@ -1588,6 +1617,7 @@ A setting can be left blank by entering "" as its value.
 	Event processing will automatically wait for all units to disappear before continuing execution.
 	
 * this.manualDeploy()
+
 	Shows the deployment selection window and lets the player select deployment positions. Event processing will automatically wait for all units to be spawned before continuing execution.
 	
 * this.destroyEvent(event\_id)

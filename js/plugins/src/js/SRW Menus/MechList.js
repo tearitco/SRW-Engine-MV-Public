@@ -941,7 +941,7 @@ MechList.prototype.getCurrentInfoPage = function(){
 }
 
 MechList.prototype.getCurrentSelection = function(){	
-	var availableUnits = this.getAvailableUnits();
+	var availableUnits =  this.sortViewData();
 	var idx = this._currentSelection + this._currentPage * this._maxPageSize;
 	if(idx >= availableUnits.length){
 		this._currentSelection = 0;
@@ -958,7 +958,7 @@ MechList.prototype.getCurrentSelection = function(){
 }
 
 MechList.prototype.getCurrentPageAmount = function(){
-	this._availableUnits = this.getAvailableUnits();
+	this._availableUnits = this.sortViewData();
 	var start = this._currentPage * this._maxPageSize;
 	if(start + this._maxPageSize >= this._availableUnits.length){
 		return this._availableUnits.length - start;
@@ -1116,8 +1116,8 @@ MechList.prototype.redraw = function() {
 	if(_this._currentSortIdx == -1){
 		_this._currentSortIdx = contentDef.sortStart;
 	}
-	_this.sortViewData();
-	var sortedViewData =  this.getAvailableUnits();
+	
+	var sortedViewData =  _this.sortViewData();
 	var tableContent = "";
 	tableContent+="<div class='unit_list_table "+contentDef.cssClass+" scaled_text' id='mech_list_table'>";
 	tableContent+="<div class='list_table_row scaled_height'>";

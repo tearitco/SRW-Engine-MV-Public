@@ -1,8 +1,10 @@
 :root {
 	--main-offset-horz: 60%;	
 	--main-offset-vert: 45%;	
-	--support-offset-horz: 75%;
-	--support-offset-vert: 15%;
+	--main-twin-offset-horz: 69%;	
+	--main-twin-offset-vert: 14%;
+	--support-offset-horz: 91%;
+	--support-offset-vert: 14%;
 	--supporting-offset-horz: 47%;
 	--supporting-offset-vert: 44%;
 	
@@ -39,6 +41,9 @@
 	
 	--shadow-actor: drop-shadow(rgb(0, 0, 0) 4px 0px 2px);
 	--shadow-enemy: drop-shadow(rgb(0, 0, 0) -4px 0px 2px);
+	
+	--enemy-support-horz: 79%;
+	--actor-support-horz: 99%;
 }
 
 #battle_basic {
@@ -46,6 +51,11 @@
 	align-items: center;
 	justify-content: center;
 	background: rgba(0,0,0,0);
+}
+
+#battle_basic .label{
+	z-index: 5;
+	display: none;
 }
 
 #battle_basic.fadeIn {
@@ -104,7 +114,7 @@
 }
 
 #battle_basic_active_zone_container_left {
-	width: 27%;
+	width: 32%;
     height: 1000%;
     right: 51%;
 	z-index: 2;
@@ -129,7 +139,7 @@
 }
 
 #battle_basic_active_zone_container_right {
-	width: 27%;
+	width: 32%;
     height: 1000%;
     left: 51%;
 	z-index: 2;
@@ -222,27 +232,13 @@
 	display: none;
 }	
 
-#battle_basic_actor {
-	position: absolute;
-	top: var(--main-offset-vert);
-    left: var(--main-offset-horz);
-	z-index: 1;
-	overflow: hidden;
-	filter: var(--shadow-actor);
-}
+
 
 #battle_basic.beforeView #battle_basic_actor {
 	filter: grayscale(1);
 }
 
-#battle_basic_actor_supporter {
-	position: absolute;
-	top: var(--support-offset-vert);
-    left: var(--support-offset-horz);
-	z-index: 0;
-	overflow: hidden;
-	filter: var(--shadow-actor);
-}
+
 
 #battle_basic.beforeView #battle_basic_actor_supporter {
 	filter: grayscale(1);
@@ -273,31 +269,14 @@
 	top: var(--supporting-offset-vert);
 }
 
-#battle_basic_enemy {
-	position: absolute;
-	top: var(--main-offset-vert);
-    right: var(--main-offset-horz);
-	z-index: 1;
-	overflow: hidden;
-	filter: var(--shadow-enemy);
-}
+
 
 #battle_basic.beforeView #battle_basic_enemy {
 	filter: grayscale(1);
 }
 
-#battle_basic_enemy img {
-	transform: scaleX(-1);
-}
 
-#battle_basic_enemy_supporter {
-	position: absolute;
-	top: var(--support-offset-vert);
-    right: var(--support-offset-horz);
-	z-index: 0;
-	overflow: hidden;
-	filter: var(--shadow-enemy);
-}
+
 
 #battle_basic.beforeView #battle_basic_enemy_supporter {
 	filter: grayscale(1);
@@ -326,10 +305,6 @@
 #battle_basic_enemy_supporter.double_image {
 	right: var(--supporting-offset-horz); 
 	top: var(--supporting-offset-vert);
-}
-
-#battle_basic_enemy_supporter img {
-	transform: scaleX(-1);
 }
 
 #battle_basic_enemy_damage {
@@ -660,11 +635,6 @@
 }
 
 
-.damage {
-	animation-name: damage;
-	animation-duration: 0.3s;
-	animation-fill-mode: forwards;
-}
 
 @keyframes evade_actor {
 	0% { transform: translate(0,0); }
@@ -677,42 +647,23 @@
 	100% {  }
 }
 
-.no_damage {
-	animation-name: no_damage;
-	animation-duration: 0.3s;
-	animation-fill-mode: forwards;
-}
 
-.evade_actor {
-	animation-name: evade_actor;
-	animation-duration: 0.2s;
-	animation-fill-mode: forwards;
-}
+
 
 @keyframes evade_enemy {
-	0% { transform: translate(0,0); }
-	50% { transform: translate(-30%,30%); }
-	100% { transform: translate(0,0); }
+	0% { transform: translate(0,0) scaleX(-1); }
+	50% { transform: translate(-30%,30%) scaleX(-1); }
+	100% { transform: translate(0,0) scaleX(-1); }
 }
 
-.evade_enemy {
-	animation-name: evade_enemy;
-	animation-duration: 0.2s;
-	animation-fill-mode: forwards;
-}
 
 @keyframes destroyed_participant {
 	0% {  }
-	50% { height: 0px; }
-	100% { height: 0px; }
+	50% { opacity: 0; }
+	100% { opacity: 0; }
 }
 
-.destroyed_participant {
-	animation-name: destroyed_participant;
-	animation-duration: 0.4s;
-	/*animation-timing-function: steps(2);*/
-	animation-fill-mode: forwards;
-}
+
 
 @keyframes actor_return {
   0% { transform: translate(-50%,0); }
@@ -738,7 +689,7 @@
 
 @keyframes actor_support_defend {
   
-  0% { left: var(--support-offset-horz); top: var(--support-offset-vert);}
+  0% { left: var(--actor-support-horz); top: var(--support-offset-vert);}
   100% { left: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
 }
 
@@ -751,7 +702,7 @@
 @keyframes actor_support_defend_return {
 
   0% {left: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
-  100% {left: var(--support-offset-horz); top: var(--support-offset-vert);}
+  100% {left: var(--actor-support-horz); top: var(--support-offset-vert);}
   
 }
 
@@ -762,7 +713,7 @@
 }
 
 @keyframes enemy_support_defend {
-	 0% { right: var(--support-offset-horz); top: var(--support-offset-vert);}
+	 0% { right: var(--enemy-support-horz); top: var(--support-offset-vert);}
   100% { right: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
 }
 
@@ -774,7 +725,7 @@
 
 @keyframes enemy_support_defend_return {
 	0% {right: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
-  100% {right: var(--support-offset-horz); top: var(--support-offset-vert);}
+  100% {right: var(--enemy-support-horz); top: var(--support-offset-vert);}
 }
 
 .enemy_support_defend_return {
@@ -808,20 +759,8 @@
   100% { transform: translate(0,0); }
 }
 
-.double_image {
-	animation-name: double_image;
-	animation-duration: 0.2s;
-	animation-fill-mode: forwards;
-}
 
-.participant_container {
-	--widthpixels: 128;
-	--heightpixels: 128;
-}
 
-.participant_container img{
-	width: 100%;
-}
 
 #battle_basic .faction_color.ally {
 	background-color: rgb(110, 182, 255);
@@ -837,4 +776,345 @@
 
 #battle_basic .faction_color.faction_2 {
 	background-color: rgb(247, 255, 110);
+}
+
+
+
+
+#battle_basic.beforeView #battle_basic_actor_twin {
+	filter: grayscale(1);
+}
+
+
+
+#battle_basic.beforeView #battle_basic_actor_supporter_twin {
+	filter: grayscale(1);
+}
+
+#battle_basic.beforeView #battle_basic_enemy_twin {
+	filter: grayscale(1);
+}
+
+#battle_basic.beforeView #battle_basic_enemy_supporter_twin {
+	filter: grayscale(1);
+}
+
+.participant_container {
+	--widthpixels: 128;
+	--heightpixels: 128;
+	position: relative;
+	display: flex;    
+    align-items: center;
+    justify-content: center;
+	white-space: nowrap;
+}
+
+.participant_container .label{
+	position: absolute;
+	margin-left: auto;
+	margin-right: auto;
+	top: -20%;
+	color: white;
+}
+
+.participant_container .unit_pic{
+	width: 100%;
+	filter: var(--shadow-actor);
+}
+
+.participant_container.actor .unit_pic{
+	
+}
+
+.participant_container.enemy .unit_pic{	
+	transform: scaleX(-1);
+}
+
+.participant_container .barrier {
+	position: absolute;
+	display: none;
+}
+
+
+.participant_container .HP_bar {
+	background-color: #000000;
+	--widthpixels: 60;
+	--heightpixels: 10;
+	display: none;
+	top: -10%;
+}
+
+.participant_container .HP_bar .fill {
+	height: 100%;
+	width: 50%;
+	background-color: #FF0000;
+}
+
+.participant_container .destroyed_container {
+	--widthpixels: 192;
+    --heightpixels: 192;
+	overflow: hidden;
+	position: absolute;
+}
+
+.participant_container .destroyed_anim {
+	display: none;
+}
+
+.participant_container .destroyed_anim.active {
+	display: block;
+}
+
+.participant_container .damage_label {
+	top: -25%;
+}
+
+#battle_basic_actor {
+	top: var(--main-offset-vert);
+    left: var(--main-offset-horz);
+	z-index: 1;
+	position: absolute;
+}
+
+#battle_basic_actor_supporter {
+	top: var(--support-offset-vert);
+    left: var(--actor-support-horz);
+	z-index: 0;
+	position: absolute;
+}
+
+#battle_basic_enemy {
+	top: var(--main-offset-vert);
+    right: 55%;
+	z-index: 1;	
+	position: absolute;
+}
+
+
+#battle_basic_enemy_supporter {	
+	top: var(--support-offset-vert);
+    right: var(--enemy-support-horz);
+	z-index: 1;	
+	position: absolute;
+}
+
+#battle_basic_enemy_supporter_twin {	
+	top: 45%;
+    right: 88%;
+	z-index: 1;	
+	position: absolute;
+}
+
+#battle_basic_actor_twin {
+	top: var(--main-twin-offset-vert);
+    left: var(--main-twin-offset-horz);
+	z-index: 0;	
+	position: absolute;
+}
+
+#battle_basic_enemy_twin {	
+	top: var(--main-twin-offset-vert);
+    right: 48%;
+	z-index: 0;	
+	position: absolute;
+}
+
+#battle_basic_actor_supporter_twin {
+	position: absolute;
+	top: 45%;
+    left: 90%;
+	z-index: 0;
+}
+
+.participant_container.actor.startAttack{
+	animation-name: actor_attack;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.enemy.startAttack{
+	animation-name: enemy_attack;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.actor.return {
+	animation-name: actor_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.enemy.return {
+	animation-name: enemy_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+
+.participant_container.actor.supportDefend  {
+	animation-name: actor_support_defend;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.actor.supportDefendReturn  {
+	animation-name: actor_support_defend_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.enemy.supportDefend {
+	animation-name: enemy_support_defend;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.enemy.supportDefendReturn {
+	animation-name: enemy_support_defend_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container .unit_pic_container{
+	width: 100%;
+	height: 100%;
+}
+
+.participant_container.damage .unit_pic_container{
+	animation-name: damage;
+	animation-duration: 0.3s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.no_damage {
+	animation-name: no_damage;
+	animation-duration: 0.3s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.actor.evade .unit_pic {
+	animation-name: evade_actor;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.enemy.evade .unit_pic {
+	animation-name: evade_enemy;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.destroyed_participant .unit_pic{
+	animation-name: destroyed_participant;
+	animation-duration: 0.4s;
+	/*animation-timing-function: steps(2);*/
+	animation-fill-mode: forwards;
+	animation-timing-function: step-end;
+}
+
+
+.participant_container.double_image .unit_pic_container{
+	animation-name: double_image;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+.participant_container.actor.supportDefendSub  {
+	animation-name: actor_sub_support_defend;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes actor_sub_support_defend {
+  
+  0% { left: 90%; top:  45%;}
+  100% { left: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
+}
+
+.participant_container.actor.supportDefendSubReturn  {
+	animation-name: actor_sub_support_defend_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes actor_sub_support_defend_return {
+
+  0% {left: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
+  100% {left:  90%; top: 45%;}
+  
+}
+
+.participant_container.enemy.supportDefendSub {
+	animation-name: enemy_sub_support_defend;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+ 
+
+@keyframes enemy_sub_support_defend {
+	 0% { right: 88%; top: 45%;}
+  100% { right: var(--supporting-offset-horz); top: var(--supporting-offset-vert);}
+}
+
+.participant_container.enemy.supportDefendSubReturn {
+	animation-name: enemy_sub_support_defend_return;
+	animation-duration: 0.2s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes enemy_sub_support_defend_return {
+	 0% {right: var(--supporting-offset-horz); top: var(--supporting-offset-vert); }
+  100% { right: 88%; top: 45%;}
+}
+
+
+#battle_basic_enemy_supporter_twin.damage {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.no_damage {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.hp_bar {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.destroyed_participant {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_enemy_supporter_twin.double_image {
+	right: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+
+#battle_basic_actor_supporter_twin.damage {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.no_damage {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.hp_bar {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.destroyed_participant {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
+}
+
+#battle_basic_actor_supporter_twin.double_image {
+	left: var(--supporting-offset-horz); 
+	top: var(--supporting-offset-vert);
 }

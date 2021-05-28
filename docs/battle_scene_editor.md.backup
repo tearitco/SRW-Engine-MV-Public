@@ -43,11 +43,13 @@ Sound effect files live in the default RPG Maker folders: audio/se.
 
 ### Unit Sprites
 
-There are 4 special sprites that are always available for use in the Battle Scene:
+There are 6 special sprites that are always available for use in the Battle Scene:
 
 * actor
+* actor twin
 * actor supporter
 * enemy
+* enemy twin
 * enemy supporter
 
 These sprites are linked to the real mech/class taking part in the Battle Scene and use the mechBattleSceneSprite metadata tag to determine which folder in img/SRWBattleScene belongs to the sprite. The Battle Scene will automatically pull default sprites poses from the matching folder for certain actions. The required default poses are:
@@ -86,10 +88,13 @@ An Attack Animation can be different depending on the game state. Whether an att
 
 * Main: This sequence will always play and should have the animation commands for the start of the animation.
 * Hit: This sequence only plays when the attack hits.
+* Hit Twin: This sequence only plays when the attack hits the sub twin.
 * Hit Overwrite: This sequence only plays when the attack hits. If any of the animation Ticks of this sequence match a Tick from the Main sequence the Animation Commands from the Main Sequence for that Tick will not be executed.
 * Miss: This sequence only plays when the attack misses.
+* Miss Twin: This sequence only plays when the attack misses the sub twin.
 * Miss Overwrite: This sequence only plays when the attack misses. If any of the animation Ticks of this sequence match a Tick from the Main sequence the Animation Commands from the Main Sequence for that Tick will not be executed.
 * Destroy: This sequence only plays when the attack destroys its target.
+* Destroy Twin: This sequence only plays when the attack destroys the sub twin.
 * Destroy Overwrite: This sequence only plays when the attack destroys its target. If any of the animation Ticks of this sequence match a Tick from the Main/Hit sequence the Animation Commands from the Main/Hit Sequence for that Tick will not be executed.
 
 Ticks for each Sequence start from 0, so if you define a command for the same Tick in the Main and Hit Sequence for example, those commands will be executed at the same time for normal Sequences. For Overwrite sequences the commands of the Overwrite sequence will be the only ones that are executed for the matching Ticks.
@@ -99,6 +104,15 @@ Depending on the game state the Battle Scene will combine the necessary sequence
 * The attack misses: Main + Miss + Miss Overwrite
 * The attack hits: Main + Hit + Hit Overwrite
 * The attack destroys: Main + Hit + Hit Overwrite + Destroy + Destroy Overwrite
+
+The Twin sequences will only be executed when an ALL attack is used an a sub twin target is available.
+
+#### ALL Attacks
+
+ALL attacks are attacks that hit both units in a target twin. They are special in terms of animation as the animation will show one animation for the attack hitting both targets.
+
+To make this possible the target twin unit will be made available for ALL attack animations through the active\_target\_twin command target. active\_target\_twin can be used to animate the target sub twin in the same way any normal sprite is animated. 
+Additionally the sub twins animations must go in the Hit Twin, Miss Twin and Destroy Twin sequences. These sequences will only be executed when an ALL attack is used and a target sub twin is available.
 
 ### Flow control commands
 

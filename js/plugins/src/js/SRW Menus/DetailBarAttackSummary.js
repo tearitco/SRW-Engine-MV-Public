@@ -111,10 +111,16 @@ DetailBarAttackSummary.prototype.redraw = function(){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_target;
 			} else if(detail.isMap){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_map_counter;
-			} else if(detail.noParticipants){
+			} else if(detail.isMap2){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_no_map_support;
+			}else if(detail.noParticipants){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_participants;
 			} else if(detail.terrain){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_terrain;
+			} else if(detail.isAll){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_no_all;
+			} else if(detail.isRegular){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_no_regular;
 			} else if(detail.isHPGated){
 				var info = APPSTRINGS.ATTACKLIST.label_HP_gated;
 				info = info.replace("{HP_THRESHOLD}", attackData.HPThreshold);

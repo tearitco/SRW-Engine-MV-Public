@@ -82,10 +82,13 @@ BattleAnimationBuilder.prototype.newDef = function(name){
 		data: {
 			mainAnimation: {},
 			onHit: {},
+			onHitTwin: {},
 			onHitOverwrite: {},
 			onMiss: {},
+			onMissTwin: {},
 			onMissOverwrite: {},
 			onDestroy: {},
+			onDestroyTwin: {},
 			onDestroyOverwrite: {}
 		}		
 	};
@@ -290,11 +293,37 @@ BattleAnimationBuilder.prototype.processDefinitions = function(data){
 	
 	
 	_this._animLookup = data;
+	_this.validateDefinitions();
 	_this._resolveLoad();
 	/*Object.keys(this._animLookup).forEach(function(id){
 		var data = _this._animLookup[id].data;
 		
 	}); */
+}
+
+BattleAnimationBuilder.prototype.validateDefinitions = function(){
+	var _this = this;
+	var requiredSequences = {
+		mainAnimation: {},
+		onHit: {},
+		onHitTwin: {},
+		onHitOverwrite: {},
+		onMiss: {},
+		onMissTwin: {},
+		onMissOverwrite: {},
+		onDestroy: {},
+		onDestroyTwin: {},
+		onDestroyOverwrite: {}
+	};
+	
+	Object.keys(_this._animLookup).forEach(function(id){
+		var data = _this._animLookup[id].data;
+		Object.keys(requiredSequences).forEach(function(sequenceName){
+			if(data[sequenceName] == null){
+				data[sequenceName] = {};
+			}
+		});
+	});
 }
 
 BattleAnimationBuilder.prototype.processDefinition = function(data){

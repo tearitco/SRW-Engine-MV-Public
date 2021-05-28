@@ -104,20 +104,28 @@ export default function BattleSceneManager(){
 	this._defaultPositions = {
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
 		"ally_main_idle": new BABYLON.Vector3(2, 0, 1),
+		"ally_twin_idle": new BABYLON.Vector3(5, 0, 3),
 		"enemy_main_idle": new BABYLON.Vector3(-2, 0, 1),
+		"enemy_twin_idle": new BABYLON.Vector3(-5, 0, 3),
 		"camera_main_idle": cameraMainIdle, //1.15
 		"camera_main_intro": new BABYLON.Vector3(-6, 0.75, -7),
-		"ally_support_idle": new BABYLON.Vector3(10, 1, 1),
-		"enemy_support_idle": new BABYLON.Vector3(-10, 1, 1),
+		"ally_support_idle": new BABYLON.Vector3(10, 0, 1),
+		"ally_twin_support_idle": new BABYLON.Vector3(10, 0, 1),
+		"enemy_support_idle": new BABYLON.Vector3(-10, 0, 1),
+		"enemy_twin_support_idle": new BABYLON.Vector3(-10, 0, 1),
 	}
 	this._defaultRotations = {
 		// "camera_root": new BABYLON.Vector3(0, 0, -5),
 		"ally_main_idle": new BABYLON.Vector3(0, 0, 0),
+		"ally_twin_idle": new BABYLON.Vector3(0, 0, 0),
 		"enemy_main_idle": new BABYLON.Vector3(0, 0, 0),
+		"enemy_twin_idle": new BABYLON.Vector3(0, 0, 0),
 		"camera_main_idle": new BABYLON.Vector3(0, 0, 0),
 		"camera_main_intro": new BABYLON.Vector3(0, 0, 0),
 		"ally_support_idle": new BABYLON.Vector3(0, 0, 0),
+		"ally_twin_support_idle": new BABYLON.Vector3(0, 0, 0),
 		"enemy_support_idle": new BABYLON.Vector3(0, 0, 0),
+		"enemy_twin_support_idle": new BABYLON.Vector3(0, 0, 0),
 	}
 	this._runningAnimation = false;
 	this._currentAnimationTick = 0;
@@ -158,13 +166,25 @@ export default function BattleSceneManager(){
 		"actor": {
 			participating: false
 		},
+		"actor_twin": {
+			participating: false
+		},
 		"actor_supporter": {
+			participating: false
+		},
+		"actor_twin_supporter": {
 			participating: false
 		},
 		"enemy": {
 			participating: false
 		},
+		"enemy_twin": {
+			participating: false
+		},
 		"enemy_supporter": {
+			participating: false
+		},
+		"enemy_twin_supporter": {
 			participating: false
 		}
 	};
@@ -645,6 +665,9 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 	
 	bg.setPositionWithLocalVector(position);
 	bg.originPosition = new BABYLON.Vector3(position.x, position.y, position.z);
+	
+	texture.update(); //ensure the texture is marked as ready
+	
 	return {sprite: bg, texture: texture, size: {width: width, height: height}};
 }
 		
@@ -716,42 +739,82 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 	if(type == "actor"){
 		shadowInfo.type = "actor";
 		spriteInfo = this._actorSprite;
-			if(spriteInfo && spriteInfo.sprite){
+		if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
 			spriteInfo.sprite.shadowSprite.dispose();
 		}	
 		this._actorSprite = getSprite();				
 		this._actorShadow = this.configureSprite(this._actorSprite, "actorShadow", shadowInfo, type);		
 	} 
+	if(type == "actor_twin"){
+		shadowInfo.type = "actor";
+		spriteInfo = this._actorTwinSprite;
+		if(spriteInfo && spriteInfo.sprite){
+			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
+		}	
+		this._actorTwinSprite = getSprite();				
+		this._actorTwinShadow = this.configureSprite(this._actorTwinSprite, "actorTwinShadow", shadowInfo, type);		
+	} 
 	if(type == "enemy"){
 		shadowInfo.type = "enemy";
 		spriteInfo = this._enemySprite;
-			if(spriteInfo && spriteInfo.sprite){
+		if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
 			spriteInfo.sprite.shadowSprite.dispose();
 		}	
 		this._enemySprite = getSprite();
 		this._enemyShadow = this.configureSprite(this._enemySprite, "enemyShadow", shadowInfo, type);
+	}
+	if(type == "enemy_twin"){
+		shadowInfo.type = "enemy";
+		spriteInfo = this._enemyTwinSprite;
+		if(spriteInfo && spriteInfo.sprite){
+			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
+		}	
+		this._enemyTwinSprite = getSprite();
+		this._enemyTwinShadow = this.configureSprite(this._enemyTwinSprite, "enemyTwinShadow", shadowInfo, type);
 	}	
 	if(type == "actor_supporter"){
 		shadowInfo.type = "actor";
 		spriteInfo = this._actorSupporterSprite;
-			if(spriteInfo && spriteInfo.sprite){
+		if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
 			spriteInfo.sprite.shadowSprite.dispose();
 		}
 		this._actorSupporterSprite = getSprite();
 		this._actorSupporterShadow = this.configureSprite(this._actorSupporterSprite, "actorSupporterShadow", shadowInfo, type);
 	} 
+	if(type == "actor_twin_supporter"){
+		shadowInfo.type = "actor";
+		spriteInfo = this._actorTwinSupporterSprite;
+		if(spriteInfo && spriteInfo.sprite){
+			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
+		}
+		this._actorTwinSupporterSprite = getSprite();
+		this._actorTwinSupporterShadow = this.configureSprite(this._actorTwinSupporterSprite, "actorTwinSupporterShadow", shadowInfo, type);
+	} 
 	if(type == "enemy_supporter"){
 		shadowInfo.type = "enemy";
 		spriteInfo = this._enemySupporterSprite;
-			if(spriteInfo && spriteInfo.sprite){
+		if(spriteInfo && spriteInfo.sprite){
 			spriteInfo.sprite.dispose();
 			spriteInfo.sprite.shadowSprite.dispose();
 		}
 		this._enemySupporterSprite = getSprite();
 		this._enemySupporterShadow = this.configureSprite(this._enemySupporterSprite, "enemySupporterShadow", shadowInfo, type);
+	}
+	if(type == "enemy_twin_supporter"){
+		shadowInfo.type = "enemy";
+		spriteInfo = this._enemyTwinSupporterSprite;
+		if(spriteInfo && spriteInfo.sprite){
+			spriteInfo.sprite.dispose();
+			spriteInfo.sprite.shadowSprite.dispose();
+		}
+		this._enemyTwinSupporterSprite = getSprite();
+		this._enemyTwinSupporterShadow = this.configureSprite(this._enemyTwinSupporterSprite, "enemyTwinSupporterShadow", shadowInfo, type);
 	}
 }
 
@@ -954,6 +1017,20 @@ BattleSceneManager.prototype.setBgScrollRatio = function(ratio, immediate){
 	_this._bgScrollRatio = ratio;
 }
 
+BattleSceneManager.prototype.isReady = function(){	
+    if (!this._scene.isReady()) return false;
+
+    for (let tex of this._scene.textures) {
+      if (!tex.isReady()) return false;
+    }
+
+    for (let mesh of this._scene.meshes) {
+      if (!mesh.isReady()) return false;
+    }
+
+    return true;  
+}
+
 BattleSceneManager.prototype.hookBeforeRender = function(){
 	var _this = this;
 	
@@ -993,6 +1070,10 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 	_this._scene.registerBeforeRender(function() {
 		var frameTime = new Date().getTime();
 		//console.log("processing animation @"+frameTime);
+		/*if(!_this.isReady()){
+			this._lastAnimationTickTime = frameTime;
+			return;
+		}*/
 		var deltaTime = frameTime - _this._lastAnimationTickTime;
 		var ticksSinceLastUpdate = Math.floor(deltaTime / _this._animationTickDuration);
 		_this._ticksSinceLastUpdate = ticksSinceLastUpdate;
@@ -1278,6 +1359,10 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		updateShadow(_this._enemySprite);	
 		updateShadow(_this._actorSupporterSprite);	
 		updateShadow(_this._enemySupporterSprite);
+		updateShadow(_this._actorTwinSprite);
+		updateShadow(_this._enemyTwinSprite);
+		updateShadow(_this._actorTwinSupporterSprite);
+		updateShadow(_this._enemyTwinSupporterSprite);
 	});
 }
 
@@ -1522,12 +1607,16 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			} else {
 				return _this._active_main;
 			}
+		} else if(name == "active_twin"){
+			return _this._active_twin
 		} else if(name == "active_target"){
 			if(_this._supportDefenderActive){
 				return _this._active_support_defender;
 			} else {
 				return _this._active_target;
 			}			
+		} else if(name == "active_target_twin"){			
+			return _this._active_target_twin;						
 		} else if(name == "active_support_defender"){
 			return _this._active_support_defender;
 		} else if(name == "active_support_attacker"){
@@ -1698,7 +1787,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		},	
 	
 		set_damage_text: function(target, params){
-			var action = _this._currentAnimatedAction.attacked;
+			var action = _this.getTargetAction(target);
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			
@@ -1811,8 +1900,18 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				swipeTime/=2;
 			}
 			_this.swipeToBlack(direction, "in", swipeTime).then(function(){
-				_this.swipeToBlack(direction, "out");
+				clearSwipe();				
 			});	
+			
+			function clearSwipe(){
+				if(!_this.isReady()){
+					setTimeout(clearSwipe, 100);
+				} else {
+					setTimeout(function(){
+						_this.swipeToBlack(direction, "out");
+					}, 100);					
+				}
+			}
 		},
 		fade_white: function(target, params){
 			var fadeTime = params.time;
@@ -1871,7 +1970,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}				
 			
 			//support defend animation
-			if(_this._currentAnimatedAction.attacked.type == "support defend"){
+			if(_this._currentAnimatedAction.attacked && _this._currentAnimatedAction.attacked.type == "support defend"){
 				_this.delayAnimationList(startTick + 27, 140);
 				_this._animationList[startTick + 30] = [
 					{type: "teleport", target: "Camera", params: {position: _this._defaultPositions.camera_main_idle}},
@@ -1921,10 +2020,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 		},
 		dodge_pattern: function(target, params){
-			var action = _this._currentAnimatedAction.attacked;
+			var action = _this.getTargetAction(target);
+			
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "evade", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
+			
 			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
 			
 			var hasSpecialEvasion = false;
@@ -2325,9 +2426,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
 					params.name = "main";
 				} else if(params.name == "hurt" || params.name == "hurt_end"){
-					if(target == "active_main" || target == "active_support_attacker"){
+					if(target == "active_main" || target == "active_support_attacker" || target == "active_twin"){
 						battleEffect = targetAction; 					
-					} else if(target == "active_target" || target == "active_support_defender"){
+					} else if(target == "active_target" || target == "active_support_defender" || target == "active_target_twin"){
 						battleEffect = action;					
 					}
 					if(battleEffect.damageInflicted == 0){
@@ -2345,9 +2446,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 						
 						var flipX;
 						var battleEffect;
-						if(target == "active_main" || target == "active_support_attacker"){
+						if(target == "active_main" || target == "active_support_attacker" || target == "active_twin" ){
 							battleEffect = action;					
-						} else if(target == "active_target" || target == "active_support_defender"){
+						} else if(target == "active_target" || target == "active_support_defender" || target == "active_target_twin"){
 							battleEffect = targetAction;					
 						}
 						
@@ -2431,7 +2532,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			});			
 		},
 		reset_position: function(target, params){
-			var targetObj = getTargetObject("active_target");
+			if(!target){
+				target = "active_target";
+			}
+			var targetObj = getTargetObject(target);
 			
 			var targetOffset = (_this._defaultPositions.camera_main_idle.x * _this._animationDirection * -1) - _this._camera.position.x;
 			
@@ -2460,14 +2564,26 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(_this._actorSprite && _this._actorSprite.sprite.parent_handle.wasMoved){
 				_this._actorSprite.sprite.parent_handle.position.x+=targetOffset;
 			}
+			if(_this._actorTwinSprite && _this._actorTwinSprite.sprite.parent_handle.wasMoved){
+				_this._actorTwinSprite.sprite.parent_handle.position.x+=targetOffset;
+			}
 			if(_this._enemySprite && _this._enemySprite.sprite.parent_handle.wasMoved){
 				_this._enemySprite.sprite.parent_handle.position.x+=targetOffset;
+			}
+			if(_this._enemyTwinSprite && _this._enemyTwinSprite.sprite.parent_handle.wasMoved){
+				_this._enemyTwinSprite.sprite.parent_handle.position.x+=targetOffset;
 			}
 			if(_this._actorSupporterSprite && _this._actorSupporterSprite.sprite.parent_handle.wasMoved){
 				_this._actorSupporterSprite.sprite.parent_handle.position.x+=targetOffset;
 			}
+			if(_this._actorTwinSupporterSprite && _this._actorTwinSupporterSprite.sprite.parent_handle.wasMoved){
+				_this._actorTwinSupporterSprite.sprite.parent_handle.position.x+=targetOffset;
+			}
 			if(_this._enemySupporterSprite && _this._enemySupporterSprite.sprite.parent_handle.wasMoved){
 				_this._enemySupporterSprite.sprite.parent_handle.position.x+=targetOffset;
+			}
+			if(_this._enemyTwinSupporterSprite && _this._enemyTwinSupporterSprite.sprite.parent_handle.wasMoved){
+				_this._enemyTwinSupporterSprite.sprite.parent_handle.position.x+=targetOffset;
 			}
 			
 			_this._bgs.forEach(function(bg){
@@ -2484,7 +2600,13 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					params.duration = 10;
 				}
 				
-				var targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+				var targetPostion
+				if(target == "active_target_twin"){
+					targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_twin_idle);
+				} else {
+					targetPostion = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+				}
+				
 				
 				/*if(targetObj == _this._actorSprite.sprite || targetObj == _this._actorSupporterSprite.sprite){
 					_this.registerMatrixAnimation("translate", targetObj, _this.applyAnimationDirection(targetObj.position), targetPostion, startTick, params.duration);
@@ -2517,59 +2639,105 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					_this.registerMatrixAnimation("translate", targetObj.parent_handle, _this.applyAnimationDirection(targetObj.parent_handle.position), targetPostion, startTick, params.duration);
 				}
 				
-				_this._animationList[startTick + params.duration] = [				
-					{type: "show_damage", target: "", params:{}},
+				var additions = [];
+				
+				additions[startTick + params.duration] = [				
+					{type: "show_damage", target: target, params:{}},
 					
 				];
 				
-				
-				var action = _this._currentAnimatedAction.attacked;			
+				var action = _this.getTargetAction(target);
+			
 				if(!action.isDestroyed && action.isHit){
-					_this._animationList[startTick + params.duration].push({type: "set_damage_text", target: "", params:{}});
-					
+					additions[startTick + params.duration].push({type: "set_damage_text", target: target, params:{}});						
 				}
+				
 				if(!action.isDestroyed){
 					if(targetObj.spriteConfig.type == "spriter" || targetObj.spriteConfig.type == "dragonbones"){
-						_this._animationList[startTick + params.duration + 50] = [
+						additions[startTick + params.duration + 50] = [
 							{type: "set_sprite_frame", target: target, params:{name: "hurt_end"}},
 						];
 					} else {
-						_this._animationList[startTick + params.duration + 50] = [
+						additions[startTick + params.duration + 50] = [
 							{type: "set_sprite_frame", target: target, params:{name: "main"}},
 						];
 					}				
-				}			
+				}	
+				_this.mergeAnimList(additions);		
 			}
 		},
 		destroy: function(target, params){
 			var targetObj = getTargetObject(target);
+			
+			var noWait = (params.noWait || 0) * 1;
 					
-			var action = _this._currentAnimatedAction.attacked;
+			var action = _this.getTargetAction(target);
 			var entityType = action.isActor ? "actor" : "enemy";
 			var entityId = action.ref.SRWStats.pilot.id;
 			var battleText = _this._battleTextManager.getText(entityType, action.ref, "destroyed", action.isActor ? "enemy" : "actor", _this.getBattleTextId(_this._currentAnimatedAction));
-			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText);
+			_this._UILayerManager.setTextBox(entityType, entityId, action.ref.SRWStats.pilot.name, battleText, true);
 			
 			var animId = $statCalc.getBattleSceneInfo(action.ref).deathAnimId;
 			if(animId == null){
 				animId = ENGINE_SETTINGS.BATTLE_SCENE.DEFAULT_ANIM.DESTROY;
 			}
 			var animData = _this._animationBuilder.buildAnimation(animId, _this).mainAnimation;
-			_this.delayAnimationList(startTick + 1, animData.length);
+			if(!noWait){
+				_this.delayAnimationList(startTick + 1, animData.length);
+			}
+			
+			var additions = [];
 			Object.keys(animData).forEach(function(tick){
-				_this._animationList[startTick * 1 + tick * 1 + 1] = animData[tick];
+				var tickCommands = JSON.parse(JSON.stringify(animData[tick]));
+				if(target == "active_target_twin"){
+					//fudge the command targeting and offsets to fit the position of the twin					
+					tickCommands.forEach(function(command){
+						if(command.params){
+							if(command.params.position){
+								command.params.position.x+=(_this._defaultPositions.enemy_twin_idle.x - _this._defaultPositions.enemy_main_idle.x);
+								command.params.position.y+=(_this._defaultPositions.enemy_twin_idle.y - _this._defaultPositions.enemy_main_idle.y);
+								command.params.position.z+=(_this._defaultPositions.enemy_twin_idle.z - _this._defaultPositions.enemy_main_idle.z);
+							}							
+						}
+						if(command.target == "active_target"){
+							command.target = "active_target_twin";
+						}
+					});
+				}
+				
+				additions[startTick * 1 + tick * 1 + 1] = tickCommands;
 			});
+			_this.mergeAnimList(additions);
 		},
 		show_damage: function(target, params){	
 			var originalAction = _this._currentAnimatedAction;
 			var action = _this._currentAnimatedAction.attacked;
-			var target = action.side;			
-			_this._UILayerManager.showDamage(target, originalAction.damageInflicted);
+			var side = action.side;			
+			var offsets;
+			var displayNum = 0;
+			if(target == "active_target_twin"){
+				action = _this.getTargetAction(target);
+				displayNum = 1;
+				offsets = {top: 16, left: 78};
+				if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_TWIN_OFFSET){
+					offsets = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_TWIN_OFFSET;
+				}
+				_this._UILayerManager.showDamage(side, originalAction.damageInflicted_all_sub, offsets, displayNum);
+				action.currentAnimHP-=originalAction.damageInflicted_all_sub;
+			} else {
+				offsets = {top: 20, left: 60};
+				if(ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS){
+					offsets = ENGINE_SETTINGS.BATTLE_SCENE.DAMAGE_OFFSETS;
+				}
+				_this._UILayerManager.showDamage(side, originalAction.damageInflicted, offsets, displayNum);
+				action.currentAnimHP-=originalAction.damageInflicted;
+			}
 			
 			
-			action.currentAnimHP-=originalAction.damageInflicted;
+			
+			
 			if(originalAction.inflictedCritical){
-				_this._UILayerManager.setNotification(action.isActor ? "actor" : "enemy", "CRITICAL!");
+				_this._UILayerManager.setNotification(action.isActor ? "enemy" : "actor", "CRITICAL!");
 			}
 			if(action.isHit && action.barrierNames){
 				_this._UILayerManager.setPopupNotification(action.isActor ? "actor" : "enemy", action.barrierNames);
@@ -2588,26 +2756,27 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					endPercent = 0;
 				}
 				originalAction.currentAnimHP = endValue;
-				_this._barDrainInfo[originalAction.side].HP = endPercent;
-				_this._UILayerManager.animateHP(originalAction.side, startPercent, endPercent, params.duration || 500);
+				_this._barDrainInfo[originalAction.side+ "_" + originalAction.isSubTwin ? "twin" : ""].HP = endPercent;
+				_this._UILayerManager.animateHP(originalAction.side, originalAction.ref.isSubTwin ? "twin" : "main", startPercent, endPercent, params.duration || 500);
 				_this._UILayerManager.setNotification(originalAction.side, "HP DRAIN");
 			}			
 		},
 		drain_hp_bar: function(target, params){			
 			var originalAction = _this._currentAnimatedAction;
-			var action = _this._currentAnimatedAction.attacked;
+			var action = _this.getTargetAction(target);
 			var target = action.side;
 			var stats = $statCalc.getCalculatedMechStats(action.ref);
-			if(!_this._barDrainInfo[target]) {
-				_this._barDrainInfo[target] = {};
+			var drainInfoKey = target + "_" + (action.ref.isSubTwin ? "twin" : "");
+			if(!_this._barDrainInfo[drainInfoKey]) {
+				_this._barDrainInfo[drainInfoKey] = {};
 			}	
-			if(typeof _this._barDrainInfo[target].HP == "undefined"){
-				_this._barDrainInfo[target].HP = 0;
+			if(typeof _this._barDrainInfo[drainInfoKey].HP == "undefined"){
+				_this._barDrainInfo[drainInfoKey].HP = 0;
 			}
 			
 			var totalDamage = Math.min(originalAction.damageInflicted, action.currentAnimHP);
 			
-			var startValue = action.currentAnimHP - (_this._barDrainInfo[target].HP /100 * totalDamage);
+			var startValue = action.currentAnimHP - (_this._barDrainInfo[drainInfoKey].HP /100 * totalDamage);
 			var endValue = action.currentAnimHP - (params.percent /100 * totalDamage);
 			
 			var startPercent = (startValue / stats.maxHP * 100);
@@ -2615,8 +2784,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(endPercent < 0){
 				endPercent = 0;
 			}
-			_this._barDrainInfo[target].HP = params.percent;
-			_this._UILayerManager.animateHP(target, startPercent, endPercent, params.duration || 500);
+			_this._barDrainInfo[drainInfoKey].HP = params.percent;
+			_this._UILayerManager.animateHP(target, action.ref.isSubTwin ? "twin" : "main", startPercent, endPercent, params.duration || 500);
 		},
 		drain_en_bar: function(target, params){			
 			var action = _this._currentAnimatedAction;
@@ -2624,11 +2793,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				action.ENDrainShown = true;
 				var target = action.side;
 				var stats = $statCalc.getCalculatedMechStats(action.ref);
-				if(!_this._barDrainInfo[target]) {
-					_this._barDrainInfo[target] = {};
+				var drainInfoKey = target + "_" + (action.ref.isSubTwin ? "twin" : "");
+				if(!_this._barDrainInfo[drainInfoKey]) {
+					_this._barDrainInfo[drainInfoKey] = {};
 				}	
-				if(typeof _this._barDrainInfo[target].EN == "undefined"){
-					_this._barDrainInfo[target].EN = 0;
+				if(typeof _this._barDrainInfo[drainInfoKey].EN == "undefined"){
+					_this._barDrainInfo[drainInfoKey].EN = 0;
 				}
 				var startValue = action.currentAnimEN;
 				var endValue = action.currentAnimEN - action.ENUsed;
@@ -2638,8 +2808,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				if(endPercent < 0){
 					endPercent = 0;
 				}
-				_this._barDrainInfo[target].EN = params.percent;
-				_this._UILayerManager.animateEN(target, startPercent, endPercent, params.duration || 500);
+				_this._barDrainInfo[drainInfoKey].EN = params.percent;
+				_this._UILayerManager.animateEN(target, action.ref.isSubTwin ? "twin" : "main", startPercent, endPercent, params.duration || 500);
 				
 			}			
 		},
@@ -2676,6 +2846,31 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 	}
 }
 
+BattleSceneManager.prototype.getTargetAction = function(target){
+	/*if(this._currentAnimatedAction.side == "enemy"){
+		if(target == "active_target_twin"){
+			if(this._participantInfo.actor_twin.participating){
+				return this._participantInfo.actor_twin.effect;
+			} 
+		} 
+		return this._participantInfo.actor.effect;
+	} else {
+		if(target == "active_target_twin"){
+			if(this._participantInfo.enemy_twin.participating){
+				return this._participantInfo.enemy_twin.effect;
+			} 
+		} 
+		return this._participantInfo.enemy.effect;
+	}	*/
+	if(target == "active_target_twin" && this._currentAnimatedAction.attacked_all_sub){
+		return this._currentAnimatedAction.attacked_all_sub;
+	} 
+	if(this._currentAnimatedAction.attacked){
+		return this._currentAnimatedAction.attacked;
+	}
+	return this._currentAnimatedAction.attacked_all_sub;
+}
+
 BattleSceneManager.prototype.startAnimation = function(){
 	
 	var _this = this;
@@ -2701,16 +2896,89 @@ BattleSceneManager.prototype.playIntroAnimation = function(){
 	return this.startAnimation();
 }
 
+BattleSceneManager.prototype.playTwinIntroAnimation = function(){
+	this._animationList = [];
+	
+	this._animationList[0] = [
+		{type: "set_sprite_frame", target: "active_main", params: {name: "out"}},
+		{type: "translate", target: "active_main", params: {startPosition: this._defaultPositions.ally_main_idle, position: this._defaultPositions.ally_support_idle, duration: 20}},
+	];	
+	
+	this._animationList[20] = [
+		{type: "set_sprite_frame", target: "active_main", params: {name: "main"}},
+		{type: "set_sprite_frame", target: "active_twin", params: {name: "in"}},
+		{type: "translate", target: "active_twin", params: {startPosition: this._defaultPositions.ally_twin_idle, position: this._defaultPositions.ally_main_idle, duration: 15}}
+	];
+	this._animationList[35] = [
+		{type: "set_sprite_frame", target: "active_twin", params: {name: "main"}},
+	]
+	
+	this._animationList[80] = []; //padding
+	return this.startAnimation();
+}
+
+BattleSceneManager.prototype.playTwinMainIntroAnimation = function(){
+	this._animationList = [];
+	
+	this._animationList[0] = [
+		{type: "set_sprite_frame", target: "active_twin", params: {name: "out"}},
+		{type: "translate", target: "active_twin", params: {startPosition: this._defaultPositions.ally_twin_idle, position: new BABYLON.Vector3(10, 0, 3), duration: 20}},
+	];		
+	
+	this._animationList[35] = [
+		{type: "set_sprite_frame", target: "active_twin", params: {name: "main"}},
+	]
+	
+	this._animationList[60] = []; //padding
+	return this.startAnimation();
+}
+
+BattleSceneManager.prototype.playCounterTwinAnimation = function(){
+	this._animationList = [];
+	
+	this._animationList[0] = [
+		{type: "set_sprite_frame", target: "active_target", params: {name: "out"}},
+		{type: "translate", target: "active_target", params: {startPosition: this._defaultPositions.enemy_main_idle, position: this._defaultPositions.enemy_support_idle, duration: 20}},
+	];	
+	
+	this._animationList[20] = [
+		{type: "set_sprite_frame", target: "active_target", params: {name: "main"}},
+		{type: "set_sprite_frame", target: "active_target_twin", params: {name: "in"}},
+		{type: "translate", target: "active_target_twin", params: {startPosition: this._defaultPositions.enemy_twin_idle, position: this._defaultPositions.enemy_main_idle, duration: 15}}
+	];
+	this._animationList[35] = [
+		{type: "set_sprite_frame", target: "active_target_twin", params: {name: "main"}},
+	]
+	
+	this._animationList[80] = []; //padding
+	return this.startAnimation();
+}
+
+BattleSceneManager.prototype.playCounterTwinMainIntroAnimation = function(){
+	this._animationList = [];
+	
+	this._animationList[0] = [
+		{type: "set_sprite_frame", target: "active_target_twin", params: {name: "out"}},
+		{type: "translate", target: "active_target_twin", params: {startPosition: this._defaultPositions.enemy_twin_idle, position: new BABYLON.Vector3(-10, 0, 3), duration: 20}},
+	];		
+	
+	this._animationList[60] = []; //padding
+	return this.startAnimation();
+}
+
+
 BattleSceneManager.prototype.mergeAnimList = function(additions){
 	var _this = this;
-	for(var i = 0; i < additions.length; i++){
-		if(additions[i]){
-			if(!_this._animationList[i]){
-				_this._animationList[i] = [];
-			}
-			_this._animationList[i] = _this._animationList[i].concat(additions[i]);
-		}			
-	}
+	if(additions){
+		for(var i = 0; i < additions.length; i++){
+			if(additions[i]){
+				if(!_this._animationList[i]){
+					_this._animationList[i] = [];
+				}
+				_this._animationList[i] = _this._animationList[i].concat(additions[i]);
+			}			
+		}
+	}	
 }
 
 BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef){
@@ -2746,6 +3014,18 @@ BattleSceneManager.prototype.playAttackAnimation = function(cacheRef, attackDef)
 			overwriteAnimList(attackDef.onMissOverwrite);
 		}
 	}
+	if(cacheRef.attacked_all_sub){
+		if(cacheRef.hits_all_sub){		
+			_this.mergeAnimList(attackDef.onHitTwin);		
+			if(cacheRef.attacked_all_sub && cacheRef.attacked_all_sub.isDestroyed && cacheRef.attacked_all_sub.destroyer == cacheRef.ref){
+				_this.mergeAnimList(attackDef.onDestroyTwin);
+			} 	
+		} else {
+			//this._animationList = this._animationList.concat(attackDef.onMiss);			
+			_this.mergeAnimList(attackDef.onMissTwin);			
+		}
+	}
+	
 	return this.startAnimation();
 }
 
@@ -2832,9 +3112,13 @@ BattleSceneManager.prototype.readBattleCache = function() {
 	_this._actionQueue = [];
 	//_this._requiredImages.push("img/basic_battle/test.png");
 	_this._participantInfo.actor.participating = false;
+	_this._participantInfo.actor_twin.participating = false;
 	_this._participantInfo.actor_supporter.participating = false;
+	_this._participantInfo.actor_twin_supporter.participating = false;
 	_this._participantInfo.enemy.participating = false;
+	_this._participantInfo.enemy_twin.participating = false;
 	_this._participantInfo.enemy_supporter.participating = false;
+	_this._participantInfo.enemy_twin_supporter.participating = false;
 	Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 		var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 		
@@ -2869,37 +3153,74 @@ BattleSceneManager.prototype.readBattleCache = function() {
 		spriteInfo.armatureName = $statCalc.getBattleSceneInfo(battleEffect.ref).armatureName;
 		if(battleEffect.side == "actor"){
 			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
+				 
 				_this._participantInfo.actor.participating = true;
 				_this._participantInfo.actor.effect = battleEffect;				
 				_this._participantInfo.actor.img = imgPath;
 				_this.updateMainSprite("actor", "ally_main", spriteInfo, _this._defaultPositions.ally_main_idle, imgSize, false, shadowInfo);
 				_this._participantInfo.actor.tempHP = mechStats.currentHP;
-				//_this._participantInfo.actor.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+			//_this._participantInfo.actor.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+
+				
+			}
+			if(battleEffect.type == "twin attack" || battleEffect.type == "twin defend"){
+				_this._participantInfo.actor_twin.participating = true;
+				_this._participantInfo.actor_twin.effect = battleEffect;				
+				_this._participantInfo.actor_twin.img = imgPath;
+				_this.updateMainSprite("actor_twin", "ally_twin", spriteInfo, _this._defaultPositions.ally_main_idle, imgSize, false, shadowInfo);
+				_this._participantInfo.actor_twin.tempHP = mechStats.currentHP;
+
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
-				_this._participantInfo.actor_supporter.participating = true;
-				_this._participantInfo.actor_supporter.effect = battleEffect;
-				_this._participantInfo.actor_supporter.img = imgPath;
-				_this.updateMainSprite("actor_supporter", "ally_support", spriteInfo, _this._defaultPositions.ally_support_idle, imgSize, false, shadowInfo);	
-				_this._participantInfo.actor_supporter.tempHP = mechStats.currentHP;
-				//_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+				if(battleEffect.ref.isSubTwin){
+					_this._participantInfo.actor_twin_supporter.participating = true;
+					_this._participantInfo.actor_twin_supporter.effect = battleEffect;
+					_this._participantInfo.actor_twin_supporter.img = imgPath;
+					_this.updateMainSprite("actor_twin_supporter", "ally_twin_support", spriteInfo, _this._defaultPositions.ally_support_idle, imgSize, false, shadowInfo);	
+					_this._participantInfo.actor_twin_supporter.tempHP = mechStats.currentHP;
+					//_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+				} else {
+					_this._participantInfo.actor_supporter.participating = true;
+					_this._participantInfo.actor_supporter.effect = battleEffect;
+					_this._participantInfo.actor_supporter.img = imgPath;
+					_this.updateMainSprite("actor_supporter", "ally_support", spriteInfo, _this._defaultPositions.ally_support_idle, imgSize, false, shadowInfo);	
+					_this._participantInfo.actor_supporter.tempHP = mechStats.currentHP;
+					//_this._participantInfo.actor_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);	
+				}
 			}
 		} else {
-			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){
+			if(battleEffect.type == "initiator" || battleEffect.type == "defender"){				
 				_this._participantInfo.enemy.participating = true;
 				_this._participantInfo.enemy.effect = battleEffect;
 				_this._participantInfo.enemy.img = imgPath;
 				_this.updateMainSprite("enemy", "enemy_main", spriteInfo, _this._defaultPositions.enemy_main_idle, imgSize, true, shadowInfo);	
 				_this._participantInfo.enemy.tempHP = mechStats.currentHP;
+				//_this._participantInfo.enemy.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);				
+			}
+			if(battleEffect.type == "twin attack" || battleEffect.type == "twin defend"){
+				_this._participantInfo.enemy_twin.participating = true;
+				_this._participantInfo.enemy_twin.effect = battleEffect;
+				_this._participantInfo.enemy_twin.img = imgPath;
+				_this.updateMainSprite("enemy_twin", "enemy_twin", spriteInfo, _this._defaultPositions.enemy_main_idle, imgSize, true, shadowInfo);	
+				_this._participantInfo.enemy_twin.tempHP = mechStats.currentHP;
 				//_this._participantInfo.enemy.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
 			}
 			if(battleEffect.type == "support defend" || battleEffect.type == "support attack"){
-				_this._participantInfo.enemy_supporter.participating = true;
-				_this._participantInfo.enemy_supporter.effect = battleEffect;
-				_this._participantInfo.enemy_supporter.img = imgPath;
-				_this.updateMainSprite("enemy_supporter", "enemy_support", spriteInfo, _this._defaultPositions.enemy_support_idle, imgSize, true, shadowInfo);	
-				_this._participantInfo.enemy_supporter.tempHP = mechStats.currentHP;
-				//_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);
+				if(battleEffect.ref.isSubTwin){
+					_this._participantInfo.enemy_twin_supporter.participating = true;
+					_this._participantInfo.enemy_twin_supporter.effect = battleEffect;
+					_this._participantInfo.enemy_twin_supporter.img = imgPath;
+					_this.updateMainSprite("enemy_twin_supporter", "enemy_twin_support", spriteInfo, _this._defaultPositions.enemy_support_idle, imgSize, true, shadowInfo);	
+					_this._participantInfo.enemy_twin_supporter.tempHP = mechStats.currentHP;
+					//_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);3
+				} else {
+					_this._participantInfo.enemy_supporter.participating = true;
+					_this._participantInfo.enemy_supporter.effect = battleEffect;
+					_this._participantInfo.enemy_supporter.img = imgPath;
+					_this.updateMainSprite("enemy_supporter", "enemy_support", spriteInfo, _this._defaultPositions.enemy_support_idle, imgSize, true, shadowInfo);	
+					_this._participantInfo.enemy_supporter.tempHP = mechStats.currentHP;
+					//_this._participantInfo.enemy_supporter.animatedHP = mechStats.currentHP - (battleEffect.HPRestored || 0);3
+				}
 			}
 		}
 			
@@ -2909,6 +3230,43 @@ BattleSceneManager.prototype.readBattleCache = function() {
 	}
 	if(!_this._enemySupporterSprite){
 		_this.updateMainSprite("enemy_supporter", "enemy_support", "", _this._defaultPositions.enemy_support_idle, _this._defaultSpriteSize, false, {});	
+	}
+	if(!_this._actorTwinSprite){
+		_this.updateMainSprite("actor_twin", "ally_twin", "", _this._defaultPositions.ally_twin_idle, _this._defaultSpriteSize, false, {});	
+	}
+	if(!_this._actorTwinSupporterSprite){
+		_this.updateMainSprite("actor_twin_supporter", "ally_twin_support", "", _this._defaultPositions.ally_support_idle, _this._defaultSpriteSize, false, {});	
+	}
+	if(!_this._enemyTwinSprite){
+		_this.updateMainSprite("enemy_twin", "enemy_twin", "", _this._defaultPositions.enemy_twin_idle, _this._defaultSpriteSize, false, {});	
+	}
+	if(!_this._enemyTwinSupporterSprite){
+		_this.updateMainSprite("enemy_twin_supporter", "enemy_twin_support", "", _this._defaultPositions.enemy_support_idle, _this._defaultSpriteSize, false, {});	
+	}
+	
+	_this._UILayerManager.updateTwinDisplay({
+		actor: _this._participantInfo.actor_twin.participating,
+		enemy: _this._participantInfo.enemy_twin.participating,
+	});
+	
+	if(_this._participantInfo.actor.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+	}
+	
+	if(_this._participantInfo.actor_twin.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "EN");
+	}
+	
+	if(_this._participantInfo.enemy.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+	}
+	
+	if(_this._participantInfo.enemy_twin.participating){
+		_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
+		_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
 	}
 }
 
@@ -3090,14 +3448,22 @@ BattleSceneManager.prototype.setBgMode = function(mode) {
 
 	if(_this._bgMode == "sky"){
 		_this._actorShadow.isVisible = false;
+		_this._actorTwinShadow.isVisible = false;
 		_this._enemyShadow.isVisible = false;
+		_this._enemyTwinShadow.isVisible = false;
 		_this._actorSupporterShadow.isVisible = false;
+		_this._actorTwinSupporterShadow.isVisible = false;
 		_this._enemySupporterShadow.isVisible = false;
+		_this._enemyTwinSupporterShadow.isVisible = false;
 	} else {
 		_this._actorShadow.isVisible = true;
+		_this._actorTwinShadow.isVisible = true;
 		_this._enemyShadow.isVisible = true;
+		_this._enemyTwinShadow.isVisible = true;
 		_this._actorSupporterShadow.isVisible = true;
+		_this._actorTwinSupporterShadow.isVisible = true;
 		_this._enemySupporterShadow.isVisible = true;
+		_this._enemyTwinSupporterShadow.isVisible = true;
 	}	
 }
 
@@ -3108,13 +3474,14 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._spriteManagers = {};
 	_this.setBgScrollRatio(1);
 	_this._UILayerManager.hideNoise();
+	_this._UILayerManager.resetTextBox();
 	_this._animationList = [];
 	_this._matrixAnimations = {};
 	_this._sizeAnimations = {};
 	_this._shakeAnimations = {};
 	_this._bgAnimations = {};	
 	_this._fadeAnimations = {};	
-	
+	_this._lastAction = null;
 	
 	_this._camera.position = _this._defaultPositions.camera_main_intro;
 	_this._camera.rotation = _this._defaultRotations.camera_main_intro;
@@ -3142,7 +3509,7 @@ BattleSceneManager.prototype.resetScene = function() {
 
 BattleSceneManager.prototype.createEnvironment = function(ref){
 	var _this = this;
-
+	_this._creatingEnvironment = true;
 	_this._bgs.forEach(function(bg){
 		bg.dispose();
 	});	
@@ -3173,6 +3540,7 @@ BattleSceneManager.prototype.createEnvironment = function(ref){
 			ctr++;
 		});
 	}
+	_this._creatingEnvironment = false;
 }	
 
 BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffset, zOffset){
@@ -3220,129 +3588,138 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 		
 		for(var i = 0; i < _this._actionQueue.length; i++){
 			var nextAction = _this._actionQueue[i];
-			var attack = nextAction.action.attack;
-			
-			var animId;
-			if(attack && typeof attack.animId != "undefined" && attack.animId != -1){
-				animId = attack.animId;
-			} else {
-				animId = 0;//default
-			}
-			var preloadCtr = 0;
-			function preloadDefaultFrames(ref){
-				var defaultFrames = ["main", "in", "out", "hurt", "dodge"];
-				if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
-					defaultFrames = ["main"];
+			if(nextAction){			
+				var attack = nextAction.action.attack;
+				
+				var animId;
+				if(attack && typeof attack.animId != "undefined" && attack.animId != -1){
+					animId = attack.animId;
+				} else {
+					animId = 0;//default
 				}
-				if(ref){
-					var battleSceneInfo = $statCalc.getBattleSceneInfo(ref);
-					if(battleSceneInfo.useSpriter){
-						var path = $statCalc.getBattleSceneImage(ref)+"/spriter/";
-						var bgInfo = _this.createSpriterSprite(path+"_preload", path,  new BABYLON.Vector3(0, 0, -1000));
-						bgInfo.sprite.dispose();
-					} else if(battleSceneInfo.useDragonBones){
-						var path = $statCalc.getBattleSceneImage(ref)+"/dragonbones/";
-						/*var bgInfo = _this.createDragonBonesSprite(path+"_preload", path, $statCalc.getBattleSceneInfo(ref).armatureName, new BABYLON.Vector3(0, 0, -1000));
-						bgInfo.sprite.dispose();*/
-						dragonBonesResources["img/SRWBattleScene/"+path+"ske.json"] = true;
-						dragonBonesResources["img/SRWBattleScene/"+path+"tex.json"] = true;
-						dragonBonesResources["img/SRWBattleScene/"+path+"tex.png"] = true;
-					} else {
-						var imgPath = $statCalc.getBattleSceneImage(ref);
-						defaultFrames.forEach(function(frame){
-							//var bg = _this.createSceneBg((preloadCtr++)+"_preload", imgPath+"/"+frame, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-							 
-							//(bg.material.diffuseTexture.onLoadObservable);
-							
-							//promises.push(_this.getBgPromise(bg));
-							//_this._animationBackgroundsInfo.push(bg);
-							var sampleMode;
-							if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
-								sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
-							} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
-								sampleMode = BABYLON.Texture.NEAREST_NEAREST
-							}
-													
-							var texture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+frame+".png", _this._scene, false, true, sampleMode);
-							promises.push(_this.getTexturePromise(texture));
-						});
-					}					
+				var preloadCtr = 0;
+				function preloadDefaultFrames(ref){
+					var defaultFrames = ["main", "in", "out", "hurt", "dodge"];
+					if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
+						defaultFrames = ["main"];
+					}
+					if(ref){
+						var battleSceneInfo = $statCalc.getBattleSceneInfo(ref);
+						if(battleSceneInfo.useSpriter){
+							var path = $statCalc.getBattleSceneImage(ref)+"/spriter/";
+							var bgInfo = _this.createSpriterSprite(path+"_preload", path,  new BABYLON.Vector3(0, 0, -1000));
+							bgInfo.sprite.dispose();
+						} else if(battleSceneInfo.useDragonBones){
+							var path = $statCalc.getBattleSceneImage(ref)+"/dragonbones/";
+							/*var bgInfo = _this.createDragonBonesSprite(path+"_preload", path, $statCalc.getBattleSceneInfo(ref).armatureName, new BABYLON.Vector3(0, 0, -1000));
+							bgInfo.sprite.dispose();*/
+							dragonBonesResources["img/SRWBattleScene/"+path+"ske.json"] = true;
+							dragonBonesResources["img/SRWBattleScene/"+path+"tex.json"] = true;
+							dragonBonesResources["img/SRWBattleScene/"+path+"tex.png"] = true;
+						} else {
+							var imgPath = $statCalc.getBattleSceneImage(ref);
+							defaultFrames.forEach(function(frame){
+								//var bg = _this.createSceneBg((preloadCtr++)+"_preload", imgPath+"/"+frame, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+								 
+								//(bg.material.diffuseTexture.onLoadObservable);
+								
+								//promises.push(_this.getBgPromise(bg));
+								//_this._animationBackgroundsInfo.push(bg);
+								var sampleMode;
+								if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "TRILINEAR"){
+									sampleMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE
+								} else if(ENGINE_SETTINGS.BATTLE_SCENE.SPRITES_FILTER_MODE == "NEAREST"){
+									sampleMode = BABYLON.Texture.NEAREST_NEAREST
+								}
+														
+								var texture = new BABYLON.Texture("img/SRWBattleScene/"+imgPath+"/"+frame+".png", _this._scene, false, true, sampleMode);
+								promises.push(_this.getTexturePromise(texture));
+							});
+						}					
+					}
 				}
-			}
-			
-			preloadDefaultFrames(nextAction.ref);
-			preloadDefaultFrames(nextAction.originalTarget.ref);
-			preloadDefaultFrames(nextAction.attacked.ref);
-			
-			
+				
+				preloadDefaultFrames(nextAction.ref);
+				if(nextAction.originalTarget){
+					preloadDefaultFrames(nextAction.originalTarget.ref);
+				}
+				if(nextAction.attacked){
+					preloadDefaultFrames(nextAction.attacked.ref);
+				}
+				
 
-			
-			promises.push(_this.preloadEnvironment(nextAction.ref));
-			promises.push(_this.preloadEnvironment(nextAction.originalTarget.ref));
-			promises.push(_this.preloadEnvironment(nextAction.attacked.ref));
-			
-			var animationList = _this._animationBuilder.buildAnimation(animId, _this);
-			Object.keys(animationList).forEach(function(animType){
-				animationList[animType].forEach(function(batch){
-					batch.forEach(function(animCommand){
-						var target = animCommand.target;
-						var params = animCommand.params;
-						if(animCommand.type == "create_bg"){
-							var bg = _this.createSceneBg(animCommand.target+"_preload", params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-							promises.push(_this.getBgPromise(bg));
-							_this._animationBackgroundsInfo.push(bg);
-						}	
-						if(animCommand.type == "set_sprite_animation" || animCommand.type == "set_sprite_frame"){
-							var action = nextAction;
-							var targetAction = nextAction.attacked;
-							
-							var battleEffect;
-							if(target == "active_main" || target == "active_support_attacker"){
-								battleEffect = action;
-							} else if(target == "active_target" || target == "active_support_defender"){
-								battleEffect = targetAction;
-							}								
-							
-							var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
-							
-							if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
-								params.name = "main";
+				
+				promises.push(_this.preloadEnvironment(nextAction.ref));
+				if(nextAction.originalTarget){
+					promises.push(_this.preloadEnvironment(nextAction.originalTarget.ref));
+				}
+				if(nextAction.attacked){
+					promises.push(_this.preloadEnvironment(nextAction.attacked.ref));
+				}
+				
+				var animationList = _this._animationBuilder.buildAnimation(animId, _this);
+				Object.keys(animationList).forEach(function(animType){
+					animationList[animType].forEach(function(batch){
+						batch.forEach(function(animCommand){
+							var target = animCommand.target;
+							var params = animCommand.params;
+							if(animCommand.type == "create_bg"){
+								var bg = _this.createSceneBg(animCommand.target+"_preload", params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+								promises.push(_this.getBgPromise(bg));
+								_this._animationBackgroundsInfo.push(bg);
+							}	
+							if(animCommand.type == "set_sprite_animation" || animCommand.type == "set_sprite_frame"){
+								var action = nextAction;
+								var targetAction = nextAction.attacked;
+								
+								var battleEffect;
+								if(target == "active_main" || target == "active_support_attacker" || target == "active_twin"){
+									battleEffect = action;
+								} else if(target == "active_target" || target == "active_support_defender" || target == "active_target_twin"){
+									battleEffect = targetAction;
+								}								
+								if(battleEffect){
+									var imgPath = $statCalc.getBattleSceneImage(battleEffect.ref);
+								
+									if(ENGINE_SETTINGS.SINGLE_BATTLE_SPRITE_MODE){
+										params.name = "main";
+									}
+									
+									var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+									promises.push(_this.getBgPromise(bg));
+									_this._animationBackgroundsInfo.push(bg);
+								}							
 							}
-							
-							var bg = _this.createSceneBg(animCommand.target+"_preload", imgPath+"/"+params.name, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
-							promises.push(_this.getBgPromise(bg));
-							_this._animationBackgroundsInfo.push(bg);
-							
-						}
-						if(animCommand.type == "create_sky_box"){
-							var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
-							var skyboxMaterial = new BABYLON.StandardMaterial(animCommand.target+"_material", _this._scene);
-							skyboxMaterial.backFaceCulling = false;
-							skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("img/skyboxes/"+params.path, _this._scene);
-							skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-							skyboxMaterial.diffuseColor = params.color || new BABYLON.Color3(0, 0, 0);
-							skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-							skybox.material = skyboxMaterial;
-							skybox.isVisible = false;
-						}	
-						if(animCommand.type == "create_layer"){
-							var bg = new BABYLON.Layer(animCommand.target+"_preload", "img/SRWBattleScene/"+params.path+".png", _this._scene, params.isBackground);							
-							//promises.push(getPromise(bg));
-							//_this._animationBackgroundsInfo.push(bg);
-							bg.dispose();														
-						}	
-						if(animCommand.type == "create_spriter_bg"){
-							var bgInfo = _this.createSpriterSprite(animCommand.target+"_preload", "spriter/"+params.path+"/",  new BABYLON.Vector3(0, 0, -1000));
-							bgInfo.sprite.dispose();														
-						}	
-						if(animCommand.type == "create_dragonbones_bg"){
-							dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/ske.json"] = true;
-							dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/tex.json"] = true;
-							dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/tex.png"] = true;	
-						}
-					});
-				});				
-			});		
+							if(animCommand.type == "create_sky_box"){
+								var skybox = BABYLON.MeshBuilder.CreateBox(animCommand.target+"_preload", {size:1000.0}, _this._scene);			
+								var skyboxMaterial = new BABYLON.StandardMaterial(animCommand.target+"_material", _this._scene);
+								skyboxMaterial.backFaceCulling = false;
+								skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("img/skyboxes/"+params.path, _this._scene);
+								skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+								skyboxMaterial.diffuseColor = params.color || new BABYLON.Color3(0, 0, 0);
+								skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+								skybox.material = skyboxMaterial;
+								skybox.isVisible = false;
+							}	
+							if(animCommand.type == "create_layer"){
+								var bg = new BABYLON.Layer(animCommand.target+"_preload", "img/SRWBattleScene/"+params.path+".png", _this._scene, params.isBackground);							
+								//promises.push(getPromise(bg));
+								//_this._animationBackgroundsInfo.push(bg);
+								bg.dispose();														
+							}	
+							if(animCommand.type == "create_spriter_bg"){
+								var bgInfo = _this.createSpriterSprite(animCommand.target+"_preload", "spriter/"+params.path+"/",  new BABYLON.Vector3(0, 0, -1000));
+								bgInfo.sprite.dispose();														
+							}	
+							if(animCommand.type == "create_dragonbones_bg"){
+								dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/ske.json"] = true;
+								dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/tex.json"] = true;
+								dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/tex.png"] = true;	
+							}
+						});
+					});				
+				});		
+			}	
 		}	
 		promises.push(DragonBonesManager.load(Object.keys(dragonBonesResources)));
 		
@@ -3416,14 +3793,14 @@ BattleSceneManager.prototype.showScene = function() {
 		if(_this._participantInfo.actor.participating){
 			var ref = _this._participantInfo.actor.effect.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
-			_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
-			_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+			//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+			//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
 		}
 		if(_this._participantInfo.enemy.participating){
 			var ref = _this._participantInfo.enemy.effect.ref;
 			var stats = $statCalc.getCalculatedMechStats(ref);
-			_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
-			_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+			//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+			//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
 		}
 		
 		var firstAction = _this._actionQueue[0];
@@ -3434,6 +3811,7 @@ BattleSceneManager.prototype.showScene = function() {
 		
 		
 		_this.setUpActionSceneState(firstAction);
+		_this.setUpActionTwinDisplay(firstAction);
 		if($gameTemp.defenderCounterActivated){
 			_this._UILayerManager.setNotification(firstAction.isActor ? "actor" : "enemy", "COUNTER");
 		}
@@ -3450,6 +3828,33 @@ BattleSceneManager.prototype.showScene = function() {
 	}
 }
 
+BattleSceneManager.prototype.setUpActionTwinDisplay = function(action) {
+	var _this = this;
+	if(action.ref.isSubTwin){
+		if(action.side == "actor"){
+			_this._actorTwinSprite.sprite.setEnabled(true);		
+			_this._actorTwinSprite.sprite.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_twin_idle);
+		} else {
+			_this._enemyTwinSprite.sprite.setEnabled(true);		
+			_this._enemyTwinSprite.sprite.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_twin_idle);			
+		}
+		_this.isTwinInitiating = true;
+	} else if($statCalc.isMainTwin(action.ref)) {
+		if(action.side == "actor"){
+			_this._actorTwinSprite.sprite.setEnabled(true);		
+			_this._actorTwinSprite.sprite.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_twin_idle);
+		} else {
+			_this._enemyTwinSprite.sprite.setEnabled(true);		
+			_this._enemyTwinSprite.sprite.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_twin_idle);			
+		}
+		_this.isTwinMainInitiating = true;
+	} else {
+		_this._actorTwinSprite.sprite.setEnabled(false);		
+		_this._enemyTwinSprite.sprite.setEnabled(false);		
+		_this.isTwinInitiating = false;
+	}
+}
+
 BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 	var _this = this;
 	if(action){	
@@ -3460,40 +3865,66 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 		_this.setBgMode($statCalc.isFlying(action.ref) || $statCalc.getTileType(action.ref) == "space" ? "sky" : "land");
 		_this._actorSprite.sprite.material.diffuseTexture.uScale = 1;
 		_this._actorSprite.sprite.material.diffuseTexture.vScale = 1;
+		_this._actorTwinSprite.sprite.material.diffuseTexture.uScale = 1;
+		_this._actorTwinSprite.sprite.material.diffuseTexture.vScale = 1;
 		_this._enemySprite.sprite.material.diffuseTexture.uScale = -1;
 		_this._enemySprite.sprite.material.diffuseTexture.vScale = 1;
+		_this._enemyTwinSprite.sprite.material.diffuseTexture.uScale = -1;
+		_this._enemyTwinSprite.sprite.material.diffuseTexture.vScale = 1;
 		
 		_this._actorSupporterSprite.sprite.material.diffuseTexture.uScale = 1;
 		_this._actorSupporterSprite.sprite.material.diffuseTexture.vScale = 1;
+		_this._actorTwinSupporterSprite.sprite.material.diffuseTexture.uScale = 1;
+		_this._actorTwinSupporterSprite.sprite.material.diffuseTexture.vScale = 1;
 		_this._enemySupporterSprite.sprite.material.diffuseTexture.uScale = -1;
 		_this._enemySupporterSprite.sprite.material.diffuseTexture.vScale = 1;
+		_this._enemyTwinSupporterSprite.sprite.material.diffuseTexture.uScale = -1;
+		_this._enemyTwinSupporterSprite.sprite.material.diffuseTexture.vScale = 1;
+		
+		/*_this._actorSprite.sprite.parent_handle.position = _this._defaultPositions.ally_main_idle;		
+		_this._actorTwinSprite.sprite.parent_handle.position = _this._defaultPositions.ally_main_idle;		
+		_this._actorSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_support_idle;
+		_this._actorTwinSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_support_idle;
+		
+		_this._enemySprite.sprite.parent_handle.position = _this._defaultPositions.enemy_main_idle;		
+		_this._enemyTwinSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_main_idle;		
+		_this._enemySupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_support_idle;
+		_this._enemyTwinSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_support_idle;*/
+		
 		
 		_this._supportDefenderActive = false;
 		_this._supportAttackerActive = false;
 		_this._doubleImageActive = false;
 		_this._actorSupporterSprite.sprite.setEnabled(false);
 		_this._enemySupporterSprite.sprite.setEnabled(false);
+		//_this._actorTwinSprite.sprite.setEnabled(false);
+		_this._actorTwinSupporterSprite.sprite.setEnabled(false);
+		//_this._enemyTwinSprite.sprite.setEnabled(false);
+		_this._enemyTwinSupporterSprite.sprite.setEnabled(false);
 		if(action.side == "actor"){
+			
 			_this._animationDirection = 1;
 			
 			_this.setBgScrollDirection(1, false);
 			
 			
 			_this._enemySprite.sprite.setEnabled(false);
+			_this._enemyTwinSprite.sprite.setEnabled(false);
+			_this._enemyTwinSupporterSprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;
 				_this._supportAttackerActive = true;
 				_this._actorSprite.sprite.setEnabled(false);
 				_this._actorSupporterSprite.sprite.setEnabled(true);
 				_this._actorSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_main_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
-			} else {		
+				//_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
+			} else{		
 				_this._lastActionWasSupportAttack = false;
 				_this._actorSprite.sprite.setEnabled(true);		
 				_this._actorSupporterSprite.sprite.parent_handle.position = _this._defaultPositions.ally_support_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+				//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
 			}			
 		} else {
 			_this._animationDirection = -1;
@@ -3501,20 +3932,22 @@ BattleSceneManager.prototype.setUpActionSceneState = function(action) {
 			_this.setBgScrollDirection(-1, false);	
 			
 			_this._actorSprite.sprite.setEnabled(false);
+			_this._actorTwinSprite.sprite.setEnabled(false);
+			_this._actorTwinSupporterSprite.sprite.setEnabled(false);
 			if(action.type == "support attack"){
 				_this._lastActionWasSupportAttack = true;
 				_this._supportAttackerActive = true;
 				_this._enemySprite.sprite.setEnabled(false);
 				_this._enemySupporterSprite.sprite.setEnabled(true);
 				_this._enemySupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_main_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
 			} else {			
 				_this._lastActionWasSupportAttack = false;
 				_this._enemySprite.sprite.setEnabled(true);	
 				_this._enemySupporterSprite.sprite.parent_handle.position = _this._defaultPositions.enemy_support_idle;
-				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
-				_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+				//_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
 			}
 		}
 		if(action.attacked){
@@ -3544,7 +3977,7 @@ BattleSceneManager.prototype.endScene = function(force) {
 			_this.systemFadeFromBlack(400, 1000).then(function(){
 				$gameSystem.setSubBattlePhase('after_battle');
 				if(!$gameTemp.editMode){
-					SceneManager.resume();
+					//SceneManager.resume();
 				}			
 			});			
 		});
@@ -3579,7 +4012,7 @@ BattleSceneManager.prototype.processActionQueue = function() {
 					_this.systemFadeFromBlack(1000).then(function(){
 						$gameSystem.setSubBattlePhase('after_battle');
 						if(!$gameTemp.editMode){
-							SceneManager.resume();
+							//SceneManager.resume();
 						}
 					});			
 				});		
@@ -3594,7 +4027,18 @@ BattleSceneManager.prototype.processActionQueue = function() {
 		}
 		
 		if(nextAction && nextAction.action.type != "defend" && nextAction.action.type != "evade" && nextAction.action.type != "none"){
-			if((!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && _this._lastActionWasSupportAttack) || (ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && nextAction.type == "support attack")){// || _this._lastActionWasSupportDefend
+			_this._UILayerManager.resetTextBox();
+			_this._UILayerManager.hideNoise();
+			
+			_this.doingFadeTransition = false;
+			var direction;
+			if(nextAction.side == "actor"){
+				direction = "right";
+			} else {
+				direction = "left";
+			}
+			
+			/*if((!ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && _this._lastActionWasSupportAttack) || (ENGINE_SETTINGS.USE_SRW_SUPPORT_ORDER && nextAction.type == "support attack")){// || _this._lastActionWasSupportDefend
 				_this.fadeToBlack(700).then(function(){
 					_this.createEnvironment(nextAction.ref);
 					continueScene();
@@ -3602,77 +4046,308 @@ BattleSceneManager.prototype.processActionQueue = function() {
 				});
 			} else {
 				continueScene();
-			}
+			}*/
+			continueScene();
 			
 			function continueScene(){			
-				_this.setUpActionSceneState(nextAction);			
-				var textType = "";
-				
-				var entityType = nextAction.isActor ? "actor" : "enemy";
-				var entityId = nextAction.ref.SRWStats.pilot.id;
-				
-				var battleText;
-				if(nextAction.type == "support attack"){
-					battleText = _this._battleTextManager.getText(entityType, nextAction.ref, "support_attack", nextAction.isActor ? "actor" : "enemy", _this.getBattleTextId(nextAction.attacked), null, null, _this.getBattleTextId(nextAction.mainAttacker));
+				if(_this._lastAction && _this._lastAction.attacked.ref != nextAction.ref){
+					if(_this._lastAction.attacked_all_sub && _this._lastAction.attacked_all_sub.ref == nextAction.ref){
+						_this.playCounterTwinAnimation().then(function(){								
+							continueSetup();
+						});
+					} else {
+						_this.doingFadeTransition = true;						
+						_this.swipeToBlack(direction, "in", 100).then(function(){
+							_this.createEnvironment(nextAction.ref);
+							continueSetup();						
+						});
+					}					
+				} else {
+					if(_this._lastAction && _this._lastAction.attacked_all_sub){
+						_this.playCounterTwinMainIntroAnimation().then(function(){								
+							continueSetup();
+						});
+					} else {
+						continueSetup();
+					}					
 				}
-				
-				if(!battleText || battleText.text == "..."){
-					if(nextAction.type == "initiator"){
-						textType = "battle_intro";
-					}
-					if(nextAction.type == "defender"){
-						textType = "retaliate";
+				function continueSetup(){				
+					_this._lastAction = nextAction;
+					_this.setUpActionSceneState(nextAction);			
+					var textType = "";
+					
+					var entityType = nextAction.isActor ? "actor" : "enemy";
+					var entityId = nextAction.ref.SRWStats.pilot.id;
+					
+					var battleText;
+					if(nextAction.type == "support attack"){
+						battleText = _this._battleTextManager.getText(entityType, nextAction.ref, "support_attack", nextAction.isActor ? "actor" : "enemy", _this.getBattleTextId(nextAction.attacked), null, null, _this.getBattleTextId(nextAction.mainAttacker));
 					}
 					
-					battleText = _this._battleTextManager.getText(entityType, nextAction.ref, textType, nextAction.isActor ? "enemy" : "actor", _this.getBattleTextId(nextAction.attacked));
-				}
-				if(nextAction.type == "support attack"){
-					_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
-				}
-				_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText).then(function(){
-					_this._currentAnimatedAction = nextAction;
-					if(nextAction.side == "actor"){
-						_this._animationDirection = 1;
-						//_this.setBgScrollDirection(1, false);
-						_this._active_main = _this._actorSprite.sprite;	
-						_this._active_support_attacker = _this._actorSupporterSprite.sprite;
-						_this._active_support_defender = _this._enemySupporterSprite.sprite;
-						_this._active_target = _this._enemySprite.sprite;		
-					} else {
-						_this._animationDirection = -1;
-						//_this.setBgScrollDirection(-1, false);
-						_this._active_main = _this._enemySprite.sprite;
-						_this._active_support_attacker = _this._enemySupporterSprite.sprite;
-						_this._active_support_defender = _this._actorSupporterSprite.sprite;
-						_this._active_target = _this._actorSprite.sprite; 
-					}
-					_this._active_main.barrierSprite.setEnabled(false);
-					_this._active_support_attacker.barrierSprite.setEnabled(false);
-					_this._active_target.barrierSprite.setEnabled(false);
-					_this._active_support_defender.barrierSprite.setEnabled(false);
-					if(nextAction.attacked.hasBarrier){
-						if(nextAction.attacked.type == "defender" || nextAction.attacked.type == "initiator"){
-							_this._active_target.barrierSprite.setEnabled(true);
-						} else {
-							_this._active_support_defender.barrierSprite.setEnabled(true);
+					if(!battleText || battleText.text == "..."){
+						if(nextAction.type == "initiator"){
+							textType = "battle_intro";
 						}
+						if(nextAction.type == "defender"){
+							textType = "retaliate";
+						}
+						
+						battleText = _this._battleTextManager.getText(entityType, nextAction.ref, textType, nextAction.isActor ? "enemy" : "actor", _this.getBattleTextId(nextAction.attacked));
 					}
-					var attack = nextAction.action.attack;
-					
-					if(typeof attack.animId != "undefined" && attack.animId != -1){
-						_this.playAttackAnimation(nextAction, _this._animationBuilder.buildAnimation(attack.animId, _this)).then(function(){
-							_this.processActionQueue();
-						});
-					} else {
-						/*_this.playDefaultAttackAnimation(nextAction).then(function(){
-							_this.processActionQueue();
-						});*/
-						_this.playAttackAnimation(nextAction, _this._animationBuilder.buildAnimation(0, _this)).then(function(){
-							_this.processActionQueue();
-						});
+					if(nextAction.type == "support attack"){
+						_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
 					}
-				
-				});	
+					_this._active_target_twin = null;
+					_this._UILayerManager.setTextBox(entityType, entityId, nextAction.ref.SRWStats.pilot.name, battleText).then(function(){
+						_this._currentAnimatedAction = nextAction;
+						
+						
+						
+						if(nextAction.side == "actor"){
+							_this._enemyTwinSprite.sprite.setEnabled(false);						
+							_this._animationDirection = 1;
+							//_this.setBgScrollDirection(1, false);
+							_this._active_main = _this._actorSprite.sprite;	
+							_this._active_twin =  _this._actorTwinSprite.sprite;
+							_this._active_support_attacker = _this._actorSupporterSprite.sprite;
+							_this._active_support_defender = _this._enemySupporterSprite.sprite;
+							if(nextAction.attacked.type == "support defend" && nextAction.attacked.ref.isSubTwin){
+								
+								_this._active_support_defender = _this._enemyTwinSupporterSprite.sprite;
+							}
+							if(nextAction.attacked_all_sub){
+								_this._active_target = _this._enemySprite.sprite;									
+								_this._active_target_twin = _this._enemyTwinSprite.sprite;	
+							} else if(nextAction.originalTarget.ref.isSubTwin){
+								_this._active_target = _this._enemyTwinSprite.sprite;		
+							} else {
+								_this._active_target = _this._enemySprite.sprite;		
+							}						
+						} else {
+							_this._actorTwinSprite.sprite.setEnabled(false);
+							_this._animationDirection = -1;
+							//_this.setBgScrollDirection(-1, false);
+							_this._active_main = _this._enemySprite.sprite;
+							_this._active_twin =  _this._enemyTwinSprite.sprite;
+							_this._active_support_attacker = _this._enemySupporterSprite.sprite;
+							_this._active_support_defender = _this._actorSupporterSprite.sprite;
+							if(nextAction.attacked.type == "support defend" && nextAction.attacked.ref.isSubTwin){
+								_this._active_support_defender = _this._actorTwinSupporterSprite.sprite;
+							}
+							if(nextAction.attacked_all_sub){
+								_this._active_target = _this._actorSprite.sprite;									
+								_this._active_target_twin = _this._actorTwinSprite.sprite;	
+							} else
+							if(nextAction.originalTarget.ref.isSubTwin){
+								_this._active_target = _this._actorTwinSprite.sprite;
+							} else {
+								_this._active_target = _this._actorSprite.sprite;		
+							}	
+						}
+						_this._active_main.barrierSprite.setEnabled(false);
+						_this._active_support_attacker.barrierSprite.setEnabled(false);
+						_this._active_target.barrierSprite.setEnabled(false);
+						_this._active_support_defender.barrierSprite.setEnabled(false);
+						
+						if(nextAction.attacked && nextAction.attacked.hasBarrier){
+							var target;
+							if(nextAction.attacked.ref.isSubTwin){
+								target = _this._active_target_twin;
+							} else {
+								target = _this._active_target;
+							}
+							if(nextAction.attacked.type == "defender" || nextAction.attacked.type == "initiator"){
+								target.barrierSprite.setEnabled(true);
+							} else if(nextAction.attacked.type == "twin defend" || nextAction.attacked.type == "twin attack"){
+								target.barrierSprite.setEnabled(true);
+							} else {
+								_this._active_support_defender.barrierSprite.setEnabled(true);
+							}
+						}
+						if(nextAction.attacked_all_sub && nextAction.attacked_all_sub.hasBarrier){
+							var target;
+							if(nextAction.attacked_all_sub.ref.isSubTwin){
+								target = _this._active_target_twin;
+							} else {
+								target = _this._active_target;
+							}
+							if(nextAction.attacked_all_sub.type == "defender" || nextAction.attacked_all_sub.type == "initiator"){
+								target.barrierSprite.setEnabled(true);
+							} else if(nextAction.attacked_all_sub.type == "twin defend" || nextAction.attacked_all_sub.type == "twin attack"){
+								target.barrierSprite.setEnabled(true);
+							} 
+						}
+						var attack = nextAction.action.attack;
+						
+						if(_this.isTwinInitiating){
+							_this.isTwinInitiating = false;
+							_this.playTwinIntroAnimation().then(function(){								
+								finalize();
+							});
+						} else if(_this.isTwinMainInitiating){
+							_this.isTwinMainInitiating = false;
+							_this.playTwinMainIntroAnimation().then(function(){								
+								finalize();
+							});
+						} else {
+							finalize();
+						}	
+						
+						function finalize(){	
+							_this._UILayerManager.resetDisplay();
+							if(nextAction.side == "actor"){
+								if(nextAction.attacked_all_sub){
+									_this._UILayerManager.setStatBoxVisible("enemyTwin", true);
+									_this._UILayerManager.setStatBoxVisible("enemy", true);	
+								} else if(nextAction.attacked.ref.isSubTwin){	
+									_this._UILayerManager.setStatBoxVisible("enemyTwin");		
+								} else {
+									_this._UILayerManager.setStatBoxVisible("enemy");	
+								}						
+							} else {
+								if(nextAction.attacked_all_sub){	
+									_this._UILayerManager.setStatBoxVisible("allyTwin", true);
+									_this._UILayerManager.setStatBoxVisible("ally", true);	
+								} else
+								if(nextAction.attacked.ref.isSubTwin){	
+									_this._UILayerManager.setStatBoxVisible("allyTwin");
+								} else {	
+									_this._UILayerManager.setStatBoxVisible("ally");	
+								}	
+							}
+							
+							
+							if(_this._participantInfo.actor.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.actor.effect, "EN");
+							}
+							
+							if(_this._participantInfo.actor_twin.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.actor_twin.effect, "EN");
+							}
+							
+							if(_this._participantInfo.enemy.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.enemy.effect, "EN");
+							}
+							
+							if(_this._participantInfo.enemy_twin.participating){
+								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "HP");
+								_this._UILayerManager.setStat(_this._participantInfo.enemy_twin.effect, "EN");
+							}
+							
+							if(nextAction.attacked.type == "support defend"){
+								if(nextAction.side == "actor"){
+									if(nextAction.attacked.ref.isSubTwin){
+										_this._UILayerManager.setStat(_this._participantInfo.enemy_twin_supporter.effect, "HP");
+										_this._UILayerManager.setStat(_this._participantInfo.enemy_twin_supporter.effect, "EN");
+									} 					
+								} else {
+									if(nextAction.attacked.ref.isSubTwin){
+										_this._UILayerManager.setStat(_this._participantInfo.actor_twin_supporter.effect, "HP");
+										_this._UILayerManager.setStat(_this._participantInfo.actor_twin_supporter.effect, "EN");
+									} 
+								}
+							}
+							
+						
+							if(nextAction.type == "support attack")	{
+								_this._UILayerManager.setNotification(nextAction.side, "Support Attack");
+								_this._active_main.setEnabled(false);		
+								_this._active_twin.setEnabled(false);
+								_this._actorTwinSupporterSprite.sprite.setEnabled(false);
+								_this._actorSupporterSprite.sprite.setEnabled(false);
+								_this._enemyTwinSupporterSprite.sprite.setEnabled(false);
+								_this._enemySupporterSprite.sprite.setEnabled(false);
+								if(nextAction.side == "actor"){									
+									if(nextAction.ref.isSubTwin){									
+										_this._active_support_attacker = _this._actorTwinSupporterSprite.sprite;
+									} else {
+										_this._active_support_attacker = _this._actorSupporterSprite.sprite;
+									}
+									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
+									_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "HP");
+									_this._UILayerManager.setStat(_this._participantInfo.actor_supporter.effect, "EN");
+								} else {
+									if(nextAction.ref.isSubTwin){									
+										_this._active_support_attacker = _this._enemyTwinSupporterSprite.sprite;
+									} else {
+										_this._active_support_attacker = _this._enemySupporterSprite.sprite;
+									}
+									_this._active_support_attacker.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+									_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "HP");
+									_this._UILayerManager.setStat(_this._participantInfo.enemy_supporter.effect, "EN");
+								}
+								_this._active_support_attacker.setEnabled(true);
+								if(nextAction.side == "actor"){
+									_this._UILayerManager.setStatBoxVisible("ally");
+								} else {
+									_this._UILayerManager.setStatBoxVisible("enemy");
+								}
+							} else if(nextAction.ref.isSubTwin){								
+								_this._UILayerManager.setNotification(nextAction.side, "Twin Attack");
+								_this._active_main.setEnabled(false);		
+								_this._active_twin.setEnabled(false);									
+								_this._active_main = _this._active_twin;
+								_this._active_main.setEnabled(true);
+								if(nextAction.side == "actor"){
+									_this._UILayerManager.setStatBoxVisible("allyTwin");
+								} else {
+									_this._UILayerManager.setStatBoxVisible("enemyTwin");
+								}
+							} else {
+								_this._active_main.setEnabled(true);		
+								_this._active_twin.setEnabled(false);	
+								_this._UILayerManager.setNotification(nextAction.side, "Main Attack");
+								if(nextAction.side == "actor"){
+									_this._UILayerManager.setStatBoxVisible("ally");
+								} else {
+									_this._UILayerManager.setStatBoxVisible("enemy");
+								}
+							}
+							
+							
+							
+							if(nextAction.side == "actor"){
+								_this._active_main.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
+								_this._active_target.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+								if(_this._active_target_twin){
+									_this._active_target_twin.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_twin_idle);
+								}
+							} else {
+								_this._active_main.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.enemy_main_idle);
+								_this._active_target.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_main_idle);
+								if(_this._active_target_twin){
+									_this._active_target_twin.parent_handle.position = new BABYLON.Vector3().copyFrom(_this._defaultPositions.ally_twin_idle);
+								}
+							}				
+																					
+							if(_this.doingFadeTransition){
+								_this.swipeToBlack(direction, "out", 300).then(function(){							
+									startAnimation();
+								});
+							} else {
+								startAnimation();
+							}											
+							
+							function startAnimation(){
+								if(typeof attack.animId != "undefined" && attack.animId != -1){
+									_this.playAttackAnimation(nextAction, _this._animationBuilder.buildAnimation(attack.animId, _this)).then(function(){
+										_this.processActionQueue();
+									});
+								} else {
+									/*_this.playDefaultAttackAnimation(nextAction).then(function(){
+										_this.processActionQueue();
+									});*/
+									_this.playAttackAnimation(nextAction, _this._animationBuilder.buildAnimation(0, _this)).then(function(){
+										_this.processActionQueue();
+									});
+								}
+							}							
+						}
+					});
+				}
 			}	
 		} else {
 			_this.processActionQueue();

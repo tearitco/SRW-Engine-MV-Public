@@ -1,4 +1,6 @@
 var ENGINE_SETTINGS_DEFAULT = {
+	ENABLE_TWIN_SYSTEM: false,
+	USE_STRICT_TWIN_SLOTS: false,
 	USE_SRW_SUPPORT_ORDER: true,
 	DISABLE_EVASION_DECAY: false,
 	DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
@@ -9,7 +11,8 @@ var ENGINE_SETTINGS_DEFAULT = {
 			DESTROY: 2 // the default destroy animation
 		},
 		DEFAULT_CAMERA_POSITION: {x: 0,y: 1.15, z: -6.5},
-		DAMAGE_OFFSETS: {top: 20, left: 62}		
+		/*DAMAGE_OFFSETS: {top: 20, left: 62},
+		DAMAGE_TWIN_OFFSET: {top: 10, left: 40},*/
 	},
 	KEEP_ENEMY_SPRITE_ORIENTATION: false, // if true enemy sprites on the map will not be flipped
 	ENEMY_TARGETING_FORMULA: "Math.min(hitrate + 0.01, 1) * (damage + (canDestroy * 5000))", // the formula used by enemy AI to score potential targets. A target with a higher score will be preferred. hitrate and damage are the projected hit rate and damage the unit will deal to a target. canDestroy is 1 if the unit can destroy the target if it hits, otherwise 0.
