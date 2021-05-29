@@ -2147,6 +2147,57 @@ var $battleSceneManager = new BattleSceneManager();
 			$gamePlayer.locate(candidate.pos.x, candidate.pos.y);
 		}        
     }
+	
+	Game_System.prototype.isValidAttackTarget = function(candidate){
+		var actionBattlerArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+		var targetBattlerArray = $gameSystem.EventToUnit(candidate.event.eventId());
+	   
+		var isInRange = $battleCalc.isTargetInRange({x: $gameTemp.activeEvent()._x, y: $gameTemp.activeEvent()._y}, {x: candidate.event.posX(), y: candidate.event.posY()}, $statCalc.getRealWeaponRange(actionBattlerArray[1], $gameTemp.actorAction.attack), $gameTemp.actorAction.attack.minRange);
+		var validTarget = $statCalc.canUseWeapon(actionBattlerArray[1], $gameTemp.actorAction.attack, false, targetBattlerArray[1]);
+		
+		return isInRange && validTarget;
+	}                               
+	
+	Game_System.prototype.getNextRTarget = function() {
+        var candidates =  $statCalc.getAllCandidates("enemy");
+		var candidate;
+		var ctr = 0;
+		while(ctr < candidates.length && !candidate){
+			this.targetLRId++;
+			if(this.targetLRId >= candidates.length){
+				this.targetLRId = 0;
+			}
+			if(this.isValidAttackTarget(candidates[this.targetLRId])){
+				candidate = candidates[this.targetLRId];
+			}			
+			ctr++;
+		}
+		
+		if(candidate){
+			$gamePlayer.locate(candidate.pos.x, candidate.pos.y);
+		}  
+    }
+
+    //次のカーソル移動先のアクターを取得する(L)
+    Game_System.prototype.getNextLTarget = function() {       
+		var candidates =  $statCalc.getAllCandidates("enemy");
+		var candidate;
+		var ctr = 0;
+		while(ctr < candidates.length && !candidate){
+			this.targetLRId--;
+			if(this.targetLRId < 0){
+				this.targetLRId = candidates.length-1;
+			}
+			if(this.isValidAttackTarget(candidates[this.targetLRId])){
+				candidate = candidates[this.targetLRId];
+			}			
+			ctr++;
+		}
+		
+		if(candidate){
+			$gamePlayer.locate(candidate.pos.x, candidate.pos.y);
+		}  		
+    }
 
     //アクターターンの開始
     Game_System.prototype.srpgStartActorTurn = function() {
@@ -2157,6 +2208,7 @@ var $battleSceneManager = new BattleSceneManager();
 		$songManager.playStageSong();
         this.aliveActorIdList = [];
         this.actorLRId = 0;
+		this.targetLRId = 0;
 		var spiritActivations = [];
 		var AIActors = [];
         $gameMap.events().forEach(function(event) {
@@ -10699,6 +10751,15 @@ SceneManager.reloadCharacters = function(startEvent){
                     $gameSystem.getNextRActor();
                 }
             }
+			
+			if ($gameSystem.isSubBattlePhase() === 'actor_target'){
+				if (Input.isTriggered('pageup')) {                   
+                    $gameSystem.getNextLTarget();
+                } else if (Input.isTriggered('pagedown')) {      
+                    $gameSystem.getNextRTarget();
+                }
+			}
+			
             if ($gameSystem.isSubBattlePhase() === 'actor_move') {
                 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
 					$statCalc.invalidateAbilityCache();
@@ -12891,6 +12952,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.setUpAttackRange(event.posX(), event.posY(), range, minRange);
 			
 			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+			$gameSystem.targetLRId = -1;
 			$gameSystem.setSubBattlePhase('actor_target');
 		}		
     };
