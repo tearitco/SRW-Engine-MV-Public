@@ -19,7 +19,11 @@ Window_MechListDeployed.prototype.initialize = function() {
 
 Window_MechListDeployed.prototype.getAvailableUnits = function(){
 	var _this = this;
-	return $statCalc.getAllActors("actor");
+	if($gameTemp.searchInfo){
+		return $statCalc.getSearchedActors("actor", $gameTemp.searchInfo);
+	} else {
+		return $statCalc.getAllActors("actor");
+	}	
 }
 
 Window_MechListDeployed.prototype.rowEnabled = function(actor){
@@ -115,14 +119,22 @@ Window_MechListDeployed.prototype.update = function() {
 				this._internalHandlers[this._currentKey].call(this);
 			}*/
 			SoundManager.playOk();
-			$gameTemp.currentMenuUnit = this.getCurrentSelection();
-			$gameTemp.detailPageMode = "menu";
-			$gameTemp.pushMenu = "detail_pages";	
+			if($gameTemp.searchInfo){
+				$gameTemp.killMenu("mech_list_deployed");	
+				if(this._callbacks["search_selected"]){
+					this._callbacks["search_selected"](this.getCurrentSelection().actor);
+				}
+			} else {
+				$gameTemp.currentMenuUnit = this.getCurrentSelection();
+				$gameTemp.detailPageMode = "menu";
+				$gameTemp.pushMenu = "detail_pages";	
+			}			
 		}
 		if(Input.isTriggered('cancel')){		
 			SoundManager.playCancel();		
 			$gameTemp.popMenu = true;
-
+			this._mechList.setCurrentSelection(0);
+			Input.clear();
 			if(this._callbacks["closed"]){
 				this._callbacks["closed"]();
 			}	

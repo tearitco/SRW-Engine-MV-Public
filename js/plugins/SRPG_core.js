@@ -976,6 +976,13 @@ var $battleSceneManager = new BattleSceneManager();
 		this._srpgPriorityTarget = null;
     };
 	
+	Game_Temp.prototype.killMenu = function(id) {
+		if(!this.killMenus){
+			this.killMenus = {};
+		}
+		this.killMenus[id] = true;
+	}
+	
 	DataManager.loadGameWithoutRescue = function(savefileId) {
 		if (this.isThisGameFile(savefileId)) {
 			var json = StorageManager.load(savefileId);
@@ -9951,6 +9958,14 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.deactivatePauseMenu = false;
 			Input.clear();//ensure the B press from closing the list does not propagate to the pause menu
 		}
+		$gameTemp.searchWindowSelectedCallback = function(actor){
+			$gameTemp.searchWindowSelectedCallback = null;
+			var referenceEvent = $statCalc.getReferenceEvent(actor);
+			if(referenceEvent){
+				$gamePlayer.locate(referenceEvent.posX(), referenceEvent.posY());
+			}
+			_this.closePauseMenu();
+		}
 		this._commandWindow.deactivate();
 		$gameTemp.deactivatePauseMenu = true;
 		//$gameSystem.setSubBattlePhase('normal');
@@ -10013,6 +10028,16 @@ SceneManager.reloadCharacters = function(startEvent){
 			}  */
 			if($gameTemp.mechListWindowCancelCallback){
 				$gameTemp.mechListWindowCancelCallback();
+			}
+		});
+		this._mechListDeployedWindow.registerCallback("search_selected", function(actor){
+			/*if($gameTemp.isEnemyAttack){
+				_this._mapSrpgBattleWindow.activate();
+			} else {			
+				_this._mapSrpgActorCommandWindow.activate();
+			}  */
+			if($gameTemp.mechListWindowSearchSelectionCallback){
+				$gameTemp.mechListWindowSearchSelectionCallback(actor);
 			}
 		});
 		this._mechListDeployedWindow.hide();
@@ -10193,6 +10218,11 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._searchWindow.registerCallback("closed", function(){
 			if($gameTemp.searchWindowCancelCallback){
 				$gameTemp.searchWindowCancelCallback();
+			}
+		});
+		this._searchWindow.registerCallback("selected", function(actor){
+			if($gameTemp.searchWindowSelectedCallback){
+				$gameTemp.searchWindowSelectedCallback(actor);
 			}
 		});
 		this._searchWindow.close();
@@ -11035,6 +11065,33 @@ SceneManager.reloadCharacters = function(startEvent){
 				$gameTemp.popFunction = null;
 			}
 		}		
+		
+		if($gameTemp.killMenus && Object.keys($gameTemp.killMenus).length){
+			var tmp = [];
+			for(var i = 0; i < menuStack.length; i++){
+				var menu = menuStack[i];
+				if(menu){
+					if(!$gameTemp.killMenus[menuStack[i]._layoutId]){
+						tmp.push(menu);
+					} else {
+						menu.hide();
+						menu.close();
+						menu.deactivate();
+					}					
+				}				
+			}
+			$gameTemp.killMenus = {};
+			menuStack = tmp;
+			if(menuStack.length){					
+				var menu = menuStack[menuStack.length-1];
+				if(menu){
+					menu.show();
+					menu.open();
+					menu.activate();
+				}
+			}
+			$gameTemp.menuStack = menuStack;
+		}
 		
 		if($gameTemp.pushMenu){
 			//console.log("Push Menu "+$gameTemp.pushMenu);

@@ -36,10 +36,14 @@ Window_Search.prototype.initialize = function() {
 
 
 Window_Search.prototype.resetSelection = function(){
-	this._currentSelection = 0;
-	this._currentPage = 0;
-	this._selectedTab = 0;
-	this._uiState = "tab_selection";
+	if(this._uiState != "pending_selection"){
+		this._currentSelection = 0;
+		this._currentPage = 0;
+		this._selectedTab = 0;
+		this._uiState = "tab_selection";
+	} else {
+		this._uiState = "entry_selection";
+	}	
 }
 
 Window_Search.prototype.getCurrentSelection = function(){
@@ -108,6 +112,7 @@ Window_Search.prototype.createComponents = function() {
 }	
 
 Window_Search.prototype.update = function() {
+	var _this = this;
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
@@ -203,6 +208,31 @@ Window_Search.prototype.update = function() {
 				SoundManager.playOk();
 				this.requestRedraw();
 				this._uiState = "entry_selection";
+			} else {
+				$gameTemp.searchInfo = {};
+				$gameTemp.searchInfo.value = this._currentEntries[this._currentSelection].id;
+				if(this._selectedTab == 0){
+					$gameTemp.searchInfo.type = "spirit";
+				}
+				if(this._selectedTab == 1){
+					$gameTemp.searchInfo.type = "pilot";
+				}
+				if(this._selectedTab == 2){
+					$gameTemp.searchInfo.type = "mech";
+				}
+				/*$gameTemp.mechListWindowCancelCallback = function(){
+					
+				}*/
+				$gameTemp.mechListWindowSearchSelectionCallback = function(actor){
+					$gameTemp.mechListWindowSearchSelectionCallback = null;
+					_this._uiState = "tab_selection";
+					$gameTemp.killMenu("search");						
+					if(_this._callbacks["selected"]){
+						_this._callbacks["selected"](actor);
+					}	
+				}
+				this._uiState = "pending_selection";
+				$gameTemp.pushMenu = "mech_list_deployed";
 			}
 		}
 		
@@ -212,12 +242,15 @@ Window_Search.prototype.update = function() {
 		
 		if(Input.isTriggered('cancel')){	
 			SoundManager.playCancel();
-		
+			$gameTemp.searchInfo = null;
 			if(this._uiState == "tab_selection"){
 				$gameTemp.popMenu = true;				
 				if(this._callbacks["closed"]){
 					this._callbacks["closed"]();
 				}					
+			} else if(this._uiState == "pending_selection"){
+				this.requestRedraw();
+				this._uiState = "tab_selection";
 			} else {
 				this.requestRedraw();
 				this._currentSelection = 0;
@@ -230,7 +263,18 @@ Window_Search.prototype.update = function() {
 };
 
 Window_Search.prototype.validateEntry = function(idx) {
-	return true;
+	var searchInfo = {};
+	searchInfo.value = this._currentEntries[idx].id;
+	if(this._selectedTab == 0){
+		searchInfo.type = "spirit";
+	}
+	if(this._selectedTab == 1){
+		searchInfo.type = "pilot";
+	}
+	if(this._selectedTab == 2){
+		searchInfo.type = "mech";
+	}
+	return !!$statCalc.getSearchedActors("actor", searchInfo).length;
 }
 
 Window_Search.prototype.createEntryList = function(list) {
@@ -277,24 +321,33 @@ Window_Search.prototype.redraw = function() {
 	this._mechTabButton.classList.remove("selected");
 	this._tabInfo[this._selectedTab].button.classList.add("selected");
 	
+	var ids = [];
 	var list = [];
 	if(this._selectedTab == 0){
-		list = JSON.parse(JSON.stringify($spiritManager.getSpiritDefinitions()));
+		ids = ENGINE_SETTINGS.ABILITY_SEARCH_LIST.SPIRIT;
 	}
 	if(this._selectedTab == 1){
-		list = JSON.parse(JSON.stringify($pilotAbilityManager.getDefinitions()));
+		ids = ENGINE_SETTINGS.ABILITY_SEARCH_LIST.PILOT;
 	}
 	if(this._selectedTab == 2){
-		list = JSON.parse(JSON.stringify($mechAbilityManager.getDefinitions()));
+		ids = ENGINE_SETTINGS.ABILITY_SEARCH_LIST.MECH;
 	}
-	var tmp = [];
-	for(var i = 0; i < list.length; i++){
-		if(list[i]){
-			list[i].id = i;
-			tmp.push(list[i]);
+	
+	for(var i = 0; i < ids.length; i++){
+		var entry;
+		if(this._selectedTab == 0){
+			entry = $spiritManager.getSpiritDef(ids[i]);
 		}
+		if(this._selectedTab == 1){
+			entry = $pilotAbilityManager.getAbilityDef(ids[i]);
+		}
+		if(this._selectedTab == 2){
+			entry = $mechAbilityManager.getAbilityDef(ids[i]);
+		}
+		entry = JSON.parse(JSON.stringify(entry));
+		entry.id = ids[i];
+		list.push(entry);		
 	}
-	list = tmp;
 	list = list.sort(function(a, b){return a.name.localeCompare(b.name)});	
 	this._currentEntries = list;
 	this.createEntryList(list);
