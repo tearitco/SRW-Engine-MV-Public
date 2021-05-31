@@ -68,6 +68,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_transform: "Transform",
 	cmd_attack: "Attack",
 	cmd_end_turn: "End Turn",
+	cmd_search: "Search",
 	cmd_list: "Unit List",
 	cmd_conditions: "Conditions",
 	cmd_options: "Options",
@@ -294,4 +295,11 @@ APPSTRINGS.REASSIGN = {
 	pilot_title: "Select Pilot",
 	label_main: "Main",
 	label_slot: "Sub"
+}
+
+APPSTRINGS.SEARCH = {
+	title: "Search",
+	label_spirit: "Spirit",
+	label_pilot: "Pilot",
+	label_mech: "Mech"
 }

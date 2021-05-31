@@ -9702,6 +9702,9 @@ SceneManager.reloadCharacters = function(startEvent){
     Window_MenuCommand.prototype.makeCommandList = function() {       
         this.addTurnEndCommand();        
        // _SRPG_Window_MenuCommand_makeCommandList.call(this);
+	   
+	   
+	   this.addCommand(APPSTRINGS.MAPMENU.cmd_search, 'search', true);
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_list, 'unitList', true);
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_conditions, 'conditions', true);
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_options, 'options');
@@ -9838,6 +9841,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.createEndTurnConfirmWindow();
 		this.createDeploymentInStageWindow();
 		this.createDeploySelectionWindow();
+		this.createSearchWindow();
 		$battleSceneManager.init();	
 		//SceneManager.stop();
     };
@@ -9850,7 +9854,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._commandWindow.setHandler('options',   this.commandOptions.bind(this));
 		this._commandWindow.setHandler('cancel',    this.closePauseMenu.bind(this));
 		this._commandWindow.setHandler('turnEnd',this.commandTurnEnd.bind(this));    
-		this._commandWindow.setHandler('unitList',this.commandUnitList.bind(this));     
+		this._commandWindow.setHandler('unitList',this.commandUnitList.bind(this));   
+		this._commandWindow.setHandler('search',this.commandSearch.bind(this));   		
 		this._commandWindow.setHandler('conditions',this.commandConditions.bind(this)); 
 		
 		this._commandWindow.y = 100;
@@ -9936,6 +9941,20 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gameTemp.deactivatePauseMenu = true;
 		//$gameSystem.setSubBattlePhase('normal');
         $gameTemp.pushMenu = "mech_list_deployed";
+    }
+	
+	Scene_Map.prototype.commandSearch = function() {
+		var _this = this;
+		$gameTemp.searchWindowCancelCallback = function(){
+			$gameTemp.searchWindowCancelCallback = null;
+			_this._commandWindow.activate();
+			$gameTemp.deactivatePauseMenu = false;
+			Input.clear();//ensure the B press from closing the list does not propagate to the pause menu
+		}
+		this._commandWindow.deactivate();
+		$gameTemp.deactivatePauseMenu = true;
+		//$gameSystem.setSubBattlePhase('normal');
+        $gameTemp.pushMenu = "search";
     }
 	
 	Scene_Map.prototype.commandConditions = function() {
@@ -10166,6 +10185,20 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.addWindow(this._detailPagesWindow);
 		this._detailPagesWindow.hide();
 		this.idToMenu["detail_pages"] = this._detailPagesWindow;
+    };
+	
+	Scene_Map.prototype.createSearchWindow = function() {
+		var _this = this;
+		this._searchWindow = new Window_Search(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+		this._searchWindow.registerCallback("closed", function(){
+			if($gameTemp.searchWindowCancelCallback){
+				$gameTemp.searchWindowCancelCallback();
+			}
+		});
+		this._searchWindow.close();
+		this.addWindow(this._searchWindow);
+		this._searchWindow.hide();
+		this.idToMenu["search"] = this._searchWindow;
     };
 	
 

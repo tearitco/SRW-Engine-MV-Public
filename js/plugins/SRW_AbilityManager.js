@@ -40,6 +40,10 @@ AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isU
 	}	
 }
 
+AbilityManager.prototype.getDefinitions = function(){
+	return this._abilityDefinitions;
+}
+
 AbilityManager.prototype.getDefinitionCount = function(){
 	return this._abilityDefinitions.length;
 }

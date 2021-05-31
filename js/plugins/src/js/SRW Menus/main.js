@@ -88,6 +88,9 @@ window.Window_BeforebattleTwin = Window_BeforebattleTwin;
 import Window_DeploymentTwin from "./Window_DeploymentTwin.js";
 window.Window_DeploymentTwin = Window_DeploymentTwin;
 
+import Window_Search from "./Window_Search.js";
+window.Window_Search = Window_Search;
+
 
 import "./style/SRW_Menus.css";
 
