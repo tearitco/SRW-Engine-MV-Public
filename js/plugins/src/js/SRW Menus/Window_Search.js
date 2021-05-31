@@ -209,6 +209,7 @@ Window_Search.prototype.update = function() {
 				this.requestRedraw();
 				this._uiState = "entry_selection";
 			} else {
+				SoundManager.playOk();
 				$gameTemp.searchInfo = {};
 				$gameTemp.searchInfo.value = this._currentEntries[this._currentSelection].id;
 				if(this._selectedTab == 0){
