@@ -166,7 +166,8 @@ $SRWConfig.itemEffects = function(){
 		false,
 		function(actor, level){
 			return [
-				{type: "water_terrain_rating", modType: "addFlat", value: 4}
+				{type: "water_terrain_rating", modType: "addFlat", value: 4},
+				{type: "water_enabled", modType: "addFlat", value: 2}
 			];
 		},
 		function(actor, level){
