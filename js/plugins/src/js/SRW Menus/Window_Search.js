@@ -208,7 +208,7 @@ Window_Search.prototype.update = function() {
 				SoundManager.playOk();
 				this.requestRedraw();
 				this._uiState = "entry_selection";
-			} else {
+			} else if(this.validateEntry(this._currentSelection)){
 				SoundManager.playOk();
 				$gameTemp.searchInfo = {};
 				$gameTemp.searchInfo.value = this._currentEntries[this._currentSelection].id;
@@ -234,6 +234,8 @@ Window_Search.prototype.update = function() {
 				}
 				this._uiState = "pending_selection";
 				$gameTemp.pushMenu = "mech_list_deployed";
+			} else {
+				SoundManager.playBuzzer();
 			}
 		}
 		
