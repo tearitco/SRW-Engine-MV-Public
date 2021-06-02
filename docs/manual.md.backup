@@ -330,10 +330,6 @@ For weapons the upgrade amount per level is defined in the Weapon definition.
 
 
 
-
-
-
-
 ### Transform
 
 Note: Transformation functionality is currently only available for Ally units.
@@ -595,6 +591,8 @@ The rest of the Attack properties are set using metadata tags in the note field.
 \<weaponIsCounter:1\> If set to 1 the weapon will always trigger a Counter on the enemy turn. <br>
 \<weaponHPThreshold:50\> If set this weapon will only be usable when the user's HP falls below the specified value(percent). This property is also respected by the enemy AI.<br>
 \<weaponIsAll:1\> If set to 1 this weapon is treated as an ALL weapon and will hit both targets when targeting a twin. A note will be shown in the attack list to identify the weapon as an ALL weapon.
+\<weaponHPThreshold:50\> If set this weapon will only be usable when the user's HP falls below the specified value(percent). This property is also respected by the enemy AI.
+
  
 Weapons can have up to two special effects.
 
@@ -678,6 +676,7 @@ this.addDefinition(
 				$statCalc.canWillIncrease(actor) ||
 				!activeSpirits.accel ||
 				!activeSpirits.strike ||
+
 				!activeSpirits.alert ||
 				!activeSpirits.valor ||
 				!activeSpirits.spirit ||
@@ -1175,6 +1174,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * clearDeployInfo
 
 
+
 	Clears all previous deploy info, should be used before setting up all the deploys for a map.
 
 * setDeployCount amount
@@ -1262,11 +1262,27 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 * moveEventToPoint event\_id x y follow
 
-	Move the specified event to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time, this includes moveActorToPoint.
+	Move the specified event to the specified coordinates on the map. A route is automatically generated in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
 	
 * moveActorToPoint actor\_id x y follow
 
-	Move the specified actor to the specified coordinates on the map. A route is automatically generate in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time, this includes moveEventToPoint.
+	Move the specified actor to the specified coordinates on the map. A route is automatically generated in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
+	
+* moveEventToEvent event\_id target\_event\_id follow
+
+	Move the specified event adjacent to the specified event. A route is automatically generated in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
+	
+* moveActorToEvent actor\_id target\_event\_id follow
+
+	Move the specified actor adjacent to the specified event. A route is automatically generated in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.	
+	
+* moveEventToActor event\_id target\_actor\_id follow
+
+	Move the specified event adjacent to the specified actor. A route is automatically generated in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.
+	
+* moveActorToActor actor\_id target\_actor\_id follow
+
+	Move the specified actor adjacent to the specified actor. A route is automatically generated in the same way as when moving a unit on the map. Script execution is paused while the event is moving. If follow is 1 the cursor and camera will follow the event as it moves. Only one event of this type can run at the same time.	
 
 * setEventFlying event\_id
 
@@ -1318,9 +1334,13 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 	Split the actor with the specified id. The unit for the actor should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
-* separateActor
+* separateActor actor\_id
 
-	Separate any twin the specified actor is currently part of
+	Separate any twin the specified actor is currently part of.
+	
+* makeActorMainTwin actor\_id
+
+	Make the specified actor the main twin if they are currently a sub twin.
 
 * preventActorDeathQuote actor\_id 
 
@@ -1451,7 +1471,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 	Sets a face alias. When a face name specified by face\_name\_original is aliased it will be replaced by face\_name\_translated when fetching the face image. This can be used to more easily manage variable characters, such as when protagonist selection is implemented.
 	
-* showTargetingReticle start\_event\_id target\_event\_id
+* showTargetingReticule start\_event\_id target\_event\_id
 		
 	Display the targeting reticle moving from the event with the provided start\_event\_id to the event with the provided target\_event\_id.
 	Both parameters can also be provided in the form actor:actor\_id instead, example:
@@ -1460,6 +1480,10 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	
 	Note that script execution is not halted while the reticle is shown, use the wait command if needed.
 Also note that only one reticle can be shown at a time.
+
+* clearTile x y
+
+	Move any unit that is currently on the specified tile to a nearest free space.
 
 ## External Plugin commands	
 
@@ -1633,7 +1657,11 @@ A setting can be left blank by entering "" as its value.
 	
 * this.eraseEvents(startId, endId, toAnimationQueue)
 
-	Remove the events between startId and endId. If toAnimationQueue is true the this.processDisappearQueue script command will need to be called to erase the event.
+	Remove the events between startId and endId. If toAnimationQueue is true the this.processDisappearQueue script command will need to be called to erase the events.
+	
+* this.eraseEventsOfType(type, omitted, toAnimationQueue)
+
+	Erase all events with the specified properties. Type is "", "actor" or "enemy". Omitted is a list of event ids that should not be erased, Ex.: \[5,11\].  If toAnimationQueue is true the this.processDisappearQueue script command will need to be called to erase the events.
 	
 * this.playerMoveTo(x, y)
 
@@ -1715,6 +1743,7 @@ A setting can be left blank by entering "" as its value.
 	Apply spirits effects to the actor unit with the specified id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.
 
 * isActorHitBy(actor\_id, weapon\_id, include\_support)
+
 
 	Can be used as conditional to check if the actor with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.
 	
