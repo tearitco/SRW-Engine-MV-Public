@@ -1481,9 +1481,9 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	Note that script execution is not halted while the reticle is shown, use the wait command if needed.
 Also note that only one reticle can be shown at a time.
 
-* clearTile x y
+* clearTile x y event\_id actor\_id	
 
-	Move any unit that is currently on the specified tile to a nearest free space.
+	Move any unit that is currently on the specified tile to a nearest free space. If event\_id or actor\_id is specified an event matching either of those ids will not be moved. This is to prevent a unit that is already in the correct spot from getting juggled around.
 
 ## External Plugin commands	
 

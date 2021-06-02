@@ -1013,7 +1013,13 @@ var $battleSceneManager = new BattleSceneManager();
 			if(actor){
 				var newPosition = $statCalc.getAdjacentFreeSpace(position);
 				var event = $statCalc.getReferenceEvent(actor);
-				event.locate(newPosition.x, newPosition.y);
+				var actorId = -1;
+				if(actor.isActor()){
+					actorId = actor.actorId();
+				}
+				if(event.eventId() != args[2] && actorId != args[3]){
+					event.locate(newPosition.x, newPosition.y);
+				}				
 			}
 		}
 		
