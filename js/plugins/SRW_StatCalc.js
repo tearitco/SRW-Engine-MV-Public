@@ -3473,8 +3473,15 @@ StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId){
 		}
 	}
 	
-	return candidates.sort(function(a, b){return a.distance - b.distance;})[0].position;
-
+	return candidates.sort(function(a, b){
+		if(a.distance == b.distance){
+			var aAngle = Math.atan2(a.position.y - position.y, a.position.x - position.x);
+			var bAngle = Math.atan2(b.position.y - position.y, b.position.x - position.x);
+			return aAngle - bAngle;
+		} else {
+			return a.distance - b.distance;
+		}		
+	})[0].position;
 }
 
 StatCalc.prototype.activeUnitAtPosition = function(position, type){
