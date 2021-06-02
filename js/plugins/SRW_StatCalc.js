@@ -3453,7 +3453,7 @@ StatCalc.prototype.isFreeSpace = function(position, type){
 	return isFree;
 }
 
-StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId){
+StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId, sourcePosition){
 	var occupiedCoordLookup = {};
 	this.iterateAllActors(type, function(actor, event){			
 		if(!event.isErased() && event.eventId() != eventId){
@@ -3468,16 +3468,24 @@ StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId){
 	for(var i = 0; i < $gameMap.width(); i++){
 		for(var j = 0; j < $gameMap.height(); j++){
 			if(!occupiedCoordLookup[i] || !occupiedCoordLookup[i][j]){
-				candidates.push({position: {x: i, y: j}, distance: Math.hypot(position.x-i, position.y-j)});
+				var sourceDistance;
+				if(sourcePosition){
+					sourceDistance = Math.hypot(sourcePosition.x-i, sourcePosition.y-j);
+				}
+				candidates.push({position: {x: i, y: j}, distance: Math.hypot(position.x-i, position.y-j), sourceDistance: sourceDistance});
 			}
 		}
 	}
 	
 	return candidates.sort(function(a, b){
 		if(a.distance == b.distance){
-			var aAngle = Math.atan2(a.position.y - position.y, a.position.x - position.x);
-			var bAngle = Math.atan2(b.position.y - position.y, b.position.x - position.x);
-			return aAngle - bAngle;
+			if(sourcePosition && a.sourceDistance != b.sourceDistance){
+				return a.sourceDistance - b.sourceDistance;
+			} else {
+				var aAngle = Math.atan2(a.position.y - position.y, a.position.x - position.x);
+				var bAngle = Math.atan2(b.position.y - position.y, b.position.x - position.x);
+				return aAngle - bAngle;
+			}			
 		} else {
 			return a.distance - b.distance;
 		}		

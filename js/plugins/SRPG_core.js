@@ -649,9 +649,9 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameMap._interpreter.setWaitMode("move_to_point");
 			$gameSystem.setSrpgWaitMoving(true);
 			var event = $gameMap.event(args[0]);
-			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
-			event.srpgMoveToPoint(position, true);
-			if(args[2] * 1){
+			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]}, null, null, {x: event.posX(), y: event.posY()});
+			event.srpgMoveToPoint(position, true, true);
+			if(args[3] * 1){
 				$gamePlayer.locate(event.posX(), event.posY());
 				$gameTemp.followMove = true;
 			}			
@@ -661,9 +661,9 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameMap._interpreter.setWaitMode("move_to_point");
 			$gameSystem.setSrpgWaitMoving(true);
 			var event = $statCalc.getReferenceEvent($gameActors.actor(args[0]));
-			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]});
-			event.srpgMoveToPoint(position, true);
-			if(args[2] * 1){
+			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]}, null, null, {x: event.posX(), y: event.posY()});
+			event.srpgMoveToPoint(position, true, true);
+			if(args[3] * 1){
 				$gamePlayer.locate(event.posX(), event.posY());
 				$gameTemp.followMove = true;
 			}			
@@ -675,8 +675,8 @@ var $battleSceneManager = new BattleSceneManager();
 			var targetEvent = $gameMap.event(args[1]);
 			var event = $gameMap.event(args[0]);
 			if(event && targetEvent){
-				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()});
-				event.srpgMoveToPoint(position, true);
+				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()}, null, null, {x: event.posX(), y: event.posY()});
+				event.srpgMoveToPoint(position, true, true);
 				if(args[2] * 1){
 					$gamePlayer.locate(event.posX(), event.posY());
 					$gameTemp.followMove = true;
@@ -690,8 +690,8 @@ var $battleSceneManager = new BattleSceneManager();
 			var targetEvent = $gameMap.event(args[1]);
 			var event = $statCalc.getReferenceEvent($gameActors.actor(args[0]));
 			if(event && targetEvent){
-				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()});
-				event.srpgMoveToPoint(position, true);
+				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()}, null, null, {x: event.posX(), y: event.posY()});
+				event.srpgMoveToPoint(position, true, true);
 				if(args[2] * 1){
 					$gamePlayer.locate(event.posX(), event.posY());
 					$gameTemp.followMove = true;
@@ -705,8 +705,8 @@ var $battleSceneManager = new BattleSceneManager();
 			var targetEvent = $statCalc.getReferenceEvent($gameActors.actor(args[1]));
 			var event = $gameMap.event(args[0]);
 			if(event && targetEvent){
-				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()});
-				event.srpgMoveToPoint(position, true);
+				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()}, null, null, {x: event.posX(), y: event.posY()});
+				event.srpgMoveToPoint(position, true, true);
 				if(args[2] * 1){
 					$gamePlayer.locate(event.posX(), event.posY());
 					$gameTemp.followMove = true;
@@ -720,8 +720,8 @@ var $battleSceneManager = new BattleSceneManager();
 			var targetEvent = $statCalc.getReferenceEvent($gameActors.actor(args[1]));
 			var event = $statCalc.getReferenceEvent($gameActors.actor(args[0]));
 			if(event && targetEvent){
-				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()});
-				event.srpgMoveToPoint(position, true);
+				var position = $statCalc.getAdjacentFreeSpace({x: targetEvent.posX(), y: targetEvent.posY()}, null, null, {x: event.posX(), y: event.posY()});
+				event.srpgMoveToPoint(position, true, true);
 				if(args[2] * 1){
 					$gamePlayer.locate(event.posX(), event.posY());
 					$gameTemp.followMove = true;
@@ -5300,7 +5300,7 @@ var $battleSceneManager = new BattleSceneManager();
         }
     };
 	
-	Game_Event.prototype.srpgMoveToPoint = function(targetPosition, ignoreMoveTable) {
+	Game_Event.prototype.srpgMoveToPoint = function(targetPosition, ignoreMoveTable, ignoreObstacles) {
 		this._pendingMoveToPoint = true;
 		this._targetPosition = targetPosition;
 		
@@ -5310,7 +5310,11 @@ var $battleSceneManager = new BattleSceneManager();
 		for(var i = 0; i < $gameMap.width(); i++){
 			pathfindingGrid[i] = [];
 			for(var j = 0; j < $gameMap.height(); j++){
-				pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : 1;
+				if(ignoreObstacles){
+					pathfindingGrid[i][j] = 1;
+				} else {
+					pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : 1;
+				}
 			}
 		}
 		var graph = new Graph(pathfindingGrid);
