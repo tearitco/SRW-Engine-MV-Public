@@ -3453,7 +3453,7 @@ StatCalc.prototype.isFreeSpace = function(position, type){
 	return isFree;
 }
 
-StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId, sourcePosition){
+StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId, sourcePosition, hardBias, usedPositions){
 	var occupiedCoordLookup = {};
 	this.iterateAllActors(type, function(actor, event){			
 		if(!event.isErased() && event.eventId() != eventId){
@@ -3463,6 +3463,14 @@ StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId, sour
 			occupiedCoordLookup[event.posX()][event.posY()] = true;
 		}		
 	});
+	
+	if(usedPositions){
+		Object.keys(usedPositions).forEach(function(x){
+			Object.keys(usedPositions[x]).forEach(function(y){
+				occupiedCoordLookup[x][y] = true;
+			});
+		});
+	}
 	
 	var candidates = [];
 	for(var i = 0; i < $gameMap.width(); i++){
@@ -3476,20 +3484,36 @@ StatCalc.prototype.getAdjacentFreeSpace = function(position, type, eventId, sour
 			}
 		}
 	}
-	
-	return candidates.sort(function(a, b){
-		if(a.distance == b.distance){
-			if(sourcePosition && a.sourceDistance != b.sourceDistance){
-				return a.sourceDistance - b.sourceDistance;
+	if(hardBias && sourcePosition){// place preference on hitting the bias position
+		return candidates.sort(function(a, b){
+			if(a.sourceDistance == b.sourceDistance){
+				if(a.position != b.position){
+					return a.position - b.position;
+				} else {
+					var aAngle = Math.atan2(a.position.y - position.y, a.position.x - position.x);
+					var bAngle = Math.atan2(b.position.y - position.y, b.position.x - position.x);
+					return aAngle - bAngle;
+				}			
 			} else {
-				var aAngle = Math.atan2(a.position.y - position.y, a.position.x - position.x);
-				var bAngle = Math.atan2(b.position.y - position.y, b.position.x - position.x);
-				return aAngle - bAngle;
-			}			
-		} else {
-			return a.distance - b.distance;
-		}		
-	})[0].position;
+				return a.sourceDistance - b.sourceDistance;
+			}		
+		})[0].position;
+	} else {
+		return candidates.sort(function(a, b){
+			if(a.distance == b.distance){
+				if(sourcePosition && a.sourceDistance != b.sourceDistance){
+					return a.sourceDistance - b.sourceDistance;
+				} else {
+					var aAngle = Math.atan2(a.position.y - position.y, a.position.x - position.x);
+					var bAngle = Math.atan2(b.position.y - position.y, b.position.x - position.x);
+					return aAngle - bAngle;
+				}			
+			} else {
+				return a.distance - b.distance;
+			}		
+		})[0].position;
+	}
+	
 }
 
 StatCalc.prototype.activeUnitAtPosition = function(position, type){

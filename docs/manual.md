@@ -677,6 +677,7 @@ this.addDefinition(
 				!activeSpirits.accel ||
 				!activeSpirits.strike ||
 
+
 				!activeSpirits.alert ||
 				!activeSpirits.valor ||
 				!activeSpirits.spirit ||
@@ -1484,6 +1485,18 @@ Also note that only one reticle can be shown at a time.
 * clearTile x y event\_id actor\_id	
 
 	Move any unit that is currently on the specified tile to a nearest free space. If event\_id or actor\_id is specified an event matching either of those ids will not be moved. This is to prevent a unit that is already in the correct spot from getting juggled around.
+	
+* clearAdjacentToTile x y include\_diagonal
+
+	Move any unit that is currently adjacent to the specified tile to a free space. Spaces that make it look like the unit was pushed away are preferred.
+	
+* clearAdjacentToEvent event\_id include\_diagonal
+
+	Move any unit that is currently adjacent to the specified event to a free space. Spaces that make it look like the unit was pushed away are preferred.	
+	
+* clearAdjacentToActor actor\_id include\_diagonal
+
+	Move any unit that is currently adjacent to the specified actor to a free space. Spaces that make it look like the unit was pushed away are preferred.	
 
 ## External Plugin commands	
 

@@ -1023,6 +1023,56 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		}
 		
+		function clearAdjacentToTile(position, includeDiagonal){
+			var positions  = [];
+			positions.push({position: {x: position.x - 1, y: position.y}, biasPosition:{x: position.x - 2, y: position.y}});
+			positions.push({position: {x: position.x + 1, y: position.y}, biasPosition:{x: position.x + 2, y: position.y}});
+			positions.push({position: {x: position.x, y: position.y + 1}, biasPosition:{x: position.x, y: position.y + 2}});
+			positions.push({position: {x: position.x, y: position.y - 1}, biasPosition:{x: position.x, y: position.y - 2}});
+			
+			if(includeDiagonal){
+				positions.push({position: {x: position.x - 1, y: position.y - 1}, biasPosition:{x: position.x - 2, y: position.y - 2}});
+				positions.push({position: {x: position.x + 1, y: position.y + 1}, biasPosition:{x: position.x + 2, y: position.y + 2}});
+				positions.push({position: {x: position.x - 1, y: position.y + 1}, biasPosition:{x: position.x - 2, y: position.y + 2}});
+				positions.push({position: {x: position.x + 1, y: position.y - 1}, biasPosition:{x: position.x + 2, y: position.y - 2}});
+			}
+			
+			var usedPositions = {};
+			positions.forEach(function(currentInfo){				
+				var actor = $statCalc.activeUnitAtPosition(currentInfo.position);
+				if(actor){
+					var newPosition = $statCalc.getAdjacentFreeSpace(currentInfo.position, null, null, currentInfo.biasPosition, true, usedPositions);
+					if(!usedPositions[newPosition.x]){
+						usedPositions[newPosition.x] = {};
+					}
+					if(!usedPositions[newPosition.x][newPosition.y]){
+						usedPositions[newPosition.x][newPosition.y] = true;
+					}
+					var event = $statCalc.getReferenceEvent(actor);
+					var actorId = -1;					
+					event.locate(newPosition.x, newPosition.y);								
+				}
+			});	
+		}
+		
+		if (command === 'clearAdjacentToTile') {
+			clearAdjacentToTile({x: args[0] * 1, y: args[1] * 1}, args[2] * 1);
+		}
+		
+		if (command === 'clearAdjacentToEvent') {
+			var event = $gameMap.event(args[0]);
+			if(event){
+				clearAdjacentToTile({x: event.posX(), y:  event.posY()}, args[1] * 1);
+			}			
+		}
+		
+		if (command === 'clearAdjacentToActor') {
+			var event = $statCalc.getReferenceEvent($gameActors.actor(args[0]));
+			if(event){
+				clearAdjacentToTile({x: event.posX(), y:  event.posY()}, args[1] * 1);
+			}			
+		}
+		
     };		
 //====================================================================
 // ●Game_Temp
