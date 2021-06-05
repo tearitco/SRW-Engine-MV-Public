@@ -649,24 +649,28 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameMap._interpreter.setWaitMode("move_to_point");
 			$gameSystem.setSrpgWaitMoving(true);
 			var event = $gameMap.event(args[0]);
-			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]}, null, null, {x: event.posX(), y: event.posY()});
-			event.srpgMoveToPoint(position, true, true);
-			if(args[3] * 1){
-				$gamePlayer.locate(event.posX(), event.posY());
-				$gameTemp.followMove = true;
-			}			
+			if(event){
+				var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]}, null, null, {x: event.posX(), y: event.posY()});
+				event.srpgMoveToPoint(position, true, true);
+				if(args[3] * 1){
+					$gamePlayer.locate(event.posX(), event.posY());
+					$gameTemp.followMove = true;
+				}			
+			}
 		}
 		
 		if (command === 'moveActorToPoint') {
 			$gameMap._interpreter.setWaitMode("move_to_point");
 			$gameSystem.setSrpgWaitMoving(true);
 			var event = $statCalc.getReferenceEvent($gameActors.actor(args[0]));
-			var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]}, null, null, {x: event.posX(), y: event.posY()});
-			event.srpgMoveToPoint(position, true, true);
-			if(args[3] * 1){
-				$gamePlayer.locate(event.posX(), event.posY());
-				$gameTemp.followMove = true;
-			}			
+			if(event){
+				var position = $statCalc.getAdjacentFreeSpace({x: args[1], y: args[2]}, null, null, {x: event.posX(), y: event.posY()});
+				event.srpgMoveToPoint(position, true, true);
+				if(args[3] * 1){
+					$gamePlayer.locate(event.posX(), event.posY());
+					$gameTemp.followMove = true;
+				}	
+			}					
 		}
 		
 		if (command === 'moveEventToEvent') {
@@ -6324,21 +6328,18 @@ Game_Interpreter.prototype.processEnemyAppearQueue = function(){
 	this.setWaitMode("enemy_appear");
 	$gameTemp.enemyAppearQueueIsProcessing = true;
 	$gameTemp.unitAppearTimer = 0;
-	return false;
 }
 
 Game_Interpreter.prototype.processUnitAppearQueue = function(){
 	this.setWaitMode("enemy_appear");
 	$gameTemp.enemyAppearQueueIsProcessing = true;
 	$gameTemp.unitAppearTimer = 0;
-	return false;
 }
 
 Game_Interpreter.prototype.processDisappearQueue = function(){
 	this.setWaitMode("enemy_appear");
 	$gameTemp.disappearQueueIsProcessing = true;
 	$gameTemp.unitAppearTimer = 0;
-	return false;
 }
 
 Game_Interpreter.prototype.manualDeploy = function(){
@@ -6348,7 +6349,6 @@ Game_Interpreter.prototype.manualDeploy = function(){
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
 	$gameTemp.pushMenu = "in_stage_deploy";
 	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()));
-	return false;
 }
 
 // 指定した座標にプレイヤーを移動する
