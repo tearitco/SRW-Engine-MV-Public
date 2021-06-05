@@ -373,6 +373,7 @@ var $battleSceneManager = new BattleSceneManager();
 			deployInfo.assignedSub = {};
 			deployInfo.assignedShips = {};
 			deployInfo.lockedSlots = {};
+			deployInfo.lockedShipSlots = {};
 			$gameSystem.setDeployInfo(deployInfo);
         }
 		
@@ -383,6 +384,12 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'setDeployCount') {
 			var deployInfo = $gameSystem.getDeployInfo();
 			deployInfo.count = args[0];
+			$gameSystem.setDeployInfo(deployInfo);
+        }
+		
+		if (command === 'setShipDeployCount') {
+			var deployInfo = $gameSystem.getDeployInfo();
+			deployInfo.shipCount = args[0];
 			$gameSystem.setDeployInfo(deployInfo);
         }
 		
@@ -430,6 +437,19 @@ var $battleSceneManager = new BattleSceneManager();
 		if (command === 'unlockDeploySlot') {
 			var deployInfo = $gameSystem.getDeployInfo();
 			deployInfo.lockedSlots[args[0]] = false;
+			$gameSystem.setDeployInfo(deployInfo);
+		}
+		
+		if (command === 'lockShipDeploySlot') {
+			//prevents a slot from being changed by the player in the menu, assignSlot can still override
+			var deployInfo = $gameSystem.getDeployInfo();
+			deployInfo.lockedShipSlots[args[0]] = true;
+			$gameSystem.setDeployInfo(deployInfo);
+		}
+		
+		if (command === 'unlockShipDeploySlot') {
+			var deployInfo = $gameSystem.getDeployInfo();
+			deployInfo.lockedShipSlots[args[0]] = false;
 			$gameSystem.setDeployInfo(deployInfo);
 		}
 		
@@ -583,13 +603,19 @@ var $battleSceneManager = new BattleSceneManager();
 		}	
 		
 		if (command === 'deployShips') {
-			$gameSystem.deployShips(args[0]);
+			var deployInfo = $gameSystem.getDeployInfo();
+			var deployList = $gameSystem.getShipDeployList();			
+			var activeDeployList = [];
+			for(var i = 0; i < deployInfo.shipCount; i++){
+				activeDeployList.push(deployList[i]);
+			}
+			$gameSystem.setActiveShipDeployList(activeDeployList);
+			$gameSystem.deployShips(args[0]);					
 		}
 		
 		if (command === 'deployAll') {
 			var deployInfo = $gameSystem.getDeployInfo();
 			var deployList = $gameSystem.getDeployList();
-			//$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()))
 			var activeDeployList = [];
 			for(var i = 0; i < deployInfo.count; i++){
 				activeDeployList.push(deployList[i]);
@@ -1640,6 +1666,7 @@ var $battleSceneManager = new BattleSceneManager();
 			actor.isSubPilot = false;
 			$statCalc.initSRWStats(actor);
 		});
+		$gameTemp.deployMode = "";
 		this._isIntermission = true;
 	}
 	
@@ -1924,15 +1951,17 @@ var $battleSceneManager = new BattleSceneManager();
 		});
     };
 
-	Game_System.prototype.deployShips = function(toAnimQueue) {
+	Game_System.prototype.deployShips = function(toAnimQueue) {		
 		var _this = this;
 		var deployInfo = _this.getDeployInfo();
-		var shipCtr = 0;
+		var deployList = _this.getActiveShipDeployList();			
 		
+		var shipCtr = 0;		
 		$gameMap.events().forEach(function(event) { //ensure to spawn ships first so that are drawn below the other actor sprites
-			if (event.isType() === 'ship') {
+			if (event.isType() === 'ship' && !event.isDeployed) {
 				var actor_unit;
-				var actorId = deployInfo.assignedShips[shipCtr++];				
+				var entry = deployList[shipCtr] || {};
+				var actorId = entry.main;					
 				if(typeof actorId != "undefined"){
 					actor_unit = $gameActors.actor(actorId);
 				}
@@ -1957,7 +1986,9 @@ var $battleSceneManager = new BattleSceneManager();
                 } else {
 					event.erase();
 				}
+				shipCtr++;
 			}
+			
 		});
 	}
 	
@@ -2587,7 +2618,13 @@ var $battleSceneManager = new BattleSceneManager();
 		} 
 		return this.preferredSlotInfo;
     };
-
+	
+	Game_System.prototype.getPreferredShipSlotInfo = function() {
+		if(!this.preferredShipSlotInfo){
+			this.preferredShipSlotInfo = {};
+		} 
+		return this.preferredShipSlotInfo;
+    };
 	
 	Game_System.prototype.invalidateDeployList = function() {
 		$gameSystem.deployList = null;
@@ -2600,6 +2637,13 @@ var $battleSceneManager = new BattleSceneManager();
 		return $gameSystem.deployList;
 	}
 	
+	Game_System.prototype.getShipDeployList = function() {
+		if(!$gameSystem.shipDeployList){
+			this.constructShipDeployList();
+		}
+		return $gameSystem.shipDeployList;
+	}
+	
 	Game_System.prototype.getActiveDeployList = function() {
 		return this._activeDeploylist;
 	}
@@ -2608,7 +2652,15 @@ var $battleSceneManager = new BattleSceneManager();
 		this._activeDeploylist = list;
 	}
 	
-	Game_System.prototype.constructDeployList = function() {
+	Game_System.prototype.getActiveShipDeployList = function() {
+		return this._activeShipDeploylist;
+	}
+	
+	Game_System.prototype.setActiveShipDeployList = function(list) {
+		this._activeShipDeploylist = list;
+	}
+	
+	Game_System.prototype.constructDeployList = function(forShips) {
 		$gameSystem.deployList = [];
 		var deployInfo = this.getDeployInfo();
 		var usedUnits = {};
@@ -2694,6 +2746,82 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 	}
 	
+	Game_System.prototype.constructShipDeployList = function() {
+		$gameSystem.shipDeployList = [];
+		var deployInfo = this.getDeployInfo();
+		var usedUnits = {};
+		
+		var validActors = {};
+		var candidates = $gameSystem.getAvailableUnits();	
+		var tmp = [];
+		candidates.forEach(function(candidate){
+			if($statCalc.isValidForDeploy(candidate) && $statCalc.isShip(candidate)){
+				validActors[candidate.actorId()] = true;
+				tmp.push(candidate);
+			}
+		});	
+		candidates = tmp;
+		
+		var sortedCandidates = [];
+		var usedActors = {};
+		var preferredSlotInfo = this.getPreferredShipSlotInfo();
+		Object.keys(preferredSlotInfo).forEach(function(slot){
+			var info = preferredSlotInfo[slot];			
+			var entry = {
+				main: null,
+				sub: null
+			};
+			isValid = false;
+			if(info.main != -1 && validActors[info.main]){
+				entry.main = info.main;
+				isValid = true;
+				usedActors[entry.main] = true;
+			}
+			if(isValid){
+				sortedCandidates.push(entry);
+			}
+		});
+		
+		tmp.forEach(function(candidate){
+			if(!usedActors[candidate.actorId()]){
+				sortedCandidates.push({
+					main: candidate.actorId(),
+					sub: null
+				});
+			}
+		});	
+				
+		
+		var i = 0;
+		while(sortedCandidates.length){	
+			var entry = {};
+			if(i < deployInfo.shipCount){				
+				var isPredefined = false;
+				if(deployInfo.assignedShips[i] && validActors[deployInfo.assignedShips[i]]){
+					entry.main = deployInfo.assignedShips[i];
+					isPredefined = true;
+				}
+				if(!isPredefined){
+					entry = sortedCandidates.pop();
+				} 				
+			} else {
+				entry = sortedCandidates.pop();
+			}
+			if(usedUnits[entry.main]){
+				entry.main = null;
+			}
+			if(usedUnits[entry.sub]){
+				entry.sub = null;
+			}
+			if(entry.main || entry.sub){
+				$gameSystem.shipDeployList.push(entry);							
+				usedUnits[entry.main] = true;
+				usedUnits[entry.sub] = true;
+			}
+			i++;
+		}
+	}
+	
 	Game_System.prototype.syncPreferredSlots = function() {
 		var deployInfo = this.getDeployList();
 		this.preferredSlotInfo = {};
@@ -2707,10 +2835,12 @@ var $battleSceneManager = new BattleSceneManager();
 		if(!info){
 			info = {
 				count: 0,
+				shipCount: 0,
 				assigned: {},
 				assignedSub: {},
 				assignedShips: {},
-				lockedSlots: {},
+				lockedSlots: {},		
+				lockedShipSlots: {},	
 				favorites: {}
 			};
 		} else {
@@ -6344,6 +6474,17 @@ Game_Interpreter.prototype.processDisappearQueue = function(){
 
 Game_Interpreter.prototype.manualDeploy = function(){
 	this.setWaitMode("manual_deploy");
+	$gameTemp.deployMode = "";
+	$gameTemp.doingManualDeploy = true;
+	$gameTemp.disableHighlightGlow = true;
+	$gameSystem.setSubBattlePhase("deploy_selection_window");
+	$gameTemp.pushMenu = "in_stage_deploy";
+	$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()));
+}
+
+Game_Interpreter.prototype.manualShipDeploy = function(){
+	this.setWaitMode("manual_deploy");
+	$gameTemp.deployMode = "ships";
 	$gameTemp.doingManualDeploy = true;
 	$gameTemp.disableHighlightGlow = true;
 	$gameSystem.setSubBattlePhase("deploy_selection_window");

@@ -678,6 +678,7 @@ this.addDefinition(
 				!activeSpirits.strike ||
 
 
+
 				!activeSpirits.alert ||
 				!activeSpirits.valor ||
 				!activeSpirits.spirit ||
@@ -1210,6 +1211,13 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	
 * unlockDeploySlot slot
 
+* lockShipDeploySlot slot
+
+	Prevent the player from changing a ship deploy slot in the ship selection menu.<br>
+
+	Units required for events after the next deploy should be assigned to a slot and then have that slot be locked.	
+	
+* unlockShipDeploySlot slot
 		
 	
 * addMapHighlight x y color
@@ -1654,6 +1662,10 @@ A setting can be left blank by entering "" as its value.
 * this.manualDeploy()
 
 	Shows the deployment selection window and lets the player select deployment positions. Event processing will automatically wait for all units to be spawned before continuing execution.
+
+* this.manualShipDeploy()
+
+	Shows the ship deployment selection window and lets the player select which ship(s) will take part in the next battle. Event processing will automatically wait for all units to be spawned before continuing execution.
 	
 * this.destroyEvent(event\_id)
 

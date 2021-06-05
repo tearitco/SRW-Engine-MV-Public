@@ -40,7 +40,32 @@ Window_DeploymentTwin.prototype.initialize = function() {
 }
 
 Window_DeploymentTwin.prototype.isTwinMode = function(){
-	return ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM && !ENGINE_SETTINGS.DISABLE_ALLY_TWINS;
+	return ENGINE_SETTINGS.ENABLE_TWIN_SYSTEM && !ENGINE_SETTINGS.DISABLE_ALLY_TWINS && $gameTemp.deployMode != "ships";
+}
+
+Window_DeploymentTwin.prototype.getDeployList = function(){
+	if($gameTemp.deployMode == "ships"){
+		return $gameSystem.getShipDeployList();
+	} else {
+		return $gameSystem.getDeployList();
+	}
+}
+
+Window_DeploymentTwin.prototype.setDeployList = function(list){
+	if($gameTemp.deployMode == "ships"){
+		$gameSystem.shipDeployList = list;
+	} else {
+		$gameSystem.deployList = list;
+	}
+}
+
+Window_DeploymentTwin.prototype.getDeployCount = function(list){
+	var deployInfo = $gameSystem.getDeployInfo();
+	if($gameTemp.deployMode == "ships"){
+		return deployInfo.shipCount;
+	} else {
+		return deployInfo.count;
+	}
 }
 
 Window_DeploymentTwin.prototype.resetSelection = function(){
@@ -49,6 +74,12 @@ Window_DeploymentTwin.prototype.resetSelection = function(){
 	this._swapSource = -1;
 	this._twinSwapSource = -1;
 	this._rearrageSelection = 0;
+	this._maxSlots = 40;
+	this._rearrageRowSize = 5;
+	if(!this.isTwinMode()){
+		this._rearrageRowSize = 9;
+		this._maxSlots = 36;
+	}
 }
 
 Window_DeploymentTwin.prototype.getMaxDeploySlots = function(){
@@ -230,7 +261,7 @@ Window_DeploymentTwin.prototype.update = function() {
 		if(Input.isTriggered('ok')){	
 			//if(this._UIState == "rearrange_slots"){
 			function swapSlots(sourceActorId, sourceSlot, sourceType, targetActorId, targetSlot, targetType, inBatch){
-				var deployList = $gameSystem.getDeployList();					
+				var deployList = _this.getDeployList()				
 				
 				if(!deployList[sourceSlot]){
 					deployList[sourceSlot] = {
@@ -373,18 +404,18 @@ Window_DeploymentTwin.prototype.update = function() {
 		}	
 
 		function compressDeployList(){
-			var deployList = $gameSystem.getDeployList();
+			var deployList = _this.getDeployList()
 			var tmp = [];
 			for(var i = 0; i < deployList.length; i++){
 				if(deployList[i] && (deployList[i].main || deployList[i].sub)){
 					tmp.push(deployList[i]);
 				}
 			}
-			$gameSystem.deployList = tmp;
+			_this.setDeployList(tmp);
 		}		
 		
 		function placeMovedEntry(movedEntry){
-			var deployList = $gameSystem.getDeployList();
+			var deployList = _this.getDeployList()
 			var deployInfo = $gameSystem.getDeployInfo();
 			var placed = false;
 			var i = 0;
@@ -408,7 +439,7 @@ Window_DeploymentTwin.prototype.update = function() {
 			if(isLocked){
 				SoundManager.playBuzzer();
 			} else {
-				var deployList = $gameSystem.getDeployList();	
+				var deployList = _this.getDeployList()
 				var deployInfo = $gameSystem.getDeployInfo();
 				var targetSlot = Math.floor(_this._rearrageSelection / 2);
 				var movedEntry = deployList[targetSlot];
@@ -440,7 +471,7 @@ Window_DeploymentTwin.prototype.update = function() {
 			if(isLocked){
 				SoundManager.playBuzzer();
 			} else {
-				var deployList = $gameSystem.getDeployList();	
+				var deployList = _this.getDeployList()
 				var deployInfo = $gameSystem.getDeployInfo();
 				var targetSlot = Math.floor(_this._rearrageSelection / 2);
 				var movedEntry = deployList[targetSlot];
@@ -471,10 +502,11 @@ Window_DeploymentTwin.prototype.update = function() {
 };
 
 Window_DeploymentTwin.prototype.validateTwinSlot = function(sourceActorId, sourceSelection, targetActorId, targetSelection) {
+	var _this = this;
 	if(!this.isTwinMode()){
 		return true;
 	}
-	var deployList = $gameSystem.getDeployList();
+	var deployList = _this.getDeployList()
 	
 	var targetSlot = Math.floor(targetSelection / 2);
 	var sourceSlot = Math.floor(sourceSelection / 2);
@@ -533,9 +565,10 @@ Window_DeploymentTwin.prototype.onMenu = function(){
 }
 
 Window_DeploymentTwin.prototype.updateDeployInfo = function(deployInfo) {
+	var _this = this;
 	//$gameSystem.setDeployInfo(deployInfo);
 	//this._slotLookup = null;
-	var deployList = $gameSystem.getDeployList();
+	var deployList = _this.getDeployList()
 	for(var i = 0; i < deployList.length; i++){
 		if(deployList[i] && !deployList[i].main && deployList[i].sub){
 			deployList[i].main = deployList[i].sub;
@@ -573,7 +606,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	var windowNode = this.getWindowNode();
 	var deployInfo = $gameSystem.getDeployInfo();
 	var slotLookup = _this.getSlotLookup();
-	var deployList = $gameSystem.getDeployList();
+	var deployList = _this.getDeployList()
 	var deployedContent = "";
 	
 	function createTwinEntry(actorId, subActorId, slot, idx){
@@ -722,7 +755,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		}
 		
 		var deploySlot = null;
-		if(i < deployInfo.count){
+		if(i < _this.getDeployCount(0)){
 			deploySlot = i;
 		}
 		if(deployList[i]){
@@ -737,7 +770,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	_this._availableList.innerHTML = availableContent;
 	
 	
-	_this._availableListLabel.innerHTML = deployInfo.count + " " + APPSTRINGS.DEPLOYMENT.label_will_deploy;
+	_this._availableListLabel.innerHTML = _this.getDeployCount(0) + " " + APPSTRINGS.DEPLOYMENT.label_will_deploy;
 	
 	var actorId;
 	var activeElem = _this._availableList.querySelector(".focus");

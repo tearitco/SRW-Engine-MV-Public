@@ -56,9 +56,15 @@ Window_DeploymentInStage.prototype.onCancel = function() {
 }
 
 Window_DeploymentInStage.prototype.onMenu = function(){
-	Input.clear();
+	Input.clear();	
 	var deployInfo = $gameSystem.getDeployInfo();
-	var deployList = $gameSystem.getDeployList();
+	var deployList;
+	if($gameTemp.deployMode != "ships"){
+		deployList = $gameSystem.getDeployList();
+	} else {
+		deployList = $gameSystem.getShipDeployList();
+	}
+
 	//$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()))
 	var hasDeployments = false;
 	var activeDeployList = [];
@@ -68,10 +74,21 @@ Window_DeploymentInStage.prototype.onMenu = function(){
 			hasDeployments = true;
 		}
 	}
-	if(hasDeployments){
-		$gameSystem.setActiveDeployList(activeDeployList);
-		$gameSystem.setSubBattlePhase("rearrange_deploys_init");
-		$gameSystem.highlightDeployTiles();
-		$gameSystem.redeployActors(false);
-	}	
+	if(hasDeployments){		
+		if($gameTemp.deployMode != "ships"){
+			$gameSystem.setActiveDeployList(activeDeployList);
+			$gameSystem.setSubBattlePhase("rearrange_deploys_init");
+			$gameSystem.highlightDeployTiles();
+			$gameSystem.redeployActors(false);
+		} else {			
+			$gameSystem.setActiveShipDeployList(activeDeployList);
+			$gameTemp.popMenu = true;
+			$gameSystem.deployShips(true);
+			
+			$gameMap._interpreter.setWaitMode("enemy_appear");
+			$gameTemp.enemyAppearQueueIsProcessing = true;
+			$gameTemp.unitAppearTimer = 0;		
+		}			
+	}
+			
 }
