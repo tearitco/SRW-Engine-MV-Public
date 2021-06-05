@@ -5176,10 +5176,11 @@ var $battleSceneManager = new BattleSceneManager();
 									if($gameTemp.isPostMove){
 										$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
 										$gameSystem.setSubBattlePhase('post_move_command_window');
+										$gameTemp.hasTwinned = true;	
 									} else {
 										$gameSystem.setSubBattlePhase('normal');
 									}								
-									$gameTemp.hasTwinned = true;	
+									
 									$gameSystem.highlightedActionTiles = [];
 									$gameSystem.highlightsRefreshed = true;
 								}
@@ -5559,8 +5560,7 @@ var $battleSceneManager = new BattleSceneManager();
 					this._pendingMoveToPoint = false;
 					$gameTemp.followMove = false;
 					$gameSystem.setSrpgWaitMoving(false);
-					$statCalc.invalidateAbilityCache();
-					$statCalc.clearTwinPositionInfo(battlerArray[1]);
+					$statCalc.invalidateAbilityCache();					
 				} else {				
 					this.setMoveSpeed(6);
 					if(followMove){
@@ -5604,7 +5604,6 @@ var $battleSceneManager = new BattleSceneManager();
 						$gameTemp.followMove = false;
 						$gameSystem.setSrpgWaitMoving(false);
 						$statCalc.invalidateAbilityCache();
-						$statCalc.clearTwinPositionInfo(battlerArray[1]);
 					}	
 				}
 			}
@@ -12866,6 +12865,7 @@ SceneManager.reloadCharacters = function(startEvent){
     Scene_Map.prototype.commandWait = function() {
 		$gameTemp.isPostMove = true;
 		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		$statCalc.clearTwinPositionInfo(actor);
 		actor.onAllActionsEnd();
 		this.srpgAfterAction();		       
     };
