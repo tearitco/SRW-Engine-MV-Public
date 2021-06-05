@@ -64,7 +64,7 @@ Window_DeploymentInStage.prototype.onMenu = function(){
 	var activeDeployList = [];
 	for(var i = 0; i < deployInfo.count; i++){
 		activeDeployList.push(deployList[i]);
-		if(deployList[i] && (deployList[i].main != null || deployList[i].sub != null)){
+		if(deployList[i] && deployList[i].main != null){
 			hasDeployments = true;
 		}
 	}
