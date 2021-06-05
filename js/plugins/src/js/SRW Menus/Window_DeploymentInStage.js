@@ -60,14 +60,18 @@ Window_DeploymentInStage.prototype.onMenu = function(){
 	var deployInfo = $gameSystem.getDeployInfo();
 	var deployList = $gameSystem.getDeployList();
 	//$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()))
+	var hasDeployments = false;
 	var activeDeployList = [];
 	for(var i = 0; i < deployInfo.count; i++){
 		activeDeployList.push(deployList[i]);
+		if(deployList[i] && (deployList[i].main != null || deployList[i].sub != null)){
+			hasDeployments = true;
+		}
 	}
-	$gameSystem.setActiveDeployList(activeDeployList);
-	$gameSystem.setSubBattlePhase("rearrange_deploys_init");
-	//$gameTemp.doingManualDeploy = false;
-	$gameSystem.highlightDeployTiles();
-	$gameSystem.redeployActors(false);
-	//$gameTemp.popMenu = true;
+	if(hasDeployments){
+		$gameSystem.setActiveDeployList(activeDeployList);
+		$gameSystem.setSubBattlePhase("rearrange_deploys_init");
+		$gameSystem.highlightDeployTiles();
+		$gameSystem.redeployActors(false);
+	}	
 }
