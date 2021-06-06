@@ -59,16 +59,19 @@ Window_DeploymentInStage.prototype.onMenu = function(){
 	Input.clear();	
 	var deployInfo = $gameSystem.getDeployInfo();
 	var deployList;
+	var count;
 	if($gameTemp.deployMode != "ships"){
 		deployList = $gameSystem.getDeployList();
+		count = deployInfo.count;
 	} else {
 		deployList = $gameSystem.getShipDeployList();
+		count = deployInfo.shipCount;
 	}
 
 	//$gameTemp.originalDeployInfo = JSON.parse(JSON.stringify($gameSystem.getDeployList()))
 	var hasDeployments = false;
 	var activeDeployList = [];
-	for(var i = 0; i < deployInfo.count; i++){
+	for(var i = 0; i < count; i++){
 		activeDeployList.push(deployList[i]);
 		if(deployList[i] && deployList[i].main != null){
 			hasDeployments = true;
@@ -89,6 +92,8 @@ Window_DeploymentInStage.prototype.onMenu = function(){
 			$gameTemp.enemyAppearQueueIsProcessing = true;
 			$gameTemp.unitAppearTimer = 0;		
 		}			
+	} else {
+		SoundManager.playBuzzer();
 	}
 			
 }
