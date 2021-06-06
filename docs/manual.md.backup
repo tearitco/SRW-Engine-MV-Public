@@ -679,6 +679,7 @@ this.addDefinition(
 
 
 
+
 				!activeSpirits.alert ||
 				!activeSpirits.valor ||
 				!activeSpirits.spirit ||
@@ -1231,6 +1232,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 
 	Highlight all tiles on the map that are within the specified region.<br>
 	Color can be a string name, ex.: "white"	
+
 	
 * removeMapRegionHighlight
 
@@ -1581,6 +1583,7 @@ They can also be used as conditionals in IF statements.
 
 	To be used as a conditional in the before_destruction event.<br>
 	Will be TRUE if the event with the specified id was defeated and is about to be destroyed.	
+
 	
 * this.isActorBelowHP(actor\_id)
 
@@ -1659,9 +1662,10 @@ A setting can be left blank by entering "" as its value.
 	Erases all units that are currently in the queue with their disappear animation.<br>
 	Event processing will automatically wait for all units to disappear before continuing execution.
 	
-* this.manualDeploy()
+* this.manualDeploy(unlockedOnly)
 
 	Shows the deployment selection window and lets the player select deployment positions. Event processing will automatically wait for all units to be spawned before continuing execution.
+If unlockedOnly is set to true only units in unlocked slots will be deployed. Units in locked slots will not show up on the map when rearranging but their slots are still visible but marked as locked.
 
 * this.manualShipDeploy()
 

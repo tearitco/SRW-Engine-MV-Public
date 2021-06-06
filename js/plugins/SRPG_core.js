@@ -621,11 +621,15 @@ var $battleSceneManager = new BattleSceneManager();
 				activeDeployList.push(deployList[i]);
 			}
 			$gameSystem.setActiveDeployList(activeDeployList);
-			$gameSystem.deployActors(args[0]);
+			$gameSystem.deployActors(args[0], "all");
 		}
 		
 		if (command === 'deployAllLocked') {
-			$gameSystem.deployActors(args[0], true);
+			$gameSystem.deployActors(args[0], "locked");
+		}
+		
+		if (command === 'deployAllUnLocked') {
+			$gameSystem.deployActors(args[0], "unlocked");
 		}
 		
 		if (command === 'deployActor') {
@@ -2137,7 +2141,7 @@ var $battleSceneManager = new BattleSceneManager();
 				event.isDeployed = false;
 			}
 		 });
-		 this.deployActors(false, false, validatePositions);
+		 this.deployActors(false, $gameTemp.manualDeployType, validatePositions);
 	}
 	
 	Game_System.prototype.redeployActor = function(actorId, toAnimQueue){  
@@ -2159,6 +2163,9 @@ var $battleSceneManager = new BattleSceneManager();
 	
 	Game_System.prototype.deployActors = function(toAnimQueue, lockedOnly, validatePositions) {
 		var _this = this;
+		if(lockedOnly == null){
+			lockedOnly = "all";
+		}
 		var deployInfo = _this.getDeployInfo();
 		var deployList = _this.getActiveDeployList();
 		var i = 0;
@@ -2167,7 +2174,7 @@ var $battleSceneManager = new BattleSceneManager();
               	var actor_unit;
 				var entry = deployList[i] || {};
 				var actorId =entry.main;		
-				if((!lockedOnly || deployInfo.lockedSlots[i])){
+				if(lockedOnly == "all" || (lockedOnly == "locked" && deployInfo.lockedSlots[i]) || (lockedOnly == "unlocked" && !deployInfo.lockedSlots[i])){
 					if(typeof actorId != "undefined"){
 						actor_unit = $gameActors.actor(actorId);
 					}				
@@ -6471,9 +6478,10 @@ Game_Interpreter.prototype.processDisappearQueue = function(){
 	$gameTemp.unitAppearTimer = 0;
 }
 
-Game_Interpreter.prototype.manualDeploy = function(){
+Game_Interpreter.prototype.manualDeploy = function(unlockedOnly){
 	this.setWaitMode("manual_deploy");
 	$gameTemp.deployMode = "";
+	$gameTemp.manualDeployType = unlockedOnly ? "unlocked" : "all";
 	$gameTemp.doingManualDeploy = true;
 	$gameTemp.disableHighlightGlow = true;
 	$gameSystem.setSubBattlePhase("deploy_selection_window");
@@ -11521,7 +11529,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				$gameTemp.doingManualDeploy = false;
 				$gameTemp.disableHighlightGlow = false;
 				$gameSystem.undeployActors();
-				$gameSystem.deployActors(true, false, true);
+				$gameSystem.deployActors(true, $gameTemp.manualDeployType, true);
 				$gameSystem.setSubBattlePhase("start_srpg");
 				
 				$gameMap._interpreter.setWaitMode("enemy_appear");

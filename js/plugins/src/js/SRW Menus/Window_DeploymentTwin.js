@@ -68,6 +68,15 @@ Window_DeploymentTwin.prototype.getDeployCount = function(list){
 	}
 }
 
+Window_DeploymentTwin.prototype.getLockedSlots = function(){
+	var deployInfo = $gameSystem.getDeployInfo();
+	if($gameTemp.deployMode == "ships"){
+		return deployInfo.lockedShipSlots;
+	} else {
+		return deployInfo.lockedSlots;
+	}
+}
+
 Window_DeploymentTwin.prototype.resetSelection = function(){
 	this._currentSelection = 0;
 	this._currentPage = 0;
@@ -420,7 +429,7 @@ Window_DeploymentTwin.prototype.update = function() {
 			var placed = false;
 			var i = 0;
 			while(i < deployList.length && !placed){
-				if(!deployInfo.lockedSlots[i]  && (!deployList[i] || (!deployList[i].main && !deployList[i].sub))){
+				if(!_this.getLockedSlots()[i]  && (!deployList[i] || (!deployList[i].main && !deployList[i].sub))){
 					placed = true;
 					deployList[i] = movedEntry;
 				}
@@ -447,10 +456,10 @@ Window_DeploymentTwin.prototype.update = function() {
 					deployList[targetSlot] = null;
 					var i = targetSlot - 1;
 					while(i >= 0){
-						if(!deployInfo.lockedSlots[i]){
+						if(!_this.getLockedSlots()[i]){
 							var target = i;
 							var newIdx = i + 1;
-							while(newIdx < deployList.length && deployInfo.lockedSlots[newIdx]){
+							while(newIdx < deployList.length && _this.getLockedSlots()[newIdx]){
 								newIdx++;
 							}
 							if(newIdx >= 0 && newIdx < deployList.length){
@@ -479,10 +488,10 @@ Window_DeploymentTwin.prototype.update = function() {
 					deployList[targetSlot] = null;
 					var i = targetSlot + 1;
 					while(i < deployList.length){
-						if(!deployInfo.lockedSlots[i]){
+						if(!_this.getLockedSlots()[i]){
 							var target = i;
 							var newIdx = i - 1;
-							while(newIdx > 0 && deployInfo.lockedSlots[newIdx]){
+							while(newIdx > 0 && _this.getLockedSlots()[newIdx]){
 								newIdx--;
 							}
 							if(newIdx >= 0 && newIdx < deployList.length){
@@ -646,11 +655,11 @@ Window_DeploymentTwin.prototype.redraw = function() {
 			displayClassFocus = "focus";						
 		}
 		
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(deployInfo.lockedSlots[slot] ? "locked" : "")+" "+(!_this.isTwinMode() ? "single" : "")+"'>"
+		content+="<div data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(_this.getLockedSlots()[slot] ? "locked" : "")+" "+(!_this.isTwinMode() ? "single" : "")+"'>"
 		if(listedUnits[actorId]){
 			actorId = null;
 		}
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+" "+displayClassValid+" "+displayClassFocus+" main'>"
+		content+="<div data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+" "+displayClassValid+" "+displayClassFocus+" main'>"
 		//var actorId = deployInfo.assigned[i];
 		if(actorId != null && !listedUnits[actorId] && $statCalc.isValidForDeploy($gameActors.actor(actorId))){
 			listedUnits[actorId] = true;
@@ -698,7 +707,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		if(listedUnits[subActorId]){
 			subActorId = null;
 		}
-		content+="<div data-islocked='"+(deployInfo.lockedSlots[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+" "+displayClassValid+"  "+displayClassFocus+" sub'>"
+		content+="<div data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+" "+displayClassValid+"  "+displayClassFocus+" sub'>"
 		//var actorId = deployInfo.assignedSub[i];
 		if(subActorId != null && !listedUnits[subActorId] && $statCalc.isValidForDeploy($gameActors.actor(subActorId))){
 			listedUnits[subActorId] = true;
@@ -707,7 +716,7 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		}
 		content+="</div>";	 
 		
-		if(slot != null && deployInfo.lockedSlots[slot]){				
+		if(slot != null && _this.getLockedSlots()[slot]){				
 			content+="<img class='locked_icon' src='svg/padlock.svg'/>";
 		}	
 		
