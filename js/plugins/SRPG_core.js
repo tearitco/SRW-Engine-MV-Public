@@ -5514,6 +5514,7 @@ var $battleSceneManager = new BattleSceneManager();
 		var endNode = graph.grid[this._targetPosition.x][this._targetPosition.y];
 		
 		var path = astar.search(graph, startNode, endNode);
+		$gamePlayer.followedEvent = this;
 		this._pathToCurrentTarget = path;	
 	}
     //移動ルートを設定する
@@ -5562,6 +5563,7 @@ var $battleSceneManager = new BattleSceneManager();
 						$gamePlayer.locate(targetPosition.x, targetPosition.y);
 					}
 					$gamePlayer.clearFollowSpeed();
+					$gamePlayer.followedEvent = null;
 					this._targetPosition = null;
 					this._pathToCurrentTarget = null;
 					this._pendingMoveToPoint = false;
@@ -5609,6 +5611,7 @@ var $battleSceneManager = new BattleSceneManager();
 						this._pathToCurrentTarget = null;
 						this._pendingMoveToPoint = false;
 						$gameTemp.followMove = false;
+						$gamePlayer.followedEvent = null;
 						$gameSystem.setSrpgWaitMoving(false);
 						$statCalc.invalidateAbilityCache();
 					}	
@@ -7304,7 +7307,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 //====================================================================
 // ●Sprite_Character
 //====================================================================
-
+	
 	
 	Game_CharacterBase.prototype.characterIndex = function() {
 		var filename = this.characterName();
@@ -7313,6 +7316,93 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			 index = $gameSystem.characterIdexAliases[filename];
 		}
 		return index;
+	};
+	
+	Game_CharacterBase.prototype.moveStraight = function(d) {
+    this.setMovementSuccess(this.canPass(this._x, this._y, d));
+    if (this.isMovementSucceeded()) {
+        this.setDirection(d);
+		this._prevX = this._x;
+        this._prevY = this._y;
+        this._x = $gameMap.roundXWithDirection(this._x, d);
+        this._y = $gameMap.roundYWithDirection(this._y, d);
+        this._realX = $gameMap.xWithDirection(this._x, this.reverseDir(d));
+        this._realY = $gameMap.yWithDirection(this._y, this.reverseDir(d));
+        this.increaseSteps();
+    } else {
+        this.setDirection(d);
+        this.checkEventTriggerTouchFront(d);
+    }
+};
+	
+	function Sprite_Player() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Sprite_Player.prototype = Object.create(Sprite_Character.prototype);
+    Sprite_Player.prototype.constructor = Sprite_Player;
+	
+	Sprite_Player.prototype.updatePosition = function() {
+		this.x = this._character.screenX();
+		this.y = this._character.screenY();
+		this.z = this._character.screenZ();
+		if(this._character.isMoving()){
+			console.log("test");
+		}
+		
+		if($gamePlayer.followedEvent){			
+			this.y = this.y + ($gamePlayer.followedEvent._floatOffset);		
+		} else {
+			var prevUnit = $statCalc.activeUnitAtPosition({x: this._character._prevX, y: this._character._prevY});
+			var prevHoverState = prevUnit && $statCalc.isFlying(prevUnit);
+			var newUnit = $statCalc.activeUnitAtPosition({x: this._character._x, y: this._character._y});
+			var newHoverState = newUnit && $statCalc.isFlying(newUnit);
+			if(prevHoverState == newHoverState){
+				if(prevHoverState){
+					this.y = this.y + (newUnit.event._floatOffset);
+				}			
+			} else if(prevHoverState || newHoverState){
+				var floatOffset = 0;
+				if(prevHoverState && prevUnit){
+					floatOffset = prevUnit.event._floatOffset;
+				}
+				if(newHoverState && newUnit){
+					floatOffset = newUnit.event._floatOffset;
+				}
+				var delta = 0;
+				if(this._character._x != this._character._realX || this._character._y != this._character._realY){				
+					if(this._character._x != this._character._realX){
+						delta = Math.abs(this._character._x - this._character._realX);
+					} else if(this._character._y != this._character._realY){
+						delta = Math.abs(this._character._y - this._character._realY);
+					}				
+				}
+				var ratio;
+				if(newHoverState){
+					ratio = 1 - delta;
+				} else {
+					ratio = 0 + delta;
+				}
+				this.y = this.y + (floatOffset * ratio);
+			}
+		}
+				
+		
+		
+		/*
+		if(this._upperBody && this._lowerBody){
+			this._upperBody.x = this.x;
+			this._upperBody.y = this.y;
+			this._upperBody.z = this.z + 1;
+			
+			this._lowerBody.x = this.x;
+			this._lowerBody.y = this.y + 24;
+			this._lowerBody.z = this.z;
+			
+			this._turnEndSprite.x = this.x - 20;
+			this._turnEndSprite.y = this.y - this._character._floatOffset;
+			this._turnEndSprite.z = this.z + 2;
+		}*/
 	};
 	
 	//Character sprites are split into two a bottom and top part to improve overlap for units whose map icon goes outside their current tiles.
@@ -8607,7 +8697,7 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 		this._baseSprite.addChild(this._upperTilemap);
 		
-		this.addCharacterToBaseSprite(new Sprite_Character($gamePlayer));   	
+		this.addCharacterToBaseSprite(new Sprite_Player($gamePlayer));   	
 		
 		this.createPictures();
 		this.createTimer();
@@ -13606,7 +13696,7 @@ SceneManager.reloadCharacters = function(startEvent){
         		
 		$gameTemp.setActiveEvent(event);
 		$gameSystem.setSubBattlePhase('enemy_move');
-		$gameTemp.AIWaitTimer = 45;
+		$gameTemp.AIWaitTimer = 25;
 		$gamePlayer.locate(event.posX(), event.posY());			
       
     };
