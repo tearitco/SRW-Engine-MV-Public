@@ -643,7 +643,7 @@ var $battleSceneManager = new BattleSceneManager();
 					type = "actor";
 				}
 				event.setType(type);
-				$gameSystem.deployActor(actor_unit, event, args[2] * 1);
+				$gameSystem.deployActor(actor_unit, event, args[2] * 1, args[3]);
 			}			
 		}
 		
@@ -667,7 +667,7 @@ var $battleSceneManager = new BattleSceneManager();
 				ctr++;
 			}
 			if(actor_unit && eventId != -1){
-				$gameSystem.deployActor(actor_unit, $gameMap.event(eventId), args[1]);
+				$gameSystem.deployActor(actor_unit, $gameMap.event(eventId), args[1], deployInfo.assignedSub[slot]);
 			}			
 		}
 		
