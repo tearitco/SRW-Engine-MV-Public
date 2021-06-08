@@ -1243,7 +1243,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 	
 * addPersuadeOption actor\_id event\_id var\_id
 
-	Adds the option to use the persuade command for the actor with the specified id when they are adjacent tot the 	specified event. After using the persuade option the Control Variable with the specified id will be set to 1,  	which can then be checked for in the afterAction event to implement the conversation.	
+	Adds the option to use the persuade command for the actor with the specified id when they are adjacent to the 	specified event. After using the persuade option the Control Variable with the specified id will be set to 1,  	which can then be checked for in the afterAction event to implement the conversation.	
 
 * removePersuadeOption actor\_id event\_id
 
@@ -1800,6 +1800,10 @@ If unlockedOnly is set to true only units in unlocked slots will be deployed. Un
 
 	Can be used as a conditional to check if the event with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
 	
+* this.runSubEvent(function\_id)
+
+	Immediately run the specified event, the rest of the current event will be executed after the sub event finishes. <br>function\_id is **not** an event id.<br> Events that are run as sub events should have metadata tags like: \<type:function\>\<id:test\><br>
+function\_id refers to the value of the id tag.<br>
 		
 ## Battle Text Editor
 
