@@ -6656,6 +6656,59 @@ Game_Interpreter.prototype.isEventHitBy = function(eventId, weaponId, includeSup
 	return result;
 }
 
+Game_Interpreter.prototype.isActorInBattle = function(actorId) {
+	var result = false;
+	if($gameTemp.currentBattleActor && $gameTemp.currentBattleActor.isActor()){
+		if($gameTemp.currentBattleActor.actorId() == actorId){
+			result = true;
+		}		
+		if($gameTemp.currentBattleActor.subTwin && $gameTemp.currentBattleActor.subTwin.actorId() == actorId){
+			result = true;
+		}
+	}
+	if($gameTemp.currentBattleEnemy && $gameTemp.currentBattleEnemy.isActor()){
+		if($gameTemp.currentBattleEnemy.actorId() == actorId){
+			result = true;
+		}
+		if($gameTemp.currentBattleEnemy.subTwin && $gameTemp.currentBattleEnemy.subTwin.actorId() == actorId){
+			result = true;
+		}
+	}
+	return result;
+}
+
+Game_Interpreter.prototype.isEnemyInBattle = function(enemyId) {
+	var result = false;
+	if($gameTemp.currentBattleActor && $gameTemp.currentBattleActor.isEnemy()){
+		if($gameTemp.currentBattleActor.enemyId() == enemyId){
+			result = true;
+		}		
+		if($gameTemp.currentBattleActor.subTwin && $gameTemp.currentBattleActor.subTwin.enemyId() == enemyId){
+			result = true;
+		}
+	}
+	if($gameTemp.currentBattleEnemy && $gameTemp.currentBattleEnemy.isEnemy()){
+		if($gameTemp.currentBattleEnemy.enemyId() == enemyId){
+			result = true;
+		}
+		if($gameTemp.currentBattleEnemy.subTwin && $gameTemp.currentBattleEnemy.subTwin.enemyId() == enemyId){
+			result = true;
+		}
+	}
+	return result;
+}
+
+Game_Interpreter.prototype.isEventInBattle = function(eventId) {
+	var result = false;
+	if($gameTemp.currentBattleActor && $gameTemp.currentBattleActor.event && $gameTemp.currentBattleActor.event.eventId() == eventId){
+		result = true;
+	}
+	if($gameTemp.currentBattleEnemy && $gameTemp.currentBattleEnemy.event && $gameTemp.currentBattleEnemy.event.eventId() == eventId){
+		result = true;
+		
+	}
+	return result;
+}
 
 /**************************************
 Sample:
@@ -7346,9 +7399,6 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.x = this._character.screenX();
 		this.y = this._character.screenY();
 		this.z = this._character.screenZ();
-		if(this._character.isMoving()){
-			console.log("test");
-		}
 		
 		if($gamePlayer.followedEvent){			
 			this.y = this.y + ($gamePlayer.followedEvent._floatOffset);		

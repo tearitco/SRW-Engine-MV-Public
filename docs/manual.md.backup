@@ -681,6 +681,7 @@ this.addDefinition(
 
 
 
+
 				!activeSpirits.alert ||
 				!activeSpirits.valor ||
 				!activeSpirits.spirit ||
@@ -1080,8 +1081,8 @@ The first two pages of Control Variables are reserved for specific functions in 
 * 0010 - SR Count: The total SR points earned by the player. This needs to be updated manually by the stage script when the player completes a mastery condition
 * 0011 - Last stage ID: The ID of the previous stage.
 * 0012 - Turn Count(Global): The total number of turns the player has taken across all stages
-* 0013 - Actor ID: The actor ID of the current active actor
-* 0014 - Enemy ID: The enemy ID of the current active enemy
+* 0013 - Actor ID: The actor ID of the current active actor. **When using the twin system the isActorInBattle or isEventInBattle command must be used instead!**
+* 0014 - Enemy ID: The enemy ID of the current active enemy **When using the twin system the isEnemyInBattle or isEventInBattle command must be used instead!**
 * 0015 - Actors Destroyed: The number of allies that were destroyed on the current stage
 * 0016 - Enemies Destroyed: The number of  
 * 0017 - Mastery Condition Text
@@ -1399,6 +1400,7 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 	
 
 * setSkyBattleEnv env\_id
+
 
 	Set the sky battle environment for the stage to the specified environment id.
 	
@@ -1786,6 +1788,19 @@ If unlockedOnly is set to true only units in unlocked slots will be deployed. Un
 
 	Can be used as conditional to check if the event with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.	
 	
+* isActorInBattle(actor\_id)
+
+	Can be used as conditional to check if the actor with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!
+	
+* isEnemyInBattle(enemy\_id)
+
+	Can be used as conditional to check if the enemy with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
+	
+* isEventInBattle(event\_id)
+
+	Can be used as conditional to check if the event with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
+	
+		
 ## Battle Text Editor
 
 [Link](battle_text_editor.md)
