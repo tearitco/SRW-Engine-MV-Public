@@ -1775,28 +1775,28 @@ If unlockedOnly is set to true only units in unlocked slots will be deployed. Un
 
 	Apply spirits effects to the actor unit with the specified id. Ids are provided as an array, ex.: \[1,4,5\]. The animation for the spirits will play automatically.
 
-* isActorHitBy(actor\_id, weapon\_id, include\_support)
+* this.isActorHitBy(actor\_id, weapon\_id, include\_support)
 
 
 	Can be used as a conditional to check if the actor with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.
 	
-* isEnemyHitBy(enemy\_id, weapon\_id, include\_support)
+* this.isEnemyHitBy(enemy\_id, weapon\_id, include\_support)
 
 	Can be used as a conditional to check if the enemy with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.	
 
-* isEventHitBy(event\_id, weapon\_id, include\_support)
+* this.isEventHitBy(event\_id, weapon\_id, include\_support)
 
 	Can be used as conditional to check if the event with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.	
 	
-* isActorInBattle(actor\_id)
+* this.isActorInBattle(actor\_id)
 
 	Can be used as a conditional to check if the actor with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!
 	
-* isEnemyInBattle(enemy\_id)
+* this.isEnemyInBattle(enemy\_id)
 
 	Can be used as a conditional to check if the enemy with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
 	
-* isEventInBattle(event\_id)
+* this.isEventInBattle(event\_id)
 
 	Can be used as a conditional to check if the event with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
 	
