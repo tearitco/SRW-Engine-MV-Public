@@ -1778,11 +1778,11 @@ If unlockedOnly is set to true only units in unlocked slots will be deployed. Un
 * isActorHitBy(actor\_id, weapon\_id, include\_support)
 
 
-	Can be used as conditional to check if the actor with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.
+	Can be used as a conditional to check if the actor with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.
 	
 * isEnemyHitBy(enemy\_id, weapon\_id, include\_support)
 
-	Can be used as conditional to check if the enemy with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.	
+	Can be used as a conditional to check if the enemy with the specified id was hit by the specified weapon during the last battle. If include\_support is true support attacks will also be checked.	
 
 * isEventHitBy(event\_id, weapon\_id, include\_support)
 
@@ -1790,15 +1790,15 @@ If unlockedOnly is set to true only units in unlocked slots will be deployed. Un
 	
 * isActorInBattle(actor\_id)
 
-	Can be used as conditional to check if the actor with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!
+	Can be used as a conditional to check if the actor with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!
 	
 * isEnemyInBattle(enemy\_id)
 
-	Can be used as conditional to check if the enemy with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
+	Can be used as a conditional to check if the enemy with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
 	
 * isEventInBattle(event\_id)
 
-	Can be used as conditional to check if the event with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
+	Can be used as a conditional to check if the event with the specified id is taking part in a battle. This function must be used instead of the game variable for proper results when using the twin system!	
 	
 		
 ## Battle Text Editor
