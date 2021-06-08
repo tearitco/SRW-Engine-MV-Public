@@ -1802,8 +1802,8 @@ If unlockedOnly is set to true only units in unlocked slots will be deployed. Un
 	
 * this.runSubEvent(function\_id)
 
-	Immediately run the specified event, the rest of the current event will be executed after the sub event finishes. <br>function\_id is **not** an event id.<br> Events that are run as sub events should have metadata tags like: \<type:function\>\<id:test\><br>
-function\_id refers to the value of the id tag.<br>
+	Immediately run the specified event, the rest of the current event will be executed after the sub event finishes. <br>function\_id is **not** an event id.<br> Events that are run as sub events should have metadata tags like: \<function:test\><br>
+function\_id refers to the value of the function tag.<br>
 		
 ## Battle Text Editor
 

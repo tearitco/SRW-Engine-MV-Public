@@ -7351,7 +7351,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	
 	Game_Interpreter.prototype.runSubEvent = function(id) {
         $gameMap.events().forEach(function(event) {
-            if (event.isType() === 'function' && event.event().meta.id == id) {
+            if (event.event().meta.function == id) {
 				if (event.pageIndex() >= 0){
 					$gameMap._interpreter.insertSubEvent(event.list());
 				}				
