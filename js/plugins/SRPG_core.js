@@ -5786,10 +5786,6 @@ var $battleSceneManager = new BattleSceneManager();
 //====================================================================
 // イベントＩＤをもとに、ユニット間の距離をとる
 
-Game_Interpreter.prototype.insertSubEvent = function(list){
-	this._list.splice(this._index + 1, 0, ...list);
-}
-
 // Script
 Game_Interpreter.prototype.command355 = function() {
     var script = this.currentCommand().parameters[0] + '\n';
@@ -7353,7 +7349,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         $gameMap.events().forEach(function(event) {
             if (event.event().meta.function == id) {
 				if (event.pageIndex() >= 0){
-					$gameMap._interpreter.insertSubEvent(event.list());
+					$gameMap._interpreter.setupChild(event.list(), 0);
 				}				
             }
         });
