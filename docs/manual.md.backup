@@ -682,6 +682,7 @@ this.addDefinition(
 
 
 
+
 				!activeSpirits.alert ||
 				!activeSpirits.valor ||
 				!activeSpirits.spirit ||
@@ -1173,6 +1174,7 @@ Page 4 and 5 of the Control Variables have been made reserved for specific funct
 * focusEvent event\_id
 
 	If an event with the specified id exists on the map the cursor will be set to its position.<br>
+
 	If the matching actor does not exist or the actor was erased, nothing happens.<br>
 	This command should be used to focus enemies, as those enemy ids will usually not be unique on the map!
 	
@@ -1432,6 +1434,9 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 * setEventCounterAction event\_id type
 
 	Sets the counter action of the unit for the specified event to the provided type. Possible values are: "attack", "defend", "evade", "defend\_low", "evade\_low" and "survive". The defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking.	
+	
+* setEventAttackAction event\_id type
+	If set to "none" the unit will never initiate an attack on their turn.
 
 * setEventBattleMode event\_id type
 
@@ -1616,31 +1621,30 @@ They can also be used as conditionals in IF statements.
 	To be used in the before_destruction event.<br>
 	This can be used for bosses that run away when destroyed etc.
 
-* this.addEnemy(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior)
+* this.addEnemy(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior, attackBehavior)
 
 	Spawn an enemy on the map, the event that will be used must already exist.<br>
 	The following can be set:<br>
-		* toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
-		<br>	
-
-		* eventId: the id number of the event
+	* toAnimQueue: if 1 the enemy will not be spawned right away, but stored until the processEnemyAppearQueue command is called. If 0 the enemy appears instantly.
+	* eventId: the id number of the event
 		<br>
-		* enemyId: the id number of the enemy pilot 
+	* enemyId: the id number of the enemy pilot 
 		<br>
-		* mechClass: the id number of the mech/class for the enemy
+	* mechClass: the id number of the mech/class for the enemy
 		<br>
-		* level
+	* level
 		<br>
-		* mode: "stand" for stationary enemies that start moving once provoked, "fixed" for enemies that will never move but will still attack units in range, "disabled" for units that will never act or counterattack, otherwise ""
+	* mode: "stand" for stationary enemies that start moving once provoked, "fixed" for enemies that will never move but will still attack units in range, "disabled" for units that will never act or counterattack, otherwise ""
 		<br>
-		* targetId: the actor id of the actor this enemy should prioritize
+	* targetId: the actor id of the actor this enemy should prioritize
 		<br>
-		* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
+	* items: an array with the id numbers of the items the enemy will hold. Ex.: [10] or [10,11]. The first item in the list will drop from the enemy when it is defeated.
 		<br>
-		* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated <br>
-		* targetRegion: the id of the region that the enemy should move towards<br>	
-		* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
-		* counterBehavior: Determines how an enemy will react to being attack. Possible values are: "attack", "defend", "evade", "defend\_low", "evade\_low" and "survive". defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking. survive causes the unit to defend and evade as appropriate to stay alive as long as possible. 
+	* squadId: all enemies that are assigned the same squad id will be activated if any member of the squad is activated <br>
+	* targetRegion: the id of the region that the enemy should move towards<br>	
+	* factionId: the id of the faction the unit will be assigned to. Factions 0, 1 and 2 are available with faction 0 being the default enemy faction. If omitted units will be assigned to faction 0.	
+	* counterBehavior: Determines how an enemy will react to being attack. Possible values are: "attack", "defend", "evade", "defend\_low", "evade\_low" and "survive". defend\_low and evade\_low will cause the unit to perform the defined action when at or below 25% HP, otherwise they will counter attack. If no value is set the unit will default to counter attacking. survive causes the unit to defend and evade as appropriate to stay alive as long as possible. 
+	* attackBehavior: If set to "none" the unit will never initiate an attack on their turn.
 
 A setting can be left blank by entering "" as its value.	
 	

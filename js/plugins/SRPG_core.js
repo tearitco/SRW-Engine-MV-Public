@@ -947,6 +947,11 @@ var $battleSceneManager = new BattleSceneManager();
 			actor.counterBehavior = args[1];
 		}
 		
+		if (command === 'setEventAttackAction') {	
+			var actor = $gameSystem.EventToUnit(args[0])[1];
+			actor.attackBehavior = args[1];
+		}
+		
 		if (command === 'setEventBattleMode') {	
 			var battlerArray = $gameSystem.EventToUnit(args[0]);
 			if (battlerArray && (battlerArray[0] === 'actor' || battlerArray[0] === 'enemy')) {
@@ -6082,7 +6087,7 @@ Game_Interpreter.prototype.addEnemyFromObj = function(params){
 }
 
 // 新規エネミーを追加する（増援）
-Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior) {
+Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, mechClass, level, mode, targetId, items, squadId, targetRegion, factionId, counterBehavior, attackBehavior) {
     var enemy_unit = new Game_Enemy(enemyId, 0, 0);
     var event = $gameMap.event(eventId);
 	if(typeof squadId == "undefined" || squadId == ""){
@@ -6101,6 +6106,7 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 		enemy_unit.factionId = factionId;	
 		enemy_unit.targetUnitId = targetId || "";
 		enemy_unit.counterBehavior = counterBehavior || "attack";
+		enemy_unit.attackBehavior = attackBehavior || "attack";
 		if (enemy_unit) {
 			enemy_unit.event = event;
 			if (mode) {
@@ -13977,6 +13983,9 @@ SceneManager.reloadCharacters = function(startEvent){
     // 移動力と射程を足した範囲内にいる対象をリストアップする
     Scene_Map.prototype.srpgMakeCanAttackTargets = function(battler, targetType) {        	
 		//var type = battler.isActor() ? "enemy" : "actor";
+		if(battler.attackBehavior == "none"){
+			return [];
+		}
 		var pos = {
 			x: $gameTemp.activeEvent().posX(),
 			y: $gameTemp.activeEvent().posY()
@@ -14010,6 +14019,9 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.srpgMakeCanAttackTargetsWithMove = function(battler, targetType) {        	
 		//var type = battler.isActor() ? "enemy" : "actor";
+		if(battler.attackBehavior == "none"){
+			return [];
+		}
 		var pos = {
 			x: $gameTemp.activeEvent().posX(),
 			y: $gameTemp.activeEvent().posY()
