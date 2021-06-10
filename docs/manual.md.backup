@@ -1341,7 +1341,10 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 * transformActor actor\_id idx
 
 	Transforms the actor with the specified id into the transformation with the specified index. The unit for the actor should be able to transform!
+	
+* transformActorDirect actor\_id mech\_id
 
+	Transforms the unit of the actor with the specified id into the 
 * combineActor actor\_id
 
 	Combine the actor with the specified id. The unit for the actor should be able to combine and the other members of the combination should be deployed for best results.
@@ -1467,7 +1470,7 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 		
 * unlockMechAbility mech\_id ability\_id
 
-* setPilotAbilityUpgrade base\_idx upgraded\_idx
+* setMechAbilityUpgrade base\_idx upgraded\_idx
 
 	Effectively replace the mech ability with base\_idx with the ability with upgraded\_idx
 

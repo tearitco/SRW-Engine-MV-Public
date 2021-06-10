@@ -1687,7 +1687,7 @@ StatCalc.prototype.canTransform = function(actor){
 	return false;
 }
 
-StatCalc.prototype.transform = function(actor, idx, force){
+StatCalc.prototype.transform = function(actor, idx, force, forcedId){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
 		if(idx == null){
 			idx = 0;
@@ -1698,6 +1698,9 @@ StatCalc.prototype.transform = function(actor, idx, force){
 			var previousENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
 			var restoreInfo = actor.SRWStats.mech.transformRestores || {HP: false, EN: false};
 			var transformIntoId = actor.SRWStats.mech.transformsInto[idx];
+			if(forcedId){
+				transformIntoId = forcedId;
+			}
 			
 			if(transformIntoId != null){			
 				var targetMechData = this.getMechDataById(transformIntoId, true);

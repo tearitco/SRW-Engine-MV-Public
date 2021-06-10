@@ -834,14 +834,29 @@ var $battleSceneManager = new BattleSceneManager();
 				var main = $statCalc.getMainTwin(actor);
 				$statCalc.swap(main, true);
 			}*/
-			$statCalc.transform(actor, args[1], true);
+			$statCalc.transform(actor, args[1], true, args[2]);
 			var se = {};
 			se.name = 'SRWTransform';
 			se.pan = 0;
 			se.pitch = 100;
 			se.volume = 80;
 			AudioManager.playSe(se);
-		}	
+		}
+
+		if (command === 'transformActorDirect') {
+			var actor = $gameActors.actor(args[0]);
+			/*if(actor.isSubTwin){
+				var main = $statCalc.getMainTwin(actor);
+				$statCalc.swap(main, true);
+			}*/
+			$statCalc.transform(actor, 0, true, args[1]);
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);
+		}
 
 		if (command === 'combineActor') {
 			var actor = $gameActors.actor(args[0]);
