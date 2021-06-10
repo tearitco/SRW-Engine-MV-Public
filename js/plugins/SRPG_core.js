@@ -277,6 +277,9 @@ var $battleSceneManager = new BattleSceneManager();
             Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         _Game_Interpreter_pluginCommand.call(this, command, args);
+		if (command === 'prepareSRPG') {
+           $gameSystem._SRPGMode = true;
+        }
         if (command === 'SRPGBattle') {
             switch (args[0]) {
             case 'Start':
@@ -3606,21 +3609,27 @@ var $battleSceneManager = new BattleSceneManager();
 		return this._level >= this.maxLevel();
 	};
 	
+	var Game_Actor_initImages = Game_Actor.prototype.initImages;
 	Game_Actor.prototype.initImages = function(overworldSpriteData) {
-		var actor = this.actor();
-		if(!overworldSpriteData){
-			if($dataClasses[actor.classId].meta.srpgOverworld){
-				overworldSpriteData = $dataClasses[actor.classId].meta.srpgOverworld.split(",");
-			} else {
-				overworldSpriteData = [actor.characterName, actor.characterIndex];
+		if($gameSystem.isSRPGMode()){
+			var actor = this.actor();
+			if(!overworldSpriteData){
+				if($dataClasses[actor.classId].meta.srpgOverworld){
+					overworldSpriteData = $dataClasses[actor.classId].meta.srpgOverworld.split(",");
+				} else {
+					overworldSpriteData = [actor.characterName, actor.characterIndex];
+				}
 			}
+					
+			this._characterName = overworldSpriteData[0];
+			this._characterIndex = overworldSpriteData[1];
+			this._faceName = actor.faceName;
+			this._faceIndex = actor.faceIndex;
+			this._battlerName = actor.battlerName;
+		} else {
+			Game_Actor_initImages.call(this);
 		}
-				
-		this._characterName = overworldSpriteData[0];
-		this._characterIndex = overworldSpriteData[1];
-		this._faceName = actor.faceName;
-		this._faceIndex = actor.faceIndex;
-		this._battlerName = actor.battlerName;
+		
 	};
 
     // 装備変更可能か
@@ -5567,14 +5576,17 @@ var $battleSceneManager = new BattleSceneManager();
                 this.appear();
             }
             var page = this.page();
-            var image = page.image;
-            if (image.tileId > 0) {
-                this.setTileImage(image.tileId);
-            } else {
-                this.setImage(image.characterName, image.characterIndex);
-            }
-            this.setDirection(image.direction);
-            this.setPattern(image.pattern);
+			if(page){
+				var image = page.image;
+				if (image.tileId > 0) {
+					this.setTileImage(image.tileId);
+				} else {
+					this.setImage(image.characterName, image.characterIndex);
+				}
+				this.setDirection(image.direction);
+				this.setPattern(image.pattern);
+			}
+            
         }
     };
 	
@@ -8845,7 +8857,9 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 		this._baseSprite.addChild(this._upperTilemap);
 		
-		this.addCharacterToBaseSprite(new Sprite_Player($gamePlayer));   	
+		if($gameSystem.isSRPGMode()){
+			this.addCharacterToBaseSprite(new Sprite_Player($gamePlayer));   
+		}			
 		
 		this.createPictures();
 		this.createTimer();
@@ -8960,7 +8974,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gamePlayer.followers().reverseEach(function(follower) {
 			this._characterSprites.push(new Sprite_Character(follower));
 		}, this);
-		//this._characterSprites.push(new Sprite_Character($gamePlayer));
+		if(!$gameSystem.isSRPGMode()){
+			this.addCharacterToBaseSprite(new Sprite_Player($gamePlayer));   
+		}
 		for (var i = 0; i < this._characterSprites.length; i++) {
 			this.addCharacterToBaseSprite(this._characterSprites[i]);
 		}
