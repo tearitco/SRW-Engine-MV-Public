@@ -336,8 +336,8 @@ Note: Transformation functionality is currently only available for Ally units.
 
 Units can be given the ability to transform into other units.
 
-\<mechTransformsInto:1\>: The id of the mech into which the mech can transform.<br>
-\<mechTransformWill:0\>: The required will for transformation.<br>
+\<mechTransformsInto:\[1,2\]\>: The ids of the mechs into which the mech can transform.<br>
+\<mechTransformWill:\[0,100\]\>: The required will for transformation for each index.<br>
 \<mechTransformRestores:0\> If 1 the mech will recover all HP and EN after transforming. If 0 the old HP and EN will carry over.<br>
 \<mechTransformRestores:1,0\> Optionally this parameter can be defined as two comma separated values. The first value determines if HP will be restored, the second value determines if EN will be restored. In this example only HP will be restored after transforming.<br>
 \<mechTransformedActor:1\> If specified the unit's pilot will be set to the actor with the specified id after transforming.
@@ -1471,9 +1471,9 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 
 	Set the relationship bonus for the pilot specified by other\_pilot\_id to the specified bonus and level when adjacent to the pilot specified by pilot\_id. Note that levels start at 0!
 
-* lockTransformation mech\_id
+* lockTransformation mech\_id index
 
-	Locks the Transform option for the mech with the specified id.
+	Locks the Transform option with the specified index for the mech with the specified id.
 	
 * lockAllTransformations
 
@@ -1481,7 +1481,7 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 		
 * unlockTransformation mech\_id
 
-	Unlocks the Transform option for the mech with the specified id.
+	Unlocks the Transform option with the specified index for the mech with the specified id.
 
 * unlockAllTransformations
 

@@ -998,7 +998,7 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 		
 		if (command === 'lockTransformation') {	
-			$gameSystem.lockTransformation(args[0]);
+			$gameSystem.lockTransformation(args[0], args[1]);
 		}
 		
 		if (command === 'lockAllTransformations') {	
@@ -1006,7 +1006,7 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 		
 		if (command === 'unlockTransformation') {	
-			$gameSystem.unlockTransformation(args[0]);
+			$gameSystem.unlockTransformation(args[0], args[1]);
 		}
 		
 		if (command === 'unlockAllTransformations') {	
@@ -3017,31 +3017,61 @@ var $battleSceneManager = new BattleSceneManager();
 		}
 	}
 	
-	Game_System.prototype.isTransformationLocked = function(mechId) {
+	Game_System.prototype.isTransformationLocked = function(mechId, index) {
 		this.validateTransformationLockInfo();
-		return this.transformationLockInfo[mechId];
+		if(this.transformationLockInfo[mechId]){
+			return this.transformationLockInfo[mechId][index];
+		} else {
+			return false;
+		}		
 	}
 	
-	Game_System.prototype.lockTransformation = function(mechId) {
+	Game_System.prototype.lockTransformation = function(mechId, index) {
 		this.validateTransformationLockInfo();
-		this.transformationLockInfo[mechId] = true;
+		if(!this.transformationLockInfo[mechId]){
+			this.transformationLockInfo[mechId] = {};
+		}
+		this.transformationLockInfo[mechId][index] = true;
 	}
 	
 	Game_System.prototype.lockAllTransformations = function() {
 		this.validateTransformationLockInfo();
-		for(var i = 1; i < $dataActors.length; i++){
-			this.transformationLockInfo[i] = true;
+		for(var i = 1; i < $dataClasses.length; i++){
+			var mechProperties = $dataClasses[i].meta;
+			var transformsInto;
+			transformsInto = mechProperties.mechTransformsInto * 1 || -1;	
+			if(transformsInto == -1 && mechProperties.mechTransformsInto != null){
+				try {
+					transformsInto = JSON.parse(mechProperties.mechTransformsInto);
+				} catch(e){
+									
+				}
+			}
+			
+			if(transformsInto && transformsInto != -1){
+				if(!Array.isArray(transformsInto)){
+					transformsInto = [transformsInto];
+				}			
+			} else {
+				transformsInto = [];
+			}
+			this.transformationLockInfo[i] = {};
+			for(var j = 0; j < transformsInto.length; j++){				
+				this.transformationLockInfo[i][j] = true;
+			}			
 		}	
 	}
 	
-	Game_System.prototype.unlockTransformation = function(mechId) {
+	Game_System.prototype.unlockTransformation = function(mechId, index) {
 		this.validateTransformationLockInfo();
-		delete this.transformationLockInfo[mechId];
+		if(this.transformationLockInfo[mechId]){
+			this.transformationLockInfo[mechId][index] = false;
+		}		
 	}
 	
 	Game_System.prototype.unlockAllTransformations = function() {
 		this.validateTransformationLockInfo();
-		for(var i = 1; i < $dataActors.length; i++){
+		for(var i = 1; i < $dataClasses.length; i++){
 			delete this.transformationLockInfo[i];
 		}	
 	}

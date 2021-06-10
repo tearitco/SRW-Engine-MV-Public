@@ -1310,26 +1310,29 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			result.subPilots = JSON.parse(mechProperties.mechSubPilots);
 		}	
 		
-		var transformsInto;
-		transformsInto = mechProperties.mechTransformsInto * 1 || -1;	
-		if(transformsInto == -1 && mechProperties.mechTransformsInto != null){
-			try {
-				transformsInto = JSON.parse(mechProperties.mechTransformsInto);
-			} catch(e){
-								
+		function compatParse(value){
+			var result;
+			result = value * 1 || -1;	
+			if(result == -1 && value != null){
+				try {
+					result = JSON.parse(value);
+				} catch(e){
+									
+				}
 			}
+			
+			if(result && result != -1){
+				if(!Array.isArray(result)){
+					result = [result];
+				}			
+			} else {
+				result = [];
+			}
+			return result;
 		}
 		
-		if(transformsInto && transformsInto != -1){
-			if(!Array.isArray(transformsInto)){
-				transformsInto = [transformsInto];
-			}			
-		} else {
-			transformsInto = [];
-		}
-		
-		result.transformsInto = transformsInto		
-		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
+		result.transformsInto = compatParse(mechProperties.mechTransformsInto);				
+		result.transformWill = compatParse(mechProperties.mechTransformWill);		
 		result.transformRestores;
 		if(mechProperties.mechTransformRestores){
 			var parts = mechProperties.mechTransformRestores.split(",");
@@ -1665,12 +1668,20 @@ StatCalc.prototype.canTwin = function(actor, otherActor){
 }
 
 StatCalc.prototype.getTransformationList = function(actor){
-	return actor.SRWStats.mech.transformsInto || [];
+	var tmp = actor.SRWStats.mech.transformsInto || [];
+	var result = [];
+	for(var i = 0; i < tmp.length; i++){
+		var willOK = (actor.SRWStats.mech.transformWill[i] || 0) <= this.getCurrentWill(actor);		
+		if(willOK && !$gameSystem.isTransformationLocked(actor.SRWStats.mech.id, i)){
+			result.push(tmp[i]);
+		}
+	}
+	return result;
 }
 
 StatCalc.prototype.canTransform = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		return actor.SRWStats.mech.transformsInto != null && actor.SRWStats.mech.transformsInto.length && !$gameSystem.isTransformationLocked(actor.SRWStats.mech.id) && actor.SRWStats.mech.transformWill <= this.getCurrentWill(actor);
+		return this.getTransformationList(actor).length;
 	} 
 	return false;
 }
