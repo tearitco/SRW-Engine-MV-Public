@@ -1328,7 +1328,7 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 
 * transformEvent event\_id
 
-	Transforms the event with the specified id. The unit for the event should be able to transform!
+	Transforms the event with the specified id into the transformation with the specified index. The unit for the event should be able to transform!
 
 * combineEvent event\_id
 
@@ -1338,9 +1338,9 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 
 	Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
 
-* transformActor actor\_id
+* transformActor actor\_id idx
 
-	Transforms the actor with the specified id. The unit for the actor should be able to transform!
+	Transforms the actor with the specified id into the transformation with the specified index. The unit for the actor should be able to transform!
 
 * combineActor actor\_id
 

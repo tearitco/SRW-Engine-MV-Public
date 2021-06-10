@@ -1310,7 +1310,25 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			result.subPilots = JSON.parse(mechProperties.mechSubPilots);
 		}	
 		
-		result.transformsInto = mechProperties.mechTransformsInto * 1 || null;			
+		var transformsInto;
+		transformsInto = mechProperties.mechTransformsInto * 1 || -1;	
+		if(transformsInto == -1 && mechProperties.mechTransformsInto != null){
+			try {
+				transformsInto = JSON.parse(mechProperties.mechTransformsInto);
+			} catch(e){
+								
+			}
+		}
+		
+		if(transformsInto && transformsInto != -1){
+			if(!Array.isArray(transformsInto)){
+				transformsInto = [transformsInto];
+			}			
+		} else {
+			transformsInto = [];
+		}
+		
+		result.transformsInto = transformsInto		
 		result.transformWill = mechProperties.mechTransformWill * 1 || 0;
 		result.transformRestores;
 		if(mechProperties.mechTransformRestores){
@@ -1646,48 +1664,60 @@ StatCalc.prototype.canTwin = function(actor, otherActor){
 	return result;
 }
 
+StatCalc.prototype.getTransformationList = function(actor){
+	return actor.SRWStats.mech.transformsInto || [];
+}
+
 StatCalc.prototype.canTransform = function(actor){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
-		return actor.SRWStats.mech.transformsInto != null && !$gameSystem.isTransformationLocked(actor.SRWStats.mech.id) && actor.SRWStats.mech.transformWill <= this.getCurrentWill(actor);
+		return actor.SRWStats.mech.transformsInto != null && actor.SRWStats.mech.transformsInto.length && !$gameSystem.isTransformationLocked(actor.SRWStats.mech.id) && actor.SRWStats.mech.transformWill <= this.getCurrentWill(actor);
 	} 
 	return false;
 }
 
-StatCalc.prototype.transform = function(actor, force){
+StatCalc.prototype.transform = function(actor, idx, force){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){
+		if(idx == null){
+			idx = 0;
+		}
 		if(this.canTransform(actor) || force){	
 			var calculatedStats = this.getCalculatedMechStats(actor);
 			var previousHPRatio = calculatedStats.currentHP / calculatedStats.maxHP;
 			var previousENRatio = calculatedStats.currentEN / calculatedStats.maxEN;
 			var restoreInfo = actor.SRWStats.mech.transformRestores || {HP: false, EN: false};
-			var transformIntoId = actor.SRWStats.mech.transformsInto;
+			var transformIntoId = actor.SRWStats.mech.transformsInto[idx];
 			
-			var targetMechData = this.getMechDataById(transformIntoId, true);
-		
-			actor.isSubPilot = false;
-			actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
-			this.calculateSRWMechStats(actor.SRWStats.mech);
+			if(transformIntoId != null){			
+				var targetMechData = this.getMechDataById(transformIntoId, true);
 			
-			this.applyDeployActions(actor.SRWStats.pilot.id, actor.SRWStats.mech.id);
-			
-			var targetActor = this.getCurrentPilot(transformIntoId, true);
-			if(targetActor && targetActor.actorId() != actor.actorId()){
-				targetActor.event = actor.event;
-				actor.event = null;
-				$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
-				actor = targetActor;
+				actor.isSubPilot = false;
+				actor.SRWStats.mech = this.getMechDataById(transformIntoId, true);
+				this.calculateSRWMechStats(actor.SRWStats.mech);
+				
+				this.applyDeployActions(actor.SRWStats.pilot.id, actor.SRWStats.mech.id);
+				
+				var targetActor = this.getCurrentPilot(transformIntoId, true);
+				if(targetActor && targetActor.actorId() != actor.actorId() && actor.event){
+					targetActor.event = actor.event;
+					actor.event = null;
+					$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
+					actor = targetActor;
+				}			
+				
+				calculatedStats = this.getCalculatedMechStats(actor);
+				if(!restoreInfo.HP){				
+					calculatedStats.currentHP = Math.round(previousHPRatio * calculatedStats.maxHP);
+				}	
+				if(!restoreInfo.EN){	
+					calculatedStats.currentEN = Math.round(previousENRatio * calculatedStats.maxEN);
+				}
+										
+				actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
+				if(actor.event){
+					actor.event.refreshImage();
+				}
+				
 			}			
-			
-			calculatedStats = this.getCalculatedMechStats(actor);
-			if(!restoreInfo.HP){				
-				calculatedStats.currentHP = Math.round(previousHPRatio * calculatedStats.maxHP);
-			}	
-			if(!restoreInfo.EN){	
-				calculatedStats.currentEN = Math.round(previousENRatio * calculatedStats.maxEN);
-			}
-									
-			actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
-			actor.event.refreshImage();			
 		}		
 	}
 }

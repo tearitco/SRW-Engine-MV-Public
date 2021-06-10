@@ -793,7 +793,11 @@ var $battleSceneManager = new BattleSceneManager();
 		
 		if (command === 'transformEvent') {
 			var actor = $gameSystem.EventToUnit(args[0])[1];
-			$statCalc.transform(actor, true);
+			/*if(actor.isSubTwin){
+				var main = $statCalc.getMainTwin(actor);
+				$statCalc.swap(main, true);
+			}*/
+			$statCalc.transform(actor, args[1], true);
 			var se = {};
 			se.name = 'SRWTransform';
 			se.pan = 0;
@@ -826,7 +830,11 @@ var $battleSceneManager = new BattleSceneManager();
 		
 		if (command === 'transformActor') {
 			var actor = $gameActors.actor(args[0]);
-			$statCalc.transform(actor, true);
+			/*if(actor.isSubTwin){
+				var main = $statCalc.getMainTwin(actor);
+				$statCalc.swap(main, true);
+			}*/
+			$statCalc.transform(actor, args[1], true);
 			var se = {};
 			se.name = 'SRWTransform';
 			se.pan = 0;
@@ -10297,6 +10305,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.createConditionsWindow();
 		this.createItemWindow();
 		this.createAbilityWindow();
+		this.createTransformWindow();
 		this.createDeploymentWindow();
 		this.createEndTurnConfirmWindow();
 		this.createDeploymentInStageWindow();
@@ -11006,6 +11015,18 @@ SceneManager.reloadCharacters = function(startEvent){
         this._abilityWindow.setHandler('ok',     this.onAbilityOk.bind(this));
         this._abilityWindow.setHandler('cancel', this.onAbilityCancel.bind(this));
         this.addWindow(this._abilityWindow);
+    };
+	
+	Scene_Map.prototype.createTransformWindow = function() {
+        var wy = this._helpWindow.y + this._helpWindow.height;
+        var wh = Graphics.boxHeight - wy - this._mapSrpgActorCommandStatusWindow.windowHeight();
+        this._transformWindow = new Window_SRWTransformSelection(0, wy, 200, 180);
+		this._transformWindow.x = this._mapSrpgActorCommandWindow.x - this._mapSrpgActorCommandWindow.windowWidth() + 120;
+		this._transformWindow.y = this._mapSrpgActorCommandWindow.y - this._mapSrpgActorCommandWindow.windowHeight()/2;
+        //this._itemWindow.setHelpWindow(this._helpWindow);
+        this._transformWindow.setHandler('ok',     this.onTransformOk.bind(this));
+        this._transformWindow.setHandler('cancel', this.onTransformCancel.bind(this));
+        this.addWindow(this._transformWindow);
     };
 	
 	
@@ -13157,15 +13178,23 @@ SceneManager.reloadCharacters = function(startEvent){
     };
 
 	Scene_Map.prototype.transformActorMenuCommand = function() {   
-		$statCalc.transform($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
-		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
-		$gameSystem.setSubBattlePhase('normal');
-		var se = {};
-		se.name = 'SRWTransform';
-		se.pan = 0;
-		se.pitch = 100;
-		se.volume = 80;
-		AudioManager.playSe(se);
+		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		var list = $statCalc.getTransformationList(actor);
+		if(list.length == 1){
+			$statCalc.transform(actor);
+			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+			$gameSystem.setSubBattlePhase('normal');
+			var se = {};
+			se.name = 'SRWTransform';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);	
+		} else {
+			this._transformWindow.refresh();
+			this._transformWindow.show();
+			this._transformWindow.activate();
+		}		
     };	
 	
 	Scene_Map.prototype.swapActorMenuCommand = function() {   
@@ -13388,8 +13417,28 @@ SceneManager.reloadCharacters = function(startEvent){
 		}
     };
 	
+	Scene_Map.prototype.onTransformOk = function() {
+		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+        var index = this._transformWindow.index();		
+		$statCalc.transform(actor, index);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
+		var se = {};
+		se.name = 'SRWTransform';
+		se.pan = 0;
+		se.pitch = 100;
+		se.volume = 80;
+		AudioManager.playSe(se);
+		this._transformWindow.hide();
+    };
+	
 	Scene_Map.prototype.onAbilityCancel = function() {
         this._abilityWindow.hide();
+        this._mapSrpgActorCommandWindow.activate();
+    };
+	
+	Scene_Map.prototype.onTransformCancel = function() {
+        this._transformWindow.hide();
         this._mapSrpgActorCommandWindow.activate();
     };
 	
@@ -15483,7 +15532,57 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		return true;
 	};	
 	
+	function Window_SRWTransformSelection() {
+		this._parent = Window_BattleItem.prototype;
+		this.initialize.apply(this, arguments);	
+    }
+
+    Window_SRWTransformSelection.prototype = Object.create(Window_BattleItem.prototype);
+    Window_SRWTransformSelection.prototype.constructor = Window_SRWTransformSelection;
 	
+	Window_SRWTransformSelection.prototype.maxCols = function(){
+		return 1;
+	}
+	
+	Window_SRWTransformSelection.prototype.windowWidth = function() {
+        return 240;
+    };
+
+    Window_SRWTransformSelection.prototype.windowHeight = function() {
+        return this.fittingHeight(4);
+    };
+	
+	Window_SRWTransformSelection.prototype.refresh = function(){
+		this._parent.refresh.call(this);
+	}
+	
+	Window_SRWTransformSelection.prototype.drawItem = function(index) {
+		var item = this._data[index];
+		if (item != null) {
+			item = $dataClasses[item];
+			var numberWidth = 0;//this.numberWidth();
+			var rect = this.itemRect(index);
+			//rect.width -= this.textPadding();
+			this.drawItemName(item, rect.x, rect.y, rect.width - numberWidth);
+		}
+	};
+	
+	Window_SRWTransformSelection.prototype.drawItemName = function(item, x, y, width) {
+		width = width || 312;
+		if (item) {
+			this.resetTextColor();
+			this.drawText(item.name, x + 10, y, width - 20);
+		}
+	};
+	
+	Window_SRWTransformSelection.prototype.makeItemList = function() {
+		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		this._data = $statCalc.getTransformationList(actor);
+	};
+	
+	Window_SRWTransformSelection.prototype.isEnabled = function(item) {
+		return true;
+	};	
 	
 	
 	
