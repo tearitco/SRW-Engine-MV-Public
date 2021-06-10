@@ -1311,6 +1311,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		}	
 		
 		function compatParse(value){
+			//this method avoids immediately using a try to see if the input is valid json because the debugger needs to run with pause on caught execeptions on
 			var result;
 			result = value * 1 || -1;	
 			if(result == -1 && value != null){

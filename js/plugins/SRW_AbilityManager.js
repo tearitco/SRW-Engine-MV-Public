@@ -40,6 +40,20 @@ AbilityManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isU
 	}	
 }
 
+AbilityManager.prototype.setUpgrade = function(baseIdx, upgradeIdx){
+	$gameSystem.setAbilityUpgrade(this.getIdPrefix(), baseIdx, upgradeIdx);
+}
+
+AbilityManager.prototype.getUpgradeIdx = function(idx){
+	var result = idx;
+	var upgrades = $gameSystem.getAbilityUpgrades(this.getIdPrefix());
+	var sanityCtr = 10;
+	while(upgrades[result] && sanityCtr-- > 0){
+		result = upgrades[result];
+	}
+	return result;
+}
+
 AbilityManager.prototype.getDefinitions = function(){
 	return this._abilityDefinitions;
 }
@@ -49,7 +63,7 @@ AbilityManager.prototype.getDefinitionCount = function(){
 }
 
 AbilityManager.prototype.getAbilityDisplayInfo = function(idx){
-	var abilityDef = this._abilityDefinitions[idx];
+	var abilityDef = this._abilityDefinitions[this.getUpgradeIdx(idx)];
 	var result = {
 		name: "",
 		desc: "",
@@ -73,23 +87,23 @@ AbilityManager.prototype.getAbilityDisplayInfo = function(idx){
 }
 
 AbilityManager.prototype.getAbilityDef = function(idx){
-	return this._abilityDefinitions[idx];
+	return this._abilityDefinitions[this.getUpgradeIdx(idx)];
 }
 
 AbilityManager.prototype.isActive = function(actor, idx, level){
-	return this.getAbilityDef(idx).isActiveHandler(actor, level);
+	return this.getAbilityDef(this.getUpgradeIdx(idx)).isActiveHandler(actor, level);
 }
 
 AbilityManager.prototype.getStatmod = function(actor, idx, level){
-	return this.getAbilityDef(idx).statmodHandler(actor, level);
+	return this.getAbilityDef(this.getUpgradeIdx(idx)).statmodHandler(actor, level);
 }
 
 AbilityManager.prototype.getRangeDef = function(actor, idx, level){
-	return this.getAbilityDef(idx).rangeDef(actor, level);
+	return this.getAbilityDef(this.getUpgradeIdx(idx)).rangeDef(actor, level);
 }
 
 AbilityManager.prototype.canStack = function(idx){
-	return this.getAbilityDef(idx).canStack;
+	return this.getAbilityDef(this.getUpgradeIdx(idx)).canStack;
 }
 
 AbilityManager.prototype.getIdPrefix = function(idx){

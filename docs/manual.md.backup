@@ -1452,6 +1452,10 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 	Set the specified ability to locked for the specified actor. A locked ability will not have its name displayed and its effect will not activate.	
 		
 * unlockPilotAbility actor\_id ability\_id
+
+* setPilotAbilityUpgrade base\_idx upgraded\_idx
+
+	Effectively replace the pilot ability with base\_idx with the ability with upgraded\_idx
 		
 * hideMechAbility mech\_id ability\_id
 
@@ -1462,6 +1466,10 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 	Set the specified ability to locked for the specified mech/class. A locked ability will not have its name displayed and its effect will not activate.	
 		
 * unlockMechAbility mech\_id ability\_id
+
+* setPilotAbilityUpgrade base\_idx upgraded\_idx
+
+	Effectively replace the mech ability with base\_idx with the ability with upgraded\_idx
 
 * setMechUpgradeLevel mech\_id level force
 

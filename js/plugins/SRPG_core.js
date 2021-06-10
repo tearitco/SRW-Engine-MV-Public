@@ -1027,6 +1027,14 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.characterIdexAliases[args[0]] = args[1];
 		}
 		
+		if (command === 'setPilotAbilityUpgrade') {	
+			$pilotAbilityManager.setUpgrade(args[0], args[1]);
+		}
+		
+		if (command === 'setMechAbilityUpgrade') {	
+			$mechAbilityManager.setUpgrade(args[0], args[1]);
+		}
+		
 		if (command == 'showTargetingReticule'){			
 			var eventIdSource;
 			var parts = args[0].match(/\actor\:(.*)/);	
@@ -3074,6 +3082,26 @@ var $battleSceneManager = new BattleSceneManager();
 		for(var i = 1; i < $dataClasses.length; i++){
 			delete this.transformationLockInfo[i];
 		}	
+	}
+	
+	
+	Game_System.prototype.validateAbilityUpgradesInfo = function(type) {
+		if(!this.abilityUpgradesInfo){
+			this.abilityUpgradesInfo = {}
+		}
+		if(!this.abilityUpgradesInfo[type]){
+			this.abilityUpgradesInfo[type] = {};
+		}
+	}
+	
+	Game_System.prototype.setAbilityUpgrade = function(type, baseIdx, upgradeIdx) {
+		this.validateAbilityUpgradesInfo(type);
+		this.abilityUpgradesInfo[type][baseIdx] = upgradeIdx;
+	}
+	
+	Game_System.prototype.getAbilityUpgrades = function(type) {
+		this.validateAbilityUpgradesInfo(type);
+		return this.abilityUpgradesInfo[type];
 	}
 //==================================================================
 // ●Game_Action
