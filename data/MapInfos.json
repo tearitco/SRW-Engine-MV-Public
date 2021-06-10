@@ -8,5 +8,5 @@ null,
 {"id":6,"expanded":false,"name":"Moon Test","order":5,"parentId":0,"scrollX":1012.4444444444445,"scrollY":562.6666666666666},
 {"id":7,"expanded":false,"name":"Space Test","order":6,"parentId":0,"scrollX":1012.4444444444445,"scrollY":562.6666666666666},
 {"id":8,"expanded":true,"name":"demo4","order":7,"parentId":0,"scrollX":1012.4444444444445,"scrollY":562.6666666666666},
-{"id":9,"expanded":false,"name":"Regular Map","order":9,"parentId":0,"scrollX":832,"scrollY":640}
+{"id":9,"expanded":false,"name":"Regular Map","order":9,"parentId":0,"scrollX":1012.4444444444445,"scrollY":562.6666666666666}
 ]

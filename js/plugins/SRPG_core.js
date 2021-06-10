@@ -277,9 +277,7 @@ var $battleSceneManager = new BattleSceneManager();
             Game_Interpreter.prototype.pluginCommand;
     Game_Interpreter.prototype.pluginCommand = function(command, args) {
         _Game_Interpreter_pluginCommand.call(this, command, args);
-		if (command === 'prepareSRPG') {
-           $gameSystem._SRPGMode = true;
-        }
+		
         if (command === 'SRPGBattle') {
             switch (args[0]) {
             case 'Start':
@@ -1806,7 +1804,12 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		};
 		$gameTemp.preventedDeathQuotes = {};
-        
+		if($gameSystem.upperPlayerSprite){
+			$gameSystem.upperPlayerSprite.show();
+		}
+        if($gameSystem.lowerPlayerSprite){
+			$gameSystem.lowerPlayerSprite.hide();
+		}		
     };
 	
 	Game_System.prototype.enableFaction = function(id) {
@@ -2315,6 +2318,13 @@ var $battleSceneManager = new BattleSceneManager();
         $gamePlayer.refresh();
         this.clearData(); //データの初期化
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
+		
+		if($gameSystem.upperPlayerSprite){
+			$gameSystem.upperPlayerSprite.hide();
+		}
+        if($gameSystem.lowerPlayerSprite){
+			$gameSystem.lowerPlayerSprite.show();
+		}	
     };
 
 //戦闘の進行に関係する処理
@@ -7570,6 +7580,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	//The base sprite is normally hidden, but is still available.
 	Sprite_Character.prototype.update = function(character) {
 		Sprite_Base.prototype.update.call(this);
+		if(!this.visible) {
+			return;
+		}
 		this.updateBitmap();
 		this.updateFrame();
 		this.updatePosition();
@@ -7654,6 +7667,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._turnEndSprite.anchor.x = 0;
         this._turnEndSprite.anchor.y = 1;
 	}
+
 	
 	Sprite_Character.prototype.updateHalfBodySprites = function() {   
 		if(this._upperBody && this._lowerBody){		
@@ -8857,9 +8871,10 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 		this._baseSprite.addChild(this._upperTilemap);
 		
-		if($gameSystem.isSRPGMode()){
-			this.addCharacterToBaseSprite(new Sprite_Player($gamePlayer));   
-		}			
+		var sprite = new Sprite_Player($gamePlayer);
+		$gameSystem.upperPlayerSprite = sprite;
+		this.addCharacterToBaseSprite(sprite);   
+					
 		
 		this.createPictures();
 		this.createTimer();
@@ -8974,9 +8989,10 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gamePlayer.followers().reverseEach(function(follower) {
 			this._characterSprites.push(new Sprite_Character(follower));
 		}, this);
-		if(!$gameSystem.isSRPGMode()){
-			this.addCharacterToBaseSprite(new Sprite_Player($gamePlayer));   
-		}
+		var sprite = new Sprite_Player($gamePlayer);
+		$gameSystem.lowerPlayerSprite = sprite;
+		this.addCharacterToBaseSprite(sprite);  		 
+		
 		for (var i = 0; i < this._characterSprites.length; i++) {
 			this.addCharacterToBaseSprite(this._characterSprites[i]);
 		}
