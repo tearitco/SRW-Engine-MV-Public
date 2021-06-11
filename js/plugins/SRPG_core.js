@@ -1804,13 +1804,26 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		};
 		$gameTemp.preventedDeathQuotes = {};
-		if($gameSystem.upperPlayerSprite){
-			$gameSystem.upperPlayerSprite.show();
-		}
-        if($gameSystem.lowerPlayerSprite){
-			$gameSystem.lowerPlayerSprite.hide();
-		}		
+		this.updatePlayerSpriteVisibility();
     };
+	
+	Game_System.prototype.updatePlayerSpriteVisibility = function(id) {
+		if(this._SRPGMode){
+			if(this.upperPlayerSprite){
+				this.upperPlayerSprite.show();
+			}
+			if(this.lowerPlayerSprite){
+				this.lowerPlayerSprite.hide();
+			}
+		} else {
+			if(this.upperPlayerSprite){
+				this.upperPlayerSprite.hide();
+			}
+			if(this.lowerPlayerSprite){
+				this.lowerPlayerSprite.show();
+			}
+		}
+	}
 	
 	Game_System.prototype.enableFaction = function(id) {
 		if(this.factionConfig[id]){
@@ -2319,12 +2332,7 @@ var $battleSceneManager = new BattleSceneManager();
         this.clearData(); //データの初期化
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
 		
-		if($gameSystem.upperPlayerSprite){
-			$gameSystem.upperPlayerSprite.hide();
-		}
-        if($gameSystem.lowerPlayerSprite){
-			$gameSystem.lowerPlayerSprite.show();
-		}	
+		this.updatePlayerSpriteVisibility();
     };
 
 //戦闘の進行に関係する処理
@@ -8879,6 +8887,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.createPictures();
 		this.createTimer();
 		this.createScreenSprites();
+		
+		$gameSystem.updatePlayerSpriteVisibility();
 	};
 	
 	Spriteset_Map.prototype.updateTilemap = function() {
