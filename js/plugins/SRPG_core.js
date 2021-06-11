@@ -13541,8 +13541,8 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	Scene_Map.prototype.onTransformOk = function() {
 		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
-        var index = this._transformWindow.index();		
-		$statCalc.transform(actor, index);
+        var item = this._transformWindow.item();		
+		$statCalc.transform(actor, 0, true, item);
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('normal');
 		var se = {};
