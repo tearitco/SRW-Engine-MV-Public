@@ -1972,7 +1972,10 @@ StatCalc.prototype.applyStoredActorData = function(actor, dbAbilities, dbRelatio
 		
 		Object.keys(dbAbilities).forEach(function(abilityIdx){
 			if(!storedAbilities[abilityIdx]){//newly added ability for the unit in the db
-				var slot = getSlot();
+				var slot =  dbAbilities[abilityIdx].slot;
+				if(slot == null || usedSlots[slot]){
+					slot = getSlot();
+				}				
 				usedSlots[slot] = true;
 				storedAbilities[abilityIdx] = {
 					idx: abilityIdx,
