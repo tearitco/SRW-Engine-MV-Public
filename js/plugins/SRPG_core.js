@@ -1805,6 +1805,8 @@ var $battleSceneManager = new BattleSceneManager();
 		};
 		$gameTemp.preventedDeathQuotes = {};
 		$gameTemp.updatePlayerSpriteVisibility();
+		
+		SceneManager._scene.createPauseWindow(); //ensure pause menu is updated to reflect the new mode
     };
 	
 	Game_Temp.prototype.updatePlayerSpriteVisibility = function(id) {
@@ -2333,6 +2335,7 @@ var $battleSceneManager = new BattleSceneManager();
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
 		
 		$gameTemp.updatePlayerSpriteVisibility();
+		SceneManager._scene.createPauseWindow(); //ensure pause menu is updated to reflect the new mode
     };
 
 //戦闘の進行に関係する処理
@@ -10286,12 +10289,12 @@ SceneManager.reloadCharacters = function(startEvent){
           
        // _SRPG_Window_MenuCommand_makeCommandList.call(this);
 	   
-	   //if($gameSystem.isSRPGMode()){
+	   if($gameSystem.isSRPGMode()){
 		   this.addTurnEndCommand();     
 		   this.addCommand(APPSTRINGS.MAPMENU.cmd_search, 'search', true);
 		   this.addCommand(APPSTRINGS.MAPMENU.cmd_list, 'unitList', true);
 		   this.addCommand(APPSTRINGS.MAPMENU.cmd_conditions, 'conditions', true);
-	  // }
+	   }
 	   
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_options, 'options');
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_save, 'save');
@@ -15067,13 +15070,11 @@ Scene_Gameover.prototype.gotoTitle = function() {
         _SRPG_SceneMenu_createCommandWindow.call(this);
         if ($gameSystem.isSRPGMode() == true) {
             this._commandWindow.setHandler('turnEnd',this.commandTurnEnd.bind(this));
-            this._commandWindow.setHandler('autoBattle',this.commandAutoBattle.bind(this));
-			this._commandWindow.y = 100;
-			this._commandWindow.x = 800;
+            this._commandWindow.setHandler('autoBattle',this.commandAutoBattle.bind(this));			
         }
-    };
-
-    
+		this._commandWindow.y = 100;
+		this._commandWindow.x = 800;
+    };    
 
     Scene_Menu.prototype.commandAutoBattle = function() {
         $gameTemp.setTurnEndFlag(true);
@@ -15724,7 +15725,11 @@ Scene_Gameover.prototype.gotoTitle = function() {
 	};
 
 	Window_StageInfo.prototype.windowHeight = function() {
-		return this.fittingHeight(4);
+		if($gameSystem.isSRPGMode()){
+			return this.fittingHeight(4);
+		} else {
+			return this.fittingHeight(1);
+		}		
 	};
 
 	Window_StageInfo.prototype.refresh = function() {
