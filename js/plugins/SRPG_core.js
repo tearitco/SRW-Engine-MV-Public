@@ -1804,11 +1804,11 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		};
 		$gameTemp.preventedDeathQuotes = {};
-		this.updatePlayerSpriteVisibility();
+		$gameTemp.updatePlayerSpriteVisibility();
     };
 	
-	Game_System.prototype.updatePlayerSpriteVisibility = function(id) {
-		if(this._SRPGMode){
+	Game_Temp.prototype.updatePlayerSpriteVisibility = function(id) {
+		if($gameSystem.isSRPGMode()){
 			if(this.upperPlayerSprite){
 				this.upperPlayerSprite.show();
 			}
@@ -2332,7 +2332,7 @@ var $battleSceneManager = new BattleSceneManager();
         this.clearData(); //データの初期化
         $gameMap.setEventImages();   // ユニットデータに合わせてイベントのグラフィックを変更する
 		
-		this.updatePlayerSpriteVisibility();
+		$gameTemp.updatePlayerSpriteVisibility();
     };
 
 //戦闘の進行に関係する処理
@@ -8880,7 +8880,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._baseSprite.addChild(this._upperTilemap);
 		
 		var sprite = new Sprite_Player($gamePlayer);
-		$gameSystem.upperPlayerSprite = sprite;
+		$gameTemp.upperPlayerSprite = sprite;
 		this.addCharacterToBaseSprite(sprite);   
 					
 		
@@ -8888,7 +8888,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.createTimer();
 		this.createScreenSprites();
 		
-		$gameSystem.updatePlayerSpriteVisibility();
+		$gameTemp.updatePlayerSpriteVisibility();
 	};
 	
 	Spriteset_Map.prototype.updateTilemap = function() {
@@ -9000,7 +9000,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			this._characterSprites.push(new Sprite_Character(follower));
 		}, this);
 		var sprite = new Sprite_Player($gamePlayer);
-		$gameSystem.lowerPlayerSprite = sprite;
+		$gameTemp.lowerPlayerSprite = sprite;
 		this.addCharacterToBaseSprite(sprite);  		 
 		
 		for (var i = 0; i < this._characterSprites.length; i++) {
@@ -10283,13 +10283,16 @@ SceneManager.reloadCharacters = function(startEvent){
 //====================================================================
     var _SRPG_Window_MenuCommand_makeCommandList = Window_MenuCommand.prototype.makeCommandList;
     Window_MenuCommand.prototype.makeCommandList = function() {       
-        this.addTurnEndCommand();        
+          
        // _SRPG_Window_MenuCommand_makeCommandList.call(this);
 	   
+	   //if($gameSystem.isSRPGMode()){
+		   this.addTurnEndCommand();     
+		   this.addCommand(APPSTRINGS.MAPMENU.cmd_search, 'search', true);
+		   this.addCommand(APPSTRINGS.MAPMENU.cmd_list, 'unitList', true);
+		   this.addCommand(APPSTRINGS.MAPMENU.cmd_conditions, 'conditions', true);
+	  // }
 	   
-	   this.addCommand(APPSTRINGS.MAPMENU.cmd_search, 'search', true);
-	   this.addCommand(APPSTRINGS.MAPMENU.cmd_list, 'unitList', true);
-	   this.addCommand(APPSTRINGS.MAPMENU.cmd_conditions, 'conditions', true);
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_options, 'options');
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_save, 'save');
 	   this.addCommand(APPSTRINGS.MAPMENU.cmd_game_end, 'gameEnd');
@@ -10301,11 +10304,12 @@ SceneManager.reloadCharacters = function(startEvent){
 
     var _SRPG_Window_MenuCommand_isFormationEnabled = Window_MenuCommand.prototype.isFormationEnabled;
     Window_MenuCommand.prototype.isFormationEnabled = function() {
-        if ($gameSystem.isSRPGMode() == true) {
+        /*if ($gameSystem.isSRPGMode() == true) {
             return false;
         } else {
             return _SRPG_Window_MenuCommand_isFormationEnabled.call(this);
-        }
+        }*/
+		return false
     };
 
 //====================================================================
