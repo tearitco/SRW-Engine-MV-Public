@@ -1128,10 +1128,13 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		var subTwinId = this.getSubTwinId(actor);
 		var subTwinActor = $gameActors.actor(subTwinId);
 		if(subTwinActor){
-			subTwinActor.isSubTwin = true;
-			_this.initSRWStats(subTwinActor, 1, [], preserveVolatile);
+			subTwinActor.isSubTwin = true;		
+			
+			//_this.initSRWStats(subTwinActor, 1, [], preserveVolatile);
 			//subTwinActor.mainTwin = actor;			
 			actor.subTwin = subTwinActor;
+			this.invalidateAbilityCache();
+			_this.initSRWStats(subTwinActor, 1, [], preserveVolatile);
 		}		
 	}
 }
@@ -4875,7 +4878,7 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 	}
 	var result = {};
 	_this.iterateAllActors(null, function(actor, event){			
-		if(actor && event && !event.isErased() && !actor.isSubTwin){
+		if(actor && event && (!event.isErased() || event.isPendingDeploy) && !actor.isSubTwin){
 			var isEnemy = $gameSystem.isEnemy(actor);
 			var sourceX = event.posX();
 			var sourceY = event.posY();

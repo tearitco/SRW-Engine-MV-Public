@@ -2102,6 +2102,7 @@ var $battleSceneManager = new BattleSceneManager();
 		if(toAnimQueue){				
 			$gameTemp.enemyAppearQueue.push(event);
 			event.erase();
+			event.isPendingDeploy = true;
 		} else {
 			event.appear();
 			//event.refreshImage();
@@ -11658,6 +11659,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					var current = $gameTemp.enemyAppearQueue.shift();
 					$gamePlayer.locate(current.posX(), current.posY());
 					current.isDoingAppearAnim = true;
+					current.isPendingDeploy = false;
 					$gameTemp.unitAppearTimer = 15;
 				}				
 			}
