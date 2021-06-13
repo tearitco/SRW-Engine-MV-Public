@@ -6041,6 +6041,31 @@ Game_Interpreter.prototype.awardSRPoint = function(){
 	var mapId = $gameMap.mapId();
 	var isNewlyAwarded = $SRWSaveManager.awardMapSRPoint(mapId);	
 	if(isNewlyAwarded){
+		if(ENGINE_SETTINGS.MASTERY_REWARDS){
+			if(ENGINE_SETTINGS.MASTERY_REWARDS.PP){
+				var scope = ENGINE_SETTINGS.MASTERY_REWARDS.PP.SCOPE;
+				var actors = [];
+				if(scope == "deployed"){
+					actors = $statCalc.getAllActors("actor");
+				} else if(scope == "unlocked"){
+					actors = $gameParty.allMembers();
+				} else if(scope == "all"){
+					for(var i = 0; i < $dataActors.length; i++){
+						var actor = $gameActors.actor(i);
+						actors.push(actor);
+					}
+				}	
+				actors.forEach(function(actor){
+					if(actor && actor.isActor()){
+						$statCalc.addPP(actor, ENGINE_SETTINGS.MASTERY_REWARDS.PP.AMOUNT);	
+					}					
+				});
+			}
+			if(ENGINE_SETTINGS.MASTERY_REWARDS.FUNDS){
+				$gameParty.gainGold(ENGINE_SETTINGS.MASTERY_REWARDS.FUNDS);	
+			}
+		}		
+		
 		var se = {};
 		se.name = 'SRWMastery';
 		se.pan = 0;

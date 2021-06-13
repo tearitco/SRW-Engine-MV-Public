@@ -15,6 +15,10 @@ var ENGINE_SETTINGS_DEFAULT = {
 		/*DAMAGE_OFFSETS: {top: 20, left: 62},
 		DAMAGE_TWIN_OFFSET: {top: 10, left: 40},*/
 	},
+	MASTERY_REWARDS: {
+		PP: {AMOUNT: 5, SCOPE: "all"}, //scope is deployed, unlocked, or all
+		FUNDS: 10000
+	},
 	ABILITY_SEARCH_LIST: {
 		SPIRIT: [4, 26, 28, 5, 14, 7, 30, 23, 1, 18, 3, 9, 34, 31, 13, 16, 12, 36, 35, 32, 20, 0, 21, 33, 27, 8, 29, 11, 17, 19, 6, 25, 37, 15, 24, 38, 22, 2],
 		PILOT: [41, 0, 19, 44, 16, 17, 23, 18, 20, 10, 7, 1, 3, 26, 25, 24, 2, 22, 13, 29, 39, 59, 4, 28, 27, 21, 40, 6, 14, 11, 12, 8, 15, 31, 33, 30, 32],
