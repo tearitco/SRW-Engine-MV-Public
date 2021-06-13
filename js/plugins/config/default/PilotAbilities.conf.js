@@ -846,9 +846,9 @@ $SRWConfig.pilotAbilties = function(){
 		4,//max level
 		null,//ability highlighting function, unused for this ability
 		function(actor, level){//function that determines the range of the ability depending on level
-			return {min: 1, max: 5, targets: "own"}
+			return {min: 1, max: 5, targets: "own", targetsBothTwins: true} 
 		},
-		false //do not allow stacking
+		true //do not allow stacking
 	);
 	
 	this.addDefinition(

@@ -4798,11 +4798,8 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 		var accumulators = _this.getActiveStatMods(actor, excludedSkills);
 		Object.keys(accumulators).forEach(function(accType){
 			var activeAbilities = accumulators[accType];
-			activeAbilities.forEach(function(effect){
-				effect = JSON.parse(JSON.stringify(effect));
-				effect.slotType = type;
-				effect.slot = slot;
-				var rangeInfo = effect.rangeInfo;
+			activeAbilities.forEach(function(originalEffect){				
+				var rangeInfo = originalEffect.rangeInfo;
 				var target;
 				if(isEnemy){
 					if(rangeInfo.targets == "own"){
@@ -4817,64 +4814,89 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 						target = "enemy";
 					}
 				}
-				for(var i = 0; i <= rangeInfo.max * 2; i++){
-					var x = i - rangeInfo.max;
-					for(var j = 0; j <= rangeInfo.max * 2; j++){
-						var y = j - rangeInfo.max;
-						var distance = Math.abs(x) + Math.abs(y);
-						if(distance <= rangeInfo.max && distance >= rangeInfo.min){
-							var realX = sourceX + x;
-							var realY = sourceY + y;
-							if(!result[realX]){
-								result[realX] = {};
-							}
-							if(!result[realX][realY]){
-								result[realX][realY] = {};
-							}
-							if(!result[realX][realY][target]){
-								result[realX][realY][target] = {
-									mult: [],
-									mult_ceil: [],
-									addPercent: [],
-									addFlat: [],
-									list: []
-								};
-							}
-							/*if(!result[realX][realY][target][accType]){
-								result[realX][realY][target][accType] = [];
-							}*/
-							if(effect.range == null || effect.range == distance){
-								result[realX][realY][target][accType].push(effect);
-									
-								var stackInfo = {};
-								var tmp = [];
-								
-								var effects = result[realX][realY][target][accType];
-								effects.forEach(function(effect){
-									if(effect.canStack){
-										tmp.push(effect);
-									} else {
-										if(!stackInfo[effect.stackId]){
-											stackInfo[effect.stackId] = {};
-										}
-										if(!stackInfo[effect.stackId][effect.type]){
-											stackInfo[effect.stackId][effect.type] = effect;
-										} else if(stackInfo[effect.stackId][effect.type].value < effect.value){
-											stackInfo[effect.stackId][effect.type] = effect;
-										}
-									}									
-								});
-								Object.keys(stackInfo).forEach(function(stackId){
-									var typeInfo = stackInfo[stackId];
-									Object.keys(typeInfo).forEach(function(type){
-										tmp.push(stackInfo[stackId][type]);
-									});										
-								});									
-								result[realX][realY][target][accType] = tmp;
-							}
-						}
-					}	
+				
+				var types = [];
+				types.push(type);
+				if(rangeInfo.targetsBothTwins){
+					if(type == "main"){
+						types.push("twin");
+					} else {
+						types.push("main");
+					}
 				}
+				
+				
+				types.forEach(function(slotType){			
+				
+					effect = JSON.parse(JSON.stringify(originalEffect));
+					effect.slotType = slotType;
+					effect.slot = slot;
+				
+					for(var i = 0; i <= rangeInfo.max * 2; i++){
+						var x = i - rangeInfo.max;
+						for(var j = 0; j <= rangeInfo.max * 2; j++){
+							var y = j - rangeInfo.max;
+							var distance = Math.abs(x) + Math.abs(y);
+							if(distance <= rangeInfo.max && distance >= rangeInfo.min){
+								var realX = sourceX + x;
+								var realY = sourceY + y;
+								if(!result[realX]){
+									result[realX] = {};
+								}
+								if(!result[realX][realY]){
+									result[realX][realY] = {};
+								}
+								if(!result[realX][realY][target]){
+									result[realX][realY][target] = {
+										mult: [],
+										mult_ceil: [],
+										addPercent: [],
+										addFlat: [],
+										list: []
+									};
+								}
+								/*if(!result[realX][realY][target][accType]){
+									result[realX][realY][target][accType] = [];
+								}*/
+								if(effect.range == null || effect.range == distance){
+									result[realX][realY][target][accType].push(effect);
+										
+									var stackInfo = {};
+									var tmp = [];
+									
+									var effects = result[realX][realY][target][accType];
+									effects.forEach(function(effect){
+										if(effect.canStack){
+											tmp.push(effect);
+										} else {
+											if(!stackInfo[effect.stackId]){
+												stackInfo[effect.stackId] = {};
+											}
+											if(!stackInfo[effect.stackId][effect.slotType]){
+												stackInfo[effect.stackId][effect.slotType] = {};
+											}
+											if(!stackInfo[effect.stackId][effect.slotType][effect.type]){
+												stackInfo[effect.stackId][effect.slotType][effect.type] = effect;
+											} else if(stackInfo[effect.stackId][effect.slotType][effect.type].value < effect.value){
+												stackInfo[effect.stackId][effect.slotType][effect.type] = effect;
+											}
+										}									
+									});
+									Object.keys(stackInfo).forEach(function(stackId){
+										var slotTypeInfo = stackInfo[stackId];
+										Object.keys(slotTypeInfo).forEach(function(slotType){											
+											var typeInfo = slotTypeInfo[slotType];
+											Object.keys(typeInfo).forEach(function(type){
+												tmp.push(stackInfo[stackId][slotType][type]);
+											});												
+										});																		
+									});									
+									result[realX][realY][target][accType] = tmp;
+								}
+							}
+						}	
+					}
+				});
 			});	
 		});	
 	}
