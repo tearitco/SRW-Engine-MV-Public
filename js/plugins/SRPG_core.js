@@ -1703,10 +1703,30 @@ var $battleSceneManager = new BattleSceneManager();
     //戦闘開始するためのプラグイン・コマンド
 	Game_System.prototype.startIntermission = function(){
 		this._availableUnits = $gameParty.allMembers();
+		this.dummyId = 0;
 		this._availableUnits.forEach(function(actor){
 			actor.isSubPilot = false;
 			$statCalc.initSRWStats(actor);
+			$statCalc.attachDummyEvent(actor, actor.SRWStats.mech.id);
 		});
+		
+		this._availableMechs = [];
+		var tmp = Object.keys($SRWSaveManager.getUnlockedUnits());			
+		for(var i = 0; i < tmp.length; i++){
+			var currentPilot = $statCalc.getCurrentPilot(tmp[i]);
+			if(!currentPilot){
+				var mechData = $statCalc.getMechData($dataClasses[tmp[i]], true);
+				$statCalc.calculateSRWMechStats(mechData);		
+				
+				var result = $statCalc.createEmptyActor();
+				result.SRWStats.mech = mechData;
+				$statCalc.attachDummyEvent(result, mechData.id);
+				
+				this._availableMechs.push(result);
+			}
+		}	
+		
+		$statCalc.invalidateAbilityCache();
 		$gameTemp.deployMode = "";
 		this._isIntermission = true;
 	}

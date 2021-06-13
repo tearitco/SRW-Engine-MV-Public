@@ -229,6 +229,7 @@ Window_CSS.prototype.createUpgradeBarScaled = function(level, pending) {
 Window_CSS.prototype.createReferenceData = function(mech){
 	var result = $statCalc.createEmptyActor();
 	result.SRWStats.mech = mech;
+	$statCalc.attachDummyEvent(result, mech.id);
 	return result;
 }
 

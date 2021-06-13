@@ -827,6 +827,21 @@ StatCalc.prototype.softRefreshUnits = function(){
 	this.invalidateAbilityCache();
 }
 
+StatCalc.prototype.attachDummyEvent = function(actor, id){
+	actor.event = {
+		posX: function(){
+			return this._dummyId;
+		},
+		posY: function(){
+			return 0;
+		},
+		isErased: function(){
+			return false;
+		}
+	};
+	actor.event._dummyId = id;
+}
+
 StatCalc.prototype.createEmptyActor = function(level){
 	var _this = this;
 	var result = {
@@ -836,13 +851,20 @@ StatCalc.prototype.createEmptyActor = function(level){
 		},
 		actorId: function(){
 			return -1;
-		}
+		},
+		isActor: function(){
+			return true;
+		},
+		currentClass: function(){
+			return -1;
+		},
 	}	
 	
 	result.isEmpty = true;
 	result.SRWInitialized = true;
 	_this.resetStageTemp(result);
-	_this.resetSpiritsAndEffects(result);
+	_this.resetSpiritsAndEffects(result);	
+	
 	return result;
 }
 
@@ -3281,10 +3303,12 @@ StatCalc.prototype.iterateAllActors = function(type, func){
 	var actorCollection;
 	if($gameSystem._isIntermission){
 		actorCollection = $gameSystem._availableUnits;
+		actorCollection = actorCollection.concat($gameSystem._availableMechs);
+		
 		actorCollection.forEach(function(actor) {			
 			if(actor && _this.isActorSRWInitialized(actor)){
 				if(!type || (type == "actor" && actor.isActor()) || (type == "enemy" && !actor.isActor())){
-					func(actor, null);
+					func(actor, actor.event);
 				}			
 			}
 		});
