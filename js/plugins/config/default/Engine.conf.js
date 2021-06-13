@@ -16,7 +16,7 @@ var ENGINE_SETTINGS_DEFAULT = {
 		DAMAGE_TWIN_OFFSET: {top: 10, left: 40},*/
 	},
 	MASTERY_REWARDS: {
-		PP: {AMOUNT: 5, SCOPE: "all"}, //scope is deployed, unlocked, or all
+		PP: {AMOUNT: 5, SCOPE: "deployed"}, //scope is deployed, unlocked, or all
 		FUNDS: 10000
 	},
 	ABILITY_SEARCH_LIST: {
