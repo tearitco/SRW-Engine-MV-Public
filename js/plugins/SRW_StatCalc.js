@@ -44,10 +44,16 @@ StatCalc.prototype.isActorSRWInitialized = function(actor){
 	return actor && actor.SRWInitialized;
 }
 
-StatCalc.prototype.getReferenceEvent = function(actor){
+StatCalc.prototype.getReferenceEvent = function(actor, depth){
 	var event;
+	if(depth == null){
+		depth = 0;
+	} else if(depth > 10){
+		console.log("Recursion while getting reference event!");
+		return null;
+	}
 	if(actor.isSubPilot && actor.mainPilot){		
-		event = actor.mainPilot.event;
+		event = this.getReferenceEvent(actor.mainPilot, depth+1);
 	} else if(actor.isSubTwin && !actor.isEventSubTwin){
 		var mainTwin = this.getMainTwin(actor);
 		if(mainTwin){
@@ -4878,15 +4884,18 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 	}
 	var result = {};
 	_this.iterateAllActors(null, function(actor, event){			
-		if(actor && event && (!event.isErased() || event.isPendingDeploy) && !actor.isSubTwin){
+		if(actor && event && (!event.isErased() || event.isPendingDeploy)){
 			var isEnemy = $gameSystem.isEnemy(actor);
 			var sourceX = event.posX();
 			var sourceY = event.posY();
-			
-			processActor(actor, isEnemy, sourceX, sourceY, "main");		
-			
-			if(actor.subTwin){
-				processActor(actor.subTwin, isEnemy, sourceX, sourceY, "twin");		
+					
+			var subId;
+			if(actor.isSubTwin){
+				subId = "twin_sub";
+				processActor(actor, isEnemy, sourceX, sourceY, "twin");		
+			} else {
+				subId = "main_sub";
+				processActor(actor, isEnemy, sourceX, sourceY, "main");		
 			}
 			
 			var subPilots = _this.getSubPilots(actor);
@@ -4895,7 +4904,7 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 				subPilots.forEach(function(pilotId){
 					var actor = $gameActors.actor(pilotId);
 					if(actor){
-						processActor(actor, isEnemy, sourceX, sourceY, "sub", ctr++);		
+						processActor(actor, isEnemy, sourceX, sourceY, subId, ctr++);		
 					}			
 				});	
 			}
@@ -4957,8 +4966,19 @@ StatCalc.prototype.getActorStatMods = function(actor, excludedSkills){
 StatCalc.prototype.getActorSlotInfo = function(actor){
 	var result = {};
 	if(actor.isSubPilot){
-		result.type = "sub";
-		result.slot = actor.subPilotSlot;
+		var slot;
+		if(actor.isActor()){
+			slot = this.getSubPilots(actor.mainPilot).indexOf(actor.actorId());
+		} else {
+			slot = this.getSubPilots(actor.mainPilot).indexOf(actor.enemyId());
+		}
+		
+		if(actor.mainPilot.isSubTwin) {
+			result.type = "twin_sub";
+		} else {
+			result.type = "main_sub";
+		}		
+		result.slot = slot;
 	} else if(actor.isSubTwin) {
 		result.type = "twin";
 	} else {
@@ -4971,7 +4991,7 @@ StatCalc.prototype.validateEffectTarget = function(effect, actor){
 	var slotInfo = this.getActorSlotInfo(actor);
 	var validSlot = true;
 	if(slotInfo.type == effect.slotType){
-		if(slotInfo.type == "sub"){
+		if(slotInfo.type == "main_sub" || slotInfo.type == "twin_sub"){
 			if(slotInfo.slot != effect.slot){
 				validSlot = false;
 			}
