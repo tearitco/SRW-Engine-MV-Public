@@ -26,8 +26,15 @@ DetailBarAttackSummary.prototype.redraw = function(){
 	var detailContent = "";
 	var attackData = this.getCurrentSelection();
 	var mechData = $gameTemp.currentMenuUnit.mech;
+	var actor = $statCalc.getCurrentPilot($gameTemp.currentMenuUnit.mech.id);
+	if(!actor){
+		actor = this.createReferenceData($gameTemp.currentMenuUnit.mech);
+	}
+	var terrainStrings = $statCalc.getRealWeaponTerrainStrings(actor, attackData);
+	
 	var calculatedStats = mechData.stats.calculated;
 	var upgradeLevels = mechData.stats.upgradeLevels;
+	
 
 	
 	detailContent+="<div class='summary_flex'>";	
@@ -145,19 +152,19 @@ DetailBarAttackSummary.prototype.redraw = function(){
 	detailContent+="<div class='ability_block_row terrain scaled_height'>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>AIR</div>";
-	detailContent+="<div class='stat_value'>"+attackData.terrain.air+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.air+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>LND</div>";
-	detailContent+="<div class='stat_value'>"+attackData.terrain.land+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.land+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>SEA</div>";
-	detailContent+="<div class='stat_value'>"+attackData.terrain.water+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.water+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>SPC</div>";
-	detailContent+="<div class='stat_value'>"+attackData.terrain.space+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.space+"</div>";
 	detailContent+="</div>";
 	detailContent+="</div>";	
 	

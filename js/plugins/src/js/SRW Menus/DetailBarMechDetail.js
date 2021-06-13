@@ -21,6 +21,9 @@ DetailBarMechDetail.prototype.redraw = function(){
 	var currentSelection = this.getCurrentSelection();
 	var actor = currentSelection.actor;
 	var mechData = currentSelection.mech;
+	
+	var terrainStrings = $statCalc.getRealMechTerrainStrings(actor);
+	
 	var calculatedStats = mechData.stats.calculated;
 	detailContent+="<div class='left_items'>";
 	detailContent+="<div class='icon_hp_EN'>";
@@ -77,19 +80,19 @@ DetailBarMechDetail.prototype.redraw = function(){
 	detailContent+="<div class='stat_section stat_section_terrain'>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>AIR</div>";
-	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.air+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.air+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>LND</div>";
-	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.land+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.land+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>SEA</div>";
-	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.water+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.water+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
 	detailContent+="<div class='stat_label'>SPC</div>";
-	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.space+"</div>";
+	detailContent+="<div class='stat_value'>"+terrainStrings.space+"</div>";
 	detailContent+="</div>";
 	detailContent+="</div>";
 	detailContent+="</div>";

@@ -3977,18 +3977,37 @@ StatCalc.prototype.modifyWill = function(actor, increment){
 	this.invalidateAbilityCache();
 }
 
-StatCalc.prototype.getTerrainMod = function(actor){
+StatCalc.prototype.getMechTerrainString = function(actor, terrain){
 	if(this.isActorSRWInitialized(actor)){
-		var currentTerrain = this.getCurrentTerrain(actor);
+		var currentTerrain;
+		if(terrain){
+			currentTerrain = terrain;
+		} else {
+			currentTerrain = this.getCurrentTerrain(actor);
+		}		
+		var mechTerrainLevel = actor.SRWStats.mech.stats.calculated.terrain[currentTerrain]; 
+		var mechTerrainNumeric = this._terrainToNumeric[mechTerrainLevel];
+		var minMechTerrains = this.getMinTerrains(actor);
+		if(mechTerrainNumeric < minMechTerrains[currentTerrain]){
+			mechTerrainNumeric = minMechTerrains[currentTerrain];
+		}		
+		return this._terrainSumToLevel[mechTerrainNumeric + mechTerrainNumeric];
+	} 	
+	return 0;
+}
+
+StatCalc.prototype.getTerrainMod = function(actor, terrain){
+	if(this.isActorSRWInitialized(actor)){
+		var currentTerrain;
+		if(terrain){
+			currentTerrain = terrain;
+		} else {
+			currentTerrain = this.getCurrentTerrain(actor);
+		}		
 		var pilotTerrainLevel = actor.SRWStats.pilot.stats.calculated.terrain[currentTerrain];
 		var mechTerrainLevel = actor.SRWStats.mech.stats.calculated.terrain[currentTerrain]; 
 		var mechTerrainNumeric = this._terrainToNumeric[mechTerrainLevel];
-		var minMechTerrains = {
-			"land": this.applyMaxStatModsToValue(actor, 0, ["land_terrain_rating"]),
-			"air": this.applyMaxStatModsToValue(actor, 0, ["air_terrain_rating"]),
-			"water": this.applyMaxStatModsToValue(actor, 0, ["water_terrain_rating"]),
-			"space": this.applyMaxStatModsToValue(actor, 0, ["space_terrain_rating"])
-		};		
+		var minMechTerrains = this.getMinTerrains(actor);	
 		if(mechTerrainNumeric < minMechTerrains[currentTerrain]){
 			mechTerrainNumeric = minMechTerrains[currentTerrain];
 		}		
@@ -4003,18 +4022,64 @@ StatCalc.prototype.getWeaponTerrainMod = function(actor, weaponInfo){
 		var weaponTerrainRanking = weaponInfo.terrain[currentTerrain];
 		
 		var weaponTerrainNumeric = this._terrainToNumeric[weaponTerrainRanking];
-		var minTerrains = {
-			"land": this.applyMaxStatModsToValue(actor, 0, ["land_terrain_rating"]),
-			"air": this.applyMaxStatModsToValue(actor, 0, ["air_terrain_rating"]),
-			"water": this.applyMaxStatModsToValue(actor, 0, ["water_terrain_rating"]),
-			"space": this.applyMaxStatModsToValue(actor, 0, ["space_terrain_rating"])
-		};		
+		var minTerrains = this.getMinTerrains(actor);	
 		if(weaponTerrainNumeric < minTerrains[currentTerrain]){
 			weaponTerrainNumeric = minTerrains[currentTerrain];
 		}		
 		return this._terrainSumToLevel[weaponTerrainNumeric + weaponTerrainNumeric];
 	} 	
 	return 0;
+}
+
+StatCalc.prototype.getMinTerrains = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		return {
+			"land": this.applyMaxStatModsToValue(actor, 0, ["land_terrain_rating"]),
+			"air": this.applyMaxStatModsToValue(actor, 0, ["air_terrain_rating"]),
+			"water": this.applyMaxStatModsToValue(actor, 0, ["water_terrain_rating"]),
+			"space": this.applyMaxStatModsToValue(actor, 0, ["space_terrain_rating"])
+		};
+	} else {
+		return {
+			"land": 0,
+			"air": 0,
+			"water": 0,
+			"space": 0
+		};
+	}
+}
+
+StatCalc.prototype.getRealWeaponTerrainStrings = function(actor, weaponInfo){
+	var _this = this;
+	if(this.isActorSRWInitialized(actor)){
+		var minTerrains = this.getMinTerrains(actor);
+		var result = {};
+		Object.keys(weaponInfo.terrain).forEach(function(currentTerrain){
+			var weaponTerrainRanking = weaponInfo.terrain[currentTerrain];
+			var weaponTerrainNumeric = _this._terrainToNumeric[weaponTerrainRanking];
+			if(weaponTerrainNumeric < minTerrains[currentTerrain]){
+				weaponTerrainNumeric = minTerrains[currentTerrain];
+			}	
+			result[currentTerrain] = _this._terrainSumToLevel[weaponTerrainNumeric + weaponTerrainNumeric];
+		}); 
+		return result;
+	} else {
+		return {air: "-", land: "-", sea: "-", space: "-"};
+	}
+}
+
+StatCalc.prototype.getRealMechTerrainStrings = function(actor){
+	var _this = this;
+	if(this.isActorSRWInitialized(actor)){
+		var result = {};
+		Object.keys(_this._terrainStringLookup).forEach(function(id){
+			var currentTerrain = _this._terrainStringLookup[id];
+			result[currentTerrain] = _this.getMechTerrainString(actor, currentTerrain);
+		});
+		return result;
+	} else {
+		return {air: "-", land: "-", sea: "-", space: "-"};
+	}
 }
 
 StatCalc.prototype.getExp = function(actor){
