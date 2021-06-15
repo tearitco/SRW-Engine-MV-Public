@@ -4365,7 +4365,27 @@ var $battleSceneManager = new BattleSceneManager();
 
     //移動範囲の計算
     Game_CharacterBase.prototype.makeMoveTable = function(x, y, move, route, actor) {
-		function isPassableTile(x, y, actor){
+		function isPassableTile(currentX, currentY, x, y, actor){
+			if(ENGINE_SETTINGS.USE_TILE_PASSAGE){
+				var direction = 0;			
+				if(currentX == x){
+					if(currentY > y){
+						direction = 8; //up
+					} else {
+						direction = 2; //down
+					}			
+				} else {
+					if(currentX > x){
+						direction = 4; //left
+					} else {
+						direction = 6; //right
+					}
+				}				
+				if(!$gameMap.isPassable(currentX, currentY, direction)){
+					return false;
+				}
+			}
+			
 			if($gameMap.regionId(x, y) == 0){
 				return false;
 			}
@@ -4413,7 +4433,7 @@ var $battleSceneManager = new BattleSceneManager();
         }
         //上方向を探索
         if (route[route.length - 1] != 2) {
-            if (isPassableTile(x, y-1, actor)) {
+            if (isPassableTile(x, y, x, y-1, actor)) {
                 if ($gameTemp.MoveTable(x, $gameMap.roundY(y - 1))[0] < move - moveCost) {
                     if ($gameTemp.MoveTable(x, $gameMap.roundY(y - 1))[0] < 0) {
                         $gameTemp.pushMoveList([x, $gameMap.roundY(y - 1), false]);
@@ -4427,7 +4447,7 @@ var $battleSceneManager = new BattleSceneManager();
         }
         //右方向を探索
         if (route[route.length - 1] != 4) {
-            if (isPassableTile(x+1, y, actor)) {
+            if (isPassableTile(x, y, x+1, y, actor)) {
                 if ($gameTemp.MoveTable($gameMap.roundX(x + 1), y)[0] < move - moveCost) {
                     if ($gameTemp.MoveTable($gameMap.roundX(x + 1), y)[0] < 0) {
                         $gameTemp.pushMoveList([$gameMap.roundX(x + 1), y, false]);
@@ -4441,7 +4461,7 @@ var $battleSceneManager = new BattleSceneManager();
         }
         //左方向を探索
         if (route[route.length - 1] != 6) {
-            if (isPassableTile(x-1, y, actor)) {
+            if (isPassableTile(x, y, x-1, y, actor)) {
                 if ($gameTemp.MoveTable($gameMap.roundX(x - 1), y)[0] < move - moveCost) {
                     if ($gameTemp.MoveTable($gameMap.roundX(x - 1), y)[0] < 0) {
                         $gameTemp.pushMoveList([$gameMap.roundX(x - 1), y, false]);
@@ -4455,7 +4475,7 @@ var $battleSceneManager = new BattleSceneManager();
         }
         //下方向を探索
         if (route[route.length - 1] != 8) {
-            if (isPassableTile(x, y+1, actor)) {
+            if (isPassableTile(x, y, x, y+1, actor)) {
                 if ($gameTemp.MoveTable(x, $gameMap.roundY(y + 1))[0] < move - moveCost) {
                     if ($gameTemp.MoveTable(x, $gameMap.roundY(y + 1))[0] < 0) {
                         $gameTemp.pushMoveList([x, $gameMap.roundY(y + 1), false]);
