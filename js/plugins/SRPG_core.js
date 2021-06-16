@@ -4365,6 +4365,7 @@ var $battleSceneManager = new BattleSceneManager();
 
     //移動範囲の計算
     Game_CharacterBase.prototype.makeMoveTable = function(x, y, move, route, actor) {
+		var _this = this;
 		function isPassableTile(currentX, currentY, x, y, actor){
 			if(ENGINE_SETTINGS.USE_TILE_PASSAGE && !$statCalc.isFlying(actor)){
 				var direction = 0;			
@@ -4381,7 +4382,7 @@ var $battleSceneManager = new BattleSceneManager();
 						direction = 6; //right
 					}
 				}				
-				if(!$gameMap.isPassable(currentX, currentY, direction)){
+				if(!_this.isMapPassable(currentX, currentY, direction)){
 					return false;
 				}
 			}
