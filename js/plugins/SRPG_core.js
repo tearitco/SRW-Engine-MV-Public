@@ -14584,6 +14584,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		function implodePath(path){
 			var tmp = [];
+			var visited = {};
 			path.forEach(function(node){
 				node.x = convertToNormalCoordinate(node.x);
 				node.y = convertToNormalCoordinate(node.y);
@@ -14599,23 +14600,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		}
 		
 		var implodedPaths = [];
-		candidatePaths.forEach(function(path){
-			var visited = {};
-			
-			path.forEach(function(node){
-				node.x = convertToNormalCoordinate(node.x);
-				node.y = convertToNormalCoordinate(node.y);
-				if(!visited[node.x]){
-					visited[node.x] = {};
-				}
-				if(!visited[node.x][node.y]){
-					visited[node.x][node.y] = true;
-					tmp.push(node);
-				}
-			});		
-			implodedPaths.push(tmp);
-		});
-		
+		candidatePaths.forEach(function(path){	
+			implodedPaths.push(implodePath(path));
+		});		
 		candidatePaths = implodedPaths;
 		
 		var canReach = false;
@@ -14693,7 +14680,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			var graph = new Graph(pathfindingGrid);
 			var startNode = graph.grid[convertToExplodedCoordinate(battler.event.posX())][convertToExplodedCoordinate(battler.event.posY())];
 			path = astar.search(graph, startNode, graph.grid[convertToExplodedCoordinate(targetCoords.x)][convertToExplodedCoordinate(targetCoords.y)], {closest: true});
-			
+			path = implodePath(path);
 		}
 			
 		
