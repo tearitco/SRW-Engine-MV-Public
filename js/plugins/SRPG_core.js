@@ -5684,7 +5684,7 @@ var $battleSceneManager = new BattleSceneManager();
 					if(ignoreObstacles){
 						pathfindingGrid[localIi][localJ] = 1;
 					} else {
-						pathfindingGrid[localI][localJ] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : weight;
+						pathfindingGrid[localI][localJ] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i] && $gameTemp._MoveTable[i][j] && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : weight;
 					}
 				} else {
 					pathfindingGrid[localI][localJ] = 0;
@@ -14544,7 +14544,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		
 		
-		var detailedAIRadius = 20;
+		var detailedAIRadius = 30;
 		var startX = battler.event.posX();
 		var startY = battler.event.posY();
 		var bestDist = -1;
@@ -14595,12 +14595,6 @@ SceneManager.reloadCharacters = function(startEvent){
 				pathfindingGrid[(localI * 3) + 2][(localJ * 3) + 2] = isBottomPassable && isRightPassable ? weight : 0;
 				
 				
-				/*var isNonPassable = false;
-				if(!$statCalc.isFlying(battler)){
-					isNonPassable = !$gameMap.isPassable(i, j, 2) || !$gameMap.isPassable(i, j, 4) || !$gameMap.isPassable(i, j, 6) || !$gameMap.isPassable(i, j, 8);
-				}
-				pathfindingGrid[i][j] = (isNonPassable || (occupiedPositions[i] && occupiedPositions[i][j]) || !$statCalc.canStandOnTile(battler, {x: i, y: j})) ? 0 : 1;
-				*/
 				var deltaX = Math.abs(targetCoords.x - i);
 				var deltaY = Math.abs(targetCoords.y - j);
 				var dist = Math.hypot(deltaX, deltaY);	
