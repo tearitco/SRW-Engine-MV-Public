@@ -5657,13 +5657,18 @@ var $battleSceneManager = new BattleSceneManager();
 		this._pendingMoveToPoint = true;
 		this._targetPosition = targetPosition;
 		
+		var actor = $gameSystem.EventToUnit(this.eventId())[1];
 		//construct grid representation for pathfinding
-		var occupiedPositions = $statCalc.getOccupiedPositionsLookup($gameSystem.EventToUnit(this.eventId())[1].isActor() ? "enemy" : "actor");
+		var occupiedPositions = $statCalc.getOccupiedPositionsLookup(actor.isActor() ? "enemy" : "actor");
 		var pathfindingGrid = [];
 		for(var i = 0; i < $gameMap.width(); i++){
 			pathfindingGrid[i] = [];
 			for(var j = 0; j < $gameMap.height(); j++){
-				var weight = 1 + $gameMap.SRPGTerrainTag(i, j);
+				var weight = 1 ;
+				
+				if(!$statCalc.isFlying(actor)){
+					weight+=$gameMap.SRPGTerrainTag(i, j);
+				}
 				if(ignoreObstacles){
 					pathfindingGrid[i][j] = 1;
 				} else {
@@ -14515,7 +14520,12 @@ SceneManager.reloadCharacters = function(startEvent){
 					isRightPassable = $gameMap.isPassable(i, j, 6);
 				}
 				
-				var weight = 1 + $gameMap.SRPGTerrainTag(i, j);
+				var weight = 1 ;
+				
+				if(!$statCalc.isFlying(battler)){
+					weight+=$gameMap.SRPGTerrainTag(i, j);
+				}
+				
 				
 				pathfindingGrid[i * 3][j * 3] = isTopPassable && isLeftPassable ? weight : 0; 
 				pathfindingGrid[(i * 3) + 1][j * 3] = isTopPassable ? weight : 0;
