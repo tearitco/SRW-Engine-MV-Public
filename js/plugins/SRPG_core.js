@@ -5658,29 +5658,55 @@ var $battleSceneManager = new BattleSceneManager();
 		this._targetPosition = targetPosition;
 		
 		var actor = $gameSystem.EventToUnit(this.eventId())[1];
+		var deltaX = Math.abs(targetPosition.x - this.posX());
+		var deltaY = Math.abs(targetPosition.y - this.posY());
+		var radius = 0;
+		if(deltaX > deltaY){
+			radius = (Math.floor(deltaX / 2) + 1) * 2;
+		} else {
+			radius = (Math.floor(deltaY / 2) + 1) * 2;
+		}
+		
+		var coordUtil = new coordUtils(this.posX(), this.posY(), radius);
 		//construct grid representation for pathfinding
 		var occupiedPositions = $statCalc.getOccupiedPositionsLookup(actor.isActor() ? "enemy" : "actor");
 		var pathfindingGrid = [];
-		for(var i = 0; i < $gameMap.width(); i++){
-			pathfindingGrid[i] = [];
-			for(var j = 0; j < $gameMap.height(); j++){
+		for(var localI = 0; localI < radius * 2; localI++){
+			var i = this.posX() + localI - radius;
+			pathfindingGrid[localI] = [];
+			for(var localJ = 0; localJ < radius * 2; localJ++){
+				var j = this.posY() + localJ - radius;
 				var weight = 1 ;
-				
-				if(!$statCalc.isFlying(actor)){
-					weight+=$gameMap.SRPGTerrainTag(i, j);
-				}
-				if(ignoreObstacles){
-					pathfindingGrid[i][j] = 1;
+				if(i >= 0 && j >= 0){
+					if(!$statCalc.isFlying(actor)){
+						weight+=$gameMap.SRPGTerrainTag(i, j);
+					}
+					if(ignoreObstacles){
+						pathfindingGrid[localIi][localJ] = 1;
+					} else {
+						pathfindingGrid[localI][localJ] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : weight;
+					}
 				} else {
-					pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : weight;
+					pathfindingGrid[localI][localJ] = 0;
 				}
 			}
 		}
 		var graph = new Graph(pathfindingGrid);
-		var startNode = graph.grid[this._x][this._y];
-		var endNode = graph.grid[this._targetPosition.x][this._targetPosition.y];
+		
+		var startCoords = coordUtil.convertToGridCoordinate({x: this.posX(), y: this.posY()});
+		var startNode = graph.grid[startCoords.x][startCoords.y];
+		var endCoords = coordUtil.convertToGridCoordinate({x: this._targetPosition.x, y: this._targetPosition.y});
+		var endNode = graph.grid[endCoords.x][endCoords.y];
+
 		
 		var path = astar.search(graph, startNode, endNode);
+		
+		path.forEach(function(node){
+			var mapCoords = coordUtil.convertToMapCoordinate(node);
+			node.x = mapCoords.x;
+			node.y = mapCoords.y;
+		});				
+		
 		$gamePlayer.followedEvent = this;
 		this._pathToCurrentTarget = path;	
 	}
@@ -14178,7 +14204,7 @@ SceneManager.reloadCharacters = function(startEvent){
 						if(minRange == -1){
 							minRange = 0;
 						}
-						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range || -1, minRange);
+						optimalPos = this.srpgSearchOptimalPos({x: targetInfo.target.posX(), y: targetInfo.target.posY()}, enemy, type, fullRange.range || -1, minRange, true);
 					}
 				}
 				
@@ -14434,9 +14460,37 @@ SceneManager.reloadCharacters = function(startEvent){
 		
         return {target: bestTarget, weapon: bestWeapon};
     };
+	
+	function coordUtils(startX, startY, chunkRadius){
+		this.startX = startX;
+		this.startY = startY;
+		this.radius = chunkRadius;
+	}
+	
+	coordUtils.prototype.convertToNormalCoordinate = function(coord){
+			return Math.floor(coord / 3);
+	}
+	
+	coordUtils.prototype.convertToExplodedCoordinate = function(coord){
+		return coord * 3 + 1;
+	}
+	
+	coordUtils.prototype.convertToGridCoordinate = function(coords){
+		return {
+			x: coords.x - this.startX + this.radius,
+			y: coords.y - this.startY + this.radius
+		}
+	}
+	
+	coordUtils.prototype.convertToMapCoordinate = function(coords){
+		return {
+			x: coords.x + this.startX - this.radius,
+			y: coords.y + this.startY - this.radius
+		}
+	}
 
     // 最適移動位置の探索
-    Scene_Map.prototype.srpgSearchOptimalPos = function(targetCoords, battler, type, range, minRange) {
+    Scene_Map.prototype.srpgSearchOptimalPos = function(targetCoords, battler, type, range, minRange, noTargets) {
 		function isValidSpace(pos){
 			return $statCalc.isFreeSpace(pos) || (pos.x == $gameTemp.activeEvent().posX() && pos.y == $gameTemp.activeEvent().posY());
 		}
@@ -14488,21 +14542,22 @@ SceneManager.reloadCharacters = function(startEvent){
 		var allOccupiedPosition = $statCalc.getOccupiedPositionsLookup();
 		
 		
-		function convertToNormalCoordinate(coord){
-			return Math.floor(coord / 3);
-		}
 		
-		function convertToExplodedCoordinate(coord){
-			return coord * 3 + 1;
-		}
 		
+		var detailedAIRadius = 20;
+		var startX = battler.event.posX();
+		var startY = battler.event.posY();
+		var bestDist = -1;
+		var referencePos = {x: startX, y: startY};
 		
 		var pathfindingGrid = [];
-		for(var i = 0; i < $gameMap.width(); i++){
-			pathfindingGrid[i * 3] = [];
-			pathfindingGrid[(i * 3) + 1] = [];
-			pathfindingGrid[(i * 3) + 2] = [];
-			for(var j = 0; j < $gameMap.height(); j++){
+		for(var localI = 0; localI < detailedAIRadius * 2; localI++){
+			i = startX + localI - detailedAIRadius;
+			pathfindingGrid[localI * 3] = [];
+			pathfindingGrid[(localI * 3) + 1] = [];
+			pathfindingGrid[(localI * 3) + 2] = [];
+			for(var localJ = 0; localJ < detailedAIRadius * 2; localJ++){
+				j = startY + localJ - detailedAIRadius;
 				var isCenterPassable = !(occupiedPositions[i] && occupiedPositions[i][j]) && $statCalc.canStandOnTile(battler, {x: i, y: j});
 				var isTopPassable;
 				var isBottomPassable;
@@ -14527,17 +14582,17 @@ SceneManager.reloadCharacters = function(startEvent){
 				}
 				
 				
-				pathfindingGrid[i * 3][j * 3] = isTopPassable && isLeftPassable ? weight : 0; 
-				pathfindingGrid[(i * 3) + 1][j * 3] = isTopPassable ? weight : 0;
-				pathfindingGrid[(i * 3) + 2][j * 3] = isTopPassable && isRightPassable ? weight : 0;
+				pathfindingGrid[localI * 3][localJ * 3] = isTopPassable && isLeftPassable ? weight : 0; 
+				pathfindingGrid[(localI * 3) + 1][localJ * 3] = isTopPassable ? weight : 0;
+				pathfindingGrid[(localI * 3) + 2][localJ * 3] = isTopPassable && isRightPassable ? weight : 0;
 				
-				pathfindingGrid[i * 3][(j * 3) + 1] = isLeftPassable ? weight : 0;
-				pathfindingGrid[(i * 3) + 1][(j * 3) + 1] = isCenterPassable ? weight : 0;
-				pathfindingGrid[(i * 3) + 2][(j * 3) + 1] = isRightPassable ? weight : 0;
+				pathfindingGrid[localI * 3][(localJ * 3) + 1] = isLeftPassable ? weight : 0;
+				pathfindingGrid[(localI * 3) + 1][(localJ * 3) + 1] = isCenterPassable ? weight : 0;
+				pathfindingGrid[(localI * 3) + 2][(localJ * 3) + 1] = isRightPassable ? weight : 0;
 				
-				pathfindingGrid[i * 3][(j * 3) + 2] = isBottomPassable && isLeftPassable ? weight : 0;
-				pathfindingGrid[(i * 3) + 1][(j * 3) + 2] = isBottomPassable ? weight : 0;
-				pathfindingGrid[(i * 3) + 2][(j * 3) + 2] = isBottomPassable && isRightPassable ? weight : 0;
+				pathfindingGrid[localI * 3][(localJ * 3) + 2] = isBottomPassable && isLeftPassable ? weight : 0;
+				pathfindingGrid[(localI * 3) + 1][(localJ * 3) + 2] = isBottomPassable ? weight : 0;
+				pathfindingGrid[(localI * 3) + 2][(localJ * 3) + 2] = isBottomPassable && isRightPassable ? weight : 0;
 				
 				
 				/*var isNonPassable = false;
@@ -14546,9 +14601,17 @@ SceneManager.reloadCharacters = function(startEvent){
 				}
 				pathfindingGrid[i][j] = (isNonPassable || (occupiedPositions[i] && occupiedPositions[i][j]) || !$statCalc.canStandOnTile(battler, {x: i, y: j})) ? 0 : 1;
 				*/
-			
+				var deltaX = Math.abs(targetCoords.x - i);
+				var deltaY = Math.abs(targetCoords.y - j);
+				var dist = Math.hypot(deltaX, deltaY);	
+				if(bestDist == -1 || dist < bestDist){
+					bestDist = dist;
+					referencePos = {x: i, y: j};
+				}
 			}
 		}
+		
+		targetCoords = referencePos;
 		
 		var targetDist = minRange || 1;
 		var currentBestDist = -1;
@@ -14556,16 +14619,19 @@ SceneManager.reloadCharacters = function(startEvent){
 		var path = [];
 	
 		var candidatePaths = [];
-		var targetTileCounter = 0;
+		var targetTileCounter = 0;	
+		
+		var coordUtil = new coordUtils(startX, startY, detailedAIRadius);
 		
 		
-		
-		while(currentBestDist != targetDist && targetTileCounter < list.length){
+		while(!noTargets && currentBestDist != targetDist && targetTileCounter < list.length){
 			var graph = new Graph(pathfindingGrid);
-			var startNode = graph.grid[convertToExplodedCoordinate(battler.event.posX())][convertToExplodedCoordinate(battler.event.posY())];
+			var startCoords = coordUtil.convertToGridCoordinate({x: battler.event.posX(), y: battler.event.posY()});
+			var startNode = graph.grid[coordUtil.convertToExplodedCoordinate(startCoords.x)][coordUtil.convertToExplodedCoordinate(startCoords.y)];
 			
 			var targetNode = list[targetTileCounter];
-			var endNode = graph.grid[convertToExplodedCoordinate(targetNode[0])][convertToExplodedCoordinate(targetNode[1])];
+			var endCoords = coordUtil.convertToGridCoordinate({x: targetNode[0], y: targetNode[1]});
+			var endNode = graph.grid[coordUtil.convertToExplodedCoordinate(endCoords.x)][coordUtil.convertToExplodedCoordinate(endCoords.y)];
 			
 			if(isValidSpace({x: endNode.x, y: endNode.y})){			
 				path = astar.search(graph, startNode, endNode, {closest: true});
@@ -14574,8 +14640,8 @@ SceneManager.reloadCharacters = function(startEvent){
 					var ctr = path.length-1;
 					while(ctr >= 0 && !closestValidNode){
 						var node = path[ctr];
-						var x = convertToNormalCoordinate(node.x);
-						var y = convertToNormalCoordinate(node.y);
+						var x = coordUtil.convertToNormalCoordinate(node.x);
+						var y = coordUtil.convertToNormalCoordinate(node.y);
 						var deltaX = Math.abs(targetCoords.x - x);
 						var deltaY = Math.abs(targetCoords.y - y);
 						var dist = Math.hypot(deltaX, deltaY);			
@@ -14599,8 +14665,11 @@ SceneManager.reloadCharacters = function(startEvent){
 			var tmp = [];
 			var visited = {};
 			path.forEach(function(node){
-				node.x = convertToNormalCoordinate(node.x);
-				node.y = convertToNormalCoordinate(node.y);
+				node.x = coordUtil.convertToNormalCoordinate(node.x)// + startX - detailedAIRadius;
+				node.y = coordUtil.convertToNormalCoordinate(node.y)// + startY - detailedAIRadius;
+				var mapCoords = coordUtil.convertToMapCoordinate(node);
+				node.x = mapCoords.x;
+				node.y = mapCoords.y;
 				if(!visited[node.x]){
 					visited[node.x] = {};
 				}
@@ -14691,8 +14760,11 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 		} else {
 			var graph = new Graph(pathfindingGrid);
-			var startNode = graph.grid[convertToExplodedCoordinate(battler.event.posX())][convertToExplodedCoordinate(battler.event.posY())];
-			path = astar.search(graph, startNode, graph.grid[convertToExplodedCoordinate(targetCoords.x)][convertToExplodedCoordinate(targetCoords.y)], {closest: true});
+			var startCoords = coordUtil.convertToGridCoordinate({x: battler.event.posX(), y: battler.event.posY()});
+			var startNode = graph.grid[coordUtil.convertToExplodedCoordinate(startCoords.x)][coordUtil.convertToExplodedCoordinate(startCoords.y)];
+			var endCoords = coordUtil.convertToGridCoordinate({x: targetCoords.x, y: targetCoords.y});
+			var endNode = graph.grid[coordUtil.convertToExplodedCoordinate(endCoords.x)][coordUtil.convertToExplodedCoordinate(endCoords.y)];
+			path = astar.search(graph, startNode, endNode, {closest: true});
 			path = implodePath(path);
 		}
 			
