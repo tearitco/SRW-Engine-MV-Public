@@ -5663,10 +5663,11 @@ var $battleSceneManager = new BattleSceneManager();
 		for(var i = 0; i < $gameMap.width(); i++){
 			pathfindingGrid[i] = [];
 			for(var j = 0; j < $gameMap.height(); j++){
+				var weight = 1 + $gameMap.SRPGTerrainTag(i, j);
 				if(ignoreObstacles){
 					pathfindingGrid[i][j] = 1;
 				} else {
-					pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : 1;
+					pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : weight;
 				}
 			}
 		}
@@ -14502,11 +14503,11 @@ SceneManager.reloadCharacters = function(startEvent){
 				var isBottomPassable;
 				var isLeftPassable;
 				var isRightPassable;
-				if(!isCenterPassable){
-				 	isTopPassable = false;
-					isBottomPassable = false;
-					isLeftPassable = false;
-					isRightPassable = false;
+				if(!isCenterPassable || $statCalc.isFlying(battler) || !ENGINE_SETTINGS.USE_TILE_PASSAGE){
+				 	isTopPassable = isCenterPassable;
+					isBottomPassable = isCenterPassable;
+					isLeftPassable = isCenterPassable;
+					isRightPassable = isCenterPassable;
 				} else {
 					isTopPassable = $gameMap.isPassable(i, j, 8);
 					isBottomPassable = $gameMap.isPassable(i, j, 2);
@@ -14514,17 +14515,19 @@ SceneManager.reloadCharacters = function(startEvent){
 					isRightPassable = $gameMap.isPassable(i, j, 6);
 				}
 				
-				pathfindingGrid[i * 3][j * 3] = isTopPassable && isLeftPassable ? 1 : 0; 
-				pathfindingGrid[(i * 3) + 1][j * 3] = isTopPassable ? 1 : 0;
-				pathfindingGrid[(i * 3) + 2][j * 3] = isTopPassable && isRightPassable ? 1 : 0;
+				var weight = 1 + $gameMap.SRPGTerrainTag(i, j);
 				
-				pathfindingGrid[i * 3][(j * 3) + 1] = isLeftPassable ? 1 : 0;
-				pathfindingGrid[(i * 3) + 1][(j * 3) + 1] = isCenterPassable ? 1 : 0;
-				pathfindingGrid[(i * 3) + 2][(j * 3) + 1] = isRightPassable ? 1 : 0;
+				pathfindingGrid[i * 3][j * 3] = isTopPassable && isLeftPassable ? weight : 0; 
+				pathfindingGrid[(i * 3) + 1][j * 3] = isTopPassable ? weight : 0;
+				pathfindingGrid[(i * 3) + 2][j * 3] = isTopPassable && isRightPassable ? weight : 0;
 				
-				pathfindingGrid[i * 3][(j * 3) + 2] = isBottomPassable && isLeftPassable ? 1 : 0;
-				pathfindingGrid[(i * 3) + 1][(j * 3) + 2] = isBottomPassable ? 1 : 0;
-				pathfindingGrid[(i * 3) + 2][(j * 3) + 2] = isBottomPassable && isRightPassable ? 1 : 0;
+				pathfindingGrid[i * 3][(j * 3) + 1] = isLeftPassable ? weight : 0;
+				pathfindingGrid[(i * 3) + 1][(j * 3) + 1] = isCenterPassable ? weight : 0;
+				pathfindingGrid[(i * 3) + 2][(j * 3) + 1] = isRightPassable ? weight : 0;
+				
+				pathfindingGrid[i * 3][(j * 3) + 2] = isBottomPassable && isLeftPassable ? weight : 0;
+				pathfindingGrid[(i * 3) + 1][(j * 3) + 2] = isBottomPassable ? weight : 0;
+				pathfindingGrid[(i * 3) + 2][(j * 3) + 2] = isBottomPassable && isRightPassable ? weight : 0;
 				
 				
 				/*var isNonPassable = false;
