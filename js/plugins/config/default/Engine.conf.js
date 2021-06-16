@@ -4,7 +4,7 @@ var ENGINE_SETTINGS_DEFAULT = {
 	USE_STRICT_TWIN_SLOTS: false,
 	USE_SRW_SUPPORT_ORDER: true,
 	DISABLE_EVASION_DECAY: false,
-	USE_TILE_PASSAGE: false,
+	USE_TILE_PASSAGE: true,
 	DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
 	BATTLE_SCENE: {
 		SPRITE_WORLD_SIZE: 3,

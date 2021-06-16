@@ -4366,7 +4366,7 @@ var $battleSceneManager = new BattleSceneManager();
     //移動範囲の計算
     Game_CharacterBase.prototype.makeMoveTable = function(x, y, move, route, actor) {
 		function isPassableTile(currentX, currentY, x, y, actor){
-			if(ENGINE_SETTINGS.USE_TILE_PASSAGE){
+			if(ENGINE_SETTINGS.USE_TILE_PASSAGE && !$statCalc.isFlying(actor)){
 				var direction = 0;			
 				if(currentX == x){
 					if(currentY > y){
