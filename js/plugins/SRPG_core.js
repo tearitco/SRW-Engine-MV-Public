@@ -5740,22 +5740,23 @@ var $battleSceneManager = new BattleSceneManager();
         } else if(this._pendingMoveToPoint){
 			if (!this.isMoving()) {
 				Input.update();
-				if(Input.isPressed("pagedown") || Input.isLongPressed("pagedown")){
-					
-					var targetPosition = this._pathToCurrentTarget[this._pathToCurrentTarget.length-1];
-					this._pathToCurrentTarget = [];
-					this.locate(targetPosition.x, targetPosition.y);
-					if(followMove){
-						$gamePlayer.locate(targetPosition.x, targetPosition.y);
-					}
-					$gamePlayer.clearFollowSpeed();
-					$gamePlayer.followedEvent = null;
-					this._targetPosition = null;
-					this._pathToCurrentTarget = null;
-					this._pendingMoveToPoint = false;
-					$gameTemp.followMove = false;
-					$gameSystem.setSrpgWaitMoving(false);
-					$statCalc.invalidateAbilityCache();					
+				if(Input.isPressed("pagedown") || Input.isLongPressed("pagedown")){					
+					if(this._pathToCurrentTarget){//avoid rare crash where this functional is called when the path has already been cleared
+						var targetPosition = this._pathToCurrentTarget[this._pathToCurrentTarget.length-1];
+						this._pathToCurrentTarget = [];
+						this.locate(targetPosition.x, targetPosition.y);
+						if(followMove){
+							$gamePlayer.locate(targetPosition.x, targetPosition.y);
+						}
+						$gamePlayer.clearFollowSpeed();
+						$gamePlayer.followedEvent = null;
+						this._targetPosition = null;
+						this._pathToCurrentTarget = null;
+						this._pendingMoveToPoint = false;
+						$gameTemp.followMove = false;
+						$gameSystem.setSrpgWaitMoving(false);
+						$statCalc.invalidateAbilityCache();	
+					}									
 				} else {				
 					this.setMoveSpeed(6);
 					if(followMove){
