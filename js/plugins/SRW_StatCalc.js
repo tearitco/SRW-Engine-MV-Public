@@ -81,6 +81,9 @@ StatCalc.prototype.getReferenceEventId = function(actor){
 
 StatCalc.prototype.canStandOnTile = function(actor, position){
 	if(this.isActorSRWInitialized(actor)){
+		if($gameMap.regionId(position.x, position.y) % 8 == 0){//void
+			return false;
+		}
 		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
 			if(this.canFly(actor)){
 				if(!this.isFlying(actor)){

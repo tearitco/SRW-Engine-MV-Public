@@ -14482,13 +14482,58 @@ SceneManager.reloadCharacters = function(startEvent){
 		var allOccupiedPosition = $statCalc.getOccupiedPositionsLookup();
 		
 		
+		function convertToNormalCoordinate(coord){
+			return Math.floor(coord / 3);
+		}
+		
+		function convertToExplodedCoordinate(coord){
+			return coord * 3 + 1;
+		}
 		
 		
 		var pathfindingGrid = [];
 		for(var i = 0; i < $gameMap.width(); i++){
-			pathfindingGrid[i] = [];
+			pathfindingGrid[i * 3] = [];
+			pathfindingGrid[(i * 3) + 1] = [];
+			pathfindingGrid[(i * 3) + 2] = [];
 			for(var j = 0; j < $gameMap.height(); j++){
-				pathfindingGrid[i][j] = ((occupiedPositions[i] && occupiedPositions[i][j]) || !$statCalc.canStandOnTile(battler, {x: i, y: j})) ? 0 : 1;
+				var isCenterPassable = !(occupiedPositions[i] && occupiedPositions[i][j]) && $statCalc.canStandOnTile(battler, {x: i, y: j});
+				var isTopPassable;
+				var isBottomPassable;
+				var isLeftPassable;
+				var isRightPassable;
+				if(!isCenterPassable){
+				 	isTopPassable = false;
+					isBottomPassable = false;
+					isLeftPassable = false;
+					isRightPassable = false;
+				} else {
+					isTopPassable = $gameMap.isPassable(i, j, 8);
+					isBottomPassable = $gameMap.isPassable(i, j, 2);
+					isLeftPassable = $gameMap.isPassable(i, j, 4);
+					isRightPassable = $gameMap.isPassable(i, j, 6);
+				}
+				
+				pathfindingGrid[i * 3][j * 3] = isTopPassable && isLeftPassable ? 1 : 0; 
+				pathfindingGrid[(i * 3) + 1][j * 3] = isTopPassable ? 1 : 0;
+				pathfindingGrid[(i * 3) + 2][j * 3] = isTopPassable && isRightPassable ? 1 : 0;
+				
+				pathfindingGrid[i * 3][(j * 3) + 1] = isLeftPassable ? 1 : 0;
+				pathfindingGrid[(i * 3) + 1][(j * 3) + 1] = isCenterPassable ? 1 : 0;
+				pathfindingGrid[(i * 3) + 2][(j * 3) + 1] = isRightPassable ? 1 : 0;
+				
+				pathfindingGrid[i * 3][(j * 3) + 2] = isBottomPassable && isLeftPassable ? 1 : 0;
+				pathfindingGrid[(i * 3) + 1][(j * 3) + 2] = isBottomPassable ? 1 : 0;
+				pathfindingGrid[(i * 3) + 2][(j * 3) + 2] = isBottomPassable && isRightPassable ? 1 : 0;
+				
+				
+				/*var isNonPassable = false;
+				if(!$statCalc.isFlying(battler)){
+					isNonPassable = !$gameMap.isPassable(i, j, 2) || !$gameMap.isPassable(i, j, 4) || !$gameMap.isPassable(i, j, 6) || !$gameMap.isPassable(i, j, 8);
+				}
+				pathfindingGrid[i][j] = (isNonPassable || (occupiedPositions[i] && occupiedPositions[i][j]) || !$statCalc.canStandOnTile(battler, {x: i, y: j})) ? 0 : 1;
+				*/
+			
 			}
 		}
 		
@@ -14504,10 +14549,10 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		while(currentBestDist != targetDist && targetTileCounter < list.length){
 			var graph = new Graph(pathfindingGrid);
-			var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
+			var startNode = graph.grid[convertToExplodedCoordinate(battler.event.posX())][convertToExplodedCoordinate(battler.event.posY())];
 			
 			var targetNode = list[targetTileCounter];
-			var endNode = graph.grid[targetNode[0]][targetNode[1]];
+			var endNode = graph.grid[convertToExplodedCoordinate(targetNode[0])][convertToExplodedCoordinate(targetNode[1])];
 			
 			if(isValidSpace({x: endNode.x, y: endNode.y})){			
 				path = astar.search(graph, startNode, endNode, {closest: true});
@@ -14516,28 +14561,19 @@ SceneManager.reloadCharacters = function(startEvent){
 					var ctr = path.length-1;
 					while(ctr >= 0 && !closestValidNode){
 						var node = path[ctr];
-						var deltaX = Math.abs(targetCoords.x - node.x);
-						var deltaY = Math.abs(targetCoords.y - node.y);
+						var x = convertToNormalCoordinate(node.x);
+						var y = convertToNormalCoordinate(node.y);
+						var deltaX = Math.abs(targetCoords.x - x);
+						var deltaY = Math.abs(targetCoords.y - y);
 						var dist = Math.hypot(deltaX, deltaY);			
 						
-						if(dist >= targetDist && isValidSpace({x: node.x, y: node.y})){
+						if(dist >= targetDist && isValidSpace({x: x, y: y})){
 							closestValidNode = node;
 						} else {
 							//pathfindingGrid[node.x][node.y] = 0;
 						}
 						ctr--;
 					}			
-					
-					var deltaX = Math.abs(targetCoords.x - node.x);
-					var deltaY = Math.abs(targetCoords.y - node.y);
-					var dist = Math.hypot(deltaX, deltaY);
-					
-					/*if(currentBestDist != -1 && currentBestDist >= targetDist && currentBestDist <= dist){
-						improves = false;				
-					} else {
-						bestPath = path;
-						currentBestDist = dist;
-					}		*/
 					candidatePaths.push(path);				
 				} else {
 					improves = false;
@@ -14545,6 +14581,42 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 			targetTileCounter++;
 		}	
+		
+		function implodePath(path){
+			var tmp = [];
+			path.forEach(function(node){
+				node.x = convertToNormalCoordinate(node.x);
+				node.y = convertToNormalCoordinate(node.y);
+				if(!visited[node.x]){
+					visited[node.x] = {};
+				}
+				if(!visited[node.x][node.y]){
+					visited[node.x][node.y] = true;
+					tmp.push(node);
+				}
+			});	
+			return tmp;
+		}
+		
+		var implodedPaths = [];
+		candidatePaths.forEach(function(path){
+			var visited = {};
+			
+			path.forEach(function(node){
+				node.x = convertToNormalCoordinate(node.x);
+				node.y = convertToNormalCoordinate(node.y);
+				if(!visited[node.x]){
+					visited[node.x] = {};
+				}
+				if(!visited[node.x][node.y]){
+					visited[node.x][node.y] = true;
+					tmp.push(node);
+				}
+			});		
+			implodedPaths.push(tmp);
+		});
+		
+		candidatePaths = implodedPaths;
 		
 		var canReach = false;
 		var pathScores = [];
@@ -14619,8 +14691,9 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 		} else {
 			var graph = new Graph(pathfindingGrid);
-			var startNode = graph.grid[battler.event.posX()][battler.event.posY()];
-			path = astar.search(graph, startNode, graph.grid[targetCoords.x][targetCoords.y], {closest: true});
+			var startNode = graph.grid[convertToExplodedCoordinate(battler.event.posX())][convertToExplodedCoordinate(battler.event.posY())];
+			path = astar.search(graph, startNode, graph.grid[convertToExplodedCoordinate(targetCoords.x)][convertToExplodedCoordinate(targetCoords.y)], {closest: true});
+			
 		}
 			
 		
