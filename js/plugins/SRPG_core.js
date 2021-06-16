@@ -4414,7 +4414,7 @@ var $battleSceneManager = new BattleSceneManager();
 		var currentRegion = $gameMap.regionId(x, y) % 8; //1 air, 2 land, 3 water, 4 space
 		var moveCost = 1;
 		if(route.length > 1){//no movecost for the start tile
-			var taggedCost = $gameMap.terrainTag(x, y);
+			var taggedCost = $gameMap.SRPGTerrainTag(x, y);
 			if(taggedCost > 1){
 				if(currentRegion == 4 || !$statCalc.isFlying(actor)){
 					moveCost = taggedCost;
@@ -5941,6 +5941,20 @@ var $battleSceneManager = new BattleSceneManager();
         }
         return _SRPG_Game_Map_setupStartingMapEvent.call(this);
     };
+	
+	Game_Map.prototype.SRPGTerrainTag = function(x, y) {
+		if (this.isValid(x, y)) {
+			var flags = this.tilesetFlags();
+			var tiles = this.layeredTiles(x, y);
+			for (var i = 0; i < tiles.length; i++) {
+				var tag = flags[tiles[i]] >> 12;
+				if (tiles[i] != 0) {
+					return tag;
+				}
+			}
+		}
+		return 0;
+	};
 
 //====================================================================
 // ●Game_Interpreter
