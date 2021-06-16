@@ -154,7 +154,7 @@ var astar = {
  * @param {Object} [options]
  * @param {bool} [options.diagonal] Specifies whether diagonal moves are allowed
  */
-function Graph(gridIn, options) {
+function Graph(gridIn, directionInfo, options) {
   options = options || {};
   this.nodes = [];
   this.diagonal = !!options.diagonal;
@@ -168,6 +168,7 @@ function Graph(gridIn, options) {
       this.nodes.push(node);
     }
   }
+  this.directionInfo = directionInfo;
   this.init();
 }
 
@@ -189,6 +190,30 @@ Graph.prototype.markDirty = function(node) {
   this.dirtyNodes.push(node);
 };
 
+Graph.prototype.validateNeighbor = function(node, x, y) {
+	if(this.directionInfo){
+		var sourceX = node.x;
+		var sourceY = node.y;
+		var direction;
+		if(sourceX != x){
+			if(sourceX > x){
+				direction = "right";
+			} else {
+				direction = "left";
+			}
+		} else if(sourceY != y){
+			if(sourceY > y){
+				direction = "bottom";
+			} else {
+				direction = "top";
+			}
+		}
+		return this.directionInfo[x][y][direction];
+	} else {
+		return true;
+	}	
+}
+
 Graph.prototype.neighbors = function(node) {
   var ret = [];
   var x = node.x;
@@ -196,22 +221,22 @@ Graph.prototype.neighbors = function(node) {
   var grid = this.grid;
 
   // West
-  if (grid[x - 1] && grid[x - 1][y]) {
+  if (grid[x - 1] && grid[x - 1][y] && this.validateNeighbor(node, x - 1, y)) {
     ret.push(grid[x - 1][y]);
   }
 
   // East
-  if (grid[x + 1] && grid[x + 1][y]) {
+  if (grid[x + 1] && grid[x + 1][y] && this.validateNeighbor(node, x + 1, y)) {
     ret.push(grid[x + 1][y]);
   }
 
   // South
-  if (grid[x] && grid[x][y - 1]) {
+  if (grid[x] && grid[x][y - 1] && this.validateNeighbor(node, x, y - 1)) {
     ret.push(grid[x][y - 1]);
   }
 
   // North
-  if (grid[x] && grid[x][y + 1]) {
+  if (grid[x] && grid[x][y + 1] && this.validateNeighbor(node, x, y + 1)) {
     ret.push(grid[x][y + 1]);
   }
 
