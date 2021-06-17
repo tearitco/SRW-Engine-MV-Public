@@ -7810,6 +7810,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 					if(this._character._x != this._character._realX || this._character._y != this._character._realY){
 						if($gameMap.hasStarTile(this._character._x,  this._character._y) || $gameMap.hasStarTile(this._character._prevX,  this._character._prevY)){
 							this._upperBodyTop.opacity = 0;
+							
 							if($gameSystem.foregroundSpriteToggleState == 0){
 								this._upperBodyOverlay.opacity = 0;
 								this._lowerBodyOverlay.opacity = 0;
@@ -7820,7 +7821,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 								this._upperBodyOverlay.opacity = 255;
 								this._lowerBodyOverlay.opacity = 255;
 							}
-							
+							//this._upperBodyOverlay.opacity = 128;
+							//this._lowerBodyOverlay.opacity = 128;
 						} else {
 							this._upperBodyTop.opacity = 255;
 						}
@@ -7837,11 +7839,23 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 								this._upperBodyOverlay.opacity = 255;
 								this._lowerBodyOverlay.opacity = 255;
 							}
+							//this._upperBodyOverlay.opacity = 128;
+							//this._lowerBodyOverlay.opacity = 128;
 						} else {
 							this._upperBodyTop.opacity = 255;
 						}
 					}	
-					
+					if($gameTemp.activeEvent() == this._character || 
+						$gameTemp._TargetEvent == this._character ||
+						$gameSystem.isSubBattlePhase() == "actor_move" || 
+						$gameSystem.isSubBattlePhase()== "enemy_move" || 
+						$gameSystem.isSubBattlePhase()== "actor_target" || 
+						$gameSystem.isSubBattlePhase() == "enemy_targeting_display" ||
+						$gameSystem.isSubBattlePhase() == "post_move_command_window"
+					){
+						this._upperBodyOverlay.opacity = 255;
+						this._lowerBodyOverlay.opacity = 255;
+					}
 				}
 			}			
 		}		
@@ -8039,6 +8053,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this.setFrame(sx, sy, pw, ph);
 		}
     };
+	
 
     //ターン終了の表示を作る
     Sprite_Character.prototype.createTurnEndSprites = function() {
@@ -9138,6 +9153,22 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 		this._baseSprite.addChild(this._upperTilemap);
 		
+		for (var i = 0; i < this.shipUpperTops.length; i++) {
+			this.addCharacterToBaseSprite(this.shipUpperTops[i]);
+		}
+		for (var i = 0; i < this.actorUpperTops.length; i++) {
+			this.addCharacterToBaseSprite(this.actorUpperTops[i]);
+		}
+		
+		this._srpgMoveTile = [];
+        for (var i = 0; i < $gameSystem.spriteMoveTileMax(); i++) {
+			this._srpgMoveTile[i] = new Sprite_SrpgMoveTile();
+			this._baseSprite.addChild(this._srpgMoveTile[i]);
+        }
+		
+		this._highlightSprite = new Sprite_AreaHighlights();
+		this._baseSprite.addChild(this._highlightSprite); 
+		
 		for (var i = 0; i < this.shipBottomOverlays.length; i++) {
 			this.addCharacterToBaseSprite(this.shipBottomOverlays[i]);
 		}
@@ -9152,14 +9183,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		for (var i = 0; i < this.actorTopOverlays.length; i++) {
 			this.addCharacterToBaseSprite(this.actorTopOverlays[i]);
-		}
+		}	
 		
-		for (var i = 0; i < this.shipUpperTops.length; i++) {
-			this.addCharacterToBaseSprite(this.shipUpperTops[i]);
-		}
-		for (var i = 0; i < this.actorUpperTops.length; i++) {
-			this.addCharacterToBaseSprite(this.actorUpperTops[i]);
-		}
 		
 		$gameMap.events().forEach(function(event) {
 			this.createDefendIndicator(event._eventId, event);
@@ -9167,6 +9192,14 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.createWillIndicator(event._eventId, event);
 			this.createTwinIndicator(event._eventId, event);	
 		}, this);
+		
+		for (var i = 0; i < this.shipTurnEndSprites.length; i++) {
+			this.addCharacterToBaseSprite(this.shipTurnEndSprites[i]);
+		}
+		
+		for (var i = 0; i < this.actorTurnEndSprites.length; i++) {
+			this.addCharacterToBaseSprite(this.actorTurnEndSprites[i]);
+		}
 		
 		var sprite = new Sprite_Player($gamePlayer);
 		$gameTemp.upperPlayerSprite = sprite;
@@ -9197,13 +9230,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._gridSprite = new Sprite_SrpgGrid();
 		this._baseSprite.addChild(this._gridSprite);   
 		
-		this._highlightSprite = new Sprite_AreaHighlights();
-		this._baseSprite.addChild(this._highlightSprite);  		
-        this._srpgMoveTile = [];
-        for (var i = 0; i < $gameSystem.spriteMoveTileMax(); i++) {
-			this._srpgMoveTile[i] = new Sprite_SrpgMoveTile();
-			this._baseSprite.addChild(this._srpgMoveTile[i]);
-        }		
+		 		
+        	
     };
 	
 	Spriteset_Map.prototype.addCharacterToBaseSprite = function(sprite) {
@@ -9247,8 +9275,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		var actorBottoms = [];
 		var actorTops = [];
 		
-		var shipTurnEndSprites = [];
-		var actorTurnEndSprites = [];
+		this.shipTurnEndSprites = [];
+		this.actorTurnEndSprites = [];
 		this.shipUpperTops = [];
 		this.actorUpperTops = [];
 		this.actorTopOverlays = [];
@@ -9261,12 +9289,12 @@ SceneManager.reloadCharacters = function(startEvent){
 				ships.push(new Sprite_Character(event));
 				shipBottoms.push(new Sprite());
 				_this.shipBottomOverlays.push(new Sprite());
-				shipTurnEndSprites.push(new Sprite());
+				_this.shipTurnEndSprites.push(new Sprite());
 			} else {
 				actors.push(new Sprite_Character(event));
 				actorBottoms.push(new Sprite());
 				_this.actorBottomOverlays.push(new Sprite());
-				actorTurnEndSprites.push(new Sprite());
+				_this.actorTurnEndSprites.push(new Sprite());
 			}			
 		}, this);
 		
@@ -9287,7 +9315,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			actors[i].setLowerBody(actorBottoms[i]);
 			actors[i].setUpperBody(actorTops[i]);
 			actors[i].setUpperBodyTop(this.actorUpperTops[i]);
-			actors[i].setTurnEnd(actorTurnEndSprites[i]);
+			actors[i].setTurnEnd(this.actorTurnEndSprites[i]);
 			actors[i].setLowerBodyOverlay(this.actorBottomOverlays[i]);
 			actors[i].setUpperBodyOverlay(this.actorTopOverlays[i]);
 		}
@@ -9296,12 +9324,14 @@ SceneManager.reloadCharacters = function(startEvent){
 			ships[i].setLowerBody(shipBottoms[i]);
 			ships[i].setUpperBody(shipTops[i]);
 			ships[i].setUpperBodyTop(this.shipUpperTops[i]);
-			ships[i].setTurnEnd(shipTurnEndSprites[i]);
+			ships[i].setTurnEnd(this.shipTurnEndSprites[i]);
 			ships[i].setLowerBodyOverlay(this.shipBottomOverlays[i]);
 			ships[i].setUpperBodyOverlay(this.shipTopOverlays[i]);
 		}
 		
-		this._characterSprites = shipBottoms.concat(shipTurnEndSprites).concat(actorBottoms).concat(actorTurnEndSprites).concat(shipTops).concat(actorTops).concat(ships).concat(actors);
+		this._characterSprites = shipBottoms.concat(actorBottoms).concat(shipTops).concat(actorTops).concat(ships).concat(actors);
+		
+		//.concat(shipTurnEndSprites) .concat(actorTurnEndSprites)
 		$gameMap.vehicles().forEach(function(vehicle) {
 			this._characterSprites.push(new Sprite_Character(vehicle));
 		}, this);
@@ -13726,6 +13756,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			//var event = $gameTemp.activeEvent();
 			//event.locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);
 		} else {
+			$gameTemp.clearActiveEvent();
 			$gameSystem.setSubBattlePhase('normal');
 		}        
     };
