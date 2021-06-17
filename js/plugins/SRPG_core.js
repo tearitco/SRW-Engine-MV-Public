@@ -9161,6 +9161,13 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.addCharacterToBaseSprite(this.actorUpperTops[i]);
 		}
 		
+		$gameMap.events().forEach(function(event) {
+			this.createDefendIndicator(event._eventId, event);
+			this.createAttackIndicator(event._eventId, event);
+			this.createWillIndicator(event._eventId, event);
+			this.createTwinIndicator(event._eventId, event);	
+		}, this);
+		
 		var sprite = new Sprite_Player($gamePlayer);
 		$gameTemp.upperPlayerSprite = sprite;
 		this.addCharacterToBaseSprite(sprite);   
@@ -9312,11 +9319,10 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.createExplosionSprite(event._eventId, event);
 			this.createAppearSprite(event._eventId, event);
 			this.createDisappearSprite(event._eventId, event);
-			this.createWillIndicator(event._eventId, event);
-			this.createDefendIndicator(event._eventId, event);
-			this.createAttackIndicator(event._eventId, event);
-			this.createTwinIndicator(event._eventId, event);			
-		}, this);			
+			
+			
+				
+		}, this);					
 		
 		this._reticuleSprite = new Sprite_Reticule();
 		this.addCharacterToBaseSprite(this._reticuleSprite);   	
