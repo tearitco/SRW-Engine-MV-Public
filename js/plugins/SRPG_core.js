@@ -1796,6 +1796,10 @@ var $battleSceneManager = new BattleSceneManager();
 		$gameSystem.regionBattleEnv = {};
 		$gameSystem.regionSkyBattleEnv = {};
 		$gameSystem.stageTextId = null;
+		
+		if($gameSystem.foregroundSpriteToggleState == null){
+			$gameSystem.foregroundSpriteToggleState = 0;
+		}
 		//$gameSystem.showWillIndicator = false;
 		$gameTemp.disappearQueue = [];
 
@@ -7741,6 +7745,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	//Character sprites are split into two a bottom and top part to improve overlap for units whose map icon goes outside their current tiles.
 	//This can happen for flying units for example.
 	//The base sprite is normally hidden, but is still available.
+	
+	Sprite_Character.prototype.allBodyPartsAvailable = function(character) {
+		return this._upperBody && this._lowerBody && this._upperBodyTop && this._upperBodyOverlay && this._lowerBodyOverlay;
+	}
+	
 	Sprite_Character.prototype.update = function(character) {
 		Sprite_Base.prototype.update.call(this);
 		if(!this.visible) {
@@ -7757,20 +7766,24 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			if (battlerArray) {
 				if ($gameSystem.isEnemy(battlerArray[1]) && !ENGINE_SETTINGS.KEEP_ENEMY_SPRITE_ORIENTATION) {
 					this.scale.x = -1;			
-					if(this._upperBody && this._lowerBody && this._upperBodyTop){	
+					if(this.allBodyPartsAvailable()){	
 						this._upperBody.scale.x = -1;
+						this._upperBodyOverlay.scale.x = -1;
 						this._upperBodyTop.scale.x = -1;
 						this._lowerBody.scale.x = -1;
+						this._lowerBodyOverlay.scale.x = -1;
 					}	
 				} else {
 					this.scale.x = 1;				
-					if(this._upperBody && this._lowerBody && this._upperBodyTop){	
+					if(this.allBodyPartsAvailable()){	
 						this._upperBody.scale.x = 1;
+						this._upperBodyOverlay.scale.x = 1;
 						this._upperBodyTop.scale.x = 1;
 						this._lowerBody.scale.x = 1;
+						this._lowerBodyOverlay.scale.x = 1;
 					}
 				}
-				if(this._upperBody && this._lowerBody && this._upperBodyTop){	
+				if(this.allBodyPartsAvailable()){	
 					if(battlerArray[0] === 'actor' && $gameTemp.doingManualDeploy){
 						this._frameCount+=2;
 						this._frameCount %= 200;
@@ -7789,17 +7802,41 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						this._lowerBody.opacity = 255;
 					}
 					
+					this._upperBodyOverlay.opacity = 0;
+					this._lowerBodyOverlay.opacity = 0;
+					
 					var refX;
 					var refY;
 					if(this._character._x != this._character._realX || this._character._y != this._character._realY){
 						if($gameMap.hasStarTile(this._character._x,  this._character._y) || $gameMap.hasStarTile(this._character._prevX,  this._character._prevY)){
 							this._upperBodyTop.opacity = 0;
+							if($gameSystem.foregroundSpriteToggleState == 0){
+								this._upperBodyOverlay.opacity = 0;
+								this._lowerBodyOverlay.opacity = 0;
+							} else if($gameSystem.foregroundSpriteToggleState == 1){
+								this._upperBodyOverlay.opacity = 128;
+								this._lowerBodyOverlay.opacity = 128;
+							} else if($gameSystem.foregroundSpriteToggleState == 2){
+								this._upperBodyOverlay.opacity = 255;
+								this._lowerBodyOverlay.opacity = 255;
+							}
+							
 						} else {
 							this._upperBodyTop.opacity = 255;
 						}
 					} else {
 						if($gameMap.hasStarTile(this._character._x,  this._character._y)){
 							this._upperBodyTop.opacity = 0;
+							if($gameSystem.foregroundSpriteToggleState == 0){
+								this._upperBodyOverlay.opacity = 0;
+								this._lowerBodyOverlay.opacity = 0;
+							} else if($gameSystem.foregroundSpriteToggleState == 1){
+								this._upperBodyOverlay.opacity = 128;
+								this._lowerBodyOverlay.opacity = 128;
+							} else if($gameSystem.foregroundSpriteToggleState == 2){
+								this._upperBodyOverlay.opacity = 255;
+								this._lowerBodyOverlay.opacity = 255;
+							}
 						} else {
 							this._upperBodyTop.opacity = 255;
 						}
@@ -7853,6 +7890,18 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
         this._lowerBody.anchor.y = 2;
 	}
 	
+	Sprite_Character.prototype.setUpperBodyOverlay = function(sprite) {
+		this._upperBodyOverlay = sprite;
+		this._upperBodyOverlay.anchor.x = 0.5;
+        this._upperBodyOverlay.anchor.y = 2;
+	}
+
+	Sprite_Character.prototype.setLowerBodyOverlay = function(sprite) {
+		this._lowerBodyOverlay = sprite;
+		this._lowerBodyOverlay.anchor.x = 0.5;
+        this._lowerBodyOverlay.anchor.y = 2;
+	}
+	
 	Sprite_Character.prototype.setTurnEnd = function(sprite) {
 		this._turnEndSprite = sprite;
 		this._turnEndSprite.anchor.x = 0;
@@ -7861,13 +7910,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 
 	
 	Sprite_Character.prototype.updateHalfBodySprites = function() {   
-		if(this._upperBody && this._lowerBody && this._upperBodyTop){		
+		if(this.allBodyPartsAvailable()){		
 			this._upperBody.bitmap = this.bitmap;
 			this._upperBody.visible = true;
 			this._upperBodyTop.bitmap = this.bitmap;
 			this._upperBodyTop.visible = true;
 			this._lowerBody.bitmap = this.bitmap;
 			this._lowerBody.visible = true;	
+			this._upperBodyOverlay.bitmap = this.bitmap;
+			this._upperBodyOverlay.visible = true;
+			this._lowerBodyOverlay.bitmap = this.bitmap;
+			this._lowerBodyOverlay.visible = true;	
 		}
 	};
 	
@@ -7876,10 +7929,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.y = this._character.screenY();
 		this.z = this._character.screenZ();
 		
-		if(this._upperBody && this._lowerBody && this._upperBodyTop){
+		if(this.allBodyPartsAvailable()){
 			this._upperBody.x = this.x;
 			this._upperBody.y = this.y;
 			this._upperBody.z = this.z + 1;
+			
+			this._upperBodyOverlay.x = this.x;
+			this._upperBodyOverlay.y = this.y;
+			this._upperBodyOverlay.z = this.z + 1;
 			
 			this._upperBodyTop.x = this.x;
 			this._upperBodyTop.y = this.y;
@@ -7888,6 +7945,10 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this._lowerBody.x = this.x;
 			this._lowerBody.y = this.y + 24;
 			this._lowerBody.z = this.z;
+			
+			this._lowerBodyOverlay.x = this.x;
+			this._lowerBodyOverlay.y = this.y + 24;
+			this._lowerBodyOverlay.z = this.z;
 			
 			this._turnEndSprite.x = this.x - 20;
 			this._turnEndSprite.y = this.y - this._character._floatOffset;
@@ -7902,23 +7963,29 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var ph = this.patternHeight();
 		var sx = (this.characterBlockX() + this.characterPatternX()) * pw;
 		var sy = (this.characterBlockY() + this.characterPatternY()) * ph;
-		if(this._upperBody && this._lowerBody && this._upperBodyTop){			
+		if(this.allBodyPartsAvailable()){			
 			
 			this.updateHalfBodySprites();
 		
 			var d = 24;
 			this._upperBody.setFrame(sx, sy, pw, ph - d);
 			this._upperBodyTop.setFrame(sx, sy, pw, ph - d);
+			this._upperBodyOverlay.setFrame(sx, sy, pw, ph - d);
 			this._lowerBody.setFrame(sx, sy + ph - d, pw, d);	
+			this._lowerBodyOverlay.setFrame(sx, sy + ph - d, pw, d);	
 
 			if($gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm' || $gameTemp.isMapTarget(this._character.eventId())){
 				this._upperBody.setBlendColor([0, 0, 0, 0]);	
+				this._upperBodyOverlay.setBlendColor([0, 0, 0, 0]);	
 				this._upperBodyTop.setBlendColor([0, 0, 0, 0]);
 				this._lowerBody.setBlendColor([0, 0, 0, 0]);
+				this._lowerBodyOverlay.setBlendColor([0, 0, 0, 0]);
 			} else {
 				this._upperBody.setBlendColor([0, 0, 0, 128]);	
+				this._upperBodyOverlay.setBlendColor([0, 0, 0, 128]);	
 				this._upperBodyTop.setBlendColor([0, 0, 0, 128]);	
 				this._lowerBody.setBlendColor([0, 0, 0, 128]);
+				this._lowerBodyOverlay.setBlendColor([0, 0, 0, 128]);
 			}			
 			
 			this.visible = false;
@@ -9071,6 +9138,22 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 		this._baseSprite.addChild(this._upperTilemap);
 		
+		for (var i = 0; i < this.shipBottomOverlays.length; i++) {
+			this.addCharacterToBaseSprite(this.shipBottomOverlays[i]);
+		}
+		
+		for (var i = 0; i < this.shipTopOverlays.length; i++) {
+			this.addCharacterToBaseSprite(this.shipTopOverlays[i]);
+		}
+		
+		for (var i = 0; i < this.actorBottomOverlays.length; i++) {
+			this.addCharacterToBaseSprite(this.actorBottomOverlays[i]);
+		}
+		
+		for (var i = 0; i < this.actorTopOverlays.length; i++) {
+			this.addCharacterToBaseSprite(this.actorTopOverlays[i]);
+		}
+		
 		for (var i = 0; i < this.shipUpperTops.length; i++) {
 			this.addCharacterToBaseSprite(this.shipUpperTops[i]);
 		}
@@ -9159,27 +9242,36 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		var shipTurnEndSprites = [];
 		var actorTurnEndSprites = [];
+		this.shipUpperTops = [];
+		this.actorUpperTops = [];
+		this.actorTopOverlays = [];
+		this.actorBottomOverlays = [];
+		this.shipTopOverlays = [];
+		this.shipBottomOverlays = [];
 		
 		$gameMap.events().forEach(function(event) {
 			if(event.isType() == "ship" || event.isType() == "ship_event"){
 				ships.push(new Sprite_Character(event));
 				shipBottoms.push(new Sprite());
+				_this.shipBottomOverlays.push(new Sprite());
 				shipTurnEndSprites.push(new Sprite());
 			} else {
 				actors.push(new Sprite_Character(event));
 				actorBottoms.push(new Sprite());
+				_this.actorBottomOverlays.push(new Sprite());
 				actorTurnEndSprites.push(new Sprite());
 			}			
 		}, this);
 		
-		this.shipUpperTops = [];
-		this.actorUpperTops = [];
+		
 		$gameMap.events().forEach(function(event) {
 			if(event.isType() == "ship" || event.isType() == "ship_event"){				
 				shipTops.push(new Sprite());
+				_this.shipTopOverlays.push(new Sprite());
 				_this.shipUpperTops.push(new Sprite());
 			} else {			
 				actorTops.push(new Sprite());
+				_this.actorTopOverlays.push(new Sprite());
 				_this.actorUpperTops.push(new Sprite());
 			}			
 		}, this);
@@ -9189,6 +9281,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			actors[i].setUpperBody(actorTops[i]);
 			actors[i].setUpperBodyTop(this.actorUpperTops[i]);
 			actors[i].setTurnEnd(actorTurnEndSprites[i]);
+			actors[i].setLowerBodyOverlay(this.actorBottomOverlays[i]);
+			actors[i].setUpperBodyOverlay(this.actorTopOverlays[i]);
 		}
 		
 		for(var i = 0; i < ships.length; i++){
@@ -9196,6 +9290,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			ships[i].setUpperBody(shipTops[i]);
 			ships[i].setUpperBodyTop(this.shipUpperTops[i]);
 			ships[i].setTurnEnd(shipTurnEndSprites[i]);
+			ships[i].setLowerBodyOverlay(this.shipBottomOverlays[i]);
+			ships[i].setUpperBodyOverlay(this.shipTopOverlays[i]);
 		}
 		
 		this._characterSprites = shipBottoms.concat(shipTurnEndSprites).concat(actorBottoms).concat(actorTurnEndSprites).concat(shipTops).concat(actorTops).concat(ships).concat(actors);
@@ -12429,6 +12525,15 @@ SceneManager.reloadCharacters = function(startEvent){
 				$gameTemp.detailPageMode = "map";
 				$gameSystem.setSubBattlePhase('enemy_unit_summary');
 				$gameTemp.pushMenu = "detail_pages";
+			}		
+			if(Input.isTriggered("select")){
+				if($gameSystem.foregroundSpriteToggleState == null){
+					$gameSystem.foregroundSpriteToggleState = 0;
+				}
+				$gameSystem.foregroundSpriteToggleState++;
+				if($gameSystem.foregroundSpriteToggleState > 2){
+					$gameSystem.foregroundSpriteToggleState = 0;
+				}	
 			}			
 		}	
 		

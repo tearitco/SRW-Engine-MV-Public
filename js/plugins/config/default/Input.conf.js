@@ -1,4 +1,5 @@
 Input.keyMapper = {
+	8: 'select', //backspace
 	9: 'tab',       // tab
 	13: 'menu',       // enter
 	16: 'shift',    // shift
