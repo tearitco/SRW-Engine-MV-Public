@@ -52,6 +52,6 @@ var $plugins =
 {"name":"RiP_UnlockedCamera","status":true,"description":"Unlock the camera from map edges keeping it centered on the player.","parameters":{"Default Camera":"true"}},
 {"name":"Shaz_TileChanger","status":true,"description":"Change tiles on map or copy tiles from another map","parameters":{}},
 {"name":"pixi-filters","status":true,"description":"","parameters":{}},
-{"name":"Galv_ChoicePictures","status":true,"description":"(v.1.2) Displays different pictures depending on which choice is highlighted.","parameters":{"Choice Picture Id":"1"}},
+{"name":"Galv_ChoicePictures","status":true,"description":"(v.1.2) Displays different pictures depending on which choice is highlighted.","parameters":{"Choice Picture Id":"9"}},
 {"name":"dragonBones","status":true,"description":"","parameters":{}}
 ];
