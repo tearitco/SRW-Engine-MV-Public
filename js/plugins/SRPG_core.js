@@ -5664,9 +5664,11 @@ var $battleSceneManager = new BattleSceneManager();
 		//construct grid representation for pathfinding
 		var occupiedPositions = $statCalc.getOccupiedPositionsLookup(actor.isActor() ? "enemy" : "actor");
 		var pathfindingGrid = [];
+		var directionGrid = [];
 		for(var localI = 0; localI < radius * 2; localI++){
 			var i = this.posX() + localI - radius;
 			pathfindingGrid[localI] = [];
+			directionGrid[localI] = [];
 			for(var localJ = 0; localJ < radius * 2; localJ++){
 				var j = this.posY() + localJ - radius;
 				var weight = 1 ;
@@ -5676,15 +5678,52 @@ var $battleSceneManager = new BattleSceneManager();
 					}
 					if(ignoreObstacles){
 						pathfindingGrid[localIi][localJ] = 1;
+						directionGrid[localI][localJ] = {
+							top: true,
+							bottom: true,
+							left: true,
+							right: true
+						};
 					} else {
-						pathfindingGrid[localI][localJ] = ((occupiedPositions[i] && occupiedPositions[i][j]) || (!ignoreMoveTable && $gameTemp._MoveTable[i] && $gameTemp._MoveTable[i][j] && $gameTemp._MoveTable[i][j][0] == -1)) ? 0 : weight;
+						
+						var isCenterPassable = !(occupiedPositions[i] && occupiedPositions[i][j]) && $statCalc.canStandOnTile(actor, {x: i, y: j});
+						var isTopPassable;
+						var isBottomPassable;
+						var isLeftPassable;
+						var isRightPassable;
+						if(!isCenterPassable || $statCalc.isFlying(actor) || !ENGINE_SETTINGS.USE_TILE_PASSAGE){
+							isTopPassable = isCenterPassable;
+							isBottomPassable = isCenterPassable;
+							isLeftPassable = isCenterPassable;
+							isRightPassable = isCenterPassable;
+						} else {
+							isTopPassable = $gameMap.isPassable(i, j, 8);
+							isBottomPassable = $gameMap.isPassable(i, j, 2);
+							isLeftPassable = $gameMap.isPassable(i, j, 4);
+							isRightPassable = $gameMap.isPassable(i, j, 6);
+						}
+						
+				
+						pathfindingGrid[localI][localJ] = isCenterPassable ? weight : 0; 	
+						directionGrid[localI][localJ] = {
+							top: isTopPassable,
+							bottom: isBottomPassable,
+							left: isLeftPassable,
+							right: isRightPassable
+						};
 					}
 				} else {
 					pathfindingGrid[localI][localJ] = 0;
+					directionGrid[localI][localJ] = {
+						top: false,
+						bottom: false,
+						left: false,
+						right: false
+					};
 				}
 			}
 		}
-		var graph = new Graph(pathfindingGrid);
+		var graph = new Graph(pathfindingGrid, directionGrid);
 		
 		var startCoords = coordUtil.convertToGridCoordinate({x: this.posX(), y: this.posY()});
 		var startNode = graph.grid[startCoords.x][startCoords.y];
@@ -5980,6 +6019,18 @@ var $battleSceneManager = new BattleSceneManager();
 			}
 		}
 		return 0;
+	};
+	
+	Game_Map.prototype.hasStarTile = function(x, y) {
+		var flags = this.tilesetFlags();
+		var tile = this.allTiles(x, y)[0];
+		if(tile != 0){
+			var flag = flags[tile];
+			if ((flag & 0x10) !== 0){
+				return true;
+			} 
+		}
+		return false;
 	};
 
 //====================================================================
@@ -7712,32 +7763,54 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			if (battlerArray) {
 				if ($gameSystem.isEnemy(battlerArray[1]) && !ENGINE_SETTINGS.KEEP_ENEMY_SPRITE_ORIENTATION) {
 					this.scale.x = -1;			
-					if(this._upperBody && this._lowerBody){	
+					if(this._upperBody && this._lowerBody && this._upperBodyTop){	
 						this._upperBody.scale.x = -1;
+						this._upperBodyTop.scale.x = 1;
 						this._lowerBody.scale.x = -1;
 					}	
 				} else {
 					this.scale.x = 1;				
-					if(this._upperBody && this._lowerBody){	
+					if(this._upperBody && this._lowerBody && this._upperBodyTop){	
 						this._upperBody.scale.x = 1;
+						this._upperBodyTop.scale.x = 1;
 						this._lowerBody.scale.x = 1;
 					}
 				}
-				if(this._upperBody && this._lowerBody){	
+				if(this._upperBody && this._lowerBody && this._upperBodyTop){	
 					if(battlerArray[0] === 'actor' && $gameTemp.doingManualDeploy){
 						this._frameCount+=2;
 						this._frameCount %= 200;
 						if(this._frameCount < 100){
 							this._upperBody.opacity = this._frameCount + 80;
+							this._upperBodyTop.opacity = this._frameCount + 80;
 							this._lowerBody.opacity = this._frameCount + 80;
 						} else {
 							this._upperBody.opacity = 200 + 80 - this._frameCount;
+							this._upperBodyTop.opacity = 200 + 80 - this._frameCount;
 							this._lowerBody.opacity = 200 + 80 - this._frameCount;
 						}
 					} else {
 						this._upperBody.opacity = 255;
+						this._upperBodyTop.opacity = 255;
 						this._lowerBody.opacity = 255;
 					}
+					
+					var refX;
+					var refY;
+					if(this._character._x != this._character._realX || this._character._y != this._character._realY){
+						if($gameMap.hasStarTile(this._character._x,  this._character._y) || $gameMap.hasStarTile(this._character._prevX,  this._character._prevY)){
+							this._upperBodyTop.opacity = 0;
+						} else {
+							this._upperBodyTop.opacity = 255;
+						}
+					} else {
+						if($gameMap.hasStarTile(this._character._x,  this._character._y)){
+							this._upperBodyTop.opacity = 0;
+						} else {
+							this._upperBodyTop.opacity = 255;
+						}
+					}	
+					
 				}
 			}			
 		}		
@@ -7768,6 +7841,12 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this._frameCount = 0;
     };
 	
+	Sprite_Character.prototype.setUpperBodyTop = function(sprite) {
+		this._upperBodyTop = sprite;
+		this._upperBodyTop.anchor.x = 0.5;
+        this._upperBodyTop.anchor.y = 2;
+	}
+	
 	Sprite_Character.prototype.setUpperBody = function(sprite) {
 		this._upperBody = sprite;
 		this._upperBody.anchor.x = 0.5;
@@ -7788,9 +7867,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 
 	
 	Sprite_Character.prototype.updateHalfBodySprites = function() {   
-		if(this._upperBody && this._lowerBody){		
+		if(this._upperBody && this._lowerBody && this._upperBodyTop){		
 			this._upperBody.bitmap = this.bitmap;
 			this._upperBody.visible = true;
+			this._upperBodyTop.bitmap = this.bitmap;
+			this._upperBodyTop.visible = true;
 			this._lowerBody.bitmap = this.bitmap;
 			this._lowerBody.visible = true;	
 		}
@@ -7801,10 +7882,14 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.y = this._character.screenY();
 		this.z = this._character.screenZ();
 		
-		if(this._upperBody && this._lowerBody){
+		if(this._upperBody && this._lowerBody && this._upperBodyTop){
 			this._upperBody.x = this.x;
 			this._upperBody.y = this.y;
 			this._upperBody.z = this.z + 1;
+			
+			this._upperBodyTop.x = this.x;
+			this._upperBodyTop.y = this.y;
+			this._upperBodyTop.z = this.z + 1;
 			
 			this._lowerBody.x = this.x;
 			this._lowerBody.y = this.y + 24;
@@ -7823,19 +7908,22 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var ph = this.patternHeight();
 		var sx = (this.characterBlockX() + this.characterPatternX()) * pw;
 		var sy = (this.characterBlockY() + this.characterPatternY()) * ph;
-		if(this._upperBody && this._lowerBody){			
+		if(this._upperBody && this._lowerBody && this._upperBodyTop){			
 			
 			this.updateHalfBodySprites();
 		
 			var d = 24;
 			this._upperBody.setFrame(sx, sy, pw, ph - d);
+			this._upperBodyTop.setFrame(sx, sy, pw, ph - d);
 			this._lowerBody.setFrame(sx, sy + ph - d, pw, d);	
 
 			if($gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm' || $gameTemp.isMapTarget(this._character.eventId())){
 				this._upperBody.setBlendColor([0, 0, 0, 0]);	
+				this._upperBodyTop.setBlendColor([0, 0, 0, 0]);
 				this._lowerBody.setBlendColor([0, 0, 0, 0]);
 			} else {
 				this._upperBody.setBlendColor([0, 0, 0, 128]);	
+				this._upperBodyTop.setBlendColor([0, 0, 0, 128]);	
 				this._lowerBody.setBlendColor([0, 0, 0, 128]);
 			}			
 			
@@ -8989,6 +9077,13 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 		this._baseSprite.addChild(this._upperTilemap);
 		
+		for (var i = 0; i < this.shipUpperTops.length; i++) {
+			this.addCharacterToBaseSprite(this.shipUpperTops[i]);
+		}
+		for (var i = 0; i < this.actorUpperTops.length; i++) {
+			this.addCharacterToBaseSprite(this.actorUpperTops[i]);
+		}
+		
 		var sprite = new Sprite_Player($gamePlayer);
 		$gameTemp.upperPlayerSprite = sprite;
 		this.addCharacterToBaseSprite(sprite);   
@@ -9042,6 +9137,7 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 	var _SRPG_Spriteset_Map_createTilemap_createCharacters = Spriteset_Map.prototype.createCharacters;
 	Spriteset_Map.prototype.createCharacters = function() {
+		var _this  = this;
 		this._characterLayerSprites = [];
 		if($gameTemp.intermissionPending){
 			return;
@@ -9082,23 +9178,29 @@ SceneManager.reloadCharacters = function(startEvent){
 			}			
 		}, this);
 		
+		this.shipUpperTops = [];
+		this.actorUpperTops = [];
 		$gameMap.events().forEach(function(event) {
 			if(event.isType() == "ship" || event.isType() == "ship_event"){				
 				shipTops.push(new Sprite());
+				_this.shipUpperTops.push(new Sprite());
 			} else {			
 				actorTops.push(new Sprite());
+				_this.actorUpperTops.push(new Sprite());
 			}			
 		}, this);
 		
 		for(var i = 0; i < actors.length; i++){
 			actors[i].setLowerBody(actorBottoms[i]);
 			actors[i].setUpperBody(actorTops[i]);
+			actors[i].setUpperBodyTop(this.actorUpperTops[i]);
 			actors[i].setTurnEnd(actorTurnEndSprites[i]);
 		}
 		
 		for(var i = 0; i < ships.length; i++){
 			ships[i].setLowerBody(shipBottoms[i]);
 			ships[i].setUpperBody(shipTops[i]);
+			ships[i].setUpperBodyTop(this.shipUpperTops[i]);
 			ships[i].setTurnEnd(shipTurnEndSprites[i]);
 		}
 		
