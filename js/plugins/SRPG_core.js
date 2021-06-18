@@ -7825,6 +7825,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 							//this._lowerBodyOverlay.opacity = 128;
 						} else {
 							this._upperBodyTop.opacity = 255;
+							this._upperBody.opacity = 0;
 						}
 					} else {
 						if($gameMap.hasStarTile(this._character._x,  this._character._y)){
@@ -7843,6 +7844,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 							//this._lowerBodyOverlay.opacity = 128;
 						} else {
 							this._upperBodyTop.opacity = 255;
+							this._upperBody.opacity = 0;
 						}
 					}	
 					if($gameTemp.activeEvent() == this._character || 
@@ -7856,12 +7858,17 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						this._upperBodyOverlay.opacity = 255;
 						this._lowerBodyOverlay.opacity = 255;
 					}
+					if(battlerArray && battlerArray[1] && $statCalc.getCurrentTerrain(battlerArray[1]) == "water"){
+						this._upperBody.opacity-=80;
+						this._upperBodyOverlay.opacity-=80;
+						this._upperBodyTop.opacity-=80;
+						this._lowerBody.opacity-=80;
+						this._lowerBodyOverlay.opacity-=80;
+					}					
 				}
 			}			
 		}		
 	}
-	
-	
 	
     Sprite_Character.prototype.isTurnEndUnit = function() {
         if (this._character.isEvent() == true) {
@@ -7977,7 +7984,9 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		var ph = this.patternHeight();
 		var sx = (this.characterBlockX() + this.characterPatternX()) * pw;
 		var sy = (this.characterBlockY() + this.characterPatternY()) * ph;
-		if(this.allBodyPartsAvailable()){			
+		
+		if(this.allBodyPartsAvailable() && this._character.isEvent() == true){	
+			var battlerArray = $gameSystem.EventToUnit(this._character.eventId());
 			
 			this.updateHalfBodySprites();
 		
@@ -7988,12 +7997,22 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 			this._lowerBody.setFrame(sx, sy + ph - d, pw, d);	
 			this._lowerBodyOverlay.setFrame(sx, sy + ph - d, pw, d);	
 
-			if($gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm' || $gameTemp.isMapTarget(this._character.eventId())){
-				this._upperBody.setBlendColor([0, 0, 0, 0]);	
-				this._upperBodyOverlay.setBlendColor([0, 0, 0, 0]);	
-				this._upperBodyTop.setBlendColor([0, 0, 0, 0]);
-				this._lowerBody.setBlendColor([0, 0, 0, 0]);
-				this._lowerBodyOverlay.setBlendColor([0, 0, 0, 0]);
+			if($gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm' || $gameTemp.isMapTarget(this._character.eventId())){				
+				if(battlerArray && battlerArray[1] && $statCalc.getCurrentTerrain(battlerArray[1]) == "water"){
+					this._upperBody.setBlendColor([21, 87, 255, 64]);	
+					this._upperBodyOverlay.setBlendColor([21, 87, 255, 64]);	
+					this._upperBodyTop.setBlendColor([21, 87, 255, 64]);	
+					this._lowerBody.setBlendColor([21, 87, 255, 64]);
+					this._lowerBodyOverlay.setBlendColor([21, 87, 255, 64]);
+					
+					
+				} else {
+					this._upperBody.setBlendColor([0, 0, 0, 0]);	
+					this._upperBodyOverlay.setBlendColor([0, 0, 0, 0]);	
+					this._upperBodyTop.setBlendColor([0, 0, 0, 0]);
+					this._lowerBody.setBlendColor([0, 0, 0, 0]);
+					this._lowerBodyOverlay.setBlendColor([0, 0, 0, 0]);
+				}				
 			} else {
 				this._upperBody.setBlendColor([0, 0, 0, 128]);	
 				this._upperBodyOverlay.setBlendColor([0, 0, 0, 128]);	
@@ -8001,6 +8020,8 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 				this._lowerBody.setBlendColor([0, 0, 0, 128]);
 				this._lowerBodyOverlay.setBlendColor([0, 0, 0, 128]);
 			}			
+			
+			
 			
 			this.visible = false;
 			
