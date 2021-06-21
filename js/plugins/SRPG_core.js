@@ -9206,14 +9206,6 @@ SceneManager.reloadCharacters = function(startEvent){
 			this.addCharacterToBaseSprite(this.actorTopOverlays[i]);
 		}	
 		
-		
-		$gameMap.events().forEach(function(event) {
-			this.createDefendIndicator(event._eventId, event);
-			this.createAttackIndicator(event._eventId, event);
-			this.createWillIndicator(event._eventId, event);
-			this.createTwinIndicator(event._eventId, event);	
-		}, this);
-		
 		for (var i = 0; i < this.shipTurnEndSprites.length; i++) {
 			this.addCharacterToBaseSprite(this.shipTurnEndSprites[i]);
 		}
@@ -9221,6 +9213,21 @@ SceneManager.reloadCharacters = function(startEvent){
 		for (var i = 0; i < this.actorTurnEndSprites.length; i++) {
 			this.addCharacterToBaseSprite(this.actorTurnEndSprites[i]);
 		}
+		
+		$gameMap.events().forEach(function(event) {
+			this.createDefendIndicator(event._eventId, event);
+			this.createAttackIndicator(event._eventId, event);
+			this.createWillIndicator(event._eventId, event);
+			this.createTwinIndicator(event._eventId, event);
+			this.createExplosionSprite(event._eventId, event);
+			this.createAppearSprite(event._eventId, event);
+			this.createDisappearSprite(event._eventId, event);	
+		}, this);
+		
+		
+		
+		this._reticuleSprite = new Sprite_Reticule();
+		this.addCharacterToBaseSprite(this._reticuleSprite);
 		
 		var sprite = new Sprite_Player($gamePlayer);
 		$gameTemp.upperPlayerSprite = sprite;
@@ -9365,18 +9372,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		for (var i = 0; i < this._characterSprites.length; i++) {
 			this.addCharacterToBaseSprite(this._characterSprites[i]);
-		}
-		$gameMap.events().forEach(function(event) {
-			this.createExplosionSprite(event._eventId, event);
-			this.createAppearSprite(event._eventId, event);
-			this.createDisappearSprite(event._eventId, event);
-			
-			
-				
-		}, this);					
-		
-		this._reticuleSprite = new Sprite_Reticule();
-		this.addCharacterToBaseSprite(this._reticuleSprite);   	
+		}		   	
 	};
 	
 	Spriteset_Map.prototype.createExplosionSprite = function(id,character) {
