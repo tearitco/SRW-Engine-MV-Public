@@ -287,10 +287,10 @@
 
 .actor_battle_sprite {
 	position: absolute;
-	--widthpixels: 350;
-	--heightpixels: 350;
-	bottom: 40%;
-	margin-left: 32%;
+	--widthpixels: 320;
+	--heightpixels: 320;
+	bottom: 49%;
+	margin-left: 34%;
 }
 
 .actor_battle_sprite img{

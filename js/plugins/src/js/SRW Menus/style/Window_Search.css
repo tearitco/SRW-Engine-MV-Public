@@ -342,7 +342,7 @@
    
 }
 
-.actor_battle_sprite {
+#search .actor_battle_sprite {
 	position: absolute;
 	--widthpixels: 350;
 	--heightpixels: 350;
@@ -350,7 +350,7 @@
 	margin-left: 32%;
 }
 
-.actor_battle_sprite img{
+#search .actor_battle_sprite img{
 	width: 100%;
 	image-rendering: pixelated;
 }

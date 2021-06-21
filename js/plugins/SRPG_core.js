@@ -7859,11 +7859,11 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 						this._lowerBodyOverlay.opacity = 255;
 					}
 					if(battlerArray && battlerArray[1] && $statCalc.getCurrentTerrain(battlerArray[1]) == "water"){
-						this._upperBody.opacity-=80;
-						this._upperBodyOverlay.opacity-=80;
-						this._upperBodyTop.opacity-=80;
-						this._lowerBody.opacity-=80;
-						this._lowerBodyOverlay.opacity-=80;
+						this._upperBody.opacity-=120;
+						this._upperBodyOverlay.opacity-=120;
+						this._upperBodyTop.opacity-=120;
+						this._lowerBody.opacity-=120;
+						this._lowerBodyOverlay.opacity-=120;
 					}					
 				}
 			}			
