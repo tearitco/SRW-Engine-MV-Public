@@ -310,3 +310,14 @@ APPSTRINGS.SEARCH = {
 	label_pilot: "Pilot",
 	label_mech: "Mech"
 }
+
+APPSTRINGS.OPTIONS = {
+	title: "Options",
+	label_display: "Display",
+	label_grid: "Grid",
+	label_will: "Show Will",
+	label_default_support: "Default Support Defend",
+	label_default_support_on: "Always",
+	label_default_support_off: "Never",
+	label_skip_move: "Skip Unit Move"
+}

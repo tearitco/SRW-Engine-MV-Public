@@ -1527,6 +1527,22 @@ var $battleSceneManager = new BattleSceneManager();
         this._SrpgActorCommandStatusWindowRefreshFlag = [false, null];
         this._srpgAllActors = []; //SRPGモードに参加する全てのアクターの配列
         this._searchedItemList = [];
+		this.initOptions();
+    };
+	
+	Game_System.prototype.initOptions = function() {
+        if(this.optionDisableGrid == null){
+			this.optionDisableGrid = false;
+		}
+		if(this.showWillIndicator == null){
+			this.showWillIndicator = false;
+		}
+		if(this.optionDefaultSupport == null){
+			this.optionDefaultSupport = true;
+		}
+		if(this.optionSkipUnitMoving == null){
+			this.optionSkipUnitMoving = false;
+		}
     };
 
 //変数関係の処理
@@ -5777,23 +5793,24 @@ var $battleSceneManager = new BattleSceneManager();
         } else if(this._pendingMoveToPoint){
 			if (!this.isMoving()) {
 				Input.update();
-				if(Input.isPressed("pagedown") || Input.isLongPressed("pagedown")){					
-					if(this._pathToCurrentTarget){//avoid rare crash where this functional is called when the path has already been cleared
+				if(Input.isPressed("pagedown") || Input.isLongPressed("pagedown") || $gameSystem.optionSkipUnitMoving){					
+					if(this._pathToCurrentTarget && this._pathToCurrentTarget.length){//avoid rare crash where this functional is called when the path has already been cleared
 						var targetPosition = this._pathToCurrentTarget[this._pathToCurrentTarget.length-1];
 						this._pathToCurrentTarget = [];
 						this.locate(targetPosition.x, targetPosition.y);
 						if(followMove){
 							$gamePlayer.locate(targetPosition.x, targetPosition.y);
 						}
-						$gamePlayer.clearFollowSpeed();
-						$gamePlayer.followedEvent = null;
-						this._targetPosition = null;
-						this._pathToCurrentTarget = null;
-						this._pendingMoveToPoint = false;
-						$gameTemp.followMove = false;
-						$gameSystem.setSrpgWaitMoving(false);
-						$statCalc.invalidateAbilityCache();	
-					}									
+						
+					}		
+					$gamePlayer.clearFollowSpeed();
+					$gamePlayer.followedEvent = null;
+					this._targetPosition = null;
+					this._pathToCurrentTarget = null;
+					this._pendingMoveToPoint = false;
+					$gameTemp.followMove = false;
+					$gameSystem.setSrpgWaitMoving(false);
+					$statCalc.invalidateAbilityCache();		
 				} else {				
 					this.setMoveSpeed(6);
 					if(followMove){
@@ -8926,7 +8943,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 	};
 
 	Sprite_SrpgGrid.prototype.update = function() {
-		if($gameSystem.enableGrid){
+		if($gameSystem.enableGrid && !$gameSystem.optionDisableGrid){
 			this.opacity = 128;
 		} else {
 			this.opacity = 0;
@@ -14849,7 +14866,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				
 		var graph = new Graph(pathfindingGrid, directionGrid);
 		
-		while(!noTargets && currentBestDist != targetDist && targetTileCounter < list.length){
+		while(currentBestDist != targetDist && targetTileCounter < list.length){
 			
 			var startCoords = {x: battler.event.posX(), y: battler.event.posY()};
 			var startNode = graph.grid[startCoords.x][startCoords.y];
@@ -15153,7 +15170,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			};
 		}
 		
-		if(!$gameTemp.enemyAction || !$gameTemp.enemyAction.attack || !$gameTemp.enemyAction.attack.isAll){	
+		if($gameSystem.optionDefaultSupport && (!$gameTemp.enemyAction || !$gameTemp.enemyAction.attack || !$gameTemp.enemyAction.attack.isAll)){	
 			var supporters = $statCalc.getSupportDefendCandidates(
 				$gameSystem.getFactionId(actorInfo.actor), 
 				actorInfo.pos,

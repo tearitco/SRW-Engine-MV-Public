@@ -198,17 +198,21 @@ Graph.prototype.validateNeighbor = function(node, x, y) {
 		if(sourceX != x){
 			if(sourceX > x){
 				direction = "right";
+				sourceDirection = "left";
 			} else {
 				direction = "left";
+				sourceDirection = "right";
 			}
 		} else if(sourceY != y){
 			if(sourceY > y){
 				direction = "bottom";
+				sourceDirection = "top";
 			} else {
 				direction = "top";
+				sourceDirection = "bottom";
 			}
 		}
-		return this.directionInfo[x][y][direction];
+		return this.directionInfo[x][y][direction] && this.directionInfo[sourceX][sourceY][sourceDirection];
 	} else {
 		return true;
 	}	
