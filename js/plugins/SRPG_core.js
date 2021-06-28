@@ -7725,7 +7725,7 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 		this.y = this._character.screenY();
 		this.z = this._character.screenZ();
 		
-		if($gamePlayer.followedEvent){			
+		if($gamePlayer.followedEvent && $gameTemp.followMove){			
 			this.y = this.y + ($gamePlayer.followedEvent._floatOffset);		
 		} else {
 			var prevUnit = $statCalc.activeUnitAtPosition({x: this._character._prevX, y: this._character._prevY});
