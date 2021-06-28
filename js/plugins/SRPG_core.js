@@ -15170,7 +15170,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			};
 		}
 		
-		if($gameSystem.optionDefaultSupport && (!$gameTemp.enemyAction || !$gameTemp.enemyAction.attack || !$gameTemp.enemyAction.attack.isAll)){	
+		if((!$gameTemp.enemyAction || !$gameTemp.enemyAction.attack || !$gameTemp.enemyAction.attack.isAll)){	
 			var supporters = $statCalc.getSupportDefendCandidates(
 				$gameSystem.getFactionId(actorInfo.actor), 
 				actorInfo.pos,
@@ -15201,7 +15201,11 @@ SceneManager.reloadCharacters = function(startEvent){
 				}
 			}
 			$gameTemp.supportDefendCandidates = supporters;
-			$gameTemp.supportDefendSelected = supporterSelected;
+			if($gameSystem.optionDefaultSupport){
+				$gameTemp.supportDefendSelected = supporterSelected;
+			} else {
+				$gameTemp.supportDefendSelected = -1;
+			}			
 		} else {
 			$gameTemp.supportDefendCandidates = [];
 			$gameTemp.supportDefendSelected = -1;
