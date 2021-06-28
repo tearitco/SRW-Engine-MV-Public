@@ -5690,9 +5690,15 @@ var $battleSceneManager = new BattleSceneManager();
 		this._targetPosition = targetPosition;
 		
 		var actor = $gameSystem.EventToUnit(this.eventId())[1];
-		var radius = (Math.floor($statCalc.getCurrentMoveRange(actor) / 2) + 1) * 2;
 		
-		var coordUtil = new coordUtils(this.posX(), this.posY(), radius);
+		var list = $gameTemp.moveList();
+		var moveListLookup = {};
+		list.forEach(function(entry){
+			if(!moveListLookup[entry[0]]){
+				moveListLookup[entry[0]] = [];
+			}
+			moveListLookup[entry[0]][entry[1]] = true;
+		});
 		//construct grid representation for pathfinding
 		var occupiedPositions = $statCalc.getOccupiedPositionsLookup(actor.isActor() ? "enemy" : "actor");
 		var pathfindingGrid = [];
@@ -5718,7 +5724,9 @@ var $battleSceneManager = new BattleSceneManager();
 						};
 					} else {
 						
-						var isCenterPassable = !(occupiedPositions[i] && occupiedPositions[i][j]) && $statCalc.canStandOnTile(actor, {x: i, y: j});
+						var isCenterPassable = !(occupiedPositions[i] && occupiedPositions[i][j]) 
+							&& $statCalc.canStandOnTile(actor, {x: i, y: j})
+							&& (ignoreMoveTable || (moveListLookup[i] && moveListLookup[i][j]));
 						var isTopPassable;
 						var isBottomPassable;
 						var isLeftPassable;
