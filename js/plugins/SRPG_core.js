@@ -2163,6 +2163,7 @@ var $battleSceneManager = new BattleSceneManager();
 		
 		$statCalc.invalidateAbilityCache();
 		$statCalc.initSRWStats(actor_unit);
+		$statCalc.updateFlightState(actor_unit);
 	}
 	
 	Game_System.prototype.getEventDeploySlot = function(event) {
@@ -6426,6 +6427,7 @@ Game_Interpreter.prototype.addEnemy = function(toAnimQueue, eventId, enemyId, me
 			$gameSystem.setEventToUnit(event.eventId(), 'enemy', enemy_unit);
 			$statCalc.initSRWStats(enemy_unit, level, items);
 			$statCalc.applyBattleStartWill(enemy_unit);
+			$statCalc.updateFlightState(enemy_unit);
 			
 			event.setType('enemy');
 			/*var xy = event.makeAppearPoint(event, event.posX(), event.posY())

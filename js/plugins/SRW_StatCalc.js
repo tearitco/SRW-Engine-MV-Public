@@ -87,26 +87,14 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 		if($gameMap.regionId(position.x, position.y) % 8 == 1 && !this.isFlying(actor)){//air			
 			return false;						
 		}
-		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
-			if(!this.canBeOnLand(actor)){
-				if(this.canFly(actor)){
-					if(!this.isFlying(actor)){
-						this.setFlying(actor, true);
-					}
-				} else {
-					return false;
-				}
+		if($gameMap.regionId(position.x, position.y) % 8 == 2 && !this.isFlying(actor)){//land
+			if(!this.canBeOnLand(actor)){				
+				return false;				
 			}
 		}
-		if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
-			if(!this.canBeOnWater(actor)){
-				if(this.canFly(actor)){
-					if(!this.isFlying(actor)){
-						this.setFlying(actor, true);
-					}
-				} else {
-					return false;
-				}
+		if($gameMap.regionId(position.x, position.y) % 8 == 3 && !this.isFlying(actor)){//water
+			if(!this.canBeOnWater(actor)){				
+				return false;				
 			}
 		}
 		if($gameMap.regionId(position.x, position.y) % 8 == 4){//space
@@ -117,6 +105,39 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 		return true;
 	} 
 	return false;	
+}
+
+
+StatCalc.prototype.updateFlightState = function(actor){
+	if(this.isActorSRWInitialized(actor)){
+		var event = this.getReferenceEvent(actor);
+		var position = {x: event.posX(), y: event.posY()};
+		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
+			if(this.canFly(actor)){
+				if(!this.isFlying(actor)){
+					this.setFlying(actor, true);
+				}
+			}		
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
+			if(!this.canBeOnLand(actor)){
+				if(this.canFly(actor)){
+					if(!this.isFlying(actor)){
+						this.setFlying(actor, true);
+					}
+				} 
+			}
+		}
+		if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
+			if(!this.canBeOnWater(actor)){
+				if(this.canFly(actor)){
+					if(!this.isFlying(actor)){
+						this.setFlying(actor, true);
+					}
+				} 
+			}
+		}		
+	} 	
 }
 
 StatCalc.prototype.getTileType = function(actor){
