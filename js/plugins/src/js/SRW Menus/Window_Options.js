@@ -28,6 +28,23 @@ Window_Options.prototype.initialize = function() {
 	this._titleInfo[4] = APPSTRINGS.OPTIONS.label_sound_options;
 	
 
+
+	this._optionInfo.push({
+		name: APPSTRINGS.OPTIONS.label_fullscreen,
+		display: function(){
+			return ConfigManager["Fullscreen"] ? "ON" : "OFF";
+		},
+		update: function(){
+			var newState = !ConfigManager["Fullscreen"];
+			ConfigManager["Fullscreen"] = newState;
+			if(newState){
+				Graphics._requestFullScreen();
+			} else {
+				Graphics._cancelFullScreen();
+			}
+			ConfigManager.save();
+		}
+	});
 	
 	this._optionInfo.push({
 		name: APPSTRINGS.OPTIONS.label_grid,
@@ -109,6 +126,7 @@ Window_Options.prototype.initialize = function() {
 			}			
 			ConfigManager["bgmVolume"] = current;
 			ConfigManager["bgsVolume"] = current;
+			ConfigManager.save();
 		}
 	});
 	
@@ -130,6 +148,7 @@ Window_Options.prototype.initialize = function() {
 			}			
 			ConfigManager["seVolume"] = current;
 			ConfigManager["meVolume"] = current;
+			ConfigManager.save();
 		}
 	});
 	

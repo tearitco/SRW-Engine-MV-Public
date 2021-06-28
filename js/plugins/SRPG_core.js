@@ -10852,7 +10852,18 @@ SceneManager.reloadCharacters = function(startEvent){
 	};
 	
 	Scene_Map.prototype.commandOptions = function() {
-		SceneManager.push(Scene_Options);
+		//SceneManager.push(Scene_Options);
+		var _this = this;
+		$gameTemp.optionsWindowCancelCallback = function(){
+			$gameTemp.optionsWindowCancelCallback = null;
+			_this._commandWindow.activate();
+			$gameTemp.deactivatePauseMenu = false;
+			Input.clear();//ensure the B press from closing the list does not propagate to the pause menu
+		}
+		this._commandWindow.deactivate();
+		$gameTemp.deactivatePauseMenu = true;
+		//$gameSystem.setSubBattlePhase('normal');
+        $gameTemp.pushMenu = "options";
 	};
 	
 	Scene_Map.prototype.showPauseMenu = function() {
@@ -11198,7 +11209,11 @@ SceneManager.reloadCharacters = function(startEvent){
 	Scene_Map.prototype.createOptionsWindow = function() {
 		var _this = this;
 		this._optionsWindow = new Window_Options(0, 0, Graphics.boxWidth, Graphics.boxHeight);
-	
+		this._optionsWindow.registerCallback("closed", function(){
+			if($gameTemp.optionsWindowCancelCallback){
+				$gameTemp.optionsWindowCancelCallback();
+			}
+		});
 		this._optionsWindow.close();
 		this.addWindow(this._optionsWindow);
 		this._optionsWindow.hide();

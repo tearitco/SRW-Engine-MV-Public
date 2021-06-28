@@ -48,6 +48,7 @@
 	ConfigManager.makeData = function() {
 		var config = _ConfigManager_makeData_Alias.call(this);
 		config.callFullscreen = this.callFullscreen;
+		config[fullscreenOptionName] = ConfigManager[fullscreenOptionName];
 		return config;
 	};
 
@@ -55,6 +56,8 @@
 	var _ConfigManager_applyData_Alias = ConfigManager.applyData;
 	ConfigManager.applyData = function(config) {
 		this.callFullscreen = this.readFlag(config, 'callFullscreen');
+		this.startFullScreen = this.readFlag(config, fullscreenOptionName);
+		ConfigManager[fullscreenOptionName] = this.startFullScreen;
 		_ConfigManager_applyData_Alias.call(this, config);
 	};
 
@@ -102,7 +105,7 @@
 	/* Alias */
 	var _Scene_Title_start_Alias = Scene_Title.prototype.start;
 	Scene_Title.prototype.start = function() {
-		if (ConfigManager.callFullscreen && StorageManager.exists(-1)) {
+		if ((ConfigManager.callFullscreen || ConfigManager.startFullScreen) && StorageManager.exists(-1)) {
 			Graphics._requestFullScreen();
 		} else if (!ConfigManager.callFullscreen && StorageManager.exists(-1)) {
 			Graphics._cancelFullScreen();

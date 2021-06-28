@@ -316,6 +316,7 @@ APPSTRINGS.OPTIONS = {
 	label_game_options: "Game Options",
 	label_sound_options: "Sound Options",
 	label_display: "Display",
+	label_fullscreen: "Fullscreen",
 	label_grid: "Grid",
 	label_will: "Show Will",
 	label_default_support: "Default Support Defend",
