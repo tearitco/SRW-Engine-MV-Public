@@ -219,11 +219,11 @@ Imported.CXJ_Exit = "1.0.1";
         }
 		
 		Window_TitleCommand.prototype.makeCommandList = function() {
-			this.addCommand(TextManager.newGame,   'newGame');
-			this.addCommand(TextManager.loadGame, 'continue', this.isContinueEnabled());
-			this.addCommand(TextManager.loadContinueSave, 'loadContinueSave', this.continueSaveSlotIsPopulated());
-			this.addCommand(TextManager.cxjExit, 'exit');
-			this.addCommand(TextManager.options,   'options');
+			this.addCommand(APPSTRINGS.MAINMENU.label_new_game,   'newGame');
+			this.addCommand(APPSTRINGS.MAINMENU.label_load_game, 'continue', this.isContinueEnabled());
+			this.addCommand(APPSTRINGS.MAINMENU.label_continue, 'loadContinueSave', this.continueSaveSlotIsPopulated());
+			this.addCommand(APPSTRINGS.MAINMENU.label_exit, 'exit');
+			//this.addCommand(TextManager.options,   'options');
 		};
 		
 		Window_TitleCommand.prototype.continueSaveSlotIsPopulated = function() {

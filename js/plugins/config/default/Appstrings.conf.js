@@ -46,6 +46,13 @@ APPSTRINGS.GENERAL = {
 	label_dash_pref: "Default Fast Cursor"
 }
 
+APPSTRINGS.MAINMENU = {
+	label_new_game: "New Game",
+	label_load_game: "Load Game",
+	label_continue: "Continue",
+	label_exit: "Exit"
+}
+
 APPSTRINGS.SAVEMENU = {
 	label_funds: "Funds",
 	label_turn_count: "Turns",
