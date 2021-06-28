@@ -84,14 +84,8 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 		if($gameMap.regionId(position.x, position.y) % 8 == 0){//void
 			return false;
 		}
-		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
-			if(this.canFly(actor)){
-				if(!this.isFlying(actor)){
-					this.setFlying(actor, true);
-				}
-			} else {
-				return false;
-			}			
+		if($gameMap.regionId(position.x, position.y) % 8 == 1 && !this.isFlying(actor)){//air			
+			return false;						
 		}
 		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
 			if(!this.canBeOnLand(actor)){
