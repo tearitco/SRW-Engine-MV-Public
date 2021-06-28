@@ -147,8 +147,9 @@ Window_Intermission.prototype.initialize = function() {
 			SceneManager.push(Scene_Load);
 		},	
 		"options": function(){
-			_this.hide();
-			SceneManager.push(Scene_Options);
+			/*_this.hide();
+			SceneManager.push(Scene_Options);*/
+			$gameTemp.pushMenu = "options";
 		},	
 		"deployment": function(){
 			_this._handlingInput = false; 

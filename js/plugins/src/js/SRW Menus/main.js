@@ -91,6 +91,9 @@ window.Window_DeploymentTwin = Window_DeploymentTwin;
 import Window_Search from "./Window_Search.js";
 window.Window_Search = Window_Search;
 
+import Window_Options from "./Window_Options.js";
+window.Window_Options = Window_Options;
+
 
 import "./style/SRW_Menus.css";
 

@@ -10808,8 +10808,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.createDeploymentInStageWindow();
 		this.createDeploySelectionWindow();
 		this.createSearchWindow();
+		this.createOptionsWindow();
 		$battleSceneManager.init();	
-		//SceneManager.stop();
     };
 	
 	Scene_Map.prototype.createPauseWindow = function() {
@@ -11188,6 +11188,16 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.addWindow(this._searchWindow);
 		this._searchWindow.hide();
 		this.idToMenu["search"] = this._searchWindow;
+    };
+	
+	Scene_Map.prototype.createOptionsWindow = function() {
+		var _this = this;
+		this._optionsWindow = new Window_Options(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+	
+		this._optionsWindow.close();
+		this.addWindow(this._optionsWindow);
+		this._optionsWindow.hide();
+		this.idToMenu["options"] = this._optionsWindow;
     };
 	
 

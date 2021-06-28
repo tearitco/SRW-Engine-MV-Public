@@ -313,6 +313,8 @@ APPSTRINGS.SEARCH = {
 
 APPSTRINGS.OPTIONS = {
 	title: "Options",
+	label_game_options: "Game Options",
+	label_sound_options: "Sound Options",
 	label_display: "Display",
 	label_grid: "Grid",
 	label_will: "Show Will",
@@ -323,5 +325,7 @@ APPSTRINGS.OPTIONS = {
 	label_battle_bgm: "Battle BGM",
 	label_after_battle_bgm: "After Battle BGM",
 	label_bgm_map: "Map",
-	label_bgm_unit: "Unit"
+	label_bgm_unit: "Unit",
+	label_bgm_vol: "BGM Volume",
+	label_sfx_vol: "SFX Volume",
 }

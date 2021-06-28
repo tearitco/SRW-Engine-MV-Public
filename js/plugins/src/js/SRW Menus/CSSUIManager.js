@@ -97,6 +97,7 @@ CSSUIManager.prototype.initAllWindows = function(){
 	this.initWindow("mech_reassign_select");
 	this.initWindow("pilot_reassign_select");
 	this.initWindow("search");
+	this.initWindow("options");
 }
 
 CSSUIManager.prototype.initWindow = function(id){

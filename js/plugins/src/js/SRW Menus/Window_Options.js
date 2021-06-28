@@ -23,6 +23,12 @@ Window_Options.prototype.initialize = function() {
 		}
 	});*/
 	
+	this._titleInfo = {};
+	this._titleInfo[0] = APPSTRINGS.OPTIONS.label_game_options;
+	this._titleInfo[4] = APPSTRINGS.OPTIONS.label_sound_options;
+	
+
+	
 	this._optionInfo.push({
 		name: APPSTRINGS.OPTIONS.label_grid,
 		display: function(){
@@ -63,6 +69,8 @@ Window_Options.prototype.initialize = function() {
 		}
 	});
 	
+	
+	
 	this._optionInfo.push({
 		name: APPSTRINGS.OPTIONS.label_battle_bgm,
 		display: function(){
@@ -80,6 +88,48 @@ Window_Options.prototype.initialize = function() {
 		},
 		update: function(){
 			$gameSystem.optionAfterBattleBGM = !$gameSystem.optionAfterBattleBGM;
+		}
+	});
+	
+	this._optionInfo.push({
+		name: APPSTRINGS.OPTIONS.label_bgm_vol,
+		display: function(){
+			return ConfigManager["bgmVolume"];
+		},
+		update: function(direction){
+			var current = ConfigManager["bgmVolume"];
+			if(direction == "up"){
+				if(current < 100){
+					current+=20;
+				}
+			} else {
+				if(current > 0){
+					current-=20;
+				}
+			}			
+			ConfigManager["bgmVolume"] = current;
+			ConfigManager["bgsVolume"] = current;
+		}
+	});
+	
+	this._optionInfo.push({
+		name: APPSTRINGS.OPTIONS.label_sfx_vol,
+		display: function(){
+			return ConfigManager["seVolume"];
+		},
+		update: function(direction){
+			var current = ConfigManager["seVolume"];
+			if(direction == "up"){
+				if(current < 100){
+					current+=20;
+				}
+			} else {
+				if(current > 0){
+					current-=20;
+				}
+			}			
+			ConfigManager["seVolume"] = current;
+			ConfigManager["meVolume"] = current;
 		}
 	});
 	
@@ -119,7 +169,7 @@ Window_Options.prototype.createComponents = function() {
 	this._header.classList.add("menu_header");	
 	this._header.classList.add("scaled_text");
 	this._headerText = document.createElement("div");
-	this._headerText.innerHTML = APPSTRINGS.SEARCH.title;	
+	this._headerText.innerHTML = APPSTRINGS.OPTIONS.title;	
 	this._header.appendChild(this._headerText);
 	windowNode.appendChild(this._header);
 	
@@ -137,71 +187,33 @@ Window_Options.prototype.update = function() {
 	
 		if(Input.isTriggered('down') || Input.isRepeated('down')){
 			this.requestRedraw();
-			if(this._uiState == "entry_selection"){
-				var referenceLength;
-				if(!(this._currentEntries.length % this._rowSize)){
-					referenceLength = this._currentEntries.length;
-				} else {
-					referenceLength = Math.floor((this._currentEntries.length + this._rowSize) / this._rowSize) * this._rowSize;
-				}
-				if(this._currentSelection + this._rowSize < referenceLength - 1){
-					SoundManager.playCursor();
-					this._currentSelection+=this._rowSize;
-					if(this._currentSelection >= this._currentEntries.length){
-						this._currentSelection = this._currentEntries.length - 1;
-					}
-				} 
+			this._currentSelection++;
+			if(this._currentSelection >= this._optionInfo.length){
+				this._currentSelection = 0;
 			}
+			SoundManager.playCursor();
 		
 		} else if (Input.isTriggered('up') || Input.isRepeated('up')) {
 			this.requestRedraw();
-			if(this._uiState == "entry_selection"){
-				if(this._currentSelection - this._rowSize >= 0){
-					SoundManager.playCursor();
-					this._currentSelection-=this._rowSize;
-				} 
+			this._currentSelection--;
+			if(this._currentSelection < 0){
+				this._currentSelection = this._optionInfo.length - 1;
 			}
+			SoundManager.playCursor();
 		}
 		
-		
-					
+		function toggleOption(direction){
+			_this._optionInfo[_this._currentSelection].update(direction);
+		}					
 
 		if(Input.isTriggered('left') || Input.isRepeated('left')){
 			this.requestRedraw();
-			if(this._uiState == "tab_selection"){
-				this._selectedTab--;
-				if(this._selectedTab < 0){
-					this._selectedTab = this._tabInfo.length-1;
-				}
-			} else {
-				if(!(this._currentSelection % this._rowSize)){
-					this._currentSelection+=(this._rowSize - 1);
-				} else {
-					this._currentSelection--;
-				}				
-				if(this._currentSelection >= this._currentEntries.length){
-					this._currentSelection = this._currentEntries.length - 1;
-				}
-			}
+			toggleOption("down");
 			SoundManager.playCursor();
 					
 		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
 			this.requestRedraw();
-			if(this._uiState == "tab_selection"){
-				this._selectedTab++;
-				if(this._selectedTab > this._tabInfo.length-1){
-					this._selectedTab = 0;
-				}
-			} else {
-				if(!((this._currentSelection + 1) % this._rowSize)){
-					this._currentSelection-=(this._rowSize - 1);
-				} else {
-					this._currentSelection++;
-				}				
-				if(this._currentSelection >= this._currentEntries.length){
-					this._currentSelection = Math.floor(this._currentEntries.length / this._rowSize) * this._rowSize;
-				}
-			}
+			toggleOption("up");
 			SoundManager.playCursor();
 				
 		}
@@ -222,39 +234,7 @@ Window_Options.prototype.update = function() {
 		} 	
 		
 		if(Input.isTriggered('ok')){
-			if(this._uiState == "tab_selection"){
-				SoundManager.playOk();
-				this.requestRedraw();
-				this._uiState = "entry_selection";
-			} else if(this.validateEntry(this._currentSelection)){
-				SoundManager.playOk();
-				$gameTemp.searchInfo = {};
-				$gameTemp.searchInfo.value = this._currentEntries[this._currentSelection].id;
-				if(this._selectedTab == 0){
-					$gameTemp.searchInfo.type = "spirit";
-				}
-				if(this._selectedTab == 1){
-					$gameTemp.searchInfo.type = "pilot";
-				}
-				if(this._selectedTab == 2){
-					$gameTemp.searchInfo.type = "mech";
-				}
-				/*$gameTemp.mechListWindowCancelCallback = function(){
-					
-				}*/
-				$gameTemp.mechListWindowSearchSelectionCallback = function(actor){
-					$gameTemp.mechListWindowSearchSelectionCallback = null;
-					_this._uiState = "tab_selection";
-					$gameTemp.killMenu("search");						
-					if(_this._callbacks["selected"]){
-						_this._callbacks["selected"](actor);
-					}	
-				}
-				this._uiState = "pending_selection";
-				$gameTemp.pushMenu = "mech_list_deployed";
-			} else {
-				SoundManager.playBuzzer();
-			}
+			//toggleOption("up");
 		}
 		
 		if(Input.isTriggered('menu')){
@@ -262,21 +242,11 @@ Window_Options.prototype.update = function() {
 		}	
 		
 		if(Input.isTriggered('cancel')){	
-			SoundManager.playCancel();
-			$gameTemp.searchInfo = null;
-			if(this._uiState == "tab_selection"){
-				$gameTemp.popMenu = true;				
-				if(this._callbacks["closed"]){
-					this._callbacks["closed"]();
-				}					
-			} else if(this._uiState == "pending_selection"){
-				this.requestRedraw();
-				this._uiState = "tab_selection";
-			} else {
-				this.requestRedraw();
-				this._currentSelection = 0;
-				this._uiState = "tab_selection";
-			}			
+			SoundManager.playCancel();			
+			$gameTemp.popMenu = true;				
+			if(this._callbacks["closed"]){
+				this._callbacks["closed"]();
+			}					
 		}				
 		
 		this.refresh();
@@ -284,6 +254,26 @@ Window_Options.prototype.update = function() {
 };
 
 Window_Options.prototype.redraw = function() {
+	var _this = this;
+	var content = "";
+	var ctr = 0;
+	this._optionInfo.forEach(function(option){
+		if(_this._titleInfo[ctr]){
+			content+="<div class='entry title scaled_text fitted_text'>";
+			content+=_this._titleInfo[ctr];			
+			content+="</div>";
+		}
+		content+="<div class='entry "+(ctr == _this._currentSelection ? "selected" : "")+"'>";
+		content+="<div class='label scaled_text fitted_text'>";
+		content+=option.name;
+		content+="</div>";
+		content+="<div class='value scaled_text fitted_text'>";
+		content+=option.display();
+		content+="</div>";
+		content+="</div>";
+		ctr++;
+	});
+	this._listContainer.innerHTML = content;
 	
 	Graphics._updateCanvas();
 }
