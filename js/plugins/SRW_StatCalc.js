@@ -831,6 +831,10 @@ StatCalc.prototype.softRefreshUnits = function(){
 			}			
 		});
 		actor.SRWStats.pilot.abilities = null;//ensure reload
+		//ensure dummy events are expanded after loading an intermission save
+		if(event._dummyId != null){
+			_this.attachDummyEvent(actor, event._dummyId);
+		}
 		_this.initSRWStats(actor, _this.getCurrentLevel(actor), itemsIds, true);				
 	});
 	this.invalidateAbilityCache();
@@ -4909,7 +4913,7 @@ StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
 	}
 	var result = {};
 	_this.iterateAllActors(null, function(actor, event){			
-		if(actor && event && (!event.isErased() || event.isPendingDeploy)){
+		if(actor && event && event.isErased && (!event.isErased() || event.isPendingDeploy)){
 			var isEnemy = $gameSystem.isEnemy(actor);
 			var sourceX = event.posX();
 			var sourceY = event.posY();

@@ -1189,7 +1189,11 @@ var $battleSceneManager = new BattleSceneManager();
 			this._lastAccessedId = savefileId;
 			//$gameSystem.setSrpgActors();
 			//$gameSystem.setSrpgEnemys();
-			$statCalc.softRefreshUnits();
+			if($gameSystem.isIntermission()){
+				$gameSystem.startIntermission();
+			} else {
+				$statCalc.softRefreshUnits();
+			}			
 			return true;
 		} else {
 			return false;
@@ -1728,6 +1732,7 @@ var $battleSceneManager = new BattleSceneManager();
 		this.dummyId = 0;
 		this._availableUnits.forEach(function(actor){
 			actor.isSubPilot = false;
+			actor.event = null;
 			$statCalc.initSRWStats(actor);
 			$statCalc.attachDummyEvent(actor, actor.SRWStats.mech.id);
 		});
