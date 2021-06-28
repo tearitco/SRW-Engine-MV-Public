@@ -1,0 +1,10 @@
+#options .list_container {
+	height: 57.5%;
+    border: 0.1vw solid #FFFFFF;
+    border-radius: 1vw;
+    display: block;
+    width: 77%;
+    align-items: center;
+	background-color: var(--section-bg-color);
+	overflow: hidden;
+}

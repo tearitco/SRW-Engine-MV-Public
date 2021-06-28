@@ -1543,6 +1543,12 @@ var $battleSceneManager = new BattleSceneManager();
 		if(this.optionSkipUnitMoving == null){
 			this.optionSkipUnitMoving = false;
 		}
+		if(this.optionBattleBGM == null){
+			this.optionBattleBGM = true;
+		}
+		if(this.optionAfterBattleBGM == null){
+			this.optionAfterBattleBGM = true;
+		}
     };
 
 //変数関係の処理
@@ -12393,7 +12399,9 @@ SceneManager.reloadCharacters = function(startEvent){
         }
         //戦闘終了後の処理
         if ($gameSystem.isSubBattlePhase() === 'after_battle') {
-			
+			if(!$gameSystem.optionAfterBattleBGM){
+				$songManager.playStageSong();
+			}
 			if($gameTemp.playingBattleDemo){
 				$gameSystem.setSubBattlePhase('normal');
 				$gameTemp.scriptedBattleDemoId = null;
@@ -15500,7 +15508,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._transitionSprite.filters = [filter];
 		this.addChild(this._transitionSprite);
 		
-		$songManager.playBattleSong($gameTemp.currentBattleActor, $gameTemp.currentBattleEnemy);
+		if($gameSystem.optionBattleBGM){
+			$songManager.playBattleSong($gameTemp.currentBattleActor, $gameTemp.currentBattleEnemy);
+		}		
     };
 	
 Scene_Gameover.prototype.gotoTitle = function() {

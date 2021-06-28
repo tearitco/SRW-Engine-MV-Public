@@ -63,6 +63,26 @@ Window_Options.prototype.initialize = function() {
 		}
 	});
 	
+	this._optionInfo.push({
+		name: APPSTRINGS.OPTIONS.label_battle_bgm,
+		display: function(){
+			return $gameSystem.optionBattleBGM ? APPSTRINGS.OPTIONS.label_bgm_unit : APPSTRINGS.OPTIONS.label_bgm_map;
+		},
+		update: function(){
+			$gameSystem.optionBattleBGM = !$gameSystem.optionBattleBGM;
+		}
+	});
+	
+	this._optionInfo.push({
+		name: APPSTRINGS.OPTIONS.label_after_battle_bgm,
+		display: function(){
+			return $gameSystem.optionAfterBattleBGM ? APPSTRINGS.OPTIONS.label_bgm_unit : APPSTRINGS.OPTIONS.label_bgm_map;
+		},
+		update: function(){
+			$gameSystem.optionAfterBattleBGM = !$gameSystem.optionAfterBattleBGM;
+		}
+	});
+	
 	Window_CSS.prototype.initialize.call(this, 0, 0, 0, 0);	
 	
 	window.addEventListener("resize", function(){
@@ -106,38 +126,6 @@ Window_Options.prototype.createComponents = function() {
 	this._listContainer = document.createElement("div");
 	this._listContainer.classList.add("list_container");
 	windowNode.appendChild(this._listContainer);	
-	
-	
-	
-	this._detailContainer = document.createElement("div");
-	this._detailContainer.classList.add("list_detail");
-	this._detailContainer.classList.add("scaled_text");
-	this._detailContainer.classList.add("fitted_text");
-	windowNode.appendChild(this._detailContainer);
-	
-	this._spiritTabButton = document.createElement("div");	
-	this._spiritTabButton.classList.add("tab_button");	
-	this._spiritTabButton.classList.add("spirit_info_button");	
-	this._spiritTabButton.classList.add("scaled_text");			
-	this._spiritTabButton.innerHTML = APPSTRINGS.SEARCH.label_spirit;
-	this._tabInfo[0].button = this._spiritTabButton;
-	windowNode.appendChild(this._spiritTabButton);
-	
-	this._pilotTabButton = document.createElement("div");	
-	this._pilotTabButton.classList.add("tab_button");	
-	this._pilotTabButton.classList.add("pilot_stats_button");	
-	this._pilotTabButton.classList.add("scaled_text");			
-	this._pilotTabButton.innerHTML = APPSTRINGS.SEARCH.label_pilot;
-	windowNode.appendChild(this._pilotTabButton);
-	this._tabInfo[1].button = this._pilotTabButton;
-	
-	this._mechTabButton = document.createElement("div");	
-	this._mechTabButton.classList.add("tab_button");	
-	this._mechTabButton.classList.add("mech_stats_button");	
-	this._mechTabButton.classList.add("scaled_text");			
-	this._mechTabButton.innerHTML = APPSTRINGS.SEARCH.label_mech;
-	windowNode.appendChild(this._mechTabButton);
-	this._tabInfo[2].button = this._mechTabButton;
 	
 }	
 

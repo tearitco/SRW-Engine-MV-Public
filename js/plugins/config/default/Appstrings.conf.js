@@ -319,5 +319,9 @@ APPSTRINGS.OPTIONS = {
 	label_default_support: "Default Support Defend",
 	label_default_support_on: "Always",
 	label_default_support_off: "Never",
-	label_skip_move: "Skip Unit Move"
+	label_skip_move: "Skip Unit Move",
+	label_battle_bgm: "Battle BGM",
+	label_after_battle_bgm: "After Battle BGM",
+	label_bgm_map: "Map",
+	label_bgm_unit: "Unit"
 }
