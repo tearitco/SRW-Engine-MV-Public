@@ -240,7 +240,7 @@ Window_CSS.prototype.getAvailableUnits = function(unitMode){
 	if(unitMode == "actor"){
 		this._availableUnits = $gameSystem._availableUnits;
 	} else {
-		var tmp = Object.keys($SRWSaveManager.getUnlockedUnits());			
+		/*var tmp = Object.keys($SRWSaveManager.getUnlockedUnits());			
 		this._availableUnits = [];
 		for(var i = 0; i < tmp.length; i++){
 			var currentPilot = $statCalc.getCurrentPilot(tmp[i]);
@@ -251,7 +251,10 @@ Window_CSS.prototype.getAvailableUnits = function(unitMode){
 				$statCalc.calculateSRWMechStats(mechData);		
 				this._availableUnits.push(this.createReferenceData(mechData));
 			}
-		}
+		}*/
+		var actorCollection = $gameSystem._availableUnits || [];
+		actorCollection = actorCollection.concat($gameSystem._availableMechs || []);
+		this._availableUnits = actorCollection;
 	}		
 	var tmp = [];
 	if(this._availableUnits){
@@ -270,9 +273,12 @@ Window_CSS.prototype.getAvailableUnits = function(unitMode){
 }
 
 Window_CSS.prototype.refreshAllUnits = function(){
+	$statCalc.invalidateAbilityCache();
 	var availableUnits = this.getAvailableUnits();
 	availableUnits.forEach(function(unit){
-		$statCalc.initSRWStats(unit);
+		if(unit.actorId() != -1){
+			$statCalc.initSRWStats(unit);
+		}		
 	});
 }
 

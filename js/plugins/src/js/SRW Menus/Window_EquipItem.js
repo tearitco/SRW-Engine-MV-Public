@@ -211,12 +211,14 @@ Window_EquipItem.prototype.update = function() {
 					$inventoryManager.removeItemHolder(mech.id, this._currentSelection);
 					mech.items = $statCalc.getActorMechItems(mech.id);
 					this._currentUIState = "slot_selection";
+					this.refreshAllUnits();
 				} else if(inventoryInfo[itemIdx].count > 0){
 					if(inventoryInfo[itemIdx].count - inventoryInfo[itemIdx].holders.length > 0){
 						var mech = this.getCurrentSelection();
 						$inventoryManager.addItemHolder(itemIdx, mech.id, this._currentSelection);
 						mech.items = $statCalc.getActorMechItems(mech.id);
 						this._currentUIState = "slot_selection";	
+						this.refreshAllUnits();
 					} else {
 						this._currentTransferSelection = 0;
 						this._currentUIState = "item_transfer";	
@@ -241,6 +243,7 @@ Window_EquipItem.prototype.update = function() {
 						}
 					}	
 					mech.items = $statCalc.getActorMechItems(mech.id);
+					this.refreshAllUnits();
 				}
 			}
 		}

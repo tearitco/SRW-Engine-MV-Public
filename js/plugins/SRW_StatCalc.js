@@ -2724,16 +2724,14 @@ StatCalc.prototype.getCurrentPilot = function(mechId, includeUndeployed){
 }
 
 StatCalc.prototype.getCurrentDeploySlot = function(actorId){
-	var party = $gameParty.allMembers();
-	var ctr = 0;
-	var slot = -1;
-	while(slot == -1 && ctr < party.length){
-		if(party[ctr].actorId() == actorId){
-			slot = ctr;
+	var result = -1;
+	var deployList = $gameSystem.getDeployList();
+	for(var i = 0; i < deployList.length; i++){		
+		if(deployList[i] && (deployList[i].main == actorId || deployList[i].sub == actorId)){
+			result = i;
 		}
-		ctr++;
 	}
-	return slot;
+	return result;
 }
 
 StatCalc.prototype.getSpecies = function(actor){
