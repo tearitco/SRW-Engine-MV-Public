@@ -214,7 +214,7 @@
 }
 
 #detail_pages .pilot_detail_1 {
-	width: 88%;
+	width: 71%;
 	top: 13%;
     height: 32%;
 }
@@ -259,8 +259,8 @@
 }
 
 #detail_pages #pilot_summary_name {
-	left: 22%;
-    top: 23%;
+	left: 28%;
+    top: 24%;
 }
 
 #pilot_summary_card {
@@ -273,7 +273,7 @@
 
 #detail_pages #pilot_summary_card {
 	margin: 0px;
-	left: 23%;
+	left: 29%;
     top: 23%;
 	position: absolute;
 }
@@ -314,7 +314,7 @@
 	--widthpixels: 100;
 	--heightpixels: 30;
 	position: absolute;
-	left: 5.5%;
+	left: 7.5%;
 	/*background-color: red;*/
 	
 	--fontsize: 1.6px;
@@ -348,11 +348,11 @@
 
 #detail_pages .selection_icon.twin.right{
 	top: 16%;
-    left: 18%;
+    left: 23%;
 }
 
 #detail_pages #bar_pilot_stats_icon {
-	margin-left: 3.7%;
+	margin-left: 4.8%;
 	position: absolute;
     top: 16%;
 }
@@ -364,15 +364,20 @@
 
 #detail_pages .selection_icon.sub.right{
 	top: 70.5%;
-    left: 18%;
+    left: 23%;
 }
 
 #combined_terrain_card {
 	margin: 0px;
-    left: 48%;
-    top: 10%;
+    left: 77.5%;
+    top: 13%;
     position: absolute;
-    --widthscaling: 12;
+    width: 14.5%;
+    height: 28.5%;
+    background-color: var(--section-bg-color);
+    border: 0.1vw solid #FFFFFF;
+    border-radius: 1vw;
+    padding: 1%;
 }
 
 #combined_terrain_card .stat_label {
@@ -381,5 +386,5 @@
 }
 
 #combined_terrain_card .stat_value {
-	margin-left: 2%;
+	margin-left: 35%;
 }

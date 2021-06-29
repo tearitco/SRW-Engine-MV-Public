@@ -4062,7 +4062,7 @@ StatCalc.prototype.getTerrainMod = function(actor, terrain){
 }
 
 StatCalc.prototype.getFinalTerrainString = function(actor, terrain){
-	if(this.isActorSRWInitialized(actor)){
+	if(this.isActorSRWInitialized(actor) && actor.SRWStats.mech.id != -1){
 		var currentTerrain;
 		if(terrain){
 			currentTerrain = terrain;
@@ -4078,7 +4078,7 @@ StatCalc.prototype.getFinalTerrainString = function(actor, terrain){
 		}		
 		return this._terrainSumToLevel[this._terrainToNumeric[pilotTerrainLevel] + mechTerrainNumeric];
 	} 	
-	return 0;
+	return "-";
 }
 
 StatCalc.prototype.getWeaponTerrainMod = function(actor, weaponInfo){
@@ -4129,13 +4129,13 @@ StatCalc.prototype.getRealWeaponTerrainStrings = function(actor, weaponInfo){
 		}); 
 		return result;
 	} else {
-		return {air: "-", land: "-", sea: "-", space: "-"};
+		return {air: "-", land: "-", water: "-", space: "-"};
 	}
 }
 
 StatCalc.prototype.getRealMechTerrainStrings = function(actor){
 	var _this = this;
-	if(this.isActorSRWInitialized(actor)){
+	if(this.isActorSRWInitialized(actor) && actor.SRWStats.mech.id != -1){
 		var result = {};
 		Object.keys(_this._terrainStringLookup).forEach(function(id){
 			var currentTerrain = _this._terrainStringLookup[id];
@@ -4143,7 +4143,7 @@ StatCalc.prototype.getRealMechTerrainStrings = function(actor){
 		});
 		return result;
 	} else {
-		return {air: "-", land: "-", sea: "-", space: "-"};
+		return {air: "-", land: "-", water: "-", space: "-"};
 	}
 }
 

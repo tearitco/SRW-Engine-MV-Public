@@ -5011,6 +5011,7 @@ var $battleSceneManager = new BattleSceneManager();
 									};
 									$gameTemp.detailPageMode = "map";
 									$gameSystem.setSubBattlePhase('enemy_unit_summary');
+									$statCalc.invalidateAbilityCache();
 									$gameTemp.pushMenu = "detail_pages";
 									
                                 }
@@ -12644,6 +12645,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				};
 				$gameTemp.detailPageMode = "map";
 				$gameSystem.setSubBattlePhase('enemy_unit_summary');
+				$statCalc.invalidateAbilityCache();
 				$gameTemp.pushMenu = "detail_pages";
 			}		
 			if(Input.isTriggered("select")){

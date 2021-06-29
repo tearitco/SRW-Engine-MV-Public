@@ -35,7 +35,6 @@ Window_DetailPages.prototype.initialize = function() {
 
 
 Window_DetailPages.prototype.resetSelection = function(){
-	$statCalc.invalidateAbilityCache(); //ensure most up to date stats of unit are shown
 	this._currentSelection = 0;
 	this._currentPage = 0;
 	this._selectedTab = 0;
@@ -153,6 +152,10 @@ Window_DetailPages.prototype.createComponents = function() {
 	this._pilotStats2.classList.add("list_detail");	
 	this._pilotStats2.classList.add("pilot_detail_2");
 	this._pilotInfoTab.appendChild(this._pilotStats2);	
+	
+	this._terrainSummary = document.createElement("div");
+	this._terrainSummary.id = "combined_terrain_card";
+	this._pilotInfoTab.appendChild(this._terrainSummary);	
 	
 	
 	this._pilotStatsTabButton = document.createElement("div");	
@@ -476,13 +479,25 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	detailContent+="</div>";
 	detailContent+="</div>";
 	
-	detailContent+="<div id='combined_terrain_card' class='ability_block details scaled_width'>";		
+	
+	
+	
+
+	
+	
+
+	
+	this._pilotStats1.innerHTML = detailContent;
+	
+	detailContent = "";
+	//detailContent+="<div id='combined_terrain_card' class='ability_block details'>";		
 	
 	detailContent+="<div class='ability_block_label scaled_text scaled_width'>";
 	detailContent+=APPSTRINGS.GENERAL.label_combined_terrain;
 	detailContent+="</div>";
 	
 	var mechTerrainStrings = $statCalc.getRealMechTerrainStrings(actor);
+	
 	
 	detailContent+="<div class='ability_block_row terrain scaled_height'>";
 	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
@@ -523,15 +538,9 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	detailContent+="<div class='stat_value'>=</div>";
 	detailContent+="<div class='stat_value'>"+$statCalc.getFinalTerrainString(actor, "space")+"</div>";
 	detailContent+="</div>";
-	detailContent+="</div>";
+	//detailContent+="</div>";
 	
-	
-
-	
-	
-
-	
-	this._pilotStats1.innerHTML = detailContent;
+	this._terrainSummary.innerHTML = detailContent;
 	
 	var actorIcon = this._pilotStats1.querySelector("#bar_pilot_stats_icon");
 	this.updateScaledDiv(actorIcon);
