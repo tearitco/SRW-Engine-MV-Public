@@ -6,7 +6,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "movement", modType: "addFlat", value: 1}];
+			return [{type: "base_move", modType: "addFlat", value: 1}];
 		},
 		function(actor, level){
 			return true;
@@ -19,7 +19,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "movement", modType: "addFlat", value: 2}];
+			return [{type: "base_move", modType: "addFlat", value: 2}];
 		},
 		function(actor, level){
 			return true;
@@ -32,7 +32,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "movement", modType: "addFlat", value: 1}, {type: "mobility", modType: "addFlat", value: 5}];
+			return [{type: "base_move", modType: "addFlat", value: 1}, {type: "base_mob", modType: "addFlat", value: 5}];
 		},
 		function(actor, level){
 			return true;
@@ -45,7 +45,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "mobility", modType: "addFlat", value: 5}];
+			return [{type: "base_mob", modType: "addFlat", value: 5}];
 		},
 		function(actor, level){
 			return true;
@@ -58,7 +58,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "mobility", modType: "addFlat", value: 15}];
+			return [{type: "base_mob", modType: "addFlat", value: 15}];
 		},
 		function(actor, level){
 			return true;
@@ -72,7 +72,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "mobility", modType: "addFlat", value: 25}];
+			return [{type: "base_mob", modType: "addFlat", value: 25}];
 		},
 		function(actor, level){
 			return true;
@@ -85,7 +85,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "mobility", modType: "addFlat", value: 25},{type: "accuracy", modType: "addFlat", value: 20},{type: "movement", modType: "addFlat", value: 2},{type: "range", modType: "addFlat", value: 1}];
+			return [{type: "base_mob", modType: "addFlat", value: 25},{type: "base_acc", modType: "addFlat", value: 20},{type: "base_move", modType: "addFlat", value: 2},{type: "range", modType: "addFlat", value: 1}];
 		},
 		function(actor, level){
 			return true;
@@ -200,7 +200,7 @@ $SRWConfig.itemEffects = function(){
 			return [
 				{type: "air_terrain_rating", modType: "addFlat", value: 4},
 				{type: "fly", modType: "addFlat", value: 1},
-				{type: "movement", modType: "addFlat", value: 1}
+				{type: "base_move", modType: "addFlat", value: 1}
 			];
 		},
 		function(actor, level){
@@ -216,7 +216,7 @@ $SRWConfig.itemEffects = function(){
 		function(actor, level){
 			return [
 				{type: "maxHP", modType: "addFlat", value: 500},
-				{type: "armor", modType: "addFlat", value: 100}
+				{type: "base_arm", modType: "addFlat", value: 100}
 			];
 		},
 		function(actor, level){
@@ -232,7 +232,7 @@ $SRWConfig.itemEffects = function(){
 		function(actor, level){
 			return [
 				{type: "maxHP", modType: "addFlat", value: 1000},
-				{type: "armor", modType: "addFlat", value: 150}
+				{type: "base_arm", modType: "addFlat", value: 150}
 			];
 		},
 		function(actor, level){
@@ -248,7 +248,7 @@ $SRWConfig.itemEffects = function(){
 		function(actor, level){
 			return [
 				{type: "maxHP", modType: "addFlat", value: 1000},
-				{type: "armor", modType: "addFlat", value: 200}
+				{type: "base_arm", modType: "addFlat", value: 200}
 			];
 		},
 		function(actor, level){
@@ -264,7 +264,7 @@ $SRWConfig.itemEffects = function(){
 		function(actor, level){
 			return [
 				{type: "maxHP", modType: "addFlat", value: 1500},
-				{type: "armor", modType: "addFlat", value: 250}
+				{type: "base_arm", modType: "addFlat", value: 250}
 			];
 		},
 		function(actor, level){
@@ -363,9 +363,9 @@ $SRWConfig.itemEffects = function(){
 		false,
 		function(actor, level){
 			return [
-				{type: "mobility", modType: "addFlat", value: 25},
-				{type: "armor", modType: "addFlat", value: 200},
-				{type: "accuracy", modType: "addFlat", value: 30}
+				{type: "base_mob", modType: "addFlat", value: 25},
+				{type: "base_arm", modType: "addFlat", value: 200},
+				{type: "base_acc", modType: "addFlat", value: 30}
 			];
 		},
 		function(actor, level){
@@ -380,9 +380,9 @@ $SRWConfig.itemEffects = function(){
 		false,
 		function(actor, level){
 			return [
-				{type: "mobility", modType: "addFlat", value: 30},
-				{type: "armor", modType: "addFlat", value: 250},
-				{type: "accuracy", modType: "addFlat", value: 35}
+				{type: "base_mob", modType: "addFlat", value: 30},
+				{type: "base_arm", modType: "addFlat", value: 250},
+				{type: "base_acc", modType: "addFlat", value: 35}
 			];
 		},
 		function(actor, level){
@@ -397,7 +397,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		function(actor, level){
 			return [ 
-				{type: "accuracy", modType: "addFlat", value: 10}
+				{type: "base_acc", modType: "addFlat", value: 10}
 			];
 		},
 		function(actor, level){
@@ -412,7 +412,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		function(actor, level){
 			return [ 
-				{type: "accuracy", modType: "addFlat", value: 20}
+				{type: "base_acc", modType: "addFlat", value: 20}
 			];
 		},
 		function(actor, level){
@@ -427,7 +427,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		function(actor, level){
 			return [ 
-				{type: "accuracy", modType: "addFlat", value: 30}
+				{type: "base_acc", modType: "addFlat", value: 30}
 			];
 		},
 		function(actor, level){
@@ -442,7 +442,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		function(actor, level){
 			return [  
-				{type: "accuracy", modType: "addFlat", value: 40}
+				{type: "base_acc", modType: "addFlat", value: 40}
 			];
 		},
 		function(actor, level){
@@ -608,7 +608,7 @@ $SRWConfig.itemEffects = function(){
 		false,
 		false,
 		function(actor, level){
-			return [{type: "mobility", modType: "addFlat", value: 25},{type: "accuracy", modType: "addFlat", value: 20},{type: "movement", modType: "addFlat", value: 2},{type: "range", modType: "addFlat", value: 1}];
+			return [{type: "base_mob", modType: "addFlat", value: 25},{type: "base_acc", modType: "addFlat", value: 20},{type: "base_move", modType: "addFlat", value: 2},{type: "range", modType: "addFlat", value: 1}];
 		},
 		function(actor, level){
 			return true;
@@ -639,7 +639,7 @@ $SRWConfig.itemEffects = function(){
 			return [
 				{type: "weapon_ranged", modType: "addFlat", value: 200},
 				{type: "weapon_melee", modType: "addFlat", value: 200},
-				{type: "movement", modType: "addFlat", value: 2},
+				{type: "base_move", modType: "addFlat", value: 2},
 				{type: "range", modType: "addFlat", value: 1},
 				{type: "miracle", modType: "addFlat", value: 1}
 			];

@@ -248,6 +248,7 @@ Window_EquipItem.prototype.update = function() {
 			}
 		}
 		if(Input.isTriggered('cancel')){	
+			this.refreshAllUnits();
 			SoundManager.playCancel();		
 			this.requestRedraw();
 			if(this._currentUIState == "slot_selection"){

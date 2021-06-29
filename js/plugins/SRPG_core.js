@@ -1728,13 +1728,14 @@ var $battleSceneManager = new BattleSceneManager();
 //戦闘開始に関係する処理
     //戦闘開始するためのプラグイン・コマンド
 	Game_System.prototype.startIntermission = function(){
+		this._isIntermission = true;
 		this._availableUnits = $gameParty.allMembers();
 		this.dummyId = 0;
 		this._availableUnits.forEach(function(actor){
 			actor.isSubPilot = false;
-			actor.event = null;
-			$statCalc.initSRWStats(actor);
 			$statCalc.attachDummyEvent(actor, actor.SRWStats.mech.id);
+			$statCalc.invalidateAbilityCache();
+			$statCalc.initSRWStats(actor);			
 		});
 		
 		this._availableMechs = [];
@@ -1742,20 +1743,21 @@ var $battleSceneManager = new BattleSceneManager();
 		for(var i = 0; i < tmp.length; i++){
 			var currentPilot = $statCalc.getCurrentPilot(tmp[i]);
 			if(!currentPilot){
-				var mechData = $statCalc.getMechData($dataClasses[tmp[i]], true);
-				$statCalc.calculateSRWMechStats(mechData);		
+				var mechData = $statCalc.getMechData($dataClasses[tmp[i]], true);			
 				
-				var result = $statCalc.createEmptyActor();
-				result.SRWStats.mech = mechData;
+				var result = $statCalc.createEmptyActor();				
+				result.SRWStats.mech = mechData;		
 				$statCalc.attachDummyEvent(result, mechData.id);
-				
+																
 				this._availableMechs.push(result);
+				$statCalc.invalidateAbilityCache();	
+				$statCalc.calculateSRWMechStats(mechData, false, result);		
 			}
 		}	
 		
 		$statCalc.invalidateAbilityCache();
 		$gameTemp.deployMode = "";
-		this._isIntermission = true;
+		
 	}
 	
 	Game_System.prototype.isIntermission = function(id){

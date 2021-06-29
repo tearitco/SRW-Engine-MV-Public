@@ -278,7 +278,11 @@ Window_CSS.prototype.refreshAllUnits = function(){
 	availableUnits.forEach(function(unit){
 		if(unit.actorId() != -1){
 			$statCalc.initSRWStats(unit);
-		}		
+		} else if(unit.SRWStats.mech.id != -1){
+			var mechData = $statCalc.getMechData($dataClasses[unit.SRWStats.mech.id], true);
+			$statCalc.calculateSRWMechStats(mechData, false, unit);	
+			unit.SRWStats.mech = mechData;
+		}	
 	});
 }
 

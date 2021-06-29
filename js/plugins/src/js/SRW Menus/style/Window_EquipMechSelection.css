@@ -59,6 +59,12 @@
 	left: 25%;
 }
 
+#equip_item_select .stat_section_size {
+	left: 25%;
+    top: 40%;
+	width: 25%;
+}
+
 #equip_item_select .stat_section_terrain {
 	top: 0%;
     width: 25%;

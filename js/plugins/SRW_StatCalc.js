@@ -1035,7 +1035,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 		actor.SRWStats.pilot.abilities = dbAbilities;
 		actor.SRWStats.pilot.relationships = dbRelationships;
 	}	
-	
+	this.invalidateAbilityCache();
 	this.calculateSRWActorStats(actor, preserveVolatile);// calculate stats again to ensure changes due to abilities are applied
 	
 	var mech;
@@ -1085,7 +1085,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			levels.accuracy = $gameSystem.enemyUpgradeLevel;
 			levels.weapons = $gameSystem.enemyUpgradeLevel;			
 		}		
-		this.calculateSRWMechStats(actor.SRWStats.mech, preserveVolatile);	
+		this.calculateSRWMechStats(actor.SRWStats.mech, preserveVolatile, actor);	
 		if(preserveVolatile){
 			if(previousStats){
 				actor.SRWStats.mech.stats.calculated.currentHP = previousStats.currentHP;
@@ -2401,7 +2401,7 @@ StatCalc.prototype.getMechStatIncrease = function(actor, type, levels){
 	}
 }
 
-StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatile){
+StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatile, actor){
 	var _this = this;
 					
 	var mechStats = targetStats.stats.base;
@@ -2437,18 +2437,26 @@ StatCalc.prototype.calculateSRWMechStats = function(targetStats, preserveVolatil
 				});
 			}
 		});
-		
-		var mechData = {
-			SRWStats: {
-				pilot: {
-					abilities: [],
-					level: 0,
-					SRWInitialized: true
-				},			
-				mech: targetStats			
-			},
-			SRWInitialized: true
+		var mechData;
+		if(actor){
+			mechData = actor;
+		} else {
+			mechData = {
+				SRWStats: {
+					pilot: {
+						abilities: [],
+						level: 0,
+						SRWInitialized: true
+					},			
+					mech: targetStats			
+				},
+				SRWInitialized: true,
+				event: event,
+				isActor: function(){return isActor;}
+			}
 		}
+		
+		
 		calculatedStats.maxHP = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxHP, "maxHP");
 		calculatedStats.maxEN = $statCalc.applyStatModsToValue(mechData, calculatedStats.maxEN, "maxEN");
 		

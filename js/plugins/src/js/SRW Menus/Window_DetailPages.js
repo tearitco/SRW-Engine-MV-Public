@@ -365,7 +365,7 @@ Window_DetailPages.prototype.update = function() {
 };
 
 Window_DetailPages.prototype.validateTab = function() {
-	if(this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
+	if(!this.getCurrentSelection().actor || this.getCurrentSelection().actor.SRWStats.pilot.id == -1){
 		if(this._selectedTab == 0){
 			this._selectedTab = 1;
 			this.requestRedraw();
