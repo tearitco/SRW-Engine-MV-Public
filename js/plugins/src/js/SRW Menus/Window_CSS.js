@@ -255,6 +255,16 @@ Window_CSS.prototype.getAvailableUnits = function(unitMode){
 		var actorCollection = $gameSystem._availableUnits || [];
 		actorCollection = actorCollection.concat($gameSystem._availableMechs || []);
 		this._availableUnits = actorCollection;
+		
+		var tmp = [];
+		if(this._availableUnits){
+			this._availableUnits.forEach(function(unit){
+				if($statCalc.isActorSRWInitialized(unit) && unit.SRWStats.mech.id != -1){
+					tmp.push(unit);
+				}
+			});
+		}
+		this._availableUnits = tmp; 
 	}		
 	var tmp = [];
 	if(this._availableUnits){
