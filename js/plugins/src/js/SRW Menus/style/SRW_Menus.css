@@ -4,7 +4,9 @@ body {
 
 :root {
 	--text-color-highlight: #f9e343;	
-	--text-color-highlight2: #43dbf9;	
+	--text-color-highlight2: #43dbf9;
+	--text-color-highlight3: #43db8d;	
+	--text-color-highlight4: #ce4343;	
 	--text-color-rank: #a94ae5;	
 	--underline-color: rgba(200,200,200,0.5);
 	--selected-color: rgba(255, 255, 255, 0.5);
@@ -302,6 +304,14 @@ body {
 
 .stat_value {
 	margin-left: auto;
+}
+
+.stat_value.boosted{
+	color: var(--text-color-highlight3);
+}
+
+.stat_value.dropped {
+	color: var(--text-color-highlight4);
 }
 
 .detail_bar_upgrades .mod_level_label {

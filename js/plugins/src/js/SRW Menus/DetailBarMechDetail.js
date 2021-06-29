@@ -61,15 +61,34 @@ DetailBarMechDetail.prototype.redraw = function(){
 	detailContent+="</div>";
 	detailContent+="<div class='stat_section stat_section_armor'>";
 	detailContent+="<div class='stat_label'>"+APPSTRINGS.MECHSTATS.armor+"</div>";	
-	detailContent+="<div class='stat_value'>"+calculatedStats.armor+"</div>";
+	var baseArmor = calculatedStats.armor;
+	var currentArmor = baseArmor;
+	if($statCalc.isArmorDown(actor)){
+		currentArmor/=2;
+	}
+	currentArmor = $statCalc.applyStatModsToValue(actor, currentArmor, ["armor"]);
+	
+	detailContent+="<div class='stat_value "+(baseArmor < currentArmor ? "boosted" : "")+" "+(baseArmor > currentArmor ? "dropped" : "")+"'>"+currentArmor+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='stat_section stat_section_mobility'>";
 	detailContent+="<div class='stat_label'>"+APPSTRINGS.MECHSTATS.mobility+"</div>";
-	detailContent+="<div class='stat_value'>"+calculatedStats.mobility+"</div>";
+	var baseMobility = calculatedStats.mobility;
+	var currentMobility = baseMobility;
+	if($statCalc.isMobilityDown(actor)){
+		currentMobility/=2;
+	}
+	currentMobility = $statCalc.applyStatModsToValue(actor, currentMobility, ["mobility"]);
+	detailContent+="<div class='stat_value "+(baseMobility < currentMobility ? "boosted" : "")+" "+(baseMobility > currentMobility ? "dropped" : "")+"'>"+currentMobility+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='stat_section stat_section_accuracy'>";
 	detailContent+="<div class='stat_label'>"+APPSTRINGS.MECHSTATS.accuracy+"</div>";
-	detailContent+="<div class='stat_value'>"+calculatedStats.accuracy+"</div>";
+	var baseAccuracy = calculatedStats.accuracy;
+	var currentAccuracy = baseAccuracy;
+	if($statCalc.isAccuracyDown(actor)){
+		currentAccuracy/=2;
+	}
+	currentAccuracy = $statCalc.applyStatModsToValue(actor, currentAccuracy, ["accuracy"]);
+	detailContent+="<div class='stat_value "+(baseAccuracy < currentAccuracy ? "boosted" : "")+" "+(baseAccuracy > currentAccuracy ? "dropped" : "")+"'>"+currentAccuracy+"</div>";
 	detailContent+="</div>";
 	detailContent+="<div class='stat_section stat_section_size'>";
 	detailContent+="<div class='stat_label'>"+APPSTRINGS.MECHSTATS.size+"</div>";

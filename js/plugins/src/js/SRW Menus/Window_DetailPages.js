@@ -35,6 +35,7 @@ Window_DetailPages.prototype.initialize = function() {
 
 
 Window_DetailPages.prototype.resetSelection = function(){
+	$statCalc.invalidateAbilityCache(); //ensure most up to date stats of unit are shown
 	this._currentSelection = 0;
 	this._currentPage = 0;
 	this._selectedTab = 0;
