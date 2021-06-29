@@ -385,6 +385,7 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	var detailContent = "";
 	var actor = this.getCurrentSelection().actor;
 	var calculatedStats = actor.SRWStats.pilot.stats.calculated;
+	var calculatedMechStats = actor.SRWStats.mech.stats.calculated;
 	var abilityList = $statCalc.getPilotAbilityList(actor);
 	var currentLevel = $statCalc.getCurrentLevel(actor);
 	
@@ -472,8 +473,61 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 	detailContent+="<div class='stat_value'>"+$statCalc.getKills(actor)+"</div>";
 
 	detailContent+="</div>";
-
 	detailContent+="</div>";
+	detailContent+="</div>";
+	
+	detailContent+="<div id='combined_terrain_card' class='ability_block details scaled_width'>";		
+	
+	detailContent+="<div class='ability_block_label scaled_text scaled_width'>";
+	detailContent+=APPSTRINGS.GENERAL.label_combined_terrain;
+	detailContent+="</div>";
+	
+	var mechTerrainStrings = $statCalc.getRealMechTerrainStrings(actor);
+	
+	detailContent+="<div class='ability_block_row terrain scaled_height'>";
+	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
+	detailContent+="<div class='stat_label'>AIR</div>";
+	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.air+"</div>";
+	detailContent+="<div class='stat_value plus'>+</div>";
+	detailContent+="<div class='stat_value'>"+mechTerrainStrings.air+"</div>";
+	detailContent+="<div class='stat_value'>=</div>";
+	detailContent+="<div class='stat_value'>"+$statCalc.getFinalTerrainString(actor, "air")+"</div>";	
+	detailContent+="</div>";
+	detailContent+="</div>";
+	detailContent+="<div class='ability_block_row terrain scaled_height'>";
+	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
+	detailContent+="<div class='stat_label'>LND</div>";
+	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.land+"</div>";
+	detailContent+="<div class='stat_value plus'>+</div>";
+	detailContent+="<div class='stat_value'>"+mechTerrainStrings.land+"</div>";
+	detailContent+="<div class='stat_value'>=</div>";
+	detailContent+="<div class='stat_value'>"+$statCalc.getFinalTerrainString(actor, "land")+"</div>";
+	detailContent+="</div>";
+	detailContent+="</div>";
+	detailContent+="<div class='ability_block_row terrain scaled_height'>";
+	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
+	detailContent+="<div class='stat_label'>SEA</div>";
+	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.water+"</div>";
+	detailContent+="<div class='stat_value plus'>+</div>";
+	detailContent+="<div class='stat_value'>"+mechTerrainStrings.water+"</div>";
+	detailContent+="<div class='stat_value'>=</div>";
+	detailContent+="<div class='stat_value'>"+$statCalc.getFinalTerrainString(actor, "water")+"</div>";
+	detailContent+="</div>";
+	detailContent+="</div>";
+	detailContent+="<div class='ability_block_row terrain scaled_height'>";
+	detailContent+="<div class='pilot_stat_container scaled_text scaled_width'>";
+	detailContent+="<div class='stat_label'>SPC</div>";
+	detailContent+="<div class='stat_value'>"+calculatedStats.terrain.space+"</div>";
+	detailContent+="<div class='stat_value plus'>+</div>";
+	detailContent+="<div class='stat_value'>"+mechTerrainStrings.space+"</div>";
+	detailContent+="<div class='stat_value'>=</div>";
+	detailContent+="<div class='stat_value'>"+$statCalc.getFinalTerrainString(actor, "space")+"</div>";
+	detailContent+="</div>";
+	detailContent+="</div>";
+	
+	
+
+	
 	
 
 	

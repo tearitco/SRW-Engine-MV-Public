@@ -366,3 +366,20 @@
 	top: 70.5%;
     left: 18%;
 }
+
+#combined_terrain_card {
+	margin: 0px;
+    left: 48%;
+    top: 10%;
+    position: absolute;
+    --widthscaling: 12;
+}
+
+#combined_terrain_card .stat_label {
+	color: var(--text-color-highlight2);
+	margin-right: 2%;
+}
+
+#combined_terrain_card .stat_value {
+	margin-left: 2%;
+}

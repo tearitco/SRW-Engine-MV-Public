@@ -4057,7 +4057,11 @@ StatCalc.prototype.getMechTerrainString = function(actor, terrain){
 	return 0;
 }
 
-StatCalc.prototype.getTerrainMod = function(actor, terrain){
+StatCalc.prototype.getTerrainMod = function(actor, terrain){			
+	return this._terrainLevelPerformance[this.getFinalTerrainString(actor, terrain)];	
+}
+
+StatCalc.prototype.getFinalTerrainString = function(actor, terrain){
 	if(this.isActorSRWInitialized(actor)){
 		var currentTerrain;
 		if(terrain){
@@ -4072,7 +4076,7 @@ StatCalc.prototype.getTerrainMod = function(actor, terrain){
 		if(mechTerrainNumeric < minMechTerrains[currentTerrain]){
 			mechTerrainNumeric = minMechTerrains[currentTerrain];
 		}		
-		return this._terrainLevelPerformance[this._terrainSumToLevel[this._terrainToNumeric[pilotTerrainLevel] + mechTerrainNumeric]];
+		return this._terrainSumToLevel[this._terrainToNumeric[pilotTerrainLevel] + mechTerrainNumeric];
 	} 	
 	return 0;
 }
