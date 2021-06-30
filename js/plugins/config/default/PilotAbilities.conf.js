@@ -1544,4 +1544,36 @@ $SRWConfig.pilotAbilties = function(){
 			return true;		
 		}
 	);	
+	
+	this.addDefinition(
+		79, 
+		"Full Block",
+		"Prevents all status conditions.", //not bypassed by Fury
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "status_resistance", modType: "addFlat", value: 2},				
+			];
+		},
+		function(actor, level){
+			return true;		
+		}
+	);
+
+	this.addDefinition(
+		80, 
+		"Full Block",
+		"Prevents all status conditions.<br>If Fury is active for the attacker, status conditions can be applied.", //bypassed by Fury
+		false,
+		false,
+		function(actor, level){
+			return [
+				{type: "status_resistance", modType: "addFlat", value: 1},				
+			];
+		},
+		function(actor, level){
+			return true;		
+		}
+	);	
 }

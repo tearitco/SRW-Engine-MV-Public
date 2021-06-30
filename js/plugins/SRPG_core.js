@@ -13199,30 +13199,33 @@ SceneManager.reloadCharacters = function(startEvent){
 				});	
 			}			
 		}
-		function applyStatusConditions(attacker, defender){
-			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_accuracy_down"])){
-				$statCalc.setAccuracyDown(defender);
+		function applyStatusConditions(attacker, defender, hasFury){
+			var resistance = $statCalc.applyMaxStatModsToValue(defender, 0, ["status_resistance"]);
+			if(resistance < 1 || (hasFury && resistance == 1)){			
+				if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_accuracy_down"])){
+					$statCalc.setAccuracyDown(defender);
+				}
+				if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_mobility_down"])){
+					$statCalc.setMobilityDown(defender);
+				}
+				if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_armor_down"])){
+					$statCalc.setArmorDown(defender);
+				}
+				if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_move_down"])){
+					$statCalc.setMovementDown(defender);
+				}
+				if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_attack_down"])){
+					$statCalc.setAttackDown(defender);
+				}
+				if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_range_down"])){
+					$statCalc.setRangeDown(defender);
+				}
+				var SPReduction = $statCalc.applyStatModsToValue(attacker, 0, ["inflict_SP_down"]);
+				$statCalc.applySPCost(defender, SPReduction);
+				
+				var willReduction = $statCalc.applyStatModsToValue(attacker, 0, ["inflict_will_down"]);
+				$statCalc.modifyWill(defender, willReduction * -1);
 			}
-			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_mobility_down"])){
-				$statCalc.setMobilityDown(defender);
-			}
-			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_armor_down"])){
-				$statCalc.setArmorDown(defender);
-			}
-			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_move_down"])){
-				$statCalc.setMovementDown(defender);
-			}
-			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_attack_down"])){
-				$statCalc.setAttackDown(defender);
-			}
-			if($statCalc.applyStatModsToValue(attacker, 0, ["inflict_range_down"])){
-				$statCalc.setRangeDown(defender);
-			}
-			var SPReduction = $statCalc.applyStatModsToValue(attacker, 0, ["inflict_SP_down"]);
-			$statCalc.applySPCost(defender, SPReduction);
-			
-			var willReduction = $statCalc.applyStatModsToValue(attacker, 0, ["inflict_will_down"]);
-			$statCalc.modifyWill(defender, willReduction * -1);
 		}
 		$gameTemp.clearMoveTable();
 		if($gameTemp.mapAttackOccurred){
@@ -13261,7 +13264,7 @@ SceneManager.reloadCharacters = function(startEvent){
 					$statCalc.modifyWill(battleEffect.ref, defenderPersonalityInfo.damage);
 					$statCalc.modifyWill(battleEffect.ref, $statCalc.applyStatModsToValue(battleEffect.ref, 0, ["damage_will"]));
 					if(battleEffect.attackedBy){
-						applyStatusConditions(battleEffect.attackedBy.ref, battleEffect.ref);
+						applyStatusConditions(battleEffect.attackedBy.ref, battleEffect.ref, battleEffect.hasFury);
 					}					
 				}
 				if(battleEffect.type == "initiator"){
@@ -13336,7 +13339,7 @@ SceneManager.reloadCharacters = function(startEvent){
 						$statCalc.modifyWill(battleEffect.attacked.ref, defenderPersonalityInfo.damage || 0);
 						$statCalc.modifyWill(battleEffect.attacked.ref, $statCalc.applyStatModsToValue(battleEffect.attacked.ref, 0, ["damage_will"]));						
 						
-						applyStatusConditions(battleEffect.ref, battleEffect.attacked.ref);
+						applyStatusConditions(battleEffect.ref, battleEffect.attacked.ref, battleEffect.hasFury);
 					} else {
 						
 						$statCalc.modifyWill(battleEffect.attacked.ref, defenderPersonalityInfo.evade || 0)

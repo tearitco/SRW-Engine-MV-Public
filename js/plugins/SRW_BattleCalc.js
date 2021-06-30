@@ -1050,6 +1050,10 @@ BattleCalc.prototype.generateBattleResult = function(){
 		} else {
 			$statCalc.clearSpirit(this._attacker.actor, "valor");
 		}			
+		if(activeAttackerSpirits.fury){
+			aCache.hasFury = true;
+		}
+		
 		$statCalc.clearSpirit(this._attacker.actor, "fury");
 		$statCalc.clearSpirit(this._attacker.actor, "mercy");
 		$statCalc.clearSpirit(this._attacker.actor, "snipe");				

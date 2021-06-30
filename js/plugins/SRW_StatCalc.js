@@ -111,31 +111,33 @@ StatCalc.prototype.canStandOnTile = function(actor, position){
 StatCalc.prototype.updateFlightState = function(actor){
 	if(this.isActorSRWInitialized(actor)){
 		var event = this.getReferenceEvent(actor);
-		var position = {x: event.posX(), y: event.posY()};
-		if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
-			if(this.canFly(actor)){
-				if(!this.isFlying(actor)){
-					this.setFlying(actor, true);
+		if(event){
+			var position = {x: event.posX(), y: event.posY()};
+			if($gameMap.regionId(position.x, position.y) % 8 == 1){//air
+				if(this.canFly(actor)){
+					if(!this.isFlying(actor)){
+						this.setFlying(actor, true);
+					}
+				}		
+			}
+			if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
+				if(!this.canBeOnLand(actor)){
+					if(this.canFly(actor)){
+						if(!this.isFlying(actor)){
+							this.setFlying(actor, true);
+						}
+					} 
+				}
+			}
+			if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
+				if(!this.canBeOnWater(actor)){
+					if(this.canFly(actor)){
+						if(!this.isFlying(actor)){
+							this.setFlying(actor, true);
+						}
+					} 
 				}
 			}		
-		}
-		if($gameMap.regionId(position.x, position.y) % 8 == 2){//land
-			if(!this.canBeOnLand(actor)){
-				if(this.canFly(actor)){
-					if(!this.isFlying(actor)){
-						this.setFlying(actor, true);
-					}
-				} 
-			}
-		}
-		if($gameMap.regionId(position.x, position.y) % 8 == 3){//water
-			if(!this.canBeOnWater(actor)){
-				if(this.canFly(actor)){
-					if(!this.isFlying(actor)){
-						this.setFlying(actor, true);
-					}
-				} 
-			}
 		}		
 	} 	
 }
