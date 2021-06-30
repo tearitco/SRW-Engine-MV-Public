@@ -12654,7 +12654,7 @@ SceneManager.reloadCharacters = function(startEvent){
         }
         //自動アクターフェイズの処理
         if ($gameSystem.isBattlePhase() === 'auto_actor_phase') {
-            if ($gameSystem.isSubBattlePhase() === 'auto_actor_command') {
+            if ($gameSystem.isSubBattlePhase() === 'auto_actor_command' || $gameSystem.isSubBattlePhase() === 'normal') {
                 this.srpgInvokeAutoActorCommand();
                 return;
             } else if ($gameSystem.isSubBattlePhase() === 'auto_actor_move') {
