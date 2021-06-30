@@ -1087,6 +1087,7 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			levels.accuracy = $gameSystem.enemyUpgradeLevel;
 			levels.weapons = $gameSystem.enemyUpgradeLevel;			
 		}		
+		this.invalidateAbilityCache();
 		this.calculateSRWMechStats(actor.SRWStats.mech, preserveVolatile, actor);	
 		if(preserveVolatile){
 			if(previousStats){
