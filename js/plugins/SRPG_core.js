@@ -7104,7 +7104,7 @@ Game_Interpreter.prototype.executeCommand = function() {
     var command = this.currentCommand();
 	
     if (command) {
-		Input.update();
+		//Input.update();
 		if(!this.isHaltingCommand(command) && Input.isPressed("ok") && Input.isPressed("menu")){
 			if(!this.isTextSkipMode){
 				$gameScreen.startFadeOut(this.fadeSpeed());
@@ -7158,10 +7158,23 @@ Game_Interpreter.prototype.command222 = function() {
     return false;
 };
 
+//Wait
 Game_Interpreter.prototype.command230 = function() {
 	if(!this.isTextSkipMode){
 		this.wait(this._params[0]);
 	}
+    return true;
+};
+
+// Show Animation
+Game_Interpreter.prototype.command212 = function() {
+    this._character = this.character(this._params[0]);
+    if (this._character && !this.isTextSkipMode) {
+        this._character.requestAnimation(this._params[1]);
+        if (this._params[2]) {
+            this.setWaitMode('animation');
+        }
+    }
     return true;
 };
 
