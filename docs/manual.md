@@ -1334,6 +1334,7 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 
 	Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
 
+
 * splitEvent event\_id 
 
 	Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
@@ -1528,6 +1529,10 @@ Also note that only one reticle can be shown at a time.
 * clearAdjacentToActor actor\_id include\_diagonal
 
 	Move any unit that is currently adjacent to the specified actor to a free space. Spaces that make it look like the unit was pushed away are preferred.	
+	
+* stopSkipping
+
+	A command that ensures auto skipping stops. Normally not needed as important commands will stop auto skipping by themselves.	
 
 ## External Plugin commands	
 

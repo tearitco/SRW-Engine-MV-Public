@@ -1143,7 +1143,9 @@ var $battleSceneManager = new BattleSceneManager();
 				clearAdjacentToTile({x: event.posX(), y:  event.posY()}, args[1] * 1);
 			}			
 		}
-		
+		if (command === 'stopSkipping') {
+			//exists purely to manually ensure A+Start skipping stops at the point the command is called.
+		}
     };		
 //====================================================================
 // ●Game_Temp
@@ -6076,6 +6078,65 @@ var $battleSceneManager = new BattleSceneManager();
 //====================================================================
 // イベントＩＤをもとに、ユニット間の距離をとる
 
+Game_Interpreter.prototype.initialize = function(depth) {
+    this._depth = depth || 0;
+    this.checkOverflow();
+    this.clear();
+    this._branch = {};
+    this._params = [];
+    this._indent = 0;
+    this._frameCount = 0;
+    this._freezeChecker = 0;
+	
+	this._lastFadeState = -1;
+	this._haltingCommands = {
+		
+	};
+};
+
+Game_Interpreter.prototype.isHaltingCommand = function(command) {
+	if(command.code == 355){ // script call
+		//loose checking for halting custom commands 
+		var haltingScriptCommands = [
+			"showStageConditions",
+			"showEnemyPhaseText",
+			"awardSRPoint",
+			"showMapAttackText",
+			"destroyEvent",
+			"destroyEvents",
+			"applyActorSpirits",
+			"applyEventSpirits",
+			"processEnemyAppearQueue",
+			"processUnitAppearQueue",
+			"processDisappearQueue",
+			"manualDeploy",
+			"manualShipDeploy",
+			"playBattleScene",			
+		];
+		
+		var hasHalting = false;
+		haltingScriptCommands.forEach(function(entry){
+			var re = new RegExp(".*"+entry+".*","g");
+			if(command.parameters[0].match(re)){
+				hasHalting = true;
+			}
+		});
+		return hasHalting;
+	}
+	
+	if(command.code == 356){ // plugin command
+		var haltingPluginCommands = {
+			"stopSkipping": true,
+			"Intermission": true
+		}
+		var args = command.parameters[0].split(" ");
+		var entry = args.shift();
+		return !!haltingPluginCommands[entry];
+	}
+	
+	return !!this._haltingCommands[command.code];
+}
+
 // Script
 Game_Interpreter.prototype.command355 = function() {
     var script = this.currentCommand().parameters[0] + '\n';
@@ -7026,6 +7087,126 @@ Game_Interpreter.prototype.isEventInBattle = function(eventId) {
 	}
 	return result;
 }
+
+Game_Interpreter.prototype.applyFadeState = function() {
+	if(this.isTextSkipMode){
+		if(this._lastFadeState == 0){
+			$gameScreen.startFadeOut(this.fadeSpeed());
+			this.wait(this.fadeSpeed());
+		} else {
+			$gameScreen.startFadeIn(this.fadeSpeed());
+			this.wait(this.fadeSpeed());
+		}
+	}
+}
+
+Game_Interpreter.prototype.executeCommand = function() {
+    var command = this.currentCommand();
+	
+    if (command) {
+		Input.update();
+		if(!this.isHaltingCommand(command) && Input.isPressed("ok") && Input.isPressed("menu")){
+			if(!this.isTextSkipMode){
+				$gameScreen.startFadeOut(this.fadeSpeed());
+			}
+			this.isTextSkipMode = true;		
+		}
+		
+		if(this.isHaltingCommand(command)){
+			this.applyFadeState();
+			this.isTextSkipMode = false;						
+		}
+        this._params = command.parameters;
+        this._indent = command.indent;
+        var methodName = 'command' + command.code;
+        if (typeof this[methodName] === 'function') {
+            if (!this[methodName]()) {
+                return false;
+            }
+        }
+        this._index++;
+    } else {
+		this.applyFadeState();
+        this.terminate();
+    }
+    return true;
+};
+
+// Fadeout Screen
+Game_Interpreter.prototype.command221 = function() {
+    if (!$gameMessage.isBusy()) {
+		this._lastFadeState = 0;
+		if(!this.isTextSkipMode){
+			$gameScreen.startFadeOut(this.fadeSpeed());
+			this.wait(this.fadeSpeed());
+		}
+        this._index++;
+    }
+    return false;
+};
+
+// Fadein Screen
+Game_Interpreter.prototype.command222 = function() {
+    if (!$gameMessage.isBusy()) {
+		this._lastFadeState = 1;
+		if(!this.isTextSkipMode){
+			$gameScreen.startFadeIn(this.fadeSpeed());
+			this.wait(this.fadeSpeed());
+		}
+        this._index++;
+    }
+    return false;
+};
+
+Game_Interpreter.prototype.command230 = function() {
+	if(!this.isTextSkipMode){
+		this.wait(this._params[0]);
+	}
+    return true;
+};
+
+Game_Interpreter.prototype.command101 = function() {
+    if (!$gameMessage.isBusy()) {
+        $gameMessage.setFaceImage(this._params[0], this._params[1]);
+        $gameMessage.setBackground(this._params[2]);
+        $gameMessage.setPositionType(this._params[3]);
+        while (this.nextEventCode() === 401) {  // Text data
+            this._index++;
+            $gameMessage.add(this.currentCommand().parameters[0]);
+        }
+        switch (this.nextEventCode()) {
+        case 102:  // Show Choices
+            this._index++;
+            this.setupChoices(this.currentCommand().parameters);
+			
+			this.applyFadeState();
+			this.isTextSkipMode = false;
+            break;
+        case 103:  // Input Number
+            this._index++;
+            this.setupNumInput(this.currentCommand().parameters);
+			
+			this.applyFadeState();
+			this.isTextSkipMode = false;
+            break;
+        case 104:  // Select Item
+            this._index++;
+            this.setupItemChoice(this.currentCommand().parameters);
+			
+			this.applyFadeState();
+			this.isTextSkipMode = false;
+            break;
+		default: // Regular text 
+			if(this.isTextSkipMode){
+				$gameMessage.clear();
+			}			
+			break;
+        }
+        this._index++;
+        this.setWaitMode('message');
+    }
+    return false;
+};
 
 /**************************************
 Sample:
