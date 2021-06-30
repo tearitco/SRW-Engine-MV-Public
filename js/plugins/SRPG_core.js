@@ -16494,6 +16494,34 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		this.addCommand(APPSTRINGS.GENERAL.label_dash_pref, 'alwaysDash');
 		//this.addCommand(TextManager.commandRemember, 'commandRemember');
 	};
+	
+	
+	Window_Message.prototype.updateMessage = function() {
+		if (this._textState) {
+			while (!this.isEndOfText(this._textState)) {
+				if (this.needsNewPage(this._textState)) {
+					this.newPage(this._textState);
+				}
+								
+				this.updateShowFast();
+				this.processCharacter(this._textState);
+				if(!(Input.isRepeated('ok') && Input.isRepeated('pagedown'))){			
+					if (!this._showFast && !this._lineShowFast) {
+						break;
+					}
+					if (this.pause || this._waitCount > 0) {
+						break;
+					}
+				}
+			}
+			if (this.isEndOfText(this._textState)) {
+				this.onEndOfText();
+			}
+			return true;
+		} else {
+			return false;
+		}
+	};
 		
 })();
 
