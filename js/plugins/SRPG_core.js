@@ -16495,6 +16495,9 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		//this.addCommand(TextManager.commandRemember, 'commandRemember');
 	};
 	
+	Window_Message.prototype.isInstantText = function() {
+		return Input.isPressed('ok') && Input.isPressed('pagedown');
+	}
 	
 	Window_Message.prototype.updateMessage = function() {
 		if (this._textState) {
@@ -16505,14 +16508,14 @@ Scene_Gameover.prototype.gotoTitle = function() {
 								
 				this.updateShowFast();
 				this.processCharacter(this._textState);
-				if(!(Input.isRepeated('ok') && Input.isRepeated('pagedown'))){			
+				if(!this.isInstantText()){			
 					if (!this._showFast && !this._lineShowFast) {
 						break;
 					}
 					if (this.pause || this._waitCount > 0) {
 						break;
 					}
-				}
+				} 
 			}
 			if (this.isEndOfText(this._textState)) {
 				this.onEndOfText();
@@ -16522,6 +16525,35 @@ Scene_Gameover.prototype.gotoTitle = function() {
 			return false;
 		}
 	};
+	
+	Window_Message.prototype.updateInput = function() {		
+		if (this.isAnySubWindowActive()) {
+			return true;
+		}
+		if (this.pause) {
+			if (this.isTriggered() || this.isInstantText()) {
+				Input.update();
+				this.pause = false;
+				if (!this._textState) {
+					this.terminateMessage();
+				}
+			}
+			return true;
+		}
+		return false;
+	};
+	
+	Window_Message.prototype.startPause = function() {
+		var waitCount;
+		if(this.isInstantText()){
+			waitCount = 2;
+		} else {
+			waitCount = 10;
+		}
+		this.startWait(waitCount);
+		this.pause = true;
+	};
+
 		
 })();
 
