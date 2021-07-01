@@ -7110,11 +7110,13 @@ Game_Interpreter.prototype.executeCommand = function() {
 				$gameScreen.startFadeOut(this.fadeSpeed());
 			}
 			this.isTextSkipMode = true;		
+			$gameTemp.isSkippingEvents = true;	
 		}
 		
 		if(this.isHaltingCommand(command)){
 			this.applyFadeState();
-			this.isTextSkipMode = false;						
+			this.isTextSkipMode = false;		
+			$gameTemp.isSkippingEvents = false;	
 		}
         this._params = command.parameters;
         this._indent = command.indent;
@@ -7127,6 +7129,8 @@ Game_Interpreter.prototype.executeCommand = function() {
         this._index++;
     } else {
 		this.applyFadeState();
+		this.isTextSkipMode = false;		
+		$gameTemp.isSkippingEvents = false;	
         this.terminate();
     }
     return true;
@@ -7194,6 +7198,7 @@ Game_Interpreter.prototype.command101 = function() {
 			
 			this.applyFadeState();
 			this.isTextSkipMode = false;
+			$gameTemp.isSkippingEvents = false;	
             break;
         case 103:  // Input Number
             this._index++;
@@ -7201,6 +7206,7 @@ Game_Interpreter.prototype.command101 = function() {
 			
 			this.applyFadeState();
 			this.isTextSkipMode = false;
+			$gameTemp.isSkippingEvents = false;	
             break;
         case 104:  // Select Item
             this._index++;
@@ -7208,6 +7214,7 @@ Game_Interpreter.prototype.command101 = function() {
 			
 			this.applyFadeState();
 			this.isTextSkipMode = false;
+			$gameTemp.isSkippingEvents = false;	
             break;
 		default: // Regular text 
 			if(this.isTextSkipMode){
@@ -16747,7 +16754,19 @@ Scene_Gameover.prototype.gotoTitle = function() {
 		this.startWait(waitCount);
 		this.pause = true;
 	};
-
+	
+	//patch the audio manager to suppress sound effects while events are being skipped
+	AudioManager.playSe = function(se) {
+		if (se.name && !$gameTemp.isSkippingEvents) {
+			this._seBuffers = this._seBuffers.filter(function(audio) {
+				return audio.isPlaying();
+			});
+			var buffer = this.createBuffer('se', se.name);
+			this.updateSeParameters(buffer, se);
+			buffer.play(false);
+			this._seBuffers.push(buffer);
+		}
+	};
 		
 })();
 
