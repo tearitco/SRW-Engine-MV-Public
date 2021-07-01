@@ -8953,44 +8953,69 @@ Game_Interpreter.prototype.unitAddState = function(eventId, stateId) {
 
 	Sprite_Appear.prototype.initialize = function(character) {
 		Sprite_Base.prototype.initialize.call(this);		
-		this.bitmap =  ImageManager.loadAnimation('SRWAppear');
+		
 		this._character = character;
+		
+		
+		this._initialized = false;
+		
 		this.anchor.x = 0.5;
 		this.anchor.y = 0.6;
 		this._animationFrame = 0;
 		this.visible = false;
-		this._frameSize = 192;
+		
 		this._sheetHeight = 3;
-		this._sheetWidth = 5;
-		this._frames = 8;
+		
 		this._frameCounter = 0;
-		this._animationSpeed = 2;
+		
+		
 		this.setFrame(0 * this._frameSize, 0 * this._frameSize, this._frameSize, this._frameSize);
 	};
 	
 	Sprite_Appear.prototype.setCharacter = function(character){
 		this._character = character;
 	}
+	
+	Sprite_Appear.prototype.erase = function() {
+		this._initialized = false;
+		this._erased = true;
+		this.refresh();
+	};
 
 	Sprite_Appear.prototype.update = function() {
+		var eventId = this._character.eventId();
+		var battlerArray = $gameSystem.EventToUnit(eventId);
+		if(!this._initialized && battlerArray && battlerArray[1]){
+			this._initialized = true;
+			var animInfo = $statCalc.getSpawnAnimInfo(battlerArray[1]);
+			this.bitmap =  ImageManager.loadAnimation(animInfo.name);
+			this._frameSize = animInfo.frameSize;
+			this._sheetWidth = animInfo.sheetWidth;
+			this._frames = animInfo.frames;
+			this._animationSpeed = animInfo.speed;
+			this._appearFrame = animInfo.appearFrame;
+			this._se = animInfo.se;
+		}
+		
+		
 		if(this._animationFrame > this._frames){
 			this.visible = false;
 			this._character.isDoingAppearAnim = false;
 		} else {
-			if(this._animationFrame == 3){
+			if(this._animationFrame == this._appearFrame){
 				this._character.appear();
 				this._character.refreshImage();
 			}				
 			this.x = this._character.screenX();
 			this.y = this._character.screenY();
 			this.z = this._character.screenZ() + 1;
-			var eventId = this._character.eventId();
-			var battlerArray = $gameSystem.EventToUnit(eventId);
+			
+			
 			if(battlerArray && battlerArray[1]){
 				if (this._character.isDoingAppearAnim) {
 					if(this._animationFrame == 0){
 						var se = {};
-						se.name = 'SRWAppear';
+						se.name = this._se;
 						se.pan = 0;
 						se.pitch = 100;
 						se.volume = 60;
@@ -12233,7 +12258,13 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gamePlayer.locate(current.posX(), current.posY());
 					current.isDoingAppearAnim = true;
 					current.isPendingDeploy = false;
-					$gameTemp.unitAppearTimer = 15;
+					var battlerArray = $gameSystem.EventToUnit(current.eventId());
+					var wait = 15;
+					/*if(battlerArray && battlerArray[1]){
+						var animInfo = $statCalc.getSpawnAnimInfo(battlerArray[1]);
+						wait+=animInfo.frames;
+					}*/
+					$gameTemp.unitAppearTimer = wait;
 				}				
 			}
 		}

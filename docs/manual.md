@@ -549,7 +549,7 @@ A Mech can have up to 6 abilities, identified by a Mech Ability ID.
 
 \<mechItemSlots:2\><br>
 
-### Sprite info
+### Sprite info 
 
 \<srpgOverworld:Mech1,0\>The map sprite for the Mech: the name of the image in the img/characters folder and the index in the image. The index starts at 0 for the top left most sprite set and ends at 7 for the bottom right most set.<br>
 \<mechBasicBattleSprite:harold\> The name of the image in the img/basic_battle folder.<br>
@@ -566,7 +566,17 @@ Image files for the battle scene are stored in the img/SRWBattleScene directory 
 \<mechBattleSceneDeathAnim:1\> Specifies the id of a battle animation to be played when the mech is destroyed. If omitted the default death animation is used.
 \<mechBattleYOffset: 1\> If specified the main sprite for the unit will be offset by the given amount. The offset is specified in world units.
 
+### Spawn Animation
 
+The listed values are the defaults
+
+\<mechSpawnAnimName:SRWAppear\> The name of the sprite sheet found in img/animations<br>
+\<mechSpawnAnimFrameSize:192\> The width and height of the frames of the animation<br>
+\<mechSpawnAnimSheetWidth:5\> The width in frames of the sprite sheet<br>
+\<mechSpawnAnimFrames:8\> The number of animation frames to use from the sprite sheet<br>
+\<mechSpawnAnimSpeed:2\> The speed of the animation in frames spent for each frame of the animation<br>
+\<mechSpawnAnimAppearFrame:3\> The frame on which the unit that is being spawned will become visible<br>
+\<mechSpawnAnimSoundEffect:SRWAppear\> The soundeffect that plays when spawning the unit<br>
 
 # Attacks
 
@@ -1335,6 +1345,7 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 	Combine the event with the specified id. The unit for the event should be able to combine and the other members of the combination should be deployed for best results.
 
 
+
 * splitEvent event\_id 
 
 	Split the event with the specified id. The unit  for the event should be a combined unit and the members of the combination should have been deployed on the stage before for best results.
@@ -1630,6 +1641,7 @@ They can also be used as conditionals in IF statements.
 
 
 	Cancel the destruction animation and erasure of an actor that is about to be destroyed.<br>
+
 	To be used in the before_destruction event.
 	
 * this.cancelEnemyDestruction(enemy\_id) 

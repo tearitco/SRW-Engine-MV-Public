@@ -37,7 +37,15 @@ function StatCalc(){
 		"C": 0.8,
 		"D": 0.6
 	};
-	
+	this.defaultSpawnAnim = {
+		name: "SRWAppear",
+		frameSize: 192,
+		sheetWidth: 5,
+		frames: 8,
+		speed: 2,
+		appearFrame: 3,
+		se: "SRWAppear"
+	};
 }
 
 StatCalc.prototype.isActorSRWInitialized = function(actor){
@@ -1478,6 +1486,38 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 			}
 		}
 		
+		var spawnAnimInfo = JSON.parse(JSON.stringify(this.defaultSpawnAnim));
+		
+		if(mechProperties.mechSpawnAnimName){
+			spawnAnimInfo.name = mechProperties.mechSpawnAnimName;
+		}
+		
+		if(mechProperties.mechSpawnAnimFrameSize){
+			spawnAnimInfo.frameSize = mechProperties.mechSpawnAnimFrameSize * 1;
+		}
+		
+		if(mechProperties.mechSpawnAnimSheetWidth){
+			spawnAnimInfo.sheetWidth = mechProperties.mechSpawnAnimSheetWidth * 1;
+		}
+		
+		if(mechProperties.mechSpawnAnimFrames){
+			spawnAnimInfo.frames = mechProperties.mechSpawnAnimFrames * 1;
+		}
+		
+		if(mechProperties.mechSpawnAnimSpeed){
+			spawnAnimInfo.speed = mechProperties.mechSpawnAnimSpeed * 1;
+		}
+		
+		if(mechProperties.mechSpawnAnimAppearFrame){
+			spawnAnimInfo.appearFrame = mechProperties.mechSpawnAnimAppearFrame * 1;
+		}
+		
+		if(mechProperties.mechSpawnAnimSoundEffect){
+			spawnAnimInfo.se = mechProperties.mechSpawnAnimSoundEffect;
+		}
+		
+		result.spawnAnimInfo = spawnAnimInfo;
+		
 		var mechData = {
 			SRWStats: {
 				pilot: {
@@ -1493,6 +1533,14 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 		result.weapons = this.getMechWeapons(mechData, mechProperties, previousWeapons);
 	}
 	return result;
+}
+
+StatCalc.prototype.getSpawnAnimInfo = function(actor){
+	if(this.isActorSRWInitialized(actor) && actor.SRWStats.mech && actor.SRWStats.mech.spawnAnimInfo){
+		return actor.SRWStats.mech.spawnAnimInfo
+	} else {
+		return JSON.parse(JSON.stringify(this.defaultSpawnAnim));
+	}
 }
 
 StatCalc.prototype.getSubPilots = function(actor){
