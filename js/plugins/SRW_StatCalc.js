@@ -3100,7 +3100,7 @@ StatCalc.prototype.canFly = function(actor){
 		}
 		if(actor.isSubTwin){
 			var mainTwin = this.getMainTwin(actor);
-			if(!(mainTwin.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(mainTwin, 0, ["fly"]))){
+			if(mainTwin && !(mainTwin.SRWStats.mech.canFly * 1 || this.applyStatModsToValue(mainTwin, 0, ["fly"]))){
 				validTwin = false;
 			}
 		}
