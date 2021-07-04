@@ -5,270 +5,7 @@
 Extract the archive containing the sample project.<br>
 In the project directory navigate to js/plugins/config and copy the "default" directory into a new "active" directory.
 
-# Plugin Config
 
-The config for the plugins that make up SRW Engine MV lives in the js/plugins/config directory inside two folders: default and active. The default folder contains the default settings, while the active folder contains settings modified for your game if applicable. The file in the default folder is overwritten by the file in the active folder with the same name. When the engine is updated only the defaults will be changed and the files in the active folder will never be touched. So if you want to customize any of these files for your game always first copy them to the active folder and modify the version in the active folder. <br>
-
-## Engine.conf.js
-
-This config file allows configuration of engine level settings.
-
-### ENABLE\_TWIN\_SYSTEM
-Possible values: \[true|false\]
-
-If set to true units will have access to Twinning commands once their Will hits 110. Additionally it will possible to deploy twin from the deploy menu and some other menus will be changed to accommodate twins. Note that assigning twins through event scripting will still work even if this setting is disabled.
-
-### DISABLE\_ALLY\_TWINS
-Possible values: \[true|false\]
-
-If set to true allied units will not have access to twinning commands and the player can not deploy twins. Other changes to menus to accommodate twins will still be in effect.
-
-### USE\_STRICT\_TWIN\_SLOTS
-Possible values: \[true|false\]
-
-If set to true allied units will not be able to twin if they are restricted to the same twin slot by the \<pilotSubTwinOnly\> or  \<pilotMainTwinOnly\> tag.
-
-### USE\_SRW\_SUPPORT\_ORDER
-Possible values: \[true|false\]
-
-If set to true support attacks will occur after the main unit has attacked, otherwise the support attacker will attack before the main unit.
-
-### DISABLE\_EVASION\_DECAY
-Possible values: \[true|false\]
-
-If set to true evasion decay will not be applied to any units.
-
-### USE\_TILE\_PASSAGE
-Possible values: \[true|false\]
-
-If set to true the 4-way passage settings of the tileset will be used to determine how a grounded unit can move around the map.
-
-### DISABLE\_FULL\_BATTLE\_SCENE
-Possible values: \[true|false\]
-
-If set to true the DEMO option will not be available in the before battle window and only the basic battle view will be used for battles.
-
-### BATTLE_SCENE
-Possible values: \[object\]
-
-Holds several sub-options that manage the full battle scene.
-
-*  SPRITE\_WORLD\_SIZE<br>
-	Possible values: \[number\]<br>
-	The size of unit sprites in the battle scene expressed in world units.
-* SPRITES\_FILTER\_MODE<br>	
-	Possible values: \[NEAREST|TRILINEAR\]<br>
-	The filtering mode of textures in the battle scene
-* DEFAULT\_ANIM<br>	
-	Possible values: \[object\]
-	* DESTROY<br>
-	Possible values: \[number\]<br>
-	The id of the default destroy animation
-* DEFAULT\_CAMERA\_POSITION<br>
-	Possible values: \[object\]
-	The starting position of the camera
-	* x
-	* y
-	* z
-	
-### MASTERY\_REWARDS
-Possible values: \[object\]<br>
-Defines the PP and funds gained when completing a SR point.	
-
-```  
-	MASTERY_REWARDS: {
-		PP: {AMOUNT: 5, SCOPE: "deployed"}, //scope is deployed, unlocked, or all
-		FUNDS: 10000
-	},
-```
-The scope parameter for PP determines which units gain PP:	
-
-* 	deployed: Only units that are currently on the map gain PP
-* 	unlocked: All units that are unlocked gain PP
-* 	all: All units gain PP
-
-### ABILITY\_SEARCH\_LIST
-Possible values: \[object\]<br>
-Defines for Spirits, Pilot Abilities and Mech Abilities which entries are searchable on the search menu. Entries are referred to by their id.
-
-```
-	ABILITY_SEARCH_LIST: {
-		SPIRIT: [4, 26, 28, 5, 14, 7, 30, 23, 1, 18, 3, 9, 34, 31, 13, 16, 12, 36, 35, 32, 20, 0, 21, 33, 27, 8, 29, 11, 17, 19, 6, 25, 37, 15, 24, 38, 22, 2],
-		PILOT: [41, 0, 19, 44, 16, 17, 23, 18, 20, 10, 7, 1, 3, 26, 25, 24, 2, 22, 13, 29, 39, 59, 4, 28, 27, 21, 40, 6, 14, 11, 12, 8, 15, 31, 33, 30, 32],
-		MECH: [25, 11, 27, 28, 0, 24, 6, 5, 4, 10, 9, 21, 3, 2, 1, 23, 26, 36, 7, 22, 8, 19]
-	},
-```	
-
-### KEEP\_ENEMY\_SPRITE\_ORIENTATION
-Possible values: \[true|false\]
-
-If true enemy sprites will not be mirrored on the map.
-
-### ENEMY\_TARGETING\_FORMULA
-Possible values: \[text\]<br>
-Default: "Math.min(hitrate + 0.01, 1) * (damage + (canDestroy * 5000))"<br>
-The formula used by enemy AI to score potential targets. A target with a higher score will be preferred. hitrate and damage are the projected hit rate and damage the unit will deal to a target. canDestroy is 1 if the unit can destroy the target if it hits, otherwise 0.
-
-### DEBUG\_SAVING
-Possible values: \[true|false\]
-
-If true the save option on the pause menu during a stage will behave like the regular save function, rather than like a quick save.
-
-### SUPPORT\_ATTACK\_RATIO
-Possible values: \[0-1\]<br>
-Default: 0.8
-
-The damage reduction for support attacks.
-
-### ALLOW\_TURN\_END\_SUPPORT
-Possible values: \[true|false\]
-
-If true units will be able to support attack after having ended their turn.
-
-### VXT\_SP
-Possible values: \[true|false\]<br>
-
-If true units will deploy with only 50% of their max SP but will regenerate 5SP each turn by default.
-
-### COST\_TYPES
-Possible values: \[object\]<br>
-Defines the cost types for unit upgrades.
-
-```
-	COST_TYPES: {
-		NORMAL: {
-			0: [2000, 4000, 6000, 8000, 10000, 10000, 15000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000],
-			1: [2000, 3000, 5000, 5000, 5000, 10000, 10000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000]
-		},
-		WEAPON: {
-			0: [12000, 17000, 23000, 30000, 38000, 47000, 57000, 68000, 80000, 93000, 90000, 90000, 90000, 90000, 90000]
-		}
-	},
-```
-
-NORMAL applies to regular mech stats(HP, EN, Armor, Mobility, Accuracy) and WEAPON applies to weapons. The id is used for the following tags:   
-\<mechUpgradeWeaponCost\><br>
-\<mechUpgradeHPCost\><br>
-\<mechUpgradeENCost\><br>
-\<mechUpgradeArmorCost\><br>
-\<mechUpgradeMobilityCost\><br>
-\<mechUpgradeAccuracyCost\><br>
-
-### WEAPON\_UPGRADE\_TYPES
-Possible values: \[object\]<br>
-
-Defines the upgrades by level when upgrading weapons.
-
-```
-	WEAPON_UPGRADE_TYPES: {
-		0: [100, 100, 100, 150, 150, 150, 200, 200, 200, 250, 200, 200, 200, 200, 200],
-		1: [100, 150, 150, 150, 150, 200, 200, 200, 200, 250, 200, 200, 200, 200, 200]		
-	},  
-```
-The id is used in the \<weaponUpgradeType\> tag
-
-### ACE\_REQUIREMENT
-Possible values: \[number\]<br>
-
-The number of kills a unit must have before they qualify as an Ace.
-
-### DEFAULT\_SP\_REGEN
-Possible values: \[number\]<br>
-
-The number of points of SP recovered at the start of a turn by default.
-
-### DEFAULT\_HP\_REGEN
-Possible values: \[percent\]<br>
-
-The default percent of max HP recovered at the start of each turn.
-
-### DEFAULT\_EN\_REGEN
-Possible values: \[percent\]<br>
-
-The default percent of max EN recovered at the start of each turn.
-
-### DODGE\_PATTERNS
-Possible values: \[object\]<br>
-Defines what animations should be used when performing special dodges in the basic and full battle scene.
-
-```
-	DODGE_PATTERNS: {
-		1: {basic_anim: "double_image", full_anim: 3, full_anim_return: 4, se: "SRWDoubleImage"},
-		2: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWParry"},
-		3: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWJamming"},
-		4: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWShootDown"},		
-	},
-```
-
-Each entry has the following properties:
-
-* basic\_anim: The name of the animation to apply in the basic battle scene.
-* full\_anim: The id of the battle animation to use when evading with this dodge pattern.
-* full\_anim\_return: The id of the battle animation to use when returning to idle after dodging with this pattern.
-* se: The naame of the sound effect that is played when evading with this pattern.
-
-### PURCHASABLE\_ABILITIES
-Possible values: \[object\]<br>
-The list of abilities that can be purchased by id. The order of this list is used for display in the pilot upgrade menu.
-
-### STAT\_GROWTH\_FORMULA
-Possible values: \[text\]<br>
-
-The formula used to grow stats when using a curve growth rate.(Ex.: \<pilotMeleeGrowth:300,0.8\>)<br>Min is the base stat value and max is the level 99 values for the stat. Rate is the rate specified.
-
-### EXP\_YIELD
-Possible values: \[object\]<br>
-Configures the exp gained when defeating opponents.
-
-```
-	EXP_YIELD: {
-		MIN: 10,
-		MAX: 50000, //500 EXP per level, this is 100 levels so basically unlimited,
-		LEVEL_SCALING_FORMULA: "defenderTotalYield * ((defenderLevel-attackerLevel) < 0 ? Math.pow((1/10), (Math.log10(attackerLevel-defenderLevel + 1))) : Math.log10(0.09*(defenderLevel-attackerLevel) + 1) * 20 + 1)"		
-	}
-```
-* MIN: The minimum gain possible.
-* MAX: The maximum gain possible.
-* LEVEL\_SCALING\_FORMULA: A formula that scales the exp gain depending on the level difference between the attacker and defender. It uses the following parameters:
-	- defenderTotalYield: The total of the base exp of the defeated unit and pilot.
-	- attackerLevel: The current level of the attacker
-	- defenderLevel: The current level of the defender
-	
-
-### SINGLE\_BATTLE\_SPRITE\_MODE
-Possible values: \[true|false\]<br>
-
-If true only the main sprite will be used in the battle scene. This prevents having to specify all the default sprites in project that only use one sprite per character.
-
-### ENABLE\_ATTRIBUTE\_SYSTEM
-Possible values: \[true|false\]<br>
-
-If true the attributes of the attacker and defender will be taken into consideration for damage calculation.
-
-### EFFECTIVENESS
-Possible values: \[object\]<br>
-Defines type match-ups for the primary and secondary mech attribute.
-
-
-## BattleSongs.conf.js
-
-```javascript
-$SRWConfig.battleSongs = {
-	actorSongMapping: {// maps an actor id to a song. A song is defined by the name of a .ogg file in the audio/bgm folder
-		1: "Battle1",
-		3: "Battle1"
-	},
-	enemySongMapping: {// maps an enemy id to a song. A song is defined by the name of a .ogg file in the audio/bgm folder
-		5: "SRW_Boss1"
-	},
-	actorSongPriority: {//sets the priority of an actor's song over other songs, 1 if not listed
-		1: 3
-	},
-	enemySongPriority: {//set the priority of an enemy's song over other songs, 0 if not listed
-		5: 2
-	}
-};
-```
 
 # Terrain
 
@@ -2049,6 +1786,351 @@ If unlockedOnly is set to true only units in unlocked slots will be deployed. Un
 
 	Immediately run the specified event, the rest of the current event will be executed after the sub event finishes. <br>function\_id is **not** an event id.<br> Events that are run as sub events should have metadata tags like: \<function:test\><br>
 function\_id refers to the value of the function tag.<br>
+
+# Plugin Config
+
+The config for the plugins that make up SRW Engine MV lives in the js/plugins/config directory inside two folders: default and active. The default folder contains the default settings, while the active folder contains settings modified for your game if applicable. The file in the default folder is overwritten by the file in the active folder with the same name. When the engine is updated only the defaults will be changed and the files in the active folder will never be touched. So if you want to customize any of these files for your game always first copy them to the active folder and modify the version in the active folder. <br>
+
+Some config files were already covered in previous sections where appropriate and will not be mentioned again in this section.
+
+
+## Engine.conf.js
+
+This config file allows configuration of engine level settings.
+
+### ENABLE\_TWIN\_SYSTEM
+Possible values: \[true|false\]
+
+If set to true units will have access to Twinning commands once their Will hits 110. Additionally it will possible to deploy twin from the deploy menu and some other menus will be changed to accommodate twins. Note that assigning twins through event scripting will still work even if this setting is disabled.
+
+### DISABLE\_ALLY\_TWINS
+Possible values: \[true|false\]
+
+If set to true allied units will not have access to twinning commands and the player can not deploy twins. Other changes to menus to accommodate twins will still be in effect.
+
+### USE\_STRICT\_TWIN\_SLOTS
+Possible values: \[true|false\]
+
+If set to true allied units will not be able to twin if they are restricted to the same twin slot by the \<pilotSubTwinOnly\> or  \<pilotMainTwinOnly\> tag.
+
+### USE\_SRW\_SUPPORT\_ORDER
+Possible values: \[true|false\]
+
+If set to true support attacks will occur after the main unit has attacked, otherwise the support attacker will attack before the main unit.
+
+### DISABLE\_EVASION\_DECAY
+Possible values: \[true|false\]
+
+If set to true evasion decay will not be applied to any units.
+
+### USE\_TILE\_PASSAGE
+Possible values: \[true|false\]
+
+If set to true the 4-way passage settings of the tileset will be used to determine how a grounded unit can move around the map.
+
+### DISABLE\_FULL\_BATTLE\_SCENE
+Possible values: \[true|false\]
+
+If set to true the DEMO option will not be available in the before battle window and only the basic battle view will be used for battles.
+
+### BATTLE_SCENE
+Possible values: \[object\]
+
+Holds several sub-options that manage the full battle scene.
+
+*  SPRITE\_WORLD\_SIZE<br>
+	Possible values: \[number\]<br>
+	The size of unit sprites in the battle scene expressed in world units.
+* SPRITES\_FILTER\_MODE<br>	
+	Possible values: \[NEAREST|TRILINEAR\]<br>
+	The filtering mode of textures in the battle scene
+* DEFAULT\_ANIM<br>	
+	Possible values: \[object\]
+	* DESTROY<br>
+	Possible values: \[number\]<br>
+	The id of the default destroy animation
+* DEFAULT\_CAMERA\_POSITION<br>
+	Possible values: \[object\]
+	The starting position of the camera
+	* x
+	* y
+	* z
+	
+### MASTERY\_REWARDS
+Possible values: \[object\]<br>
+Defines the PP and funds gained when completing a SR point.	
+
+```  
+	MASTERY_REWARDS: {
+		PP: {AMOUNT: 5, SCOPE: "deployed"}, //scope is deployed, unlocked, or all
+		FUNDS: 10000
+	},
+```
+The scope parameter for PP determines which units gain PP:	
+
+* 	deployed: Only units that are currently on the map gain PP
+* 	unlocked: All units that are unlocked gain PP
+* 	all: All units gain PP
+
+### ABILITY\_SEARCH\_LIST
+Possible values: \[object\]<br>
+Defines for Spirits, Pilot Abilities and Mech Abilities which entries are searchable on the search menu. Entries are referred to by their id.
+
+```
+	ABILITY_SEARCH_LIST: {
+		SPIRIT: [4, 26, 28, 5, 14, 7, 30, 23, 1, 18, 3, 9, 34, 31, 13, 16, 12, 36, 35, 32, 20, 0, 21, 33, 27, 8, 29, 11, 17, 19, 6, 25, 37, 15, 24, 38, 22, 2],
+		PILOT: [41, 0, 19, 44, 16, 17, 23, 18, 20, 10, 7, 1, 3, 26, 25, 24, 2, 22, 13, 29, 39, 59, 4, 28, 27, 21, 40, 6, 14, 11, 12, 8, 15, 31, 33, 30, 32],
+		MECH: [25, 11, 27, 28, 0, 24, 6, 5, 4, 10, 9, 21, 3, 2, 1, 23, 26, 36, 7, 22, 8, 19]
+	},
+```	
+
+### KEEP\_ENEMY\_SPRITE\_ORIENTATION
+Possible values: \[true|false\]
+
+If true enemy sprites will not be mirrored on the map.
+
+### ENEMY\_TARGETING\_FORMULA
+Possible values: \[text\]<br>
+Default: "Math.min(hitrate + 0.01, 1) * (damage + (canDestroy * 5000))"<br>
+The formula used by enemy AI to score potential targets. A target with a higher score will be preferred. hitrate and damage are the projected hit rate and damage the unit will deal to a target. canDestroy is 1 if the unit can destroy the target if it hits, otherwise 0.
+
+### DEBUG\_SAVING
+Possible values: \[true|false\]
+
+If true the save option on the pause menu during a stage will behave like the regular save function, rather than like a quick save.
+
+### SUPPORT\_ATTACK\_RATIO
+Possible values: \[0-1\]<br>
+Default: 0.8
+
+The damage reduction for support attacks.
+
+### ALLOW\_TURN\_END\_SUPPORT
+Possible values: \[true|false\]
+
+If true units will be able to support attack after having ended their turn.
+
+### VXT\_SP
+Possible values: \[true|false\]<br>
+
+If true units will deploy with only 50% of their max SP but will regenerate 5SP each turn by default.
+
+### COST\_TYPES
+Possible values: \[object\]<br>
+Defines the cost types for unit upgrades.
+
+```
+	COST_TYPES: {
+		NORMAL: {
+			0: [2000, 4000, 6000, 8000, 10000, 10000, 15000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000],
+			1: [2000, 3000, 5000, 5000, 5000, 10000, 10000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000]
+		},
+		WEAPON: {
+			0: [12000, 17000, 23000, 30000, 38000, 47000, 57000, 68000, 80000, 93000, 90000, 90000, 90000, 90000, 90000]
+		}
+	},
+```
+
+NORMAL applies to regular mech stats(HP, EN, Armor, Mobility, Accuracy) and WEAPON applies to weapons. The id is used for the following tags:   
+\<mechUpgradeWeaponCost\><br>
+\<mechUpgradeHPCost\><br>
+\<mechUpgradeENCost\><br>
+\<mechUpgradeArmorCost\><br>
+\<mechUpgradeMobilityCost\><br>
+\<mechUpgradeAccuracyCost\><br>
+
+### WEAPON\_UPGRADE\_TYPES
+Possible values: \[object\]<br>
+
+Defines the upgrades by level when upgrading weapons.
+
+```
+	WEAPON_UPGRADE_TYPES: {
+		0: [100, 100, 100, 150, 150, 150, 200, 200, 200, 250, 200, 200, 200, 200, 200],
+		1: [100, 150, 150, 150, 150, 200, 200, 200, 200, 250, 200, 200, 200, 200, 200]		
+	},  
+```
+The id is used in the \<weaponUpgradeType\> tag
+
+### ACE\_REQUIREMENT
+Possible values: \[number\]<br>
+
+The number of kills a unit must have before they qualify as an Ace.
+
+### DEFAULT\_SP\_REGEN
+Possible values: \[number\]<br>
+
+The number of points of SP recovered at the start of a turn by default.
+
+### DEFAULT\_HP\_REGEN
+Possible values: \[percent\]<br>
+
+The default percent of max HP recovered at the start of each turn.
+
+### DEFAULT\_EN\_REGEN
+Possible values: \[percent\]<br>
+
+The default percent of max EN recovered at the start of each turn.
+
+### DODGE\_PATTERNS
+Possible values: \[object\]<br>
+Defines what animations should be used when performing special dodges in the basic and full battle scene.
+
+```
+	DODGE_PATTERNS: {
+		1: {basic_anim: "double_image", full_anim: 3, full_anim_return: 4, se: "SRWDoubleImage"},
+		2: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWParry"},
+		3: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWJamming"},
+		4: {basic_anim: "no_damage", full_anim: null, full_anim_return: null, se: "SRWShootDown"},		
+	},
+```
+
+Each entry has the following properties:
+
+* basic\_anim: The name of the animation to apply in the basic battle scene.
+* full\_anim: The id of the battle animation to use when evading with this dodge pattern.
+* full\_anim\_return: The id of the battle animation to use when returning to idle after dodging with this pattern.
+* se: The naame of the sound effect that is played when evading with this pattern.
+
+### PURCHASABLE\_ABILITIES
+Possible values: \[object\]<br>
+The list of abilities that can be purchased by id. The order of this list is used for display in the pilot upgrade menu.
+
+### STAT\_GROWTH\_FORMULA
+Possible values: \[text\]<br>
+
+The formula used to grow stats when using a curve growth rate.(Ex.: \<pilotMeleeGrowth:300,0.8\>)<br>Min is the base stat value and max is the level 99 values for the stat. Rate is the rate specified.
+
+### EXP\_YIELD
+Possible values: \[object\]<br>
+Configures the exp gained when defeating opponents.
+
+```
+	EXP_YIELD: {
+		MIN: 10,
+		MAX: 50000, //500 EXP per level, this is 100 levels so basically unlimited,
+		LEVEL_SCALING_FORMULA: "defenderTotalYield * ((defenderLevel-attackerLevel) < 0 ? Math.pow((1/10), (Math.log10(attackerLevel-defenderLevel + 1))) : Math.log10(0.09*(defenderLevel-attackerLevel) + 1) * 20 + 1)"		
+	}
+```
+* MIN: The minimum gain possible.
+* MAX: The maximum gain possible.
+* LEVEL\_SCALING\_FORMULA: A formula that scales the exp gain depending on the level difference between the attacker and defender. It uses the following parameters:
+	- defenderTotalYield: The total of the base exp of the defeated unit and pilot.
+	- attackerLevel: The current level of the attacker
+	- defenderLevel: The current level of the defender
+	
+
+### SINGLE\_BATTLE\_SPRITE\_MODE
+Possible values: \[true|false\]<br>
+
+If true only the main sprite will be used in the battle scene. This prevents having to specify all the default sprites in project that only use one sprite per character.
+
+### ENABLE\_ATTRIBUTE\_SYSTEM
+Possible values: \[true|false\]<br>
+
+If true the attributes of the attacker and defender will be taken into consideration for damage calculation.
+
+### EFFECTIVENESS
+Possible values: \[object\]<br>
+Defines type match-ups for the primary and secondary mech attribute.
+
+## Appstrings.conf.js
+
+The localization file for the engine. This file defines in multiple subsections the strings that are used for display in the engine. This file can be updated to translate the engine to a new language or to change certain terms to ones more fitting to the game in question. 
+
+## BattleSongs.conf.js
+
+```javascript
+$SRWConfig.battleSongs = {
+	actorSongMapping: {// maps an actor id to a song. A song is defined by the name of a .ogg file in the audio/bgm folder
+		1: "Battle1",
+		3: "Battle1"
+	},
+	enemySongMapping: {// maps an enemy id to a song. A song is defined by the name of a .ogg file in the audio/bgm folder
+		5: "SRW_Boss1"
+	},
+	actorSongPriority: {//sets the priority of an actor's song over other songs, 1 if not listed
+		1: 3
+	},
+	enemySongPriority: {//set the priority of an enemy's song over other songs, 0 if not listed
+		5: 2
+	}
+};
+```
+
+## StageInfo.conf.js
+
+Determines how a map will be displayed on the previous map section of the intermission.
+
+```
+$SRWConfig.stageInfo = {
+	1: { //the id of the map
+		name: "Escape", //the name shown for the map
+		displayId: 1 //the stage number shown for the map
+	},
+	2: {
+		name: "Reunion",
+		displayId: 2
+	}
+}
+```
+
+## Input.conf.js
+
+The mappings between key and button codes to internal function ids. 
+
+```
+Input.keyMapper = {
+	8: 'select', //backspace
+	9: 'tab',       // tab
+	13: 'menu',       // enter
+	16: 'shift',    // shift
+	17: 'control',  // control
+	18: 'control',  // alt
+	27: 'escape',   // escape
+	32: 'ok',       // space
+	33: 'pageup',   // pageup
+	34: 'pagedown', // pagedown
+	37: 'left',     // left arrow
+	38: 'up',       // up arrow
+	39: 'right',    // right arrow
+	40: 'down',     // down arrow
+	45: 'escape',   // insert
+	81: 'pageup',   // Q
+	87: 'pagedown', // W
+	88: 'escape',   // X
+	90: 'ok',       // Z
+	96: 'escape',   // numpad 0
+	98: 'down',     // numpad 2
+	100: 'left',    // numpad 4
+	102: 'right',   // numpad 6
+	104: 'up',      // numpad 8
+	120: 'debug',    // F9
+	36: "left_trigger", //home
+	35: "right_trigger", //end
+	45: "L3"
+};
+
+Input.gamepadMapper = {
+	0: 'ok',        // A
+	1: 'cancel',    // B
+	2: 'shift',     // X
+	3: 'menu',      // Y
+	4: 'pageup',    // LB
+	5: 'pagedown',  // RB
+	8: 'select',	// Select
+	12: 'up',       // D-pad up
+	13: 'down',     // D-pad down
+	14: 'left',     // D-pad left
+	15: 'right',    // D-pad right
+	
+	6: "left_trigger",
+	7: "right_trigger",
+	10: "L3"
+};	
+```
+
+The displayed number is separate from the map id because a game might have multiple maps that appear with the same stage number due to route splits. Additionally it makes the creation order of the maps less important.
 		
 ## Battle Text Editor
 
