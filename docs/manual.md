@@ -12,45 +12,11 @@ The config for the plugins that make up SRW Engine MV lives in the js/plugins/co
 ## Engine.conf.js
 
 This config file allows configuration of engine level settings.
-```javascript
-	var ENGINE_SETTINGS = {
-		ENABLE_TWIN_SYSTEM: true, //if true the twinning is enabled from the map menu. Twin deployment is also enabled.
-		USE_STRICT_TWIN_SLOTS: false, //if true two units that are locked to the same twin slot(main/sub) can not team up.
-		DISABLE_FULL_BATTLE_SCENE: false,// if true the option to show the battle DEMO will not be available
-		BATTLE_SCENE: {
-			SPRITES_FILTER_MODE: "NEAREST", // set the filtering mode for textures in the battle scene: NEAREST or TRILINEAR
-			DEFAULT_ANIM: {// defines default animations
-				DESTROY: 2 // the default destroy animation
-			}
-		},
-		KEEP_ENEMY_SPRITE_ORIENTATION: false, // if true enemy sprites on the map will not be flipped
-		ENEMY_TARGETING_FORMULA: "Math.min(hitrate + 0.01, 1) * damage", // the formula used by enemy AI to score potential targets. A target with a higher score will be preferred. hitrate and damage are the projected hit rate and damage the unit will deal to a target.
-		DEBUG_SAVING: false, // if enabled the save option on the pause menu during a stage will behave like the regular save function, rather than as a quick save.
-		CURSOR_SPEED: 4, // the default cursor speed
-		COMMANDER_AURA: {
-		1: [10,8],
-		2: [15,12,8],
-		3: [20,16,12,8],
-		4: [25,20,15,10,5]
-		},//defines the effects for each level of the Commander ability. Max range is 5.
-		SUPPORT_ATTACK_RATIO: 0.8,//defines how much damage a support attack does compared to a regular attack.
-		ALLOW_TURN_END_SUPPORT: false,//if true units that have ended their turn can still provide support attacks.
-		VXT_SP: false,//if true pilots will start the state at half SP but will automatically regen 5SP at the start of each turn.
-		COST_TYPES: {
-			NORMAL: {
-				0: [2000, 4000, 6000, 8000, 10000, 10000, 15000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000],
-				1: [2000, 3000, 5000, 5000, 5000, 10000, 10000, 15000, 15000, 15000, 10000, 10000, 10000, 10000, 10000]
-			},
-			WEAPON: {
-				0: [12000, 17000, 23000, 30000, 38000, 47000, 57000, 68000, 80000, 93000, 90000, 90000, 90000, 90000, 90000]
-			}
-		},//defines the cost types for upgrading mechs and mech weapons. Cost types are assigned in the mech/class definition to each stat.
-		WEAPON_UPGRADE_TYPES: {
-			0: [100, 100, 100, 150, 150, 150, 200, 200, 200, 250, 200, 200, 200, 200, 200],
-			1: [100, 150, 150, 150, 150, 200, 200, 200, 200, 250, 200, 200, 200, 200, 200]		
-		}//defines types of power increase for weapons. These types are assigned to weapons using the weaponUpgradeType tag.
-	}
-```
+
+### ENABLE\_TWIN\_SYSTEM
+Possible values: \[true|false\]
+
+
 
 ## BattleSongs.conf.js
 
@@ -108,6 +74,8 @@ Example map:
 Note the use of region id 10 to create a separate area of the map that is still Land terrain but that can be highlighted separately from the other Land terrain.
 
 ## Terrain bonuses
+
+**!!It is generally easier to use the addRegionAttributes plugin command instead of modifying the tileset metadata!!**
 
 Any tile in a tileset can be given modifiers for evasion, defense, HP regen and EN regen for units that stand on tiles of that type.<br>
 
@@ -1429,6 +1397,18 @@ If a sub\_id is specified the specified actor will be deployed as the sub twin f
 * setRegionSkyBattleEnv region\_id env\_id
 
 	Set the sky battle environment for all tiles in the specified region to the specified environment id.
+
+* addRegionAttributes region\_id defense\_boost evasion\_boost hp\_regen en\_regen 
+
+	Register terrain attributes for a specific region. All buff values are provided as percentages. 
+	
+	Ex.: addRegionAttributes 2 5 10 15 20 : Set the terrain attributes for region 2 to 5 percent defense buff, 10 percent evasion buff, 15 percent HP recovered at the start of each turn and 20 percent EN recovered at the start of each turn.
+
+	The registered attributes will take priority over tileset attributes and will persist to the next stages. To clear them set all attributes to 0 or use the resetRegionAttributes command.
+	
+* resetRegionAttributes region\_id
+
+	Remove all terrain attributes registered with the addRegionAttributes command for the specified region. Tileset attributes will take effect again if the tiles for the specified terrain had any.
 
 * unlockMechWeapon mech\_id weapon\_id
 

@@ -510,6 +510,25 @@ var $battleSceneManager = new BattleSceneManager();
 			$gameSystem.regionSkyBattleEnv[args[0]] = args[1];
 		}
 		
+		if (command === 'resetRegionAttributes') {			
+			if(!$gameSystem.regionAttributes){
+				$gameSystem.regionAttributes = {};
+			}	
+			delete $gameSystem.regionAttributes[args[0] * 1];
+		}
+		
+		if (command === 'addRegionAttributes') {
+			if(!$gameSystem.regionAttributes){
+				$gameSystem.regionAttributes = {};
+			}
+			$gameSystem.regionAttributes[args[0] * 1] = {
+				defense: args[1] * 1,
+				evasion: args[2] * 1,
+				hp_regen: args[3] * 1, 
+				en_regen: args[4] * 1
+			};
+		}
+		
 		if (command === 'addMapHighlight') {
 			if(!$gameSystem.highlightedTiles){
 				$gameSystem.highlightedTiles = [];
@@ -5800,9 +5819,15 @@ var $battleSceneManager = new BattleSceneManager();
 		}	
 		var followMove = !isActor || $gameTemp.followMove;
 		if(battlerArray && battlerArray[1]){
-			$statCalc.setCurrentTerrainFromRegionIndex(battlerArray[1], $gameMap.regionId(this._x, this._y));
+			var regionId = $gameMap.regionId(this._x, this._y);
+			$statCalc.setCurrentTerrainFromRegionIndex(battlerArray[1], regionId);
 			$gameMap.initSRWTileProperties();
-			$statCalc.setCurrentTerrainModsFromTilePropertyString(battlerArray[1], $gameMap.getTileProperties({x: this._x, y: this._y}));
+			if($gameSystem.regionAttributes && $gameSystem.regionAttributes[regionId]){
+				var def = $gameSystem.regionAttributes[regionId];
+				$statCalc.setCurrentTerrainModsFromTilePropertyString(battlerArray[1], def.defense+","+def.evasion+","+def.hp_regen+","+def.en_regen+",");
+			} else {
+				$statCalc.setCurrentTerrainModsFromTilePropertyString(battlerArray[1], $gameMap.getTileProperties({x: this._x, y: this._y}));
+			}			
 		}		
         if ($gameSystem.isSRPGMode() == true && this._srpgForceRoute.length > 0) {
             if (!this.isMoving()) {
@@ -12855,8 +12880,14 @@ SceneManager.reloadCharacters = function(startEvent){
 					$gameSystem.setSubBattlePhase('pause_menu');
 				}*/
 			}		
-		
-			var terrainDetails = $gameMap.getTilePropertiesAsObject({x: currentPosition.x, y: currentPosition.y});		
+			var regionId = $gameMap.regionId(currentPosition.x, currentPosition.y);
+			var terrainDetails;
+			if($gameSystem.regionAttributes && $gameSystem.regionAttributes[regionId]){
+				terrainDetails = $gameSystem.regionAttributes[regionId];		
+			} else {
+				terrainDetails = $gameMap.getTilePropertiesAsObject({x: currentPosition.x, y: currentPosition.y});	
+			}
+			
 			if(terrainDetails){
 				$gameTemp.terrainDetails = terrainDetails;
 				if(!this._terrainDetailsWindow.visible || previousPosition.x != currentPosition.x || previousPosition.y != currentPosition.y){
