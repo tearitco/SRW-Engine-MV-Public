@@ -83,7 +83,7 @@ APPSTRINGS.MAPMENU = {
 	cmd_save: "Quick Save",
 	cmd_game_end: "Exit",
 	cmd_swap: "Swap",
-	cmd_separate: "Separate",
+	cmd_separate: "Disband",
 	cmd_join: "Twin",
 	label_funds: "Funds",
 	label_turn: "Turn",

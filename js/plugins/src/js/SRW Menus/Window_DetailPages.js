@@ -49,7 +49,8 @@ Window_DetailPages.prototype.getCurrentSelection = function(){
 		var subPilots = $statCalc.getSubPilots(unit.actor);
 		var subPilotId = subPilots[this._subPilotIdx - 1];
 		if(subPilotId != null){
-			unit = {actor: $gameActors.actor(subPilotId), mech: unit.actor.SRWStats.mech};
+			var actor = $gameActors.actor(subPilotId);
+			unit = {actor: actor, mech: actor.SRWStats.mech};
 		}
 	}
 	return unit;

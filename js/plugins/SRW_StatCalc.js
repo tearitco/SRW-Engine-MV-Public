@@ -972,7 +972,30 @@ StatCalc.prototype.resetSpiritsAndEffects = function(actor){
 	}
 }
 
-StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolatile){
+StatCalc.prototype.reloadSRWStats = function(actor, lockAbilityCache){
+	if(lockAbilityCache){
+		this.lockAbilityCache();
+	}
+	if(actor.SRWInitialized){
+		var currentSP = actor.SRWStats.pilot.stats.calculated.currentSP;
+		var currentHP = actor.SRWStats.mech.stats.calculated.currentHP;
+		var currentEN = actor.SRWStats.mech.stats.calculated.currentEN;
+		var activeSpirits = this.getActiveSpirits(actor);
+		this.initSRWStats(actor, null, null, false, true);
+		actor.SRWStats.pilot.stats.calculated.currentSP = currentSP;
+		actor.SRWStats.pilot.activeSpirits = activeSpirits;
+		
+		actor.SRWStats.mech.stats.calculated.currentHP = currentHP;
+		actor.SRWStats.mech.stats.calculated.currentEN = currentEN;
+	} else {
+		this.initSRWStats(actor);
+	}	
+	if(lockAbilityCache){
+		this.unlockAbilityCache();
+	}
+}
+
+StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolatile, isReload){
 	var _this = this;
 	if(!level){
 		level = 1;
@@ -1158,7 +1181,11 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 				actor.isSubPilot = true;
 				actor.subPilotSlot = ctr;
 				actor.mainPilot = mainPilot;
-				_this.initSRWStats(actor, 1, [], preserveVolatile);
+				if(isReload){
+					_this.reloadSRWStats(actor);
+				} else {
+					_this.initSRWStats(actor, 1, [], preserveVolatile);
+				}				
 			}			
 		});	
 	}		
@@ -1172,8 +1199,12 @@ StatCalc.prototype.initSRWStats = function(actor, level, itemIds, preserveVolati
 			//_this.initSRWStats(subTwinActor, 1, [], preserveVolatile);
 			//subTwinActor.mainTwin = actor;			
 			actor.subTwin = subTwinActor;
-			this.invalidateAbilityCache();
-			_this.initSRWStats(subTwinActor, 1, [], preserveVolatile);
+			this.invalidateAbilityCache();			
+			if(isReload){
+				_this.reloadSRWStats(subTwinActor);
+			} else {
+				_this.initSRWStats(subTwinActor, 1, [], preserveVolatile);
+			}	
 		}		
 	}
 }
@@ -1653,7 +1684,13 @@ StatCalc.prototype.separate = function(actor){
 				event.refreshImage();
 				twin.initImages(twin.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 				twin.event.refreshImage();
-			}					
+			}			
+
+			//this invalidation and reload ensures that the spawned unit has its stats calculated with abilities taken into account
+			this.invalidateAbilityCache();
+			this.reloadSRWStats(actor, true);
+			this.reloadSRWStats(twin, true);
+				
 				//
 			this.invalidateAbilityCache();		
 		}	
@@ -1700,6 +1737,11 @@ StatCalc.prototype.twin = function(actor, otherActor){
 				this.setFlying(actor, false);
 				this.setFlying(otherActor, false);
 			}
+			
+			//this invalidation and reload ensures that the spawned unit has its stats calculated with abilities taken into account
+			this.invalidateAbilityCache();
+			this.reloadSRWStats(actor, true);
+			
 			this.invalidateAbilityCache();
 		}		
 	}
@@ -1896,14 +1938,8 @@ StatCalc.prototype.split = function(actor){
 			} else {
 				actor = $gameActors.actor(subPilots[i-1]);	
 			}
-
-					
-
 			this.applyDeployActions(actor.SRWStats.pilot.id, combinesFrom[i]);
-			
-			var calculatedStats = this.getCalculatedMechStats(actor);
-			calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
-			calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);
+						
 			var event = actor.event;
 			if(!event){
 				event = $gameMap.requestDynamicEvent(targetActor.event)
@@ -1922,7 +1958,15 @@ StatCalc.prototype.split = function(actor){
 				event.refreshImage();
 				actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 				actor.event.refreshImage();
-			}					
+			}	
+			
+			//this invalidation and reload ensures that the spawned unit has its stats calculated with abilities taken into account
+			this.invalidateAbilityCache();
+			this.reloadSRWStats(actor, true);
+			
+			var calculatedStats = this.getCalculatedMechStats(actor);
+			calculatedStats.currentHP = Math.round(combinedHPRatio * calculatedStats.maxHP);
+			calculatedStats.currentEN = Math.round(combinedENRatio * calculatedStats.maxEN);	
 			//
 		}				
 	}
@@ -1954,16 +1998,7 @@ StatCalc.prototype.combine = function(actor, forced){
 			
 			var targetActor = this.getCurrentPilot(combinesInto, true);
 			targetActor.combineInfo = combineResult;
-			/*if(targetActor && targetActor.actorId() != actor.actorId()){
-				targetActor.event = actor.event;
-				actor.event = null;
-				$gameSystem.setEventToUnit(targetActor.event.eventId(), 'actor', targetActor.actorId());
-				actor = targetActor;
-			}	*/
-			
-			//targetActor.SRWStats.mech = targetMechData;
-			
-			//var targetActor = $gameActors.actor(targetMechData.combinedActor);		
+					
 			
 			this.calculateSRWMechStats(targetActor.SRWStats.mech);
 			//$gameSystem.redeployActor(targetActor, targetActor.event);
@@ -1975,6 +2010,10 @@ StatCalc.prototype.combine = function(actor, forced){
 					}					
 				}
 			}
+			
+			//this invalidation and reload ensures that the spawned unit has its stats calculated with abilities taken into account
+			this.invalidateAbilityCache();
+			this.reloadSRWStats(actor, true);
 			
 			calculatedStats = this.getCalculatedMechStats(targetActor);
 			calculatedStats.currentHP = Math.round(calculatedStats.maxHP * HPRatioSum / HPRatioCount);
@@ -4868,10 +4907,18 @@ StatCalc.prototype.getActiveStatMods = function(actor, excludedSkills){
 	return result;
 }
 
+StatCalc.prototype.lockAbilityCache = function(){
+	this._abilityCacheLocked = true;
+}
 
+StatCalc.prototype.unlockAbilityCache = function(){
+	this._abilityCacheLocked = false;
+}
 
-StatCalc.prototype.invalidateAbilityCache = function(excludedSkills){
-	this._abilityCacheDirty = true;
+StatCalc.prototype.invalidateAbilityCache = function(){
+	if(!this._abilityCacheLocked){
+		this._abilityCacheDirty = true;
+	}	
 }
 
 StatCalc.prototype.createActiveAbilityLookup = function(excludedSkills){
@@ -5360,6 +5407,7 @@ StatCalc.prototype.getSourceId = function(sourceDef){
 
 StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 	var _this = this;
+	this.lockAbilityCache();
 	var deployActions = this.getDeployActions(actorId, mechId);
 	var affectedActors = [];
 	
@@ -5396,14 +5444,14 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 						//ensure the live copy of the unit is also updated
 						var currentPilot = $statCalc.getCurrentPilot(previousMech.id);
 						if(currentPilot){
-							$statCalc.initSRWStats(currentPilot);
+							$statCalc.reloadSRWStats(currentPilot);
 						}
 					}	
 				});
 				
 				var actor = $gameActors.actor(actorId);
 				actor._classId = 0;
-				$statCalc.initSRWStats(actor);		
+				$statCalc.reloadSRWStats(actor);		
 			});		
 			
 			actions.forEach(function(action){
@@ -5418,7 +5466,7 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 						if(targetDef.type == "main"){
 							targetPilot._classId = targetMechId;
 							targetPilot.isSubPilot = false;
-							$statCalc.initSRWStats(targetPilot);
+							$statCalc.reloadSRWStats(targetPilot);
 						} else {
 							var targetMech = $statCalc.getMechData($dataClasses[targetMechId], true);
 							targetMech.subPilots[targetDef.slot] = targetPilot.actorId();
@@ -5427,15 +5475,16 @@ StatCalc.prototype.applyDeployActions = function(actorId, mechId){
 							//ensure the live copy of the unit is also updated
 							var currentPilot = $statCalc.getCurrentPilot(targetMechId);
 							if(currentPilot){
-								$statCalc.initSRWStats(currentPilot);
+								$statCalc.reloadSRWStats(currentPilot);
 							}
 						}
 					}					
 				}
 			});
 		});		
-		this.initSRWStats($gameActors.actor(actorId));		
+		this.reloadSRWStats($gameActors.actor(actorId));		
 	}		
+	this.unlockAbilityCache();
 	this.invalidateAbilityCache();	
 }
 
