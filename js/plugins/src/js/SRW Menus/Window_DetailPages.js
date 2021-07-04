@@ -48,7 +48,7 @@ Window_DetailPages.prototype.getCurrentSelection = function(){
 	if(this._subPilotIdx != 0){
 		var subPilots = $statCalc.getSubPilots(unit.actor);
 		var subPilotId = subPilots[this._subPilotIdx - 1];
-		if(subPilotId != null){
+		if(subPilotId != null && subPilotId != 0){
 			var actor = $gameActors.actor(subPilotId);
 			unit = {actor: actor, mech: actor.SRWStats.mech};
 		}
@@ -261,22 +261,41 @@ Window_DetailPages.prototype.update = function() {
 		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger')){
 			this.requestRedraw();
 			//if($gameTemp.detailPageMode == "map"){
+				var subPilots = $statCalc.getSubPilots($gameTemp.currentMenuUnit.actor);
+				
+				var sanity = 10;
 				this._subPilotIdx--;
-				if(this._subPilotIdx < 0){
-					var subPilots = $statCalc.getSubPilots($gameTemp.currentMenuUnit.actor);
+				if(this._subPilotIdx < 0){						
 					if(subPilots.length){
 						this._subPilotIdx = subPilots.length;// main pilot is idx 0
 					}					
 				}
+				while(sanity-- && (this._subPilotIdx != 0 && (subPilots[this._subPilotIdx - 1] == 0 || subPilots[this._subPilotIdx - 1] == null))){
+					this._subPilotIdx--;
+					if(this._subPilotIdx < 0){						
+						if(subPilots.length){
+							this._subPilotIdx = subPilots.length;// main pilot is idx 0
+						}					
+					}
+				}
+				
 			//}
 			
 		} else if (Input.isTriggered('right_trigger') || Input.isRepeated('right_trigger')) {
 			this.requestRedraw();
 			//if($gameTemp.detailPageMode == "map"){
-				this._subPilotIdx++;
 				var subPilots = $statCalc.getSubPilots($gameTemp.currentMenuUnit.actor);
+				
+				var sanity = 10;
+				this._subPilotIdx++;					
 				if(this._subPilotIdx > subPilots.length){// main pilot is idx 0
 					this._subPilotIdx = 0;
+				}
+				while(sanity-- && (this._subPilotIdx != 0 && (subPilots[this._subPilotIdx - 1] == 0 || subPilots[this._subPilotIdx - 1] == null))){
+					this._subPilotIdx++;					
+					if(this._subPilotIdx > subPilots.length){// main pilot is idx 0
+						this._subPilotIdx = 0;
+					}
 				}
 			//}
 		}
