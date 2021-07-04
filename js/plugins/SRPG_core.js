@@ -194,7 +194,7 @@ var $battleSceneManager = new BattleSceneManager();
 	
 
 	var Graphics_updateCanvas = Graphics._updateCanvas;
-	Graphics._updateCanvas = function(){
+	Graphics._updateCanvas = function(windowId){
 		Graphics_updateCanvas.call(this);
 		if(!$gameTemp || !$gameTemp.editMode){
 			var battleScenePIXILayer = document.querySelector("#battle_scene_pixi_layer");
@@ -228,7 +228,7 @@ var $battleSceneManager = new BattleSceneManager();
 				this._centerElement(fadeContainer);
 			}	
 		}	
-		$CSSUIManager.updateScaledText();				
+		$CSSUIManager.updateScaledText(windowId);				
 	}
 	
 	ImageManager.getTranslationInfo = function(filename){		

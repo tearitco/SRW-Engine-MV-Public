@@ -9,10 +9,17 @@ CSSUIManager.prototype.updateLayer = function(dimensions){
 	}	
 }
 
-CSSUIManager.prototype.updateScaledText = function(dimensions){
+CSSUIManager.prototype.updateScaledText = function(windowId){
 	if(this.customUILayer){
+		var sourceContainer;
+		if(windowId){
+			sourceContainer = window.document.getElementById(windowId);
+		}
+		if(!sourceContainer){
+			sourceContainer = window.document;
+		}
 		var referenceWidth = Graphics._getCurrentWidth();
-		var textElements = window.document.querySelectorAll(".scaled_text");	
+		var textElements = sourceContainer.querySelectorAll(".scaled_text");	
 		textElements.forEach(function(textElement){
 			var fontPercent = textElement.getAttribute("data-font-percent");
 			if(!fontPercent){
@@ -23,7 +30,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 			
 			textElement.style.fontSize = Math.floor(referenceWidth/100 * fontPercent) + "px";
 		});
-		var scaledWidthElements = window.document.querySelectorAll(".scaled_width");	
+		var scaledWidthElements = sourceContainer.querySelectorAll(".scaled_width");	
 		scaledWidthElements.forEach(function(scaledElement){
 			var scalePercent = scaledElement.getAttribute("data-original-width");
 			if(!scalePercent){
@@ -38,7 +45,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 			scaledElement.style.width = Math.floor(referenceWidth/100 * scalePercent) + "px";
 		});
 		
-		var scaledHeightElements = window.document.querySelectorAll(".scaled_height");	
+		var scaledHeightElements = sourceContainer.querySelectorAll(".scaled_height");	
 		scaledHeightElements.forEach(function(scaledElement){
 			var scalePercent = scaledElement.getAttribute("data-original-height");
 			if(!scalePercent){
@@ -53,7 +60,7 @@ CSSUIManager.prototype.updateScaledText = function(dimensions){
 			scaledElement.style.height = Math.floor(referenceWidth/100 * scalePercent) + "px";
 		});
 		
-		var fittedTextElements = window.document.querySelectorAll(".fitted_text");	
+		var fittedTextElements = sourceContainer.querySelectorAll(".fitted_text");	
 		fittedTextElements.forEach(function(textElement){
 			var currentFontSize = textElement.style.fontSize.replace("px", "");
 			

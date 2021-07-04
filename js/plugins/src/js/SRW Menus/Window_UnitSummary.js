@@ -32,6 +32,16 @@ Window_UnitSummary.prototype.update = function() {
 	}			
 };
 
+Window_UnitSummary.prototype.show = function() {
+	this.resetSelection();
+	this._handlingInput = false;
+    this.visible = true;
+	this._redrawRequested = true;
+	this._visibility = "";
+	this.refresh();	
+	//Graphics._updateCanvas(); //remove the redundant updateCanvas to improve performance
+};
+
 Window_UnitSummary.prototype.refresh = function() {
 	if(this._redrawRequested){
 		this._redrawRequested = false;
@@ -211,6 +221,6 @@ Window_UnitSummary.prototype.redraw = function() {
 		//_this.updateScaledDiv(_this._bgFadeContainer.querySelector(".background"));
 	}
 	
-	Graphics._updateCanvas();
+	Graphics._updateCanvas(this._layoutId);
 }
 
