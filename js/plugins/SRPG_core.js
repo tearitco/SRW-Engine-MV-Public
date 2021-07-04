@@ -2077,6 +2077,7 @@ var $battleSceneManager = new BattleSceneManager();
 		this._availableUnits = $gameParty.allMembers();
 		this._availableUnits.forEach(function(actor){
 			$statCalc.initSRWStats(actor);
+			actor.event = null;
 		});
 		
 		$gameMap.events().forEach(function(event) {

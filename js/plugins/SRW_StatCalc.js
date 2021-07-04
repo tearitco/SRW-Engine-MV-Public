@@ -2027,7 +2027,7 @@ StatCalc.prototype.canCombine = function(actor, forced){
 					}
 						
 					for(var i = 0; i < adjacent.length; i++){
-						if(!visited[adjacent[i].event.eventId()]){							
+						if(adjacent[i].event && !visited[adjacent[i].event.eventId()]){							
 							stack.push(adjacent[i]);
 						}
 					}
@@ -5078,7 +5078,7 @@ StatCalc.prototype.getActorSlotInfo = function(actor){
 			slot = this.getSubPilots(actor.mainPilot).indexOf(actor.enemyId());
 		}
 		
-		if(actor.mainPilot.isSubTwin) {
+		if(actor.mainPilot && actor.mainPilot.isSubTwin) {
 			result.type = "twin_sub";
 		} else {
 			result.type = "main_sub";
