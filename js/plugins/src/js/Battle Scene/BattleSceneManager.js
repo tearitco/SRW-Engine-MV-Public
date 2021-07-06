@@ -7,85 +7,9 @@ import Sprite_Screen_Animation_Babylon from "./Sprite_Screen_Animation_Babylon.j
 
 import BattleSceneUILayer from "./BattleSceneUILayer.js";
 import SpriterManager from "./SpriterManager.js";
-//import BattleAnimationBuilder from "./BattleAnimationBuilder.js";
-
-//
-
 
 import DragonBonesManager from "./dragonBones/DragonBonesManager.js";
 
-BABYLON.Effect.ShadersStore['shockWaveFragmentShader'] = 
-`
-	
-uniform bool iPlaying;
-uniform sampler2D textureSampler;
-uniform vec2      iResolution;           // viewport resolution (in pixels)
-uniform float     iTime;                 // shader playback time (in seconds)
-
-uniform vec2	  iWaveCentre;	 
-uniform float	  iIntensity;	 		
-//uniform samplerXX iChannel0..3;          // input channel. XX = 2D/Cube
-
-varying vec2 vUV;
-
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-	
-	 //Sawtooth function to pulse from centre.
-    float offset = (iTime- floor(iTime))/iTime;
-	float CurrentTime = (iTime)*(offset);    
-    
-	vec3 WaveParams = vec3(10.0, 0.8, 0.1 ); 
-	
-	WaveParams.z = iIntensity;
-    
-    float ratio = iResolution.y/iResolution.x;
-    
-    //Use this if you want to place the centre with the mouse instead
-	//vec2 WaveCentre = vec2( iMouse.xy / iResolution.xy );
-       
-   // vec2 WaveCentre = vec2(0.5, 0.5);
-   // WaveCentre.y *= ratio; 
-   
-	vec2 texCoord = fragCoord.xy / iResolution.xy;      
-    //texCoord.y *= ratio;    
-	vec2 adjCoord = texCoord;
-	adjCoord.y *= ratio;
-	
-	float Dist = distance(texCoord, iWaveCentre);
-    
-	
-	vec4 Color = texture2D(textureSampler, texCoord);
-    
-//Only distort the pixels within the parameter distance from the centre
-if (iPlaying && (Dist <= ((CurrentTime) + (WaveParams.z))) && 
-	(Dist >= ((CurrentTime) - (WaveParams.z)))) 
-	{
-        //The pixel offset distance based on the input parameters
-		float Diff = (Dist - CurrentTime); 
-		float ScaleDiff = (1.0 - pow(abs(Diff * WaveParams.x), WaveParams.y)); 
-		float DiffTime = (Diff  * ScaleDiff);
-        
-        //The direction of the distortion
-		vec2 DiffTexCoord = normalize(texCoord - iWaveCentre);         
-        
-        //Perform the distortion and reduce the effect over time
-		texCoord += ((DiffTexCoord * DiffTime) / (CurrentTime * Dist * 40.0));
-		Color = texture2D(textureSampler, texCoord);
-        
-        //Blow out the color and reduce the effect over time
-		Color += (Color * ScaleDiff) / (CurrentTime * Dist * 40.0);
-	} 
-    
-	fragColor = Color;
-}
-
-void main() 
-{
-    mainImage(gl_FragColor, vUV * iResolution.xy);
-}
-
-`
 
 export default function BattleSceneManager(){
 	this._initialized = false;
@@ -308,13 +232,32 @@ BattleSceneManager.prototype.init = function(attachControl){
 		this._effksContext = effekseer.createContext();
 		this._effksContext.init(this._glContext);
 		 
-		
+		this.initShaders();
 		this.initScene();
-		
-		
 		
 		this._UILayerManager.redraw();
 	}
+}
+
+BattleSceneManager.prototype.initShaders = function(){
+	var _this = this;
+	const dir = "shader";
+	FILESYSTEM.readdirSync(dir).forEach(function(file) {
+		var name = file.replace(/\.fx$/, "");
+		var parts = name.split("_");
+		var shaderName = parts[0];
+		var shaderType = parts[1] == "fragment" ? "Fragment" : "Vertex";
+		file = dir+'/'+file;
+		var data = FILESYSTEM.readFileSync(file, 'utf8');		
+		BABYLON.Effect.ShadersStore[shaderName+shaderType+'Shader'] = data;		
+				
+		_this._shaderManagement[shaderName] = {
+			isPlaying: false,
+			targetTime: 0.9,
+			currentTime: 0,
+			params: [{type: "vector2", name: "iWaveCentre"}, {type: "float", name: "iIntensity"}]
+		}
+	});	
 }
 
 BattleSceneManager.prototype.getContainer = function(tick){
@@ -412,7 +355,10 @@ BattleSceneManager.prototype.initScene = function(){
         _this.shaderTime += scene.getAnimationRatio() * rate;
     });
 	
-	_this.initShaderEffect("shockWave");
+	//_this.initShaderEffect("shockWave");
+	/*Object.keys(_this._shaderManagement).forEach(function(shaderName){
+		_this.initShaderEffect(shaderName);
+	});*/
 	/**/
 	
 	//_this.createRMMVAnimationSprite("test", null, new BABYLON.Vector3(0,0,1));
@@ -456,17 +402,17 @@ BattleSceneManager.prototype.initShaderEffect = function(id){
 	var _this = this;
 	var def = _this._shaderManagement[id];
 	if(def){	
-		var effectUniforms = ["iTime", "iResolution", "iPlaying"];
+		var effectUniforms = ["iTime", "iResolution"];
 		var params = def.params;
 		if(params){
 			params.forEach(function(paramDef){
 				effectUniforms.push(paramDef.name);
 			});
 		}
-		const postEffect = new BABYLON.PostProcess("shockWave", "shockWave", effectUniforms, [], 1, this._camera);
-
-		postEffect.onApply = function (effect) {
-			_this.runShaderEffect("shockWave", effect, postEffect);
+		const postEffect = new BABYLON.PostProcess(id, id, effectUniforms, [], 1, this._camera);
+		_this._shaderManagement[id].effectHandle = postEffect;
+		postEffect.onApply = function (effect) {			
+			_this.runShaderEffect(id, effect, postEffect);						
 		};	
 	}
 }
@@ -477,7 +423,7 @@ BattleSceneManager.prototype.runShaderEffect = function(id, effect, postEffect){
 		
 	_this._shaderManagement[id].currentTime+=(_this._scene.getAnimationRatio() * 0.01 * (_this.isOKHeld ? 2 : 1));			
 	effect.setVector2('iResolution', new BABYLON.Vector2(postEffect.width, postEffect.height));
-	effect.setBool('iPlaying', true);
+	//effect.setBool('iPlaying', true);
 	effect.setFloat('iTime', _this._shaderManagement[id].currentTime);
 	params.forEach(function(paramDef){
 		if(paramDef.type == "vector2" && paramDef.value != null){
@@ -488,17 +434,25 @@ BattleSceneManager.prototype.runShaderEffect = function(id, effect, postEffect){
 		}
 	});
 	if(!this._shaderManagement[id].isPlaying || _this._shaderManagement[id].currentTime > _this._shaderManagement[id].targetTime){
-		effect.setBool('iPlaying', false);
+		//effect.setBool('iPlaying', false);
+		this._camera.detachPostProcess(this._shaderManagement[id].effectHandle);
 		this._shaderManagement[id].isPlaying = false;
 	}
 	 
 }
 
-BattleSceneManager.prototype.playShaderEffect = function(id, params){
+BattleSceneManager.prototype.playShaderEffect = function(id, params, duration){
 	if(this._shaderManagement[id]){
+		if(this._shaderManagement[id].effectHandle){
+			this._camera.detachPostProcess(this._shaderManagement[id].effectHandle);
+		}
+		this.initShaderEffect(id);
 		this._shaderManagement[id].isPlaying = true;
 		this._shaderManagement[id].currentTime = 0;
 		this._shaderManagement[id].params = params;
+		if(duration != null){
+			this._shaderManagement[id].targetTime = duration;
+		}
 	}
 }
 
@@ -1698,6 +1652,42 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				{type: "vector2", name: "iWaveCentre", value: new BABYLON.Vector2(x_fraction, params.y_fraction)},
 				{type: "float", name: "iIntensity", value: params.shockwave_intensity || 0.1}
 			]);
+		},
+		effect_screen_shader: function(target, params){
+			var effectName = params.shaderName;
+			if(_this._shaderManagement[effectName]){
+				var duration = params.shaderDuration * 1;
+				var shaderParams = [];
+				for(var i = 0; i < 10; i++){
+					if(params["shaderParam"+i]){
+						var parts = params["shaderParam"+i].match(/^(.*)\:(.*)\=(.*)/);
+						if(parts && parts.length >= 4){
+							var type = parts[1];
+							var varName = parts[2];
+							var value = parts[3];
+							if(type == "vector2"){
+								var valueParts = value.split(",");
+								if(_this._animationDirection == -1){
+									valueParts[0] =  1 - valueParts[0];
+								}
+								value = new BABYLON.Vector2(valueParts[0], valueParts[1]);
+							} else if(type == "vector3"){
+								var valueParts = value.split(",");
+								if(_this._animationDirection == -1){
+									valueParts[0] =  1 - valueParts[0];
+								}
+								value = new BABYLON.Vector3(valueParts[0], valueParts[1], valueParts[2]);
+							}
+							shaderParams.push({
+								type: type,
+								name: varName, 
+								value: value
+							});
+						}
+					}
+				}
+				_this.playShaderEffect(effectName, shaderParams, duration);
+			}
 		},
 		kill_active_animations: function(target, params){
 			_this._matrixAnimations = {};

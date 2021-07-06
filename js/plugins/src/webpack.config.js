@@ -1,5 +1,6 @@
 const path = require('path');
 
+
 module.exports = {
   entry: {
 	  SRW_Menus: './js/SRW Menus/main.js',
@@ -10,6 +11,9 @@ module.exports = {
     path: __dirname + '/..'
   },
   mode: 'development',
+  node: {
+	fs: 'empty'
+},
   module: {
     rules: [
       {
@@ -18,4 +22,5 @@ module.exports = {
       },
     ],
   },
+  
 };

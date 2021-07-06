@@ -99,6 +99,11 @@ SRWEditor.prototype.init = function(){
 			params: ["x_fraction", "y_fraction", "shockwave_intensity"],
 			desc: "Play the shockwave effect at the specified screen position."
 		},
+		effect_screen_shader: {
+			hasTarget: false,
+			params: ["shaderName", "shaderDuration","shaderParam0","shaderParam1", "shaderParam2", "shaderParam4", "shaderParam5", "shaderParam6", "shaderParam7", "shaderParam8", "shaderParam9"],
+			desc: "Play custom screen shader effect."
+		},
 		kill_active_animations: {
 			hasTarget: false,
 			params: [],
@@ -425,6 +430,18 @@ SRWEditor.prototype.init = function(){
 	_this._paramTooltips = {
 		x_fraction: "A screen space position defined by a percentage of the width of the screen.",
 		y_fraction: "A screen space position defined by a percentage of the height of the screen.",
+		shaderName: "The name of the shader effect to apply",
+		shaderDuration: "How the effect is applied for in seconds",
+		shaderParam0: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam1: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam2: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam3: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam4: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam5: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam6: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam7: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam8: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
+		shaderParam9: "A parameter for the custom shader. Defined as <param type>:<param name>=<param value>",
 		shockwave_intensity: "The intensity of the shockwave effect.",
 		position: "A position defined by an x, y and z coordinate.",
 		armatureName: "The name of Armature that will be shown", 
@@ -489,6 +506,42 @@ SRWEditor.prototype.init = function(){
 			
 		},
 		y_fraction: function(value){
+			
+		},
+		shaderDuration: function(value){
+			
+		},
+		shaderName: function(value){
+			
+		},
+		shaderParam0: function(value){
+			
+		},
+		shaderParam1: function(value){
+			
+		},
+		shaderParam2: function(value){
+			
+		},
+		shaderParam3: function(value){
+			
+		},
+		shaderParam4: function(value){
+			
+		},
+		shaderParam5: function(value){
+			
+		},
+		shaderParam6: function(value){
+			
+		},
+		shaderParam7: function(value){
+			
+		},
+		shaderParam8: function(value){
+			
+		},
+		shaderParam9: function(value){
 			
 		},
 		shockwave_intensity: function(value){

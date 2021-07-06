@@ -17,6 +17,9 @@
 // http://opensource.org/licenses/mit-license.php
 //=============================================================================
 
+//global reference to the filesystem module to circumvent issues with webpacked sections(battle scene)
+const FILESYSTEM = require("fs");
+
 //disable touch support
 
 TouchInput.update = function() {}
