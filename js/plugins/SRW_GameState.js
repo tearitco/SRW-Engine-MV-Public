@@ -44,40 +44,40 @@ function GameStateManager(){
 		after_battle: "GameState_after_battle", //OK
 		//auto_actor_action: "GameState_auto_actor_action",
 		//auto_actor_move: "GameState_auto_actor_move",
-		auto_spirits: "GameState_auto_spirits",
-		await_character_anim: "GameState_await_character_anim",
-		battle_basic: "GameState_battle_basic",
-		battle_window: "GameState_battle_window",
-		before_enemy_map_animation: "GameState_before_enemy_map_animation",
-		cancel_move: "GameState_cancel_move",
-		cancel_post_move: "GameState_cancel_post_move",
-		confirm_boarding: "GameState_confirm_boarding",
-		confirm_end_turn: "GameState_confirm_end_turn",
-		end_actor_turn: "GameState_end_actor_turn",
+		auto_spirits: "GameState_auto_spirits", //OK
+		await_character_anim: "GameState_await_character_anim", //OK
+		battle_basic: "GameState_battle_basic", //OK
+		//battle_window: "GameState_battle_window",
+		before_enemy_map_animation: "GameState_before_enemy_map_animation", //OK
+		cancel_move: "GameState_cancel_move", //OK
+		//cancel_post_move: "GameState_cancel_post_move",
+		confirm_boarding: "GameState_confirm_boarding", //OK
+		confirm_end_turn: "GameState_confirm_end_turn", //OK
+		end_actor_turn: "GameState_end_actor_turn", //OK
 		enemy_action: "GameState_enemy_action",
-		enemy_attack: "GameState_enemy_attack",
-		enemy_command: "GameState_enemy_command",
-		enemy_move: "GameState_enemy_move",
-		enemy_range_display: "GameState_enemy_range_display",
-		enemy_targeting_display: "GameState_enemy_targeting_display",
-		enemy_unit_summary: "GameState_enemy_unit_summary",
-		event_before_battle: "GameState_event_before_battle",
-		event_spirits: "GameState_event_spirits",
-		event_spirits_display: "GameState_event_spirits_display",
-		halt: "GameState_halt",
-		initialize: "GameState_initialize",
-		invoke_action: "GameState_invoke_action",
+		enemy_attack: "GameState_enemy_attack", //OK
+		enemy_command: "GameState_enemy_command", //OK
+		enemy_move: "GameState_enemy_move", //OK
+		enemy_range_display: "GameState_enemy_range_display", //OK
+		enemy_targeting_display: "GameState_enemy_targeting_display", //OK
+		enemy_unit_summary: "GameState_enemy_unit_summary", //OK
+		event_before_battle: "GameState_event_before_battle", //OK
+		event_spirits: "GameState_event_spirits", //OK
+		event_spirits_display: "GameState_event_spirits_display", //OK
+		halt: "GameState_halt", //OK
+		initialize: "GameState_initialize", //OK
+		invoke_action: "GameState_invoke_action", //??
 		level_up_display: "GameState_level_up_display",
 		map_attack_animation: "GameState_map_attack_animation",
 		map_spirit_animation: "GameState_map_spirit_animation",
-		normal: "GameState_normal",
+		normal: "GameState_normal", //OK
 		pause_menu: "GameState_pause_menu",
 		post_move_command_window: "GameState_post_move_command_window",
 		process_death: "GameState_process_death",
 		process_death_queue: "GameState_process_death_queue",
 		process_destroy_transform: "GameState_process_destroy_transform",
 		process_destroy_transform_queue: "GameState_process_destroy_transform_queue",
-		process_map_attack_queue: "GameState_process_map_attack_queue",
+		process_map_attack_queue: "GameState_process_map_attack_queue", //OK
 		rearrange_deploys: "GameState_rearrange_deploys",
 		rearrange_deploys_init: "GameState_rearrange_deploys_init",
 		rewards_display: "GameState_rewards_display",
@@ -86,6 +86,7 @@ function GameStateManager(){
 		start_srpg: "GameState_start_srpg",
 		status_window: "GameState_status_window",
 		twin_selection: "GameState_twin_selection",	
+		battle_intro: "GameState_battle_intro" //OK
 	};
 	this._stateObjMapping = {};
 	Object.keys(_this._stateClassMapping).forEach(function(stateId){
@@ -450,14 +451,14 @@ GameState_actor_map_target_confirm.prototype.update = function(scene){
 		if(!mapAttackDef.retargetInfo){
 			$gameTemp.clearMoveTable();	
 			$gameTemp.setResetMoveList(true);
-			_this.mapAttackStart();
+			scene.mapAttackStart();
 		} else {
 			var targets = updateMapAttackTargets($gameTemp.currentMapReTargetTiles, attack);
 			if(targets.length){
 				$gameTemp.currentMapTargets = targets;
 				$gameSystem.highlightedMapRetargetTiles = [];
 				$gameSystem.highlightsRefreshed = true;	
-				_this.mapAttackStart();
+				scene.mapAttackStart();
 			}
 		}				
 	} else if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
@@ -916,5 +917,703 @@ GameState_after_battle.prototype.update = function(scene){
 	}			
     return false;
 }
+
+function GameState_auto_spirits(){
+	GameState.call(this);
+}
+
+GameState_auto_spirits.prototype = Object.create(GameState.prototype);
+GameState_auto_spirits.prototype.constructor = GameState_auto_spirits;
+
+GameState_auto_spirits.prototype.update = function(scene){
+	
+	if($gameMap._interpreter.isRunning()){
+		return true;
+	}
+
+	if(!scene.handlingAutoSpirits){
+		scene.handlingAutoSpirits = true;
+		$gameTemp.spiritWindowDoneHandler = function(){
+			handleAutoSpirits()
+		}	
+		function handleAutoSpirits(){
+			$gameTemp.popMenu = true;
+			if($gameTemp.autoSpirits.length){
+				$gameTemp.queuedActorEffects = [];
+				var currentActor = $gameTemp.autoSpirits[0].actor;
+				var remaining = [];
+				$gameTemp.autoSpirits.forEach(function(autoSpirit){
+					if(autoSpirit.actor == currentActor){							
+						$gameTemp.spiritTargetActor = autoSpirit.actor;
+						$gamePlayer.locate(autoSpirit.actor.event.posX(), autoSpirit.actor.event.posY());
+						$spiritManager.applyEffect(autoSpirit.spirit, autoSpirit.actor, [autoSpirit.actor], 0);
+						$gameTemp.queuedActorEffects.push({type: "spirit", parameters: {idx: autoSpirit.spirit, target: autoSpirit.actor}})
+					} else {
+						remaining.push(autoSpirit);
+					}
+				});
+				
+				$gameTemp.autoSpirits = remaining;
+				
+				
+				$gameSystem.setSubBattlePhase('spirit_activation');				
+				$gameTemp.pushMenu = "spirit_activation";		
+			} else {
+				scene.handlingAutoSpirits = false;
+				if($gameTemp.AIActors.length){
+					$gameSystem.setBattlePhase('AI_phase');
+					$gameSystem.setSubBattlePhase('enemy_command');
+				} else {			
+					$gameSystem.setSubBattlePhase('initialize');
+				}	
+			}			
+		}
+		handleAutoSpirits();
+	}		
+	return true;
+}
+
+function GameState_await_character_anim(){
+	GameState.call(this);
+}
+
+GameState_await_character_anim.prototype = Object.create(GameState.prototype);
+GameState_await_character_anim.prototype.constructor = GameState_await_character_anim;
+
+GameState_await_character_anim.prototype.update = function(scene){
+	if($gameTemp.animCharacter){
+		if($gameTemp.animCharacter.isAnimationPlaying()){
+			return false;
+		} else {					
+			$gameSystem.setSubBattlePhase('normal');
+			$gameTemp.animCharacter = null;
+			return true;
+		}
+	}
+}
+
+function GameState_battle_basic(){
+	GameState.call(this);
+}
+
+GameState_battle_basic.prototype = Object.create(GameState.prototype);
+GameState_battle_basic.prototype.constructor = GameState_battle_basic;
+
+function GameState_before_enemy_map_animation(){
+	GameState.call(this);
+}
+
+GameState_before_enemy_map_animation.prototype = Object.create(GameState.prototype);
+GameState_before_enemy_map_animation.prototype.constructor = GameState_before_enemy_map_animation;
+
+GameState_before_enemy_map_animation.prototype.update = function(scene){
+	if($gameTemp.mapAttackRetargetDelay > 0){
+		$gameTemp.mapAttackRetargetDelay--;
+		return false;
+	}
+	
+	if($gameTemp.showBeforeEnemyMapAnimation){
+		$gameTemp.showBeforeEnemyMapAnimation = false;
+		var bestMapAttack = $gameTemp.enemyMapAttackDef;
+		if(bestMapAttack.bestPosition){
+			var mapAttackDef = $mapAttackManager.getDefinition(bestMapAttack.attack.mapId);
+			$gamePlayer.locate(bestMapAttack.bestPosition.x, bestMapAttack.bestPosition.y);
+			
+			$gameSystem.highlightedMapRetargetTiles = [];
+			
+			var deltaX = bestMapAttack.bestPosition.x - mapAttackDef.retargetInfo.center.x;
+			var deltaY = bestMapAttack.bestPosition.y - mapAttackDef.retargetInfo.center.y;
+			var tileCoordinates = JSON.parse(JSON.stringify(mapAttackDef.retargetInfo.shape));
+			
+			for(var i = 0; i < tileCoordinates.length; i++){
+				tileCoordinates[i][0]+=deltaX;
+				tileCoordinates[i][1]+=deltaY;
+
+				$gameSystem.highlightedMapRetargetTiles.push({x: tileCoordinates[i][0], y: tileCoordinates[i][1], color: "white"});
+				$gameSystem.highlightsRefreshed = true;					
+			}				
+			
+			$gameTemp.currentMapReTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));	
+			
+			$gameTemp.showingEnemyMapRetarget = true;
+			$gameTemp.enemyMapRetargetTimer = 30;						
+		} else {
+			$gameSystem.setSubBattlePhase('map_attack_animation');
+		}				
+	}
+	
+	if($gameTemp.showingEnemyMapRetarget){
+		if($gameTemp.enemyMapRetargetTimer < 0){
+			$gameTemp.showingEnemyMapRetarget = false;
+			$gameSystem.setSubBattlePhase('map_attack_animation');
+			$gameTemp.mapAttackAnimationDelay = 30;
+		} 				
+		$gameTemp.enemyMapRetargetTimer--;
+	}
+	
+	return false;
+}
+
+
+function GameState_map_attack_animation(){
+	GameState.call(this);
+}
+
+GameState_map_attack_animation.prototype = Object.create(GameState.prototype);
+GameState_map_attack_animation.prototype.constructor = GameState_map_attack_animation;
+
+GameState_map_attack_animation.prototype.update = function(scene){
+	if($gameTemp.mapAttackAnimationDelay > 0){
+		$gameTemp.mapAttackAnimationDelay--;
+		return;
+	}
+	$gameSystem.highlightedMapRetargetTiles = [];
+	$gameSystem.highlightsRefreshed = true;	
+	
+	if(!$gameTemp.mapAttackAnimationStarted){
+		$songManager.playBattleSong($gameTemp.currentBattleActor);
+		$gameTemp.clearMoveTable();
+		var attack;
+		if($gameTemp.isEnemyAttack){
+			attack = $gameTemp.enemyAction.attack;
+		} else {
+			attack = $gameTemp.actorAction.attack;
+		}
+		var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
+		$gameTemp.mapAttackAnimationStarted = true;
+		$gameTemp.mapAttackAnimationDuration = mapAttackDef.animInfo.duration || 60;
+		
+		var textInfo = mapAttackDef.textInfo;
+		if(textInfo){
+			$gameMap._interpreter.showMapAttackText(textInfo.faceName, textInfo.faceIdx, textInfo.text);
+		}	
+		$gameTemp.mapAttackAnimationPlaying = false;			
+		
+	} else {
+		if(!$gameMap._interpreter.updateWaitMode()){
+			if(!$gameTemp.mapAttackAnimationPlaying){
+				$gameTemp.mapAttackAnimationPlaying = true;
+				var attack;
+				if($gameTemp.isEnemyAttack){
+					attack = $gameTemp.enemyAction.attack;
+				} else {
+					attack = $gameTemp.actorAction.attack;
+				}
+				var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
+				
+				var options = JSON.parse(JSON.stringify(mapAttackDef.animInfo));					
+				
+				var activeEvent;
+				if(!mapAttackDef.retargetInfo){
+					activeEvent = $gameTemp.activeEvent();
+					options.direction = $gameTemp.mapTargetDirection;
+				} else {
+					activeEvent = $gamePlayer;
+					options.direction = "up";
+					options.offset = {up: options.offset};
+				}				
+				
+				$gameTemp.animCharacter = activeEvent;
+			
+				activeEvent.requestAnimation(mapAttackDef.animInfo.animId, options);
+			} else if(!$gameTemp.awaitingMapAttackAnim){
+				if(!$gameTemp.animCharacter.isAnimationPlaying()){
+					$gameTemp.afterMapAttackAnimationDelay = 30;
+					$gameTemp.awaitingMapAttackAnim = true;
+				}
+			}					
+		}				
+	} 
+
+	if($gameTemp.awaitingMapAttackAnim){
+		if($gameTemp.afterMapAttackAnimationDelay < 0){
+			$gameTemp.animCharacter = null;
+			$gameTemp.mapAttackAnimationStarted = false;
+			$gameTemp.awaitingMapAttackAnim = false;
+			scene.startMapAttackResultDisplay();
+		}		
+		$gameTemp.afterMapAttackAnimationDelay--;	
+	}
+	return true;
+}
+
+
+function GameState_process_map_attack_queue(){
+	GameState.call(this);
+}
+
+GameState_process_map_attack_queue.prototype = Object.create(GameState.prototype);
+GameState_process_map_attack_queue.prototype.constructor = GameState_process_map_attack_queue;
+
+GameState_process_map_attack_queue.prototype.update = function(scene){
+	if(!$gameTemp.processingMapAttackEffect){
+		$gameTemp.processingMapAttackEffect = true;
+		if($gameTemp.mapAttackEffectQueue.length){
+			var effect = $gameTemp.mapAttackEffectQueue.shift();
+			var target = effect.parameters.target;
+			var event = $statCalc.getReferenceEvent(target);					
+			
+			$gamePlayer.locate(event.posX(), event.posY());
+			$gameTemp.queuedActorEffects = [effect];			
+			$gameTemp.spiritTargetActor	= target;
+			$gameTemp.spiritWindowDoneHandler = function(){						
+				$gameTemp.processingMapAttackEffect = false;
+			}	
+			if(!$gameTemp.battleEffectWindowIsOpen){
+				$gameTemp.battleEffectWindowIsOpen = true;
+				$gameTemp.pushMenu = "spirit_activation";
+			}
+			scene._spiritAnimWindow.show();
+				
+		} else {
+			$gamePlayer.locate($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
+			scene.srpgBattlerDeadAfterBattle();
+			$gameTemp.popMenu = true;
+		}				
+	}
+	return true;
+}
+
+function GameState_normal(){
+	GameState.call(this);
+	this.allowedActions = {
+		cursor: true,
+		menu: true,
+		summaries: true
+	};
+}
+
+GameState_normal.prototype = Object.create(GameState.prototype);
+GameState_normal.prototype.constructor = GameState_normal;
+
+GameState_normal.prototype.update = function(scene){
+	$gameTemp.activeShip = null;
+	$gameTemp.actorAction = {};
+	$gameTemp.enemyAction = {};
+	$gameTemp.isEnemyAttack = false;
+	$gameTemp.currentBattleEnemy = null;
+	$gameTemp.currentBattleActor = null;
+	$gameTemp.battleOccurred = false;
+	$gameTemp.mapAttackOccurred = false;
+	$gameTemp.supportAttackSelected = -1;
+	$gameTemp.supportDefendSelected = -1;
+	$gameTemp.attackingTwinAction = null;
+	$gameTemp.defendingTwinAction = null;
+	$gameTemp.isPostMove = false;
+	$gameTemp.isHitAndAway = false;		
+	$gameTemp.currentMapTargets	= [];
+	$gameTemp.unitHitInfo = {};
+	previousPosition = $gameTemp.previousCursorPosition || {x: -1, y: -1};
+	var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
+	$gameTemp.previousCursorPosition = currentPosition;			
+
+	var summaryUnit = $statCalc.activeUnitAtPosition(currentPosition);
+	if(summaryUnit){
+		var previousUnit = $gameTemp.summaryUnit;
+		$gameTemp.summaryUnit = summaryUnit;	
+		if(!scene._summaryWindow.visible || $gameTemp.summaryUnit != previousUnit){
+			scene._summaryWindow.show();
+		}			
+
+		if(!$gameTemp.commanderAuraVisible || $gameTemp.summaryUnit != previousUnit){
+			
+			$gameTemp.commanderAuraVisible = true;
+			var commanderAuraLookup = $statCalc.getCommanderAura(summaryUnit, summaryUnit.event, commanderAuraLookup);
+			$gameSystem.highlightedTiles = [];
+			Object.keys(commanderAuraLookup).forEach(function(x){
+				Object.keys(commanderAuraLookup[x]).forEach(function(y){
+					$gameSystem.highlightedTiles.push({x: x, y: y, color: "yellow"});
+				});
+			});
+			
+			$gameSystem.highlightsRefreshed = true;
+			
+			if(!$gameSystem.isEnemy($gameTemp.summaryUnit)){
+				$gameTemp.showAllyAttackIndicator = true;
+				$gameTemp.showAllyDefendIndicator = true;
+			} else {
+				$gameTemp.showEnemyAttackIndicator = true;
+				$gameTemp.showEnemyDefendIndicator = true;
+			}
+		}
+		
+	} else {
+		scene._summaryWindow.hide();
+		if($gameTemp.commanderAuraVisible){
+			$gameTemp.commanderAuraVisible = false;
+			$gameSystem.highlightedTiles = [];
+			$gameSystem.highlightsRefreshed = true;
+		}				
+		
+		$gameTemp.showAllyAttackIndicator = false;
+		$gameTemp.showAllyDefendIndicator = false;
+		$gameTemp.showEnemyAttackIndicator = false;
+		$gameTemp.showEnemyDefendIndicator = false;
+		
+		if(Input.isTriggered('ok')){
+			//if(!$gameTemp.OKHeld){
+				scene.showPauseMenu();
+				$gameSystem.setSubBattlePhase('pause_menu');
+			//}									
+		} else {
+			$gameTemp.OKHeld = false;
+		}
+		
+		if(Input.isTriggered('menu')){
+			$gameSystem.showWillIndicator = !$gameSystem.showWillIndicator;
+		}
+		
+		/*if(Input.isTriggered('cancel')){
+			scene.showPauseMenu();
+			$gameSystem.setSubBattlePhase('pause_menu');
+		}*/
+	}		
+	var regionId = $gameMap.regionId(currentPosition.x, currentPosition.y);
+	var terrainDetails;
+	if($gameSystem.regionAttributes && $gameSystem.regionAttributes[regionId]){
+		terrainDetails = $gameSystem.regionAttributes[regionId];		
+	} else {
+		terrainDetails = $gameMap.getTilePropertiesAsObject({x: currentPosition.x, y: currentPosition.y});	
+	}
+	
+	if(terrainDetails){
+		$gameTemp.terrainDetails = terrainDetails;
+		if(!scene._terrainDetailsWindow.visible || previousPosition.x != currentPosition.x || previousPosition.y != currentPosition.y){
+			scene._terrainDetailsWindow.show();
+		}
+	} else {
+		scene._terrainDetailsWindow.hide();
+	}
+	
+	if(summaryUnit && Input.isTriggered("menu")){
+		$gameTemp.detailPagesWindowCancelCallback = function(){
+			$gameTemp.detailPagesWindowCancelCallback = null;
+			$gameSystem.setSubBattlePhase('normal');
+		};
+		$gameTemp.currentMenuUnit = {
+			actor: summaryUnit,
+			mech: summaryUnit.SRWStats.mech
+		};
+		$gameTemp.detailPageMode = "map";
+		$gameSystem.setSubBattlePhase('enemy_unit_summary');
+		$statCalc.invalidateAbilityCache();
+		$gameTemp.pushMenu = "detail_pages";
+	}		
+	if(Input.isTriggered("select")){
+		if($gameSystem.foregroundSpriteToggleState == null){
+			$gameSystem.foregroundSpriteToggleState = 0;
+		}
+		$gameSystem.foregroundSpriteToggleState++;
+		if($gameSystem.foregroundSpriteToggleState > 2){
+			$gameSystem.foregroundSpriteToggleState = 0;
+		}	
+	}
+	if(!$gameSystem.isIntermission()) {
+		$gameTemp.isPostMove = false;
+		if (Input.isTriggered('pageup')) {                   
+			$gameSystem.getNextLActor();
+		} else if (Input.isTriggered('pagedown')) {      
+			$gameSystem.getNextRActor();
+		}
+	}
+	return true;
+}
+
+GameState_normal.prototype.updateTriggerAction = function(cursor){
+	return true;
+}
+
+GameState_normal.prototype.updateMapEvent = function(x, y, triggers){
+	$gameMap.eventsXy(x, y).forEach(function(event) {
+		if (event.isTriggerIn(triggers) && !event.isErased()) {
+			var battlerArray = $gameSystem.EventToUnit(event.eventId());
+			if ((event.isType() === 'actor' || event.isType() === 'ship' || event.isType() === 'ship_event') && !$statCalc.isAI(battlerArray[1])) {
+				SoundManager.playOk();
+				$gameTemp.setActiveEvent(event);								
+				if (battlerArray[1].canInput() == true) {
+					$gameSystem.highlightedTiles = [];
+					$gameSystem.highlightsRefreshed = true;
+					$gameTemp.commanderAuraVisible = false;
+					
+					$gameTemp.reserveOriginalPos($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
+					$gameSystem.setSrpgActorCommandWindowNeedRefresh(battlerArray);
+					$gameParty.pushSrpgBattleActors(battlerArray[1]);
+					$gameSystem.setSubBattlePhase('actor_command_window');
+				} else {
+					$gameTemp.detailPagesWindowCancelCallback = function(){
+						$gameTemp.detailPagesWindowCancelCallback = null;
+						$gameSystem.setSubBattlePhase('normal');
+					}
+					
+					var battlerArray = $gameSystem.EventToUnit(event.eventId());
+					$gameTemp.currentMenuUnit = {
+						actor: battlerArray[1],
+						mech: battlerArray[1].SRWStats.mech
+					};
+					$gameTemp.detailPageMode = "map";
+					$gameSystem.setSubBattlePhase('enemy_unit_summary');
+					$statCalc.invalidateAbilityCache();
+					$gameTemp.pushMenu = "detail_pages";
+					
+				}
+				return true;
+			} else if (event.isType() === 'enemy' || (battlerArray && $statCalc.isAI(battlerArray[1]))) {
+				
+				$gameSystem.srpgMakeMoveTable(event);
+				$gameSystem.setSubBattlePhase('enemy_range_display');
+				
+				return true;
+				
+			} else if (event.isType() === 'playerEvent') {
+				if (event.pageIndex() >= 0) event.start();
+				return true;
+			}
+		}
+	});
+}
+
+function GameState_confirm_boarding(){
+	GameState.call(this);
+}
+
+GameState_confirm_boarding.prototype = Object.create(GameState.prototype);
+GameState_confirm_boarding.prototype.constructor = GameState_confirm_boarding;
+
+function GameState_confirm_end_turn(){
+	GameState.call(this);
+}
+
+GameState_confirm_end_turn.prototype = Object.create(GameState.prototype);
+GameState_confirm_end_turn.prototype.constructor = GameState_confirm_end_turn;
+
+function GameState_cancel_move(){
+	GameState.call(this);
+}
+
+GameState_cancel_move.prototype = Object.create(GameState.prototype);
+GameState_cancel_move.prototype.constructor = GameState_cancel_move;
+
+GameState_cancel_move.prototype.update = function(scene){
+	$gameTemp.activeEvent().locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);		
+	$gamePlayer.locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);	
+	$gameSystem.setSubBattlePhase("actor_command_window");	
+}
+
+function GameState_end_actor_turn(){
+	GameState.call(this);
+}
+
+GameState_end_actor_turn.prototype = Object.create(GameState.prototype);
+GameState_end_actor_turn.prototype.constructor = GameState_end_actor_turn;
+
+GameState_end_actor_turn.prototype.update = function(scene){
+	if($gameTemp.eraseActorAfterTurn){
+		$gameTemp.activeEvent().erase();
+	}
+	scene.srpgPrepareNextAction();
+}
+
+function GameState_enemy_command(){
+	GameState.call(this);
+}
+
+GameState_enemy_command.prototype = Object.create(GameState.prototype);
+GameState_enemy_command.prototype.constructor = GameState_enemy_command;
+
+GameState_enemy_command.prototype.update = function(scene){
+	if (!$gameMap.isEventRunning()) {
+		$gameTemp.AIWaitTimer--;
+		if($gameTemp.AIWaitTimer < 0){		
+			$gameTemp.unitHitInfo = {};
+			scene.srpgInvokeAICommand();		
+		}	
+		return false;
+	}	
+}
+
+function GameState_enemy_move(){
+	GameState.call(this);
+}
+
+GameState_enemy_move.prototype = Object.create(GameState.prototype);
+GameState_enemy_move.prototype.constructor = GameState_enemy_move;
+
+GameState_enemy_move.prototype.update = function(scene){
+	if (!$gameMap.isEventRunning()) {
+		$gameTemp.AIWaitTimer--;
+		if($gameTemp.AIWaitTimer < 0){	
+			scene.srpgInvokeAIMove();			
+			$gameTemp.AIWaitTimer = 30;	
+			return false;
+		}
+	}
+}
+
+function GameState_enemy_action(){
+	GameState.call(this);
+}
+
+GameState_enemy_action.prototype = Object.create(GameState.prototype);
+GameState_enemy_action.prototype.constructor = GameState_enemy_action;
+
+GameState_enemy_action.prototype.update = function(scene){
+	if (!$gameMap.isEventRunning()) {
+		$gameTemp.AIWaitTimer--;
+		if($gameTemp.AIWaitTimer < 0){	
+			$gamePlayer.setTransparent(false);
+			scene.srpgInvokeAIAction();		
+			$gameTemp.AIWaitTimer = 0;	
+			return false;
+		}
+	}
+}
+
+function GameState_enemy_range_display(){
+	GameState.call(this);
+}
+
+GameState_enemy_range_display.prototype = Object.create(GameState.prototype);
+GameState_enemy_range_display.prototype.constructor = GameState_enemy_range_display;
+
+GameState_enemy_range_display.prototype.update = function(scene){
+	if(Input.isTriggered("cancel")){
+		$gameTemp.clearMoveTable();
+		$gameSystem.setSubBattlePhase("normal");
+	}
+	return false;
+}
+
+function GameState_enemy_targeting_display(){
+	GameState.call(this);
+}
+
+GameState_enemy_targeting_display.prototype = Object.create(GameState.prototype);
+GameState_enemy_targeting_display.prototype.constructor = GameState_enemy_targeting_display;
+
+GameState_enemy_targeting_display.prototype.update = function(scene){	
+	if($gameTemp.targetingDisplayCounter <= 0){
+		$statCalc.invalidateAbilityCache();
+		$gameTemp.pushMenu = "before_battle";
+		$gameSystem.setSubBattlePhase("enemy_attack");
+	} else {
+		$gameTemp.targetingDisplayCounter--;
+	}
+	return true;
+}
+
+function GameState_enemy_unit_summary(){
+	GameState.call(this);
+}
+
+GameState_enemy_unit_summary.prototype = Object.create(GameState.prototype);
+GameState_enemy_unit_summary.prototype.constructor = GameState_enemy_unit_summary;
+
+function GameState_event_before_battle(){
+	GameState.call(this);
+}
+
+GameState_event_before_battle.prototype = Object.create(GameState.prototype);
+GameState_event_before_battle.prototype.constructor = GameState_event_before_battle;
+
+GameState_event_before_battle.prototype.update = function(scene){
+	if(!$gameMap.isEventRunning()){
+		if(scene.beforeBattleEventTimer <= 0){
+			scene.playBattleScene();
+		} else {
+			scene.beforeBattleEventTimer--;
+		}				
+	} else {
+		scene.beforeBattleEventTimer = 20;
+	}
+	return true;
+}
+
+function GameState_event_spirits(){
+	GameState.call(this);
+}
+
+GameState_event_spirits.prototype = Object.create(GameState.prototype);
+GameState_event_spirits.prototype.constructor = GameState_event_spirits;
+
+GameState_event_spirits.prototype.update = function(scene){
+	$gameSystem.setSubBattlePhase("event_spirits_display");
+	scene.handleEventSpirits($gameTemp.eventSpirits);
+	return true;
+}
+
+function GameState_event_spirits_display(){
+	GameState.call(this);
+}
+
+GameState_event_spirits_display.prototype = Object.create(GameState.prototype);
+GameState_event_spirits_display.prototype.constructor = GameState_event_spirits_display;
+
+GameState_event_spirits_display.prototype.update = function(scene){
+	if(!$gameTemp.playingSpiritAnimations){
+		$gameSystem.setSubBattlePhase("normal");
+	}
+	return true;
+}
+
+function GameState_halt(){
+	GameState.call(this);
+}
+
+GameState_halt.prototype = Object.create(GameState.prototype);
+GameState_halt.prototype.constructor = GameState_halt;
+
+GameState_halt.prototype.update = function(scene){
+	return false;
+}
+
+function GameState_initialize(){
+	GameState.call(this);
+}
+
+GameState_initialize.prototype = Object.create(GameState.prototype);
+GameState_initialize.prototype.constructor = GameState_initialize;
+
+function GameState_battle_intro(){
+	GameState.call(this);
+}
+
+GameState_battle_intro.prototype = Object.create(GameState.prototype);
+GameState_battle_intro.prototype.constructor = GameState_battle_intro;
+
+GameState_battle_intro.prototype.update = function(scene){
+	if(scene._transitioningToBattle){
+		scene.updateEncounterEffect();
+		return false;
+	}
+	
+	if(scene._loadingIntoBattle){
+		scene._loadingIntoBattle = false;
+		
+		setTimeout(function(){
+			//hack to remove the black overlay of the map scene while in the battle scene
+			scene.removeChild(scene._transitionBackSprite);					
+		}, 500);						
+		
+		$gameSystem.setSubBattlePhase('halt');			
+		$battleSceneManager.playBattleScene();
+		//
+		return false;
+	}
+}	
+
+function GameState_rewards_display(){
+	GameState.call(this);
+}
+
+GameState_rewards_display.prototype = Object.create(GameState.prototype);
+GameState_rewards_display.prototype.constructor = GameState_rewards_display;
+
+function GameState_level_up_display(){
+	GameState.call(this);
+}
+
+GameState_level_up_display.prototype = Object.create(GameState.prototype);
+GameState_level_up_display.prototype.constructor = GameState_level_up_display;
+
 
 /***********************/

@@ -62,6 +62,7 @@ Object.keys(ENGINE_SETTINGS_DEFAULT).forEach(function(key){
 var $SRWEditor = new SRWEditor();
 
 var $SRWGameState = new GameStateManager();
+$SRWGameState.requestNewState("normal");
 
 var $SRWStageInfoManager = new SRWStageInfoManager();
 var $SRWSaveManager = new SRWSaveManager();
@@ -4189,21 +4190,6 @@ var $battleSceneManager = new BattleSceneManager();
         }
     };
 
-    // SRPG戦闘中にはallMembersで呼び出す配列を変える→メニューで戦闘参加アクターを呼び出す
-   /* var _SRPG_Game_Party_allMembers = Game_Party.prototype.allMembers;
-    Game_Party.prototype.allMembers = function() {
-        if ($gameSystem.isSRPGMode() == true && $gameSystem.isSubBattlePhase() !== 'initialize') {
-            var _list = [];
-            for (var i = 0; i < $gameSystem.srpgAllActors().length; i++) {
-                var actor = $gameSystem.EventToUnit($gameSystem.srpgAllActors()[i])[1];
-                _list.push(actor);
-            }
-            return _list;
-        } else {
-            return _SRPG_Game_Party_allMembers.call(this);
-        }
-    };*/
-
     // セーブファイル用の処理
     var _SRPG_Game_Party_charactersForSavefile = Game_Party.prototype.charactersForSavefile;
     Game_Party.prototype.charactersForSavefile = function() {
@@ -4947,7 +4933,7 @@ var $battleSceneManager = new BattleSceneManager();
 			if (!this.isMoving() && this.canMove()) {
 				var direction = this.getInputDirection();
 				var validDestination = true;
-				if($gameTemp.mapRetargetLock){
+				if($gameTemp.mapRetargetLock && $gameTemp.currentMapTargetTiles && $gameTemp.currentMapTargetTiles.length){
 					// up: 8 down: 2 left: 4 right: 6
 					var x = this._realX;
 					var y = this._realY;
@@ -5004,52 +4990,7 @@ var $battleSceneManager = new BattleSceneManager();
 				}				
 				
                 if ($gameSystem.isSubBattlePhase() === 'normal') {
-                    $gameMap.eventsXy(x, y).forEach(function(event) {
-                        if (event.isTriggerIn(triggers) && !event.isErased()) {
-							var battlerArray = $gameSystem.EventToUnit(event.eventId());
-                            if ((event.isType() === 'actor' || event.isType() === 'ship' || event.isType() === 'ship_event') && !$statCalc.isAI(battlerArray[1])) {
-                                SoundManager.playOk();
-                                $gameTemp.setActiveEvent(event);								
-								if (battlerArray[1].canInput() == true) {
-									$gameSystem.highlightedTiles = [];
-									$gameSystem.highlightsRefreshed = true;
-									$gameTemp.commanderAuraVisible = false;
-									
-									$gameTemp.reserveOriginalPos($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
-									$gameSystem.setSrpgActorCommandWindowNeedRefresh(battlerArray);
-									$gameParty.pushSrpgBattleActors(battlerArray[1]);
-									$gameSystem.setSubBattlePhase('actor_command_window');
-								} else {
-									$gameTemp.detailPagesWindowCancelCallback = function(){
-										$gameTemp.detailPagesWindowCancelCallback = null;
-										$gameSystem.setSubBattlePhase('normal');
-									}
-									
-									var battlerArray = $gameSystem.EventToUnit(event.eventId());
-									$gameTemp.currentMenuUnit = {
-										actor: battlerArray[1],
-										mech: battlerArray[1].SRWStats.mech
-									};
-									$gameTemp.detailPageMode = "map";
-									$gameSystem.setSubBattlePhase('enemy_unit_summary');
-									$statCalc.invalidateAbilityCache();
-									$gameTemp.pushMenu = "detail_pages";
-									
-                                }
-                                return;
-                            } else if (event.isType() === 'enemy' || (battlerArray && $statCalc.isAI(battlerArray[1]))) {
-								
-								$gameSystem.srpgMakeMoveTable(event);
-								$gameSystem.setSubBattlePhase('enemy_range_display');
-								
-								return;
-								
-                            } else if (event.isType() === 'playerEvent') {
-                                if (event.pageIndex() >= 0) event.start();
-                                return;
-                            }
-                        }
-                    });
+                    
                 } else if ($gameSystem.isSubBattlePhase() === 'twin_selection') {					
 					$gameMap.eventsXy(x, y).forEach(function(event) {
 						if (event.isTriggerIn(triggers) && !event.isErased()) {
@@ -10913,12 +10854,13 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._endTurnConfirmWindow.close();
 		this.addWindow(this._endTurnConfirmWindow);
 		this._endTurnConfirmWindow.registerCallback("selected", function(result){
-			$gameTemp.OKHeld = true;
-			$gameSystem.setSubBattlePhase("normal");
+			$gameTemp.OKHeld = true;			
 			if(result){
 				$gameTemp.setTurnEndFlag(true);
 				$gameTemp.setAutoBattleFlag(false);
-			} 
+			} else {
+				$gameSystem.setSubBattlePhase("normal");
+			}
 		});
 		this._endTurnConfirmWindow.hide();
 		this.idToMenu["confirm_end_turn"] = this._endTurnConfirmWindow;
@@ -11695,34 +11637,7 @@ SceneManager.reloadCharacters = function(startEvent){
     Scene_Map.prototype.update = function() {
 		var _this = this;
 		
-		if(!$SRWGameState.update(this)) {
-			return;
-		}
-		
-		if ($gameSystem.isSubBattlePhase() == "halt"){
-			return;
-		}
-		
-		if(this._transitioningToBattle){
-			this.updateEncounterEffect();
-			return;
-		}
-		
-		if(this._loadingIntoBattle){
-			this._loadingIntoBattle = false;
-			
-			setTimeout(function(){
-				//hack to remove the black overlay of the map scene while in the battle scene
-				_this.removeChild(_this._transitionBackSprite);					
-			}, 500);						
-			
-			$gameSystem.setSubBattlePhase('halt');			
-			$battleSceneManager.playBattleScene();
-			//
-			return;
-		}
-		
-		
+		//Soft Reset
 		if(!$gameSystem.isIntermission() && Input.isPressed("ok") && Input.isPressed("cancel") && Input.isPressed("pageup") && Input.isPressed("pagedown")){
 			Input.clear();
 			try {
@@ -11732,13 +11647,23 @@ SceneManager.reloadCharacters = function(startEvent){
 				
 			}			
 			return;
+		}		
+		
+		_SRPG_SceneMap_update.call(this);
+		
+		if(!$SRWGameState.update(this)) {
+			return;
 		}
+						
+		
+		
 		if($gameTemp.continueLoaded){
 			$gameTemp.continueLoaded = false;
 			$gameSystem.onAfterLoad();
 		}
-				
-		if ($gameSystem.isSubBattlePhase() == "start_srpg"){
+		
+		//Start first actor turn
+		if ($gameSystem.isBattlePhase() == "start_srpg"){
 			if (!$gameMap.isEventRunning()) {
 				$gameSystem.srpgStartActorTurn();
 			}
@@ -11749,46 +11674,11 @@ SceneManager.reloadCharacters = function(startEvent){
 			this._summaryWindow.hide();
 			this._terrainDetailsWindow.hide();
 		}		
-        _SRPG_SceneMap_update.call(this);
 		
-		if ($gameSystem.isSubBattlePhase() == "enemy_targeting_display"){
-			if($gameTemp.targetingDisplayCounter <= 0){
-				$statCalc.invalidateAbilityCache();
-				$gameTemp.pushMenu = "before_battle";
-				$gameSystem.setSubBattlePhase("enemy_attack");
-			} else {
-				$gameTemp.targetingDisplayCounter--;
-			}
-			return;
-		}		
 		
 		if($gameTemp.OKHeld && !Input.isTriggered("ok")){
 			$gameTemp.OKHeld = false;
-		}
-		
-		
-		if($gameSystem.isSubBattlePhase() == "event_spirits"){
-			$gameSystem.setSubBattlePhase("event_spirits_display");
-			_this.handleEventSpirits($gameTemp.eventSpirits);
-			return;
-		}
-		
-		if($gameSystem.isSubBattlePhase() == "event_spirits_display"){
-			if(!$gameTemp.playingSpiritAnimations){
-				$gameSystem.setSubBattlePhase("normal");
-			}
-			return;
-		}
-		
-		if($gameSystem.isSubBattlePhase() == "enemy_range_display"){
-			if(Input.isTriggered("cancel")){
-				$gameTemp.clearMoveTable();
-				$gameSystem.setSubBattlePhase("normal");
-			}
-			return;
-		}
-		
-		
+		}		
 				
 		//console.log($gameSystem.isSubBattlePhase());
 		if($gameTemp.enemyAppearQueueIsProcessing){
@@ -11904,16 +11794,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		}		
 		
 		if($gameSystem.isSubBattlePhase() == "event_before_battle"){
-			if(!$gameMap.isEventRunning()){
-				if(_this.beforeBattleEventTimer <= 0){
-					this.playBattleScene();
-				} else {
-					_this.beforeBattleEventTimer--;
-				}				
-			} else {
-				_this.beforeBattleEventTimer = 20;
-			}
-			return;
+			
 		}
 		
 		if($gameSystem.isIntermission()){
@@ -12050,53 +11931,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		
 		
 		if ($gameSystem.isSubBattlePhase() == "auto_spirits"){
-			if($gameMap._interpreter.isRunning()){
-				return;
-			}
-			/*if($gameTemp.autoSpiritsDelay > 0){
-				$gameTemp.autoSpiritsDelay--;
-				return;
-			}*/
-			if(!_this.handlingAutoSpirits){
-				_this.handlingAutoSpirits = true;
-				$gameTemp.spiritWindowDoneHandler = function(){
-					handleAutoSpirits()
-				}	
-				function handleAutoSpirits(){
-					$gameTemp.popMenu = true;
-					if($gameTemp.autoSpirits.length){
-						$gameTemp.queuedActorEffects = [];
-						var currentActor = $gameTemp.autoSpirits[0].actor;
-						var remaining = [];
-						$gameTemp.autoSpirits.forEach(function(autoSpirit){
-							if(autoSpirit.actor == currentActor){							
-								$gameTemp.spiritTargetActor = autoSpirit.actor;
-								$gamePlayer.locate(autoSpirit.actor.event.posX(), autoSpirit.actor.event.posY());
-								$spiritManager.applyEffect(autoSpirit.spirit, autoSpirit.actor, [autoSpirit.actor], 0);
-								$gameTemp.queuedActorEffects.push({type: "spirit", parameters: {idx: autoSpirit.spirit, target: autoSpirit.actor}})
-							} else {
-								remaining.push(autoSpirit);
-							}
-						});
-						
-						$gameTemp.autoSpirits = remaining;
-						
-						
-						$gameSystem.setSubBattlePhase('spirit_activation');				
-						$gameTemp.pushMenu = "spirit_activation";		
-					} else {
-						_this.handlingAutoSpirits = false;
-						if($gameTemp.AIActors.length){
-							$gameSystem.setBattlePhase('AI_phase');
-							$gameSystem.setSubBattlePhase('enemy_command');
-						} else {			
-							$gameSystem.setSubBattlePhase('initialize');
-						}	
-					}			
-				}
-				handleAutoSpirits();
-			}	
-			return;	
+			
 		}
 		
         if ($gameSystem.isSRPGMode() == false) {
@@ -12115,12 +11950,7 @@ SceneManager.reloadCharacters = function(startEvent){
             this.srpgAfterActorEquip();
             return;
         }
-		if ($gameSystem.isSubBattlePhase() == "end_actor_turn"){
-			if($gameTemp.eraseActorAfterTurn){
-				$gameTemp.activeEvent().erase();
-			}
-			this.srpgPrepareNextAction();
-		}
+		
         //ステータスウィンドウの開閉
         var flag = $gameSystem.srpgStatusWindowNeedRefresh();
         if (flag[0]) {
@@ -12235,183 +12065,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		
         //エネミーフェイズの処理
         if ($gameSystem.isBattlePhase() === 'AI_phase') {
-			$gameTemp.summaryUnit = null;			
-			
-			if ($gameSystem.isSubBattlePhase() == "rewards_display"){
-				return;
-			}
-			if ($gameSystem.isSubBattlePhase() == "level_up_display"){
-				return;
-			}			
-			$gameTemp.AIWaitTimer--;
-			if($gameTemp.AIWaitTimer < 0){			
-				if ($gameSystem.isSubBattlePhase() === 'enemy_command') {
-					$gameTemp.unitHitInfo = {};
-					this.srpgInvokeAICommand();					
-					return;
-				} else if ($gameSystem.isSubBattlePhase() === 'enemy_move') {				
-					this.srpgInvokeAIMove();			
-					$gameTemp.AIWaitTimer = 30;	
-					return;
-				} else if ($gameSystem.isSubBattlePhase() === 'enemy_action') {				
-					$gamePlayer.setTransparent(false);
-					this.srpgInvokeAIAction();		
-					$gameTemp.AIWaitTimer = 0;	
-					return;
-				}
-			}
+			$gameTemp.summaryUnit = null;					
         }
-		
-		function waitResetCursor(nextSubBattlePhase){
-			$gamePlayer.locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);
-			if($gamePlayer._realX === $gameTemp.originalPos()[0] && $gamePlayer._realY === $gameTemp.originalPos()[1]){
-				$gameSystem.setSubBattlePhase(nextSubBattlePhase);				
-			}
-		}
-		
-		if ($gameSystem.isSubBattlePhase() === 'cancel_post_move') {		
-			waitResetCursor("actor_move");
-		}
-		
-		if ($gameSystem.isSubBattlePhase() === 'cancel_move') {			
-			$gameTemp.activeEvent().locate($gameTemp.originalPos()[0], $gameTemp.originalPos()[1]);			
-			waitResetCursor("actor_command_window");
-		}	
-		
-		if ($gameSystem.isSubBattlePhase() === 'await_character_anim'){
-			if($gameTemp.animCharacter){
-				if($gameTemp.animCharacter.isAnimationPlaying()){
-					return;
-				} else {					
-					$gameSystem.setSubBattlePhase('normal');
-					$gameTemp.animCharacter = null;
-				}
-			}
-		}
-					
-		if ($gameSystem.isSubBattlePhase() === 'normal') {	
-			$gameTemp.activeShip = null;
-			$gameTemp.actorAction = {};
-			$gameTemp.enemyAction = {};
-			$gameTemp.isEnemyAttack = false;
-			$gameTemp.currentBattleEnemy = null;
-			$gameTemp.currentBattleActor = null;
-			$gameTemp.battleOccurred = false;
-			$gameTemp.mapAttackOccurred = false;
-			$gameTemp.supportAttackSelected = -1;
-			$gameTemp.supportDefendSelected = -1;
-			$gameTemp.attackingTwinAction = null;
-			$gameTemp.defendingTwinAction = null;
-			$gameTemp.isPostMove = false;
-			$gameTemp.isHitAndAway = false;		
-			$gameTemp.currentMapTargets	= [];
-			$gameTemp.unitHitInfo = {};
-			previousPosition = $gameTemp.previousCursorPosition || {x: -1, y: -1};
-			var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
-			$gameTemp.previousCursorPosition = currentPosition;			
-		
-			var summaryUnit = $statCalc.activeUnitAtPosition(currentPosition);
-			if(summaryUnit){
-				var previousUnit = $gameTemp.summaryUnit;
-				$gameTemp.summaryUnit = summaryUnit;	
-				if(!_this._summaryWindow.visible || $gameTemp.summaryUnit != previousUnit){
-					_this._summaryWindow.show();
-				}			
-
-				if(!$gameTemp.commanderAuraVisible || $gameTemp.summaryUnit != previousUnit){
-					
-					$gameTemp.commanderAuraVisible = true;
-					var commanderAuraLookup = $statCalc.getCommanderAura(summaryUnit, summaryUnit.event, commanderAuraLookup);
-					$gameSystem.highlightedTiles = [];
-					Object.keys(commanderAuraLookup).forEach(function(x){
-						Object.keys(commanderAuraLookup[x]).forEach(function(y){
-							$gameSystem.highlightedTiles.push({x: x, y: y, color: "yellow"});
-						});
-					});
-					
-					$gameSystem.highlightsRefreshed = true;
-					
-					if(!$gameSystem.isEnemy($gameTemp.summaryUnit)){
-						$gameTemp.showAllyAttackIndicator = true;
-						$gameTemp.showAllyDefendIndicator = true;
-					} else {
-						$gameTemp.showEnemyAttackIndicator = true;
-						$gameTemp.showEnemyDefendIndicator = true;
-					}
-				}
-				
-			} else {
-				_this._summaryWindow.hide();
-				if($gameTemp.commanderAuraVisible){
-					$gameTemp.commanderAuraVisible = false;
-					$gameSystem.highlightedTiles = [];
-					$gameSystem.highlightsRefreshed = true;
-				}				
-				
-				$gameTemp.showAllyAttackIndicator = false;
-				$gameTemp.showAllyDefendIndicator = false;
-				$gameTemp.showEnemyAttackIndicator = false;
-				$gameTemp.showEnemyDefendIndicator = false;
-				
-				if(Input.isTriggered('ok')){
-					//if(!$gameTemp.OKHeld){
-						_this.showPauseMenu();
-						$gameSystem.setSubBattlePhase('pause_menu');
-					//}									
-				} else {
-					$gameTemp.OKHeld = false;
-				}
-				
-				if(Input.isTriggered('menu')){
-					$gameSystem.showWillIndicator = !$gameSystem.showWillIndicator;
-				}
-				
-				/*if(Input.isTriggered('cancel')){
-					_this.showPauseMenu();
-					$gameSystem.setSubBattlePhase('pause_menu');
-				}*/
-			}		
-			var regionId = $gameMap.regionId(currentPosition.x, currentPosition.y);
-			var terrainDetails;
-			if($gameSystem.regionAttributes && $gameSystem.regionAttributes[regionId]){
-				terrainDetails = $gameSystem.regionAttributes[regionId];		
-			} else {
-				terrainDetails = $gameMap.getTilePropertiesAsObject({x: currentPosition.x, y: currentPosition.y});	
-			}
-			
-			if(terrainDetails){
-				$gameTemp.terrainDetails = terrainDetails;
-				if(!this._terrainDetailsWindow.visible || previousPosition.x != currentPosition.x || previousPosition.y != currentPosition.y){
-					this._terrainDetailsWindow.show();
-				}
-			} else {
-				this._terrainDetailsWindow.hide();
-			}
-			
-			if(summaryUnit && Input.isTriggered("menu")){
-				$gameTemp.detailPagesWindowCancelCallback = function(){
-					$gameTemp.detailPagesWindowCancelCallback = null;
-					$gameSystem.setSubBattlePhase('normal');
-				};
-				$gameTemp.currentMenuUnit = {
-					actor: summaryUnit,
-					mech: summaryUnit.SRWStats.mech
-				};
-				$gameTemp.detailPageMode = "map";
-				$gameSystem.setSubBattlePhase('enemy_unit_summary');
-				$statCalc.invalidateAbilityCache();
-				$gameTemp.pushMenu = "detail_pages";
-			}		
-			if(Input.isTriggered("select")){
-				if($gameSystem.foregroundSpriteToggleState == null){
-					$gameSystem.foregroundSpriteToggleState = 0;
-				}
-				$gameSystem.foregroundSpriteToggleState++;
-				if($gameSystem.foregroundSpriteToggleState > 2){
-					$gameSystem.foregroundSpriteToggleState = 0;
-				}	
-			}			
-		}	
+						
 		//$gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_target_spirit' || $gameSystem.isSubBattlePhase() === 'actor_map_target_confirm'
 		if ($SRWGameState.canShowSummaries()) {
 			var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
@@ -12492,186 +12148,15 @@ SceneManager.reloadCharacters = function(startEvent){
 			return targets;
 		}	
 		
-		if ($gameSystem.isSubBattlePhase() === 'before_enemy_map_animation') {
-			if($gameTemp.mapAttackRetargetDelay > 0){
-				$gameTemp.mapAttackRetargetDelay--;
-				return;
-			}
-			
-			if($gameTemp.showBeforeEnemyMapAnimation){
-				$gameTemp.showBeforeEnemyMapAnimation = false;
-				var bestMapAttack = $gameTemp.enemyMapAttackDef;
-				if(bestMapAttack.bestPosition){
-					var mapAttackDef = $mapAttackManager.getDefinition(bestMapAttack.attack.mapId);
-					$gamePlayer.locate(bestMapAttack.bestPosition.x, bestMapAttack.bestPosition.y);
-					
-					$gameSystem.highlightedMapRetargetTiles = [];
-					
-					var deltaX = bestMapAttack.bestPosition.x - mapAttackDef.retargetInfo.center.x;
-					var deltaY = bestMapAttack.bestPosition.y - mapAttackDef.retargetInfo.center.y;
-					var tileCoordinates = JSON.parse(JSON.stringify(mapAttackDef.retargetInfo.shape));
-					
-					for(var i = 0; i < tileCoordinates.length; i++){
-						tileCoordinates[i][0]+=deltaX;
-						tileCoordinates[i][1]+=deltaY;
 
-						$gameSystem.highlightedMapRetargetTiles.push({x: tileCoordinates[i][0], y: tileCoordinates[i][1], color: "white"});
-						$gameSystem.highlightsRefreshed = true;					
-					}				
-					
-					$gameTemp.currentMapReTargetTiles = JSON.parse(JSON.stringify(tileCoordinates));	
-					
-					$gameTemp.showingEnemyMapRetarget = true;
-					$gameTemp.enemyMapRetargetTimer = 30;						
-				} else {
-					$gameSystem.setSubBattlePhase('map_attack_animation');
-				}				
-			}
-			
-			if($gameTemp.showingEnemyMapRetarget){
-				if($gameTemp.enemyMapRetargetTimer < 0){
-					$gameTemp.showingEnemyMapRetarget = false;
-					$gameSystem.setSubBattlePhase('map_attack_animation');
-					$gameTemp.mapAttackAnimationDelay = 30;
-				} 				
-				$gameTemp.enemyMapRetargetTimer--;
-			}
-			
-			return;
-		}
 		
 		
 		if ($gameSystem.isSubBattlePhase() === 'map_attack_animation') {
-			if($gameTemp.mapAttackAnimationDelay > 0){
-				$gameTemp.mapAttackAnimationDelay--;
-				return;
-			}
-			$gameSystem.highlightedMapRetargetTiles = [];
-			$gameSystem.highlightsRefreshed = true;	
-			
-			if(!$gameTemp.mapAttackAnimationStarted){
-				$songManager.playBattleSong($gameTemp.currentBattleActor);
-				$gameTemp.clearMoveTable();
-				var attack;
-				if($gameTemp.isEnemyAttack){
-					attack = $gameTemp.enemyAction.attack;
-				} else {
-					attack = $gameTemp.actorAction.attack;
-				}
-				var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
-				$gameTemp.mapAttackAnimationStarted = true;
-				$gameTemp.mapAttackAnimationDuration = mapAttackDef.animInfo.duration || 60;
-				
-				var textInfo = mapAttackDef.textInfo;
-				if(textInfo){
-					$gameMap._interpreter.showMapAttackText(textInfo.faceName, textInfo.faceIdx, textInfo.text);
-				}	
-				$gameTemp.mapAttackAnimationPlaying = false;			
-				
-			} else {
-				if(!$gameMap._interpreter.updateWaitMode()){
-					if(!$gameTemp.mapAttackAnimationPlaying){
-						$gameTemp.mapAttackAnimationPlaying = true;
-						var attack;
-						if($gameTemp.isEnemyAttack){
-							attack = $gameTemp.enemyAction.attack;
-						} else {
-							attack = $gameTemp.actorAction.attack;
-						}
-						var mapAttackDef = $mapAttackManager.getDefinition(attack.mapId);
-						
-						var options = JSON.parse(JSON.stringify(mapAttackDef.animInfo));					
-						
-						var activeEvent;
-						if(!mapAttackDef.retargetInfo){
-							activeEvent = $gameTemp.activeEvent();
-							options.direction = $gameTemp.mapTargetDirection;
-						} else {
-							activeEvent = $gamePlayer;
-							options.direction = "up";
-							options.offset = {up: options.offset};
-						}
-						
-						
-						/*var eventX = activeEvent.posX();
-						var eventY = activeEvent.posY();
-						var spritePosition;
-
-						if(!mapAttackDef.retargetInfo){
-							spritePosition = {
-								x: $gamePlayer.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
-								y: $gamePlayer.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
-							};
-						} else 	{
-							spritePosition = {
-								x: activeEvent.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
-								y: activeEvent.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
-							};
-						}*/
-						/*if(!$gameTemp.tempSprites){
-							$gameTemp.tempSprites = [];
-						}
-						if(mapAttackDef.animInfo.se){
-							var se = {};
-							se.name = mapAttackDef.animInfo.se;
-							se.pan = 0;
-							se.pitch = 100;
-							se.volume = 90;
-							AudioManager.playSe(se);
-						}
-						$gameTemp.tempSprites.push(new Sprite_MapAttack(mapAttackDef.animInfo, spritePosition));*/
-						
-						
-						$gameTemp.animCharacter = activeEvent;
-					
-						activeEvent.requestAnimation(mapAttackDef.animInfo.animId, options);
-					} else if(!$gameTemp.awaitingMapAttackAnim){
-						if(!$gameTemp.animCharacter.isAnimationPlaying()){
-							$gameTemp.afterMapAttackAnimationDelay = 30;
-							$gameTemp.awaitingMapAttackAnim = true;
-						}
-					}					
-				}				
-			} 
-
-			if($gameTemp.awaitingMapAttackAnim){
-				if($gameTemp.afterMapAttackAnimationDelay < 0){
-					$gameTemp.animCharacter = null;
-					$gameTemp.mapAttackAnimationStarted = false;
-					$gameTemp.awaitingMapAttackAnim = false;
-					//_this.srpgBattlerDeadAfterBattle();
-					_this.startMapAttackResultDisplay();
-				}		
-				$gameTemp.afterMapAttackAnimationDelay--;	
-			}				
+							
 		}		
 		
 		if ($gameSystem.isSubBattlePhase() === 'process_map_attack_queue') {
-			if(!$gameTemp.processingMapAttackEffect){
-				$gameTemp.processingMapAttackEffect = true;
-				if($gameTemp.mapAttackEffectQueue.length){
-					var effect = $gameTemp.mapAttackEffectQueue.shift();
-					var target = effect.parameters.target;
-					var event = $statCalc.getReferenceEvent(target);					
-					
-					$gamePlayer.locate(event.posX(), event.posY());
-					$gameTemp.queuedActorEffects = [effect];			
-					$gameTemp.spiritTargetActor	= target;
-					$gameTemp.spiritWindowDoneHandler = function(){						
-						$gameTemp.processingMapAttackEffect = false;
-					}	
-					if(!$gameTemp.battleEffectWindowIsOpen){
-						$gameTemp.battleEffectWindowIsOpen = true;
-						$gameTemp.pushMenu = "spirit_activation";
-					}
-					_this._spiritAnimWindow.show();
-						
-				} else {
-					$gamePlayer.locate($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
-					_this.srpgBattlerDeadAfterBattle();
-					$gameTemp.popMenu = true;
-				}				
-			}
+		
 		}		
     };
 	
@@ -13739,6 +13224,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			$statCalc.setCurrentAttack(battler, weapon);
 			$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 			$gameTemp.OKHeld = true;
+			Input.clear();
 			$gameSystem.setSubBattlePhase('actor_map_target');
 		} else {
 			var range = $statCalc.getRealWeaponRange(battler, weapon);
@@ -15006,13 +14492,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gameTemp.clearMoveTable();
 		$gameTemp.isEnemyAttack = false;
 		$gameTemp.battleOccurred = true;
-		//this.preBattleSetDirection();
-		//this._callSrpgBattle = true;
+	
 		this.eventBeforeBattle();
-		/*
-		$gameSystem.setSubBattlePhase('battle_basic');
-		$gameTemp.pushMenu = "battle_basic";
-		*/
+		
 		if($gameMap.isEventRunning()){		
 			$gameTemp.popMenu = true;
 			$gameSystem.setSubBattlePhase('event_before_battle');
@@ -15164,6 +14646,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		}
 		
 		this._transitionBase = SceneManager.snap();
+		$gameSystem.setSubBattlePhase("battle_intro")
 		this._transitioningToBattle = true;
 		this._transitionTimer = 0;
 	
