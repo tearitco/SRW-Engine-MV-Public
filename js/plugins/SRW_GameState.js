@@ -1518,6 +1518,7 @@ GameState_event_before_battle.prototype.constructor = GameState_event_before_bat
 GameState_event_before_battle.prototype.update = function(scene){
 	if(!$gameMap.isEventRunning()){
 		if(scene.beforeBattleEventTimer <= 0){
+			$gameSystem.setSubBattlePhase("battle_intro")
 			scene.playBattleScene();
 		} else {
 			scene.beforeBattleEventTimer--;

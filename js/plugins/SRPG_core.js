@@ -14646,7 +14646,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		}
 		
 		this._transitionBase = SceneManager.snap();
-		$gameSystem.setSubBattlePhase("battle_intro")
+		
 		this._transitioningToBattle = true;
 		this._transitionTimer = 0;
 	
