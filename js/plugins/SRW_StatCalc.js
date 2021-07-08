@@ -1281,7 +1281,7 @@ StatCalc.prototype.getMechData = function(mech, forActor, items, previousWeapons
 	if(mech && mech.name){		
 		var mechProperties = mech.meta;
 		result.classData = mech;
-		result.isShip = mechProperties.mechIsShip;
+		result.isShip = mechProperties.mechIsShip * 1;
 		result.canFly = mechProperties.mechCanFly || mechProperties.mechAirEnabled;
 		result.canLand = mechProperties.mechLandEnabled || 1;
 		result.canWater = mechProperties.mechWaterEnabled || 1;
@@ -3175,9 +3175,9 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 		participants: []
 	};
 	
-	if(!actor || !actor.event){
+	/*if(!actor || !actor.event){
 		return result;
-	}
+	}*/
 	
 	if(weapon.isCombination){
 		var requiredWeaponsLookup = {};
@@ -3217,22 +3217,24 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 		if(weapon.combinationType == 0){//all participants must be adjacent			
 			var candidates = [actor];
 			var visited = {};
-			visited[actor.event.eventId()] = true;
+			var event = this.getReferenceEvent(actor);
+			visited[event.eventId()] = true;
 			while(participants.length < targetCount && candidates.length){
 				var current = candidates.pop();
-				
+				var event = this.getReferenceEvent(current);
 				var subTwin = current.subTwin;
 				if(subTwin && validateParticipant(subTwin)){
 					participants.push(subTwin);
 				}	
 				
-				var adjacent = this.getAdjacentActorsWithDiagonal(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
+				var adjacent = this.getAdjacentActorsWithDiagonal(actor.isActor() ? "actor" : "enemy", {x: event.posX(), y: event.posY()});
 				for(var i = 0; i < adjacent.length; i++){
-					if(!visited[adjacent[i].event.eventId()] ){						
+					var event = this.getReferenceEvent(adjacent[i]);
+					if(!visited[event.eventId()] ){						
 						if(validateParticipant(adjacent[i])){
 							participants.push(adjacent[i]);
 							candidates.push(adjacent[i]);
-							visited[adjacent[i].event.eventId()] = true;
+							visited[event.eventId()] = true;
 						}
 						var subTwin = adjacent[i].subTwin;
 						if(subTwin && validateParticipant(subTwin)){
@@ -3259,15 +3261,78 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 	return result;
 }
 
+StatCalc.prototype.isInComboParticipants = function(sourceActor, sourceAttack, targetActor){
+	let isInnerComboParticipant = false;
+	var comboParticipants = $statCalc.getCombinationWeaponParticipants(sourceActor, sourceAttack).participants || [];
+	var ctr = 0;
+	while(ctr < comboParticipants.length && !isInnerComboParticipant){
+		isInnerComboParticipant = comboParticipants[ctr] == targetActor;
+		ctr++;
+	}
+	return isInnerComboParticipant;
+}
+
+// an inner combo participant is a unit performing a combo with either the main or sub twin of the allied unit
+StatCalc.prototype.isInnerComboParticipant = function(actor){
+	
+	var isInnerComboParticipant = false;
+	
+	if(actor.isSubTwin){
+		var mainActor = this.getMainTwin(actor);
+		if(mainActor == $gameTemp.currentBattleActor){		
+			isInnerComboParticipant = this.isInComboParticipants(mainActor, $gameTemp.actorAction.attack, actor);
+		} 
+	} else if(actor.subTwin){
+		if(actor == $gameTemp.currentBattleActor){		
+			isInnerComboParticipant = this.isInComboParticipants(actor.subTwin, $gameTemp.actorTwinAction.attack, actor);
+		} 
+	} 
+
+	if(!isInnerComboParticipant && actor.isSupport){
+		isInnerComboParticipant = this.isInComboParticipants($gameTemp.currentBattleActor, $gameTemp.actorAction.attack, actor);
+		if(!isInnerComboParticipant && $gameTemp.currentBattleActor.subTwin && $gameTemp.actorTwinAction){
+			isInnerComboParticipant = this.isInComboParticipants($gameTemp.currentBattleActor.subTwin, $gameTemp.actorTwinAction.attack, actor);
+		}
+	}
+	
+	return isInnerComboParticipant;
+}
+
+StatCalc.prototype.isComboAttackValidForSupport = function(actor, weapon){
+	var isInnerComboParticipant = false;
+	if($gameTemp.currentBattleActor){
+		isInnerComboParticipant = this.isInComboParticipants($gameTemp.currentBattleActor, $gameTemp.actorAction.attack, actor);
+		if(!isInnerComboParticipant && $gameTemp.currentBattleActor.subTwin && $gameTemp.actorTwinAction && $gameTemp.actorTwinAction.attack){
+			isInnerComboParticipant = this.isInComboParticipants($gameTemp.currentBattleActor.subTwin,$gameTemp.actorTwinAction.attack, actor);
+		}
+	}
+	
+	
+	if(!isInnerComboParticipant){
+		 var participants = $statCalc.getCombinationWeaponParticipants(actor, weapon).participants || [];
+		 if(participants.indexOf($gameTemp.currentBattleActor) != -1){
+			 isInnerComboParticipant = true; //if the unit is attempting to do a combo attack with a main or sub twin but they're doing a different attack
+		 }
+	}	
+	return !isInnerComboParticipant;
+}
+
 StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledOnly, rangeTarget, allRequired){
 	var canUse = true;
 	var detail = {};
 	if(this.isActorSRWInitialized(actor)){
+		
+		
 		if(weapon.isCombination){			
 			if(!this.getCombinationWeaponParticipants(actor, weapon).isValid){
 				canUse = false;
 				detail.noParticipants = true;
-			} 						
+			} 	
+			
+			if(actor.isSupport && !this.isComboAttackValidForSupport(actor, weapon)){
+				canUse = false;
+				detail.noComboSupport = true;
+			}
 		}		
 		if(weapon.currentAmmo == 0){ //current ammo is -1 for attacks that don't consume any
 			canUse = false;
@@ -3339,7 +3404,11 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 				detail.isHPGated = true;
 			}				
 		}	
-
+		if(this.isInnerComboParticipant(actor)){
+			canUse = false;
+			detail.isInnerCombo = true;
+		}
+		
 	} else {
 		canUse = false;
 	} 	
@@ -3354,7 +3423,10 @@ StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly, d
 		if(weapon.isCombination){			
 			if(!this.getCombinationWeaponParticipants(actor, weapon).isValid){
 				return false;
-			} 						
+			} 				
+			if(actor.isSupport && !this.isComboAttackValidForSupport(actor, weapon)){
+				return false;
+			}	
 		}
 		if(weapon.currentAmmo == 0){ //current ammo is -1 for attacks that don't consume any
 			return false;
@@ -3386,6 +3458,9 @@ StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly, d
 				return false;
 			}				
 		}	
+		if(this.isInnerComboParticipant(actor)){
+			return false;
+		}
 	} else {
 		return false;
 	} 	

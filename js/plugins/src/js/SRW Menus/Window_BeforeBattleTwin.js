@@ -31,6 +31,15 @@ Window_BeforebattleTwin.prototype.initialize = function() {
 	});
 }	
 
+Window_BeforebattleTwin.prototype.resetSelection = function(){
+	this._currentAction = "counter";
+	this._currentSelection = 0;
+	this._currentActionSelection = 0;
+	this._currentSupportSelection = 0;
+	this._currentTwinTargetSelection = 0;
+	this._currentEnemySelection = 0;
+}
+
 Window_BeforebattleTwin.prototype.show = function(){
 	Window_CSS.prototype.show.call(this);
 	this._currentSelection = 0;

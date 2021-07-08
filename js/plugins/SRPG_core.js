@@ -10675,8 +10675,8 @@ SceneManager.reloadCharacters = function(startEvent){
 	Scene_Map.prototype.commandTurnEnd = function() {
 		this._commandWindow.hide();
 		this._goldWindow.hide();
-		if($gameSystem.getActorsWithAction().length){
-			$gameSystem.setSubBattlePhase('confirm_end_turn');
+		$gameSystem.setSubBattlePhase('confirm_end_turn');
+		if($gameSystem.getActorsWithAction().length){			
 			$gameTemp.pushMenu = "confirm_end_turn";
 		} else {
 			$gameTemp.setTurnEndFlag(true);
@@ -12045,6 +12045,14 @@ SceneManager.reloadCharacters = function(startEvent){
 			}			
 		} else if($gameTemp.battleOccurred){
 			var actorIsDestroyed = false;
+			if($gameTemp.supportAttackCandidates){
+				$gameTemp.supportAttackCandidates.forEach(function(candidate){
+					candidate.actor.isSupport = false;
+					if(candidate.actor.subTwin){
+						candidate.actor.subTwin.isSupport = false;
+					}
+				});
+			}
 			Object.keys($gameTemp.battleEffectCache).forEach(function(cacheRef){
 				var battleEffect = $gameTemp.battleEffectCache[cacheRef];
 				
