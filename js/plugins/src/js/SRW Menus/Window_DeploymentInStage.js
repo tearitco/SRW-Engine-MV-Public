@@ -56,7 +56,7 @@ Window_DeploymentInStage.prototype.onCancel = function() {
 }
 
 Window_DeploymentInStage.prototype.onMenu = function(){
-	Input.clear();	
+	//Input.clear();	
 	var deployInfo = $gameSystem.getDeployInfo();
 	var deployList;
 	var count;
