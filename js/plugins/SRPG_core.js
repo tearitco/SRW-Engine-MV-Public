@@ -5005,7 +5005,7 @@ var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
     var _SRPG_Game_Player_canMove = Game_Player.prototype.canMove;
     Game_Player.prototype.canMove = function() {
         if ($gameSystem.isSRPGMode() == true) {
-            if ($gameSystem.srpgWaitMoving() == true ||
+            /*if ($gameSystem.srpgWaitMoving() == true ||
                 $gameSystem.isSubBattlePhase() === 'status_window' ||
              //   $gameSystem.isSubBattlePhase() === 'actor_command_window' ||
 				$gameSystem.isSubBattlePhase() === 'post_move_command_window' ||				
@@ -5037,7 +5037,7 @@ var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
 				
 				){
                 return false;
-            }
+            }*/
 			
 			if(!$SRWGameState.canCursorMove()){
 				return false;
@@ -5055,10 +5055,12 @@ var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
         if ($gameSystem.isSRPGMode() == true) {
 			if(!$SRWGameState.updateTriggerAction(this)){
 				return false;
+			} else {
+				return _SRPG_Game_Player_triggerAction.call(this);
 			}
 			
 			//TODO remove these checks once all states are migrated
-            if ($gameSystem.srpgWaitMoving() == true ||
+            /*if ($gameSystem.srpgWaitMoving() == true ||
                 //$gameTemp.isAutoMoveDestinationValid() == true ||
                 //$gameSystem.isSubBattlePhase() === 'actor_command_window' ||
 				$gameSystem.isSubBattlePhase() === 'post_move_command_window' ||
@@ -5072,8 +5074,8 @@ var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
 				$gameSystem.isSubBattlePhase() === 'after_battle' ) {
                 return false;
             }  else {
-                return _SRPG_Game_Player_triggerAction.call(this);
-            }			
+                
+            }	*/		
         } else {
             return _SRPG_Game_Player_triggerAction.call(this);
         }
@@ -11388,7 +11390,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		var _this = this;
         if ($gameSystem.isSRPGMode() == true) {
 			
-            if ($gameSystem.srpgWaitMoving() == true ||
+           /* if ($gameSystem.srpgWaitMoving() == true ||
                 $gameTemp.isAutoMoveDestinationValid() == true ||
                 $gameSystem.isSubBattlePhase() === 'status_window' ||
                 $gameSystem.isSubBattlePhase() === 'battle_window' ||
@@ -11420,11 +11422,14 @@ SceneManager.reloadCharacters = function(startEvent){
                 this.menuCalling = false;
                 return;
 				
-				if(!$SRWGameState.canUseMenu()){
-					 this.menuCalling = false;
-					return;
-				}
-            }			
+				
+            }	*/	
+
+			if(!$SRWGameState.canUseMenu()){
+				 this.menuCalling = false;
+				return;
+			}
+			
             if ($gameSystem.isSubBattlePhase() === 'normal' && !$gameSystem.isIntermission()) {
 				$gameTemp.isPostMove = false;
                 if (Input.isTriggered('pageup')) {                   
@@ -14312,7 +14317,9 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 Scene_Gameover.prototype.gotoTitle = function() {
 	$gameTemp.intermissionPending = true;
+	
 	$SRWSaveManager.lockMapSRPoint($gameMap.mapId());	
+	$gameMap._interpreter.clear();//make sure no events run after the game over before loading into the intermission
 	$gamePlayer.reserveTransfer(2, 0, 0);//send player to intermission after losing
     SceneManager.goto(Scene_Map);
 };

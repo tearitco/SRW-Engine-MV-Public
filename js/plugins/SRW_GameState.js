@@ -1199,6 +1199,7 @@ function GameState_normal(){
 GameState_normal.prototype = Object.create(GameState.prototype);
 GameState_normal.prototype.constructor = GameState_normal;
 
+
 GameState_normal.prototype.update = function(scene){
 	$gameTemp.activeShip = null;
 	$gameTemp.actorAction = {};
