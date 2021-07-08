@@ -47,7 +47,7 @@ function GameStateManager(){
 		auto_spirits: "GameState_auto_spirits", //OK
 		await_character_anim: "GameState_await_character_anim", //OK
 		battle_basic: "GameState_battle_basic", //OK
-		//battle_window: "GameState_battle_window",
+		battle_window: "GameState_battle_window",
 		before_enemy_map_animation: "GameState_before_enemy_map_animation", //OK
 		cancel_move: "GameState_cancel_move", //OK
 		//cancel_post_move: "GameState_cancel_post_move",
@@ -184,6 +184,13 @@ function GameState_post_move_command_window(){
 
 GameState_post_move_command_window.prototype = Object.create(GameState.prototype);
 GameState_post_move_command_window.prototype.constructor = GameState_post_move_command_window;
+
+function GameState_battle_window(){
+	GameState.call(this);
+}
+
+GameState_battle_window.prototype = Object.create(GameState.prototype);
+GameState_battle_window.prototype.constructor = GameState_battle_window;
 
 function GameState_actor_move(){
 	GameState.call(this);
@@ -774,19 +781,26 @@ GameState_actor_target.prototype.updateMapEvent = function(x, y, triggers){
 						if($gameTemp.actorAction && $gameTemp.actorAction.attack){
 							allRequired = $gameTemp.actorAction.attack.isAll ? 1 : -1;
 						}
+
+						$gameTemp.currentTargetingSettings = null;	
+						$battleCalc.updateTwinActions();
+						
 						
 						var supporterInfo = [];
 						var supporterSelected = -1;
 						var bestDamage = 0;
 						for(var i = 0; i < supporters.length; i++){
+							supporters[i].actor.isSupport = true;
 							var weaponResult = $battleCalc.getBestWeaponAndDamage(supporters[i], enemyInfo, false, false, false, allRequired);
-							if(weaponResult.weapon){
+							if(weaponResult.weapon){								
 								supporters[i].action = {type: "attack", attack: weaponResult.weapon};
 								supporterInfo.push(supporters[i]);
 								if(bestDamage < weaponResult.damage){
 									bestDamage = weaponResult.damage;
 									supporterSelected = i;
-								}
+								}							
+							} else {
+								supporters[i].actor.isSupport = false;
 							}
 						}										
 						$gameTemp.supportAttackCandidates = supporterInfo;
@@ -830,8 +844,8 @@ GameState_actor_target.prototype.updateMapEvent = function(x, y, triggers){
 							$gameTemp.supportDefendCandidates = [];
 							$gameTemp.supportDefendSelected = -1;
 						}
-						$gameTemp.currentTargetingSettings = null;																				
-						$battleCalc.updateTwinActions();
+																									
+						
 						
 						$gameTemp.setTargetEvent(event);
 						$statCalc.invalidateAbilityCache();
@@ -1217,6 +1231,16 @@ GameState_normal.prototype.update = function(scene){
 	$gameTemp.isHitAndAway = false;		
 	$gameTemp.currentMapTargets	= [];
 	$gameTemp.unitHitInfo = {};
+	
+	if($gameTemp.supportAttackCandidates && $gameTemp.supportAttackCandidates.length){
+		$gameTemp.supportAttackCandidates.forEach(function(candidate){
+			candidate.actor.isSupport = false;
+			if(candidate.actor.subTwin){
+				candidate.actor.subTwin.isSupport = false;
+			}
+		});
+		$gameTemp.supportAttackCandidates = [];
+	}
 	
 	if($gameMap.isEventRunning()){
 		return true;
@@ -1743,6 +1767,7 @@ GameState_pause_menu.prototype.update = function(scene){
 	if(!$gameTemp.deactivatePauseMenu){
 		scene.showPauseMenu();
 	}	
+	return true;
 }
 
 function GameState_process_death(){

@@ -106,7 +106,14 @@ DetailBarAttackSummary.prototype.redraw = function(){
 		var validationResult = this._attackValidator.validateAttack(attackData);
 		if(!validationResult.canUse){
 			var detail = validationResult.detail;
-			if(detail.ammo){
+			
+			if(detail.noComboSupport){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_no_combo_support;
+			} else if(detail.isInnerCombo){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_inner_combo;
+			} else if(detail.isSubTwinComboInit){
+				detailContent+=APPSTRINGS.ATTACKLIST.label_sub_twin_combo;
+			} else if(detail.ammo){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_ammo;
 			} else if(detail.EN){
 				detailContent+=APPSTRINGS.ATTACKLIST.label_no_EN;
@@ -132,7 +139,7 @@ DetailBarAttackSummary.prototype.redraw = function(){
 				var info = APPSTRINGS.ATTACKLIST.label_HP_gated;
 				info = info.replace("{HP_THRESHOLD}", attackData.HPThreshold);
 				detailContent+=info;
-			}    			
+			} 		
 		}
 	
 		detailContent+="</div>";
