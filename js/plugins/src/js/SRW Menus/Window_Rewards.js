@@ -42,11 +42,11 @@ Window_Rewards.prototype.update = function() {
 	
 		
 		if(Input.isTriggered('ok')){
-			$gameTemp.popMenu = true;	
+			//$gameTemp.popMenu = true;	
 		}
 		if(Input.isTriggered('cancel')){				
 			//$gameTemp.popMenu = true;	
-			$gameTemp.popMenu = true;	
+			//$gameTemp.popMenu = true;	
 		}		
 		
 		this.refresh();

@@ -1632,7 +1632,7 @@ StatCalc.prototype.swapEvent = function(event, force){
 			
 			twin.event = actor.event;
 			actor.event = null;
-			$gameSystem.setEventToUnit(twin.event.eventId(), twin.isActor() ? 'actor' : 'enemy', twin);
+			$gameSystem.setEventToUnit(twin.event.eventId(), twin.isActor() ? 'actor' : 'enemy', twin.isActor() ? twin.actorId() : twin);
 									
 			//twin.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 			twin.event.refreshImage();		
@@ -1885,6 +1885,7 @@ StatCalc.prototype.transform = function(actor, idx, force, forcedId){
 
 StatCalc.prototype.transformOnDestruction = function(actor, force){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){		
+		var subTwin = actor.subTwin;
 		var transformIntoId = actor.SRWStats.mech.destroyTransformInto;
 		var targetActorId = actor.SRWStats.mech.destroyTransformedActor;
 		
@@ -1906,6 +1907,10 @@ StatCalc.prototype.transformOnDestruction = function(actor, force){
 				}
 			}
 		}		
+		
+		if(subTwin){
+			actor.subTwin = subTwin;
+		}
 							
 		actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 		actor.event.refreshImage();							
@@ -3170,7 +3175,7 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 		participants: []
 	};
 	
-	if(actor || !actor.event){
+	if(!actor || !actor.event){
 		return result;
 	}
 	
@@ -3215,16 +3220,28 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 			visited[actor.event.eventId()] = true;
 			while(participants.length < targetCount && candidates.length){
 				var current = candidates.pop();
+				
+				var subTwin = current.subTwin;
+				if(subTwin && validateParticipant(subTwin)){
+					participants.push(subTwin);
+				}	
+				
 				var adjacent = this.getAdjacentActorsWithDiagonal(actor.isActor() ? "actor" : "enemy", {x: current.event.posX(), y: current.event.posY()});
 				for(var i = 0; i < adjacent.length; i++){
-					if(!visited[adjacent[i].event.eventId()] && validateParticipant(adjacent[i])){
-						participants.push(adjacent[i]);
-						candidates.push(adjacent[i]);
-						visited[adjacent[i].event.eventId()] = true;
-					}
+					if(!visited[adjacent[i].event.eventId()] ){						
+						if(validateParticipant(adjacent[i])){
+							participants.push(adjacent[i]);
+							candidates.push(adjacent[i]);
+							visited[adjacent[i].event.eventId()] = true;
+						}
+						var subTwin = adjacent[i].subTwin;
+						if(subTwin && validateParticipant(subTwin)){
+							participants.push(subTwin);
+							candidates.push(subTwin);
+						}						
+					}					
 				}			
-			}
-			
+			}			
 		} else if(weapon.combinationType == 1){//all participants must be on the map
 			this.iterateAllActors(actor.isActor() ? "actor" : "enemy", function(actor, event){			
 				if(validateParticipant(actor)){
