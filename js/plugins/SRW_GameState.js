@@ -1683,4 +1683,82 @@ GameState_pause_menu.prototype.update = function(scene){
 	}	
 }
 
+function GameState_process_death(){
+	GameState.call(this);
+}
+
+GameState_process_death.prototype = Object.create(GameState.prototype);
+GameState_process_death.prototype.constructor = GameState_process_death;
+
+GameState_process_death.prototype.update = function(scene){
+	if(scene._startDeath){
+		scene._currentDeath.event.isDoingSubTwinDeath = false;
+		scene._currentDeath.event.isDoingMainTwinDeath = false;
+		if(scene._currentDeath.actor.isSubTwin){
+			$statCalc.swapEvent($statCalc.getMainTwin(scene._currentDeath.actor).event, true);						
+			scene._currentDeath.event.isDoingSubTwinDeath = true;
+		} else if($statCalc.isMainTwin(scene._currentDeath.actor)){
+			scene._currentDeath.event.isDoingMainTwinDeath = true;
+		}
+		scene._startDeath = false;
+		scene._currentDeath.event.isDoingDeathAnim = true;
+	}
+	if(scene._deathTimer <= 0){
+		
+		//scene._currentDeath.event.erase();
+		if (scene._currentDeath.actor.isActor()) {
+			var oldValue = $gameVariables.value(_existActorVarID);
+			$gameVariables.setValue(_existActorVarID, oldValue - 1);
+			
+			var oldValue = $gameVariables.value(_actorsDestroyed);
+			$gameVariables.setValue(_actorsDestroyed, oldValue + 1); 
+			
+			if(scene._currentDeath.event.isType() == "ship"){
+				var oldValue = $gameVariables.value(_existShipVarId);
+				$gameVariables.setValue(_existShipVarId, oldValue - 1); 	
+			}
+		} else {
+			var oldValue = $gameVariables.value(_existEnemyVarID);
+			$gameVariables.setValue(_existEnemyVarID, oldValue - 1);
+			
+			var oldValue = $gameVariables.value(_enemiesDestroyed);
+			$gameVariables.setValue(_enemiesDestroyed, oldValue + 1);
+		}
+		
+		if(scene._currentDeath.actor.isSubTwin){
+			
+		} else {
+			scene._currentDeath.event.isUnused = true;
+		}
+		
+		$gameSystem.setSubBattlePhase("process_death_queue");
+	}				
+	scene._deathTimer--;
+	return true;	
+}
+
+
+function GameState_process_death_queue(){
+	GameState.call(this);
+}
+
+GameState_process_death_queue.prototype = Object.create(GameState.prototype);
+GameState_process_death_queue.prototype.constructor = GameState_process_death_queue;
+
+GameState_process_death_queue.prototype.update = function(scene){
+	if($gameMap.isEventRunning()){
+		return true;
+	}
+	if($gameTemp.deathQueue.length){
+		scene._currentDeath = $gameTemp.deathQueue.shift();
+		scene._deathTimer = 60;
+		scene._startDeath = true;
+		$gameSystem.setSubBattlePhase("process_death");
+	} else {
+		$statCalc.invalidateAbilityCache();
+		scene.srpgAfterAction();
+	}
+	return true;
+}
+
 /***********************/

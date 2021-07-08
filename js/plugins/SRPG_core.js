@@ -83,42 +83,43 @@ var $inventoryManager = new SRWInventoryManager();
  
 var $battleSceneManager = new BattleSceneManager();
 
+var parameters = PluginManager.parameters('SRPG_core');
+var _srpgTroopID = Number(parameters['srpgTroopID'] || 1);
+var _srpgBattleSwitchID = Number(parameters['srpgBattleSwitchID'] || 1);
+var _endIntermissionSwitchID = 3;
+var _inIntermissionSwitchID = 4;
+var _existActorVarID = Number(parameters['existActorVarID'] || 1);
+var _existEnemyVarID = Number(parameters['existEnemyVarID'] || 2);
+
+var _turnVarID = Number(parameters['turnVarID'] || 3);
+var _activeEventID = Number(parameters['activeEventID'] || 4);
+var _targetEventID = Number(parameters['targetEventID'] || 5);
+var _defaultMove = Number(parameters['defaultMove'] || 4);
+var _srpgBattleExpRate = Number(parameters['srpgBattleExpRate'] || 0.4);
+var _srpgBattleExpRateForActors = Number(parameters['srpgBattleExpRateForActors'] || 0.1);
+var _enemyDefaultClass = parameters['enemyDefaultClass'] || 'エネミー';
+var _textSrpgEquip = parameters['textSrpgEquip'] || '装備';
+var _textSrpgMove = parameters['textSrpgMove'] || '移動力';
+var _textSrpgRange = parameters['textSrpgRange'] || '射程';
+var _textSrpgWait = parameters['textSrpgWait'] || '待機';
+var _textSrpgTurnEnd = parameters['textSrpgTurnEnd'] || 'ターン終了';
+var _textSrpgAutoBattle = parameters['textSrpgAutoBattle'] || 'オート戦闘';
+var _srpgBattleQuickLaunch = parameters['srpgBattleQuickLaunch'] || 'true';
+var _srpgActorCommandEquip = parameters['srpgActorCommandEquip'] || 'true';
+var _srpgBattleEndAllHeal = parameters['srpgBattleEndAllHeal'] || 'true';
+var _srpgStandUnitSkip = parameters['srpgStandUnitSkip'] || 'false';
+var _srpgPredictionWindowMode = Number(parameters['srpgPredictionWindowMode'] || 1);
+var _srpgAutoBattleStateId = Number(parameters['srpgAutoBattleStateId'] || 14);
+var _srpgBestSearchRouteSize = Number(parameters['srpgBestSearchRouteSize'] || 20);
+var _srpgDamageDirectionChange = parameters['srpgDamageDirectionChange'] || 'true';
+var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
 
 
 (function() {
 	//TODO: Proper pre-loading/load waiting
 
 	
-    var parameters = PluginManager.parameters('SRPG_core');
-    var _srpgTroopID = Number(parameters['srpgTroopID'] || 1);
-    var _srpgBattleSwitchID = Number(parameters['srpgBattleSwitchID'] || 1);
-	var _endIntermissionSwitchID = 3;
-	var _inIntermissionSwitchID = 4;
-    var _existActorVarID = Number(parameters['existActorVarID'] || 1);
-    var _existEnemyVarID = Number(parameters['existEnemyVarID'] || 2);
-	
-    var _turnVarID = Number(parameters['turnVarID'] || 3);
-    var _activeEventID = Number(parameters['activeEventID'] || 4);
-    var _targetEventID = Number(parameters['targetEventID'] || 5);
-    var _defaultMove = Number(parameters['defaultMove'] || 4);
-    var _srpgBattleExpRate = Number(parameters['srpgBattleExpRate'] || 0.4);
-    var _srpgBattleExpRateForActors = Number(parameters['srpgBattleExpRateForActors'] || 0.1);
-    var _enemyDefaultClass = parameters['enemyDefaultClass'] || 'エネミー';
-    var _textSrpgEquip = parameters['textSrpgEquip'] || '装備';
-    var _textSrpgMove = parameters['textSrpgMove'] || '移動力';
-    var _textSrpgRange = parameters['textSrpgRange'] || '射程';
-    var _textSrpgWait = parameters['textSrpgWait'] || '待機';
-    var _textSrpgTurnEnd = parameters['textSrpgTurnEnd'] || 'ターン終了';
-    var _textSrpgAutoBattle = parameters['textSrpgAutoBattle'] || 'オート戦闘';
-    var _srpgBattleQuickLaunch = parameters['srpgBattleQuickLaunch'] || 'true';
-    var _srpgActorCommandEquip = parameters['srpgActorCommandEquip'] || 'true';
-    var _srpgBattleEndAllHeal = parameters['srpgBattleEndAllHeal'] || 'true';
-    var _srpgStandUnitSkip = parameters['srpgStandUnitSkip'] || 'false';
-    var _srpgPredictionWindowMode = Number(parameters['srpgPredictionWindowMode'] || 1);
-    var _srpgAutoBattleStateId = Number(parameters['srpgAutoBattleStateId'] || 14);
-    var _srpgBestSearchRouteSize = Number(parameters['srpgBestSearchRouteSize'] || 20);
-    var _srpgDamageDirectionChange = parameters['srpgDamageDirectionChange'] || 'true';
-	var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
+    
 	
 	
 	
@@ -11412,66 +11413,11 @@ SceneManager.reloadCharacters = function(startEvent){
 	
 			
 			if($gameSystem.isSubBattlePhase() === 'process_death_queue'){
-				if($gameMap.isEventRunning()){
-					return;
-				}
-				if($gameTemp.deathQueue.length){
-					_this._currentDeath = $gameTemp.deathQueue.shift();
-					_this._deathTimer = 60;
-					_this._startDeath = true;
-					$gameSystem.setSubBattlePhase("process_death");
-				} else {
-					$statCalc.invalidateAbilityCache();
-					_this.srpgAfterAction();
-				}
-				return;
+				
 			}
 			
 			if($gameSystem.isSubBattlePhase() === 'process_death'){
-				if(_this._startDeath){
-					_this._currentDeath.event.isDoingSubTwinDeath = false;
-					_this._currentDeath.event.isDoingMainTwinDeath = false;
-					if(_this._currentDeath.actor.isSubTwin){
-						$statCalc.swapEvent($statCalc.getMainTwin(_this._currentDeath.actor).event, true);						
-						_this._currentDeath.event.isDoingSubTwinDeath = true;
-					} else if($statCalc.isMainTwin(_this._currentDeath.actor)){
-						_this._currentDeath.event.isDoingMainTwinDeath = true;
-					}
-					_this._startDeath = false;
-					_this._currentDeath.event.isDoingDeathAnim = true;
-				}
-				if(_this._deathTimer <= 0){
-					
-					//_this._currentDeath.event.erase();
-					if (_this._currentDeath.actor.isActor()) {
-						var oldValue = $gameVariables.value(_existActorVarID);
-						$gameVariables.setValue(_existActorVarID, oldValue - 1);
-						
-						var oldValue = $gameVariables.value(_actorsDestroyed);
-						$gameVariables.setValue(_actorsDestroyed, oldValue + 1); 
-						
-						if(_this._currentDeath.event.isType() == "ship"){
-							var oldValue = $gameVariables.value(_existShipVarId);
-							$gameVariables.setValue(_existShipVarId, oldValue - 1); 	
-						}
-					} else {
-						var oldValue = $gameVariables.value(_existEnemyVarID);
-						$gameVariables.setValue(_existEnemyVarID, oldValue - 1);
-						
-						var oldValue = $gameVariables.value(_enemiesDestroyed);
-						$gameVariables.setValue(_enemiesDestroyed, oldValue + 1);
-					}
-					
-					if(_this._currentDeath.actor.isSubTwin){
-						
-					} else {
-						_this._currentDeath.event.isUnused = true;
-					}
-					
-					$gameSystem.setSubBattlePhase("process_death_queue");
-				}				
-				_this._deathTimer--;
-				return;
+				
 			}
 			
 			if($gameSystem.isSubBattlePhase() === 'process_destroy_transform_queue'){
