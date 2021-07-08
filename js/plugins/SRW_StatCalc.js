@@ -1632,7 +1632,7 @@ StatCalc.prototype.swapEvent = function(event, force){
 			
 			twin.event = actor.event;
 			actor.event = null;
-			$gameSystem.setEventToUnit(twin.event.eventId(), twin.isActor() ? 'actor' : 'enemy', twin);
+			$gameSystem.setEventToUnit(twin.event.eventId(), twin.isActor() ? 'actor' : 'enemy', twin.isActor() ? twin.actorId() : twin);
 									
 			//twin.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 			twin.event.refreshImage();		

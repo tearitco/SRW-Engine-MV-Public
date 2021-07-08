@@ -67,12 +67,12 @@ function GameStateManager(){
 		halt: "GameState_halt", //OK
 		initialize: "GameState_initialize", //OK
 		invoke_action: "GameState_invoke_action", //??
-		level_up_display: "GameState_level_up_display",
-		map_attack_animation: "GameState_map_attack_animation",
-		map_spirit_animation: "GameState_map_spirit_animation",
+		level_up_display: "GameState_level_up_display", //OK
+		map_attack_animation: "GameState_map_attack_animation", //OK
+		map_spirit_animation: "GameState_map_spirit_animation", //OK
 		normal: "GameState_normal", //OK
-		pause_menu: "GameState_pause_menu",
-		post_move_command_window: "GameState_post_move_command_window",
+		pause_menu: "GameState_pause_menu", //OK
+		post_move_command_window: "GameState_post_move_command_window", //OK
 		process_death: "GameState_process_death",
 		process_death_queue: "GameState_process_death_queue",
 		process_destroy_transform: "GameState_process_destroy_transform",
@@ -171,6 +171,13 @@ function GameState_actor_command_window(){
 
 GameState_actor_command_window.prototype = Object.create(GameState.prototype);
 GameState_actor_command_window.prototype.constructor = GameState_actor_command_window;
+
+function GameState_post_move_command_window(){
+	GameState.call(this);
+}
+
+GameState_post_move_command_window.prototype = Object.create(GameState.prototype);
+GameState_post_move_command_window.prototype.constructor = GameState_post_move_command_window;
 
 function GameState_actor_move(){
 	GameState.call(this);
@@ -1203,6 +1210,11 @@ GameState_normal.prototype.update = function(scene){
 	$gameTemp.isHitAndAway = false;		
 	$gameTemp.currentMapTargets	= [];
 	$gameTemp.unitHitInfo = {};
+	
+	if($gameMap.isEventRunning()){
+		return true;
+	}
+	
 	previousPosition = $gameTemp.previousCursorPosition || {x: -1, y: -1};
 	var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
 	$gameTemp.previousCursorPosition = currentPosition;			
@@ -1250,11 +1262,9 @@ GameState_normal.prototype.update = function(scene){
 		$gameTemp.showEnemyAttackIndicator = false;
 		$gameTemp.showEnemyDefendIndicator = false;
 		
-		if(Input.isTriggered('ok')){
-			//if(!$gameTemp.OKHeld){
-				scene.showPauseMenu();
-				$gameSystem.setSubBattlePhase('pause_menu');
-			//}									
+		if(Input.isTriggered('ok')){			
+			scene.showPauseMenu();
+			$gameSystem.setSubBattlePhase('pause_menu');											
 		} else {
 			$gameTemp.OKHeld = false;
 		}
@@ -1262,11 +1272,6 @@ GameState_normal.prototype.update = function(scene){
 		if(Input.isTriggered('menu')){
 			$gameSystem.showWillIndicator = !$gameSystem.showWillIndicator;
 		}
-		
-		/*if(Input.isTriggered('cancel')){
-			scene.showPauseMenu();
-			$gameSystem.setSubBattlePhase('pause_menu');
-		}*/
 	}		
 	var regionId = $gameMap.regionId(currentPosition.x, currentPosition.y);
 	var terrainDetails;
@@ -1616,5 +1621,66 @@ function GameState_level_up_display(){
 GameState_level_up_display.prototype = Object.create(GameState.prototype);
 GameState_level_up_display.prototype.constructor = GameState_level_up_display;
 
+function GameState_map_spirit_animation(){
+	GameState.call(this);
+}
+
+GameState_map_spirit_animation.prototype = Object.create(GameState.prototype);
+GameState_map_spirit_animation.prototype.constructor = GameState_map_spirit_animation;
+
+GameState_map_spirit_animation.prototype.update = function(scene){
+	if($gameTemp.mapSpiritAnimationDelay > 0){
+		$gameTemp.mapSpiritAnimationDelay--;
+		return;
+	}
+	if(!$gameTemp.mapSpiritAnimationStarted){
+		$gameTemp.clearMoveTable();
+		var attack;
+		if($gameTemp.isEnemyAttack){
+			attack = $gameTemp.enemyAction.attack;
+		} else {
+			attack = $gameTemp.actorAction.attack;
+		}
+		var spiritInfo = $spiritManager.getSpiritDisplayInfo($gameTemp.queuedEffectSpiritId).animInfo;
+		
+		
+		$gameTemp.mapSpiritAnimationStarted = true;
+		$gameTemp.mapSpiritAnimationDuration = spiritInfo.duration || 60;
+		var activeEvent = $gameTemp.activeEvent();
+		var eventX = activeEvent.posX();
+		var eventY = activeEvent.posY();
+		var spritePosition = {
+			x: activeEvent.screenX(),
+			y: activeEvent.screenY() - ($gameMap.tileWidth() / 2),
+		};
+	
+		$gameTemp.animCharacter = activeEvent;
+		activeEvent.requestAnimation(spiritInfo.animId);
+	} else {
+		if(!$gameTemp.animCharacter.isAnimationPlaying()){
+			$gameTemp.animCharacter = null;
+			$gameTemp.mapSpiritAnimationStarted = false;
+			$gameSystem.setSubBattlePhase("actor_command_window");
+			$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
+			scene._mapSrpgActorCommandWindow.activate();	
+			scene._mapSrpgActorCommandWindow.show()
+		}
+		$gameTemp.mapSpiritAnimationDuration--;
+	}	
+	return true;
+}
+
+function GameState_pause_menu(){
+	GameState.call(this);
+}
+
+GameState_pause_menu.prototype = Object.create(GameState.prototype);
+GameState_pause_menu.prototype.constructor = GameState_pause_menu;
+
+GameState_pause_menu.prototype.update = function(scene){
+	if(!$gameTemp.deactivatePauseMenu){
+		scene.showPauseMenu();
+	}	
+}
 
 /***********************/

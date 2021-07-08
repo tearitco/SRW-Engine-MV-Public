@@ -8963,6 +8963,11 @@ SceneManager.reloadCharacters = function(startEvent){
 	};
 	
 	Spriteset_Map.prototype.createUpperLayer = function() {
+		
+		/*if($gameTemp.intermissionPending){
+			return;
+		}*/
+		
 		if (Graphics.isWebGL()) {
 			this._upperTilemap = new UpperShaderTileMap();
 		} else {
@@ -9095,9 +9100,9 @@ SceneManager.reloadCharacters = function(startEvent){
 	Spriteset_Map.prototype.createCharacters = function() {
 		var _this  = this;
 		this._characterLayerSprites = [];
-		if($gameTemp.intermissionPending){
+		/*if($gameTemp.intermissionPending){
 			return;
-		}
+		}*/
 			
 		this._bshadowSprites = {};
 		this._explosionSprites = {};
@@ -11631,91 +11636,8 @@ SceneManager.reloadCharacters = function(startEvent){
             _SRPG_SceneMap_updateCallMenu.call(this);
         }
     };
-
-    // マップの更新
-    var _SRPG_SceneMap_update = Scene_Map.prototype.update;
-    Scene_Map.prototype.update = function() {
-		var _this = this;
-		
-		//Soft Reset
-		if(!$gameSystem.isIntermission() && Input.isPressed("ok") && Input.isPressed("cancel") && Input.isPressed("pageup") && Input.isPressed("pagedown")){
-			Input.clear();
-			try {
-				JsonEx.parse(StorageManager.load("continue"));//check if the continue slot exists first by trying to parse it
-				DataManager.loadContinueSlot();
-			} catch(e){
-				
-			}			
-			return;
-		}		
-		
-		_SRPG_SceneMap_update.call(this);
-		
-		if(!$SRWGameState.update(this)) {
-			return;
-		}
-						
-		
-		
-		if($gameTemp.continueLoaded){
-			$gameTemp.continueLoaded = false;
-			$gameSystem.onAfterLoad();
-		}
-		
-		//Start first actor turn
-		if ($gameSystem.isBattlePhase() == "start_srpg"){
-			if (!$gameMap.isEventRunning()) {
-				$gameSystem.srpgStartActorTurn();
-			}
-		}
-		
-		//$gameSystem.isSubBattlePhase() !== 'normal' && $gameSystem.isSubBattlePhase() !== 'actor_target' && $gameSystem.isSubBattlePhase() !== 'actor_target_spirit' && $gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm'
-		if (!$SRWGameState.canShowSummaries()) {	
-			this._summaryWindow.hide();
-			this._terrainDetailsWindow.hide();
-		}		
-		
-		
-		if($gameTemp.OKHeld && !Input.isTriggered("ok")){
-			$gameTemp.OKHeld = false;
-		}		
-				
-		//console.log($gameSystem.isSubBattlePhase());
-		if($gameTemp.enemyAppearQueueIsProcessing){
-			$gameTemp.unitAppearTimer--;
-			if($gameTemp.unitAppearTimer <= 0){
-				if(!$gameTemp.enemyAppearQueue.length){
-					$gameTemp.enemyAppearQueueIsProcessing = false;
-				} else {
-					var current = $gameTemp.enemyAppearQueue.shift();
-					$gamePlayer.locate(current.posX(), current.posY());
-					current.isDoingAppearAnim = true;
-					current.isPendingDeploy = false;
-					var battlerArray = $gameSystem.EventToUnit(current.eventId());
-					var wait = 15;
-					/*if(battlerArray && battlerArray[1]){
-						var animInfo = $statCalc.getSpawnAnimInfo(battlerArray[1]);
-						wait+=animInfo.frames;
-					}*/
-					$gameTemp.unitAppearTimer = wait;
-				}				
-			}
-		}
-		
-		if($gameTemp.disappearQueueIsProcessing){
-			$gameTemp.unitAppearTimer--;
-			if($gameTemp.unitAppearTimer <= 0){
-				if(!$gameTemp.disappearQueue.length){
-					$gameTemp.disappearQueueIsProcessing = false;
-				} else {
-					var current = $gameTemp.disappearQueue.shift();
-					$gamePlayer.locate(current.posX(), current.posY());
-					current.isDoingDisappearAnim = true;
-					$gameTemp.unitAppearTimer = 15;
-				}				
-			}
-		}
-		
+	
+	Scene_Map.prototype.processMenuStack = function(){
 		var menuStack = $gameTemp.menuStack;
 		if($gameTemp.popMenu){
 			//console.log("Pop Menu " + $gameTemp.menuStack[menuStack.length-1]);
@@ -11791,13 +11713,32 @@ SceneManager.reloadCharacters = function(startEvent){
 				menuStack.push(menu);
 			}	
 			$gameTemp.pushMenu = null;	
+		}	
+	}
+
+    // マップの更新
+    var _SRPG_SceneMap_update = Scene_Map.prototype.update;
+    Scene_Map.prototype.update = function() {
+		var _this = this;
+		
+		//Soft Reset
+		if(!$gameSystem.isIntermission() && Input.isPressed("ok") && Input.isPressed("cancel") && Input.isPressed("pageup") && Input.isPressed("pagedown")){
+			Input.clear();
+			try {
+				JsonEx.parse(StorageManager.load("continue"));//check if the continue slot exists first by trying to parse it
+				DataManager.loadContinueSlot();
+			} catch(e){
+				
+			}			
+			return;
 		}		
 		
-		if($gameSystem.isSubBattlePhase() == "event_before_battle"){
-			
-		}
+		_SRPG_SceneMap_update.call(this);
+		
+		this.processMenuStack();
 		
 		if($gameSystem.isIntermission()){
+			$SRWGameState.requestNewState("intermission");
 			if(!this._intermissionWindowOpen){
 				$gameSystem.clearData();//make sure stage temp data is cleared when moving between stages
 				this._intermissionWindowOpen = true;
@@ -11820,6 +11761,77 @@ SceneManager.reloadCharacters = function(startEvent){
 				this._intermissionWindow.hide();
 			}
 		}
+		
+		if(!$SRWGameState.update(this)) {
+			return;
+		}
+						
+		
+		
+		if($gameTemp.continueLoaded){
+			$gameTemp.continueLoaded = false;
+			$gameSystem.onAfterLoad();
+		}
+		
+		//Start first actor turn
+		if ($gameSystem.isBattlePhase() == "start_srpg"){
+			if (!$gameMap.isEventRunning()) {
+				$gameSystem.srpgStartActorTurn();
+			}
+		}
+		
+		//$gameSystem.isSubBattlePhase() !== 'normal' && $gameSystem.isSubBattlePhase() !== 'actor_target' && $gameSystem.isSubBattlePhase() !== 'actor_target_spirit' && $gameSystem.isSubBattlePhase() !== 'actor_map_target_confirm'
+		if (!$SRWGameState.canShowSummaries()) {	
+			this._summaryWindow.hide();
+			this._terrainDetailsWindow.hide();
+		}		
+		
+		
+		if($gameTemp.OKHeld && !Input.isTriggered("ok")){
+			$gameTemp.OKHeld = false;
+		}		
+				
+		//console.log($gameSystem.isSubBattlePhase());
+		if($gameTemp.enemyAppearQueueIsProcessing){
+			$gameTemp.unitAppearTimer--;
+			if($gameTemp.unitAppearTimer <= 0){
+				if(!$gameTemp.enemyAppearQueue.length){
+					$gameTemp.enemyAppearQueueIsProcessing = false;
+				} else {
+					var current = $gameTemp.enemyAppearQueue.shift();
+					$gamePlayer.locate(current.posX(), current.posY());
+					current.isDoingAppearAnim = true;
+					current.isPendingDeploy = false;
+					var battlerArray = $gameSystem.EventToUnit(current.eventId());
+					var wait = 15;
+					/*if(battlerArray && battlerArray[1]){
+						var animInfo = $statCalc.getSpawnAnimInfo(battlerArray[1]);
+						wait+=animInfo.frames;
+					}*/
+					$gameTemp.unitAppearTimer = wait;
+				}				
+			}
+		}
+		
+		if($gameTemp.disappearQueueIsProcessing){
+			$gameTemp.unitAppearTimer--;
+			if($gameTemp.unitAppearTimer <= 0){
+				if(!$gameTemp.disappearQueue.length){
+					$gameTemp.disappearQueueIsProcessing = false;
+				} else {
+					var current = $gameTemp.disappearQueue.shift();
+					$gamePlayer.locate(current.posX(), current.posY());
+					current.isDoingDisappearAnim = true;
+					$gameTemp.unitAppearTimer = 15;
+				}				
+			}
+		}
+		
+			
+		
+		
+		
+		
 		if($gameSystem.isSubBattlePhase() === 'rearrange_deploys_init'){
 			$gameSystem.setSubBattlePhase('rearrange_deploys');
 			Input.update();
@@ -12082,82 +12094,6 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 		}
 		
-		if ($gameSystem.isSubBattlePhase() === 'pause_menu') {
-			if(!$gameTemp.deactivatePauseMenu){
-				this.showPauseMenu();
-			}			
-		}	
-		
-		if ($gameSystem.isSubBattlePhase() === 'map_spirit_animation') {
-			if($gameTemp.mapSpiritAnimationDelay > 0){
-				$gameTemp.mapSpiritAnimationDelay--;
-				return;
-			}
-			if(!$gameTemp.mapSpiritAnimationStarted){
-				$gameTemp.clearMoveTable();
-				var attack;
-				if($gameTemp.isEnemyAttack){
-					attack = $gameTemp.enemyAction.attack;
-				} else {
-					attack = $gameTemp.actorAction.attack;
-				}
-				var spiritInfo = $spiritManager.getSpiritDisplayInfo($gameTemp.queuedEffectSpiritId).animInfo;
-				
-				
-				$gameTemp.mapSpiritAnimationStarted = true;
-				$gameTemp.mapSpiritAnimationDuration = spiritInfo.duration || 60;
-				var activeEvent = $gameTemp.activeEvent();
-				var eventX = activeEvent.posX();
-				var eventY = activeEvent.posY();
-				var spritePosition = {
-					x: activeEvent.screenX(),//(eventX * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2),
-					y: activeEvent.screenY() - ($gameMap.tileWidth() / 2),//(eventY * $gameMap.tileWidth()) + ($gameMap.tileWidth() / 2)
-				};
-				/*if(!$gameTemp.tempSprites){
-					$gameTemp.tempSprites = [];
-				}
-				$gameTemp.tempSprites.push(new Sprite_MapEffect(spiritInfo, spritePosition));*/
-				$gameTemp.animCharacter = activeEvent;
-				activeEvent.requestAnimation(spiritInfo.animId);
-			} else {
-				if(!$gameTemp.animCharacter.isAnimationPlaying()){
-					$gameTemp.animCharacter = null;
-					$gameTemp.mapSpiritAnimationStarted = false;
-					//_this.srpgBattlerDeadAfterBattle();
-					$gameSystem.setSubBattlePhase("actor_command_window");
-					$gameSystem.setSrpgActorCommandWindowNeedRefresh($gameSystem.EventToUnit($gameTemp.activeEvent().eventId()));
-					this._mapSrpgActorCommandWindow.activate();	
-					this._mapSrpgActorCommandWindow.show()
-				}
-				$gameTemp.mapSpiritAnimationDuration--;
-			}				
-		}
-		
-		function updateMapAttackTargets(tiles, attack){
-			var targets = $statCalc.activeUnitsInTileRange(tiles || [], attack.ignoresFriendlies ? "enemy" : null);
-			var tmp = [];
-			for(var i = 0; i < targets.length; i++){
-				var terrain = $statCalc.getCurrentTerrain(targets[i]);					
-				var terrainRank = attack.terrain[terrain];
-				if(terrainRank != "-"){
-					tmp.push(targets[i]);
-				}
-			}
-			targets = tmp;
-			
-			return targets;
-		}	
-		
-
-		
-		
-		if ($gameSystem.isSubBattlePhase() === 'map_attack_animation') {
-							
-		}		
-		
-		if ($gameSystem.isSubBattlePhase() === 'process_map_attack_queue') {
-		
-		}		
     };
 	
 	Scene_Map.prototype.startMapAttackResultDisplay = function(){
