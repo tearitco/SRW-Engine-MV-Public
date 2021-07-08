@@ -1614,12 +1614,67 @@ function GameState_rewards_display(){
 GameState_rewards_display.prototype = Object.create(GameState.prototype);
 GameState_rewards_display.prototype.constructor = GameState_rewards_display;
 
+GameState_rewards_display.prototype.update = function(scene){
+	if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled() || ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
+		 $gameTemp.popMenu = true;			 
+		 if($gameTemp.rewardsInfo.levelResult.length){			
+			$gameSystem.setSubBattlePhase("level_up_display");
+			$gameTemp.awaitingLevelUpWindow = false;
+		
+		} else {				
+			scene.srpgPrepareNextAction();
+		}				
+	 }
+	 $gameTemp.rewardsDisplayTimer--;
+	 return true;
+}
+
 function GameState_level_up_display(){
 	GameState.call(this);
 }
 
 GameState_level_up_display.prototype = Object.create(GameState.prototype);
 GameState_level_up_display.prototype.constructor = GameState_level_up_display;
+
+GameState_level_up_display.prototype.update = function(scene){
+	if($gameTemp.awaitingLevelUpWindow){
+		if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()|| ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
+			$gameTemp.popMenu = true;			
+			if($gameTemp.rewardsInfo.levelResult.length){
+				$gameTemp.awaitingLevelUpWindow = false;
+			} else {
+				$gameTemp.rewardsInfo = {};					
+				scene.srpgPrepareNextAction();
+			}						
+		}
+	}	
+
+	if(!$gameTemp.awaitingLevelUpWindow){
+		$gameTemp.awaitingLevelUpWindow = true;
+		var currentResult = $gameTemp.rewardsInfo.levelResult.shift();
+		while($gameTemp.rewardsInfo.levelResult.length && !currentResult.details.hasLevelled){
+			currentResult = $gameTemp.rewardsInfo.levelResult.shift();
+		}					
+		if(currentResult && currentResult.details.hasLevelled){
+			$gameTemp.currentLevelResult = currentResult;
+			$gameTemp.rewardsDisplayTimer = 30;
+			
+			var se = {};
+			se.name = 'SRWLevelUp';
+			se.pan = 0;
+			se.pitch = 100;
+			se.volume = 80;
+			AudioManager.playSe(se);						
+			$gameTemp.pushMenu = "level_up";
+		} else {
+			$gameTemp.rewardsInfo = {};					
+			scene.srpgPrepareNextAction();
+		}					
+	} 
+	
+	$gameTemp.rewardsDisplayTimer--;
+	return true;
+}
 
 function GameState_map_spirit_animation(){
 	GameState.call(this);

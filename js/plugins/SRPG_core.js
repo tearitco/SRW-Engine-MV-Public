@@ -11410,15 +11410,6 @@ SceneManager.reloadCharacters = function(startEvent){
     Scene_Map.prototype.updateCallMenu = function() {
 		var _this = this;
         if ($gameSystem.isSRPGMode() == true) {
-	
-			
-			if($gameSystem.isSubBattlePhase() === 'process_death_queue'){
-				
-			}
-			
-			if($gameSystem.isSubBattlePhase() === 'process_death'){
-				
-			}
 			
 			if($gameSystem.isSubBattlePhase() === 'process_destroy_transform_queue'){
 				if($gameMap.isEventRunning()){
@@ -11456,66 +11447,10 @@ SceneManager.reloadCharacters = function(startEvent){
 			
 			
 			if ($gameSystem.isSubBattlePhase() === 'rewards_display') {
-				 if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled() || ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
-					 //this._rewardsWindow.close();
-					 $gameTemp.popMenu = true;	
-					 this._rewardsWindow.hide();
-					 this._rewardsWindow.deactivate();
-					 if($gameTemp.rewardsInfo.levelResult.length){
-						
-						$gameSystem.setSubBattlePhase("level_up_display");
-						$gameTemp.awaitingLevelUpWindow = false;
-						/*this._levelUpWindow.refresh();
-						this._levelUpWindow.show();
-						this._levelUpWindow.activate();		*/
-						
-					} else {
-						 //this.srpgPrepareNextAction();
-					}					 
-					return;
-				 }
-				 $gameTemp.rewardsDisplayTimer--;
+				
 			}
 			if ($gameSystem.isSubBattlePhase() === 'level_up_display') {				
-				if($gameTemp.awaitingLevelUpWindow){
-					if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()|| ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
-						$gameTemp.popMenu = true;
-						this._levelUpWindow.hide();
-						this._levelUpWindow.deactivate();
-						if($gameTemp.rewardsInfo.levelResult.length){
-							$gameTemp.awaitingLevelUpWindow = false;
-						} else {
-							$gameTemp.rewardsInfo = {};					
-							this.srpgPrepareNextAction();
-						}						
-					}
-				}	
-
-				if(!$gameTemp.awaitingLevelUpWindow){
-					$gameTemp.awaitingLevelUpWindow = true;
-					var currentResult = $gameTemp.rewardsInfo.levelResult.shift();
-					while($gameTemp.rewardsInfo.levelResult.length && !currentResult.details.hasLevelled){
-						currentResult = $gameTemp.rewardsInfo.levelResult.shift();
-					}					
-					if(currentResult && currentResult.details.hasLevelled){
-						$gameTemp.currentLevelResult = currentResult;
-						$gameTemp.rewardsDisplayTimer = 30;
-						
-						var se = {};
-						se.name = 'SRWLevelUp';
-						se.pan = 0;
-						se.pitch = 100;
-						se.volume = 80;
-						AudioManager.playSe(se);						
-						$gameTemp.pushMenu = "level_up";
-					} else {
-						$gameTemp.rewardsInfo = {};					
-						this.srpgPrepareNextAction();
-					}					
-				} 
 				
-				$gameTemp.rewardsDisplayTimer--;
-				return;
 			}
             if ($gameSystem.srpgWaitMoving() == true ||
                 $gameTemp.isAutoMoveDestinationValid() == true ||

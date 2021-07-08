@@ -39,11 +39,11 @@ Window_LevelUp.prototype.update = function() {
 	if(this.isOpen() && !this._handlingInput){	
 		
 		if(Input.isTriggered('ok')){
-			$gameTemp.popMenu = true;	
+			//$gameTemp.popMenu = true;	
 		}
 		if(Input.isTriggered('cancel')){				
 			//$gameTemp.popMenu = true;	
-			$gameTemp.popMenu = true;	
+			//$gameTemp.popMenu = true;	
 		}		
 		
 		this.refresh();
