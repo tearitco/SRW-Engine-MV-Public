@@ -73,8 +73,8 @@ function GameStateManager(){
 		normal: "GameState_normal", //OK
 		pause_menu: "GameState_pause_menu", //OK
 		post_move_command_window: "GameState_post_move_command_window", //OK
-		process_death: "GameState_process_death",
-		process_death_queue: "GameState_process_death_queue",
+		process_death: "GameState_process_death", //OK
+		process_death_queue: "GameState_process_death_queue", //OK
 		process_destroy_transform: "GameState_process_destroy_transform",
 		process_destroy_transform_queue: "GameState_process_destroy_transform_queue",
 		process_map_attack_queue: "GameState_process_map_attack_queue", //OK
@@ -1762,10 +1762,10 @@ GameState_process_death.prototype.update = function(scene){
 		
 		//scene._currentDeath.event.erase();
 		if (scene._currentDeath.actor.isActor()) {
-			var oldValue = $gameVariables.value(_existActorVarID);
+			var oldValue = $gameVariables.value(_existActorVarID) * 1;
 			$gameVariables.setValue(_existActorVarID, oldValue - 1);
 			
-			var oldValue = $gameVariables.value(_actorsDestroyed);
+			var oldValue = $gameVariables.value(_actorsDestroyed) * 1;
 			$gameVariables.setValue(_actorsDestroyed, oldValue + 1); 
 			
 			if(scene._currentDeath.event.isType() == "ship"){
@@ -1773,10 +1773,10 @@ GameState_process_death.prototype.update = function(scene){
 				$gameVariables.setValue(_existShipVarId, oldValue - 1); 	
 			}
 		} else {
-			var oldValue = $gameVariables.value(_existEnemyVarID);
+			var oldValue = $gameVariables.value(_existEnemyVarID) * 1;
 			$gameVariables.setValue(_existEnemyVarID, oldValue - 1);
 			
-			var oldValue = $gameVariables.value(_enemiesDestroyed);
+			var oldValue = $gameVariables.value(_enemiesDestroyed) * 1;
 			$gameVariables.setValue(_enemiesDestroyed, oldValue + 1);
 		}
 		

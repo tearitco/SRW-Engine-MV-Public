@@ -1885,6 +1885,7 @@ StatCalc.prototype.transform = function(actor, idx, force, forcedId){
 
 StatCalc.prototype.transformOnDestruction = function(actor, force){
 	if(this.isActorSRWInitialized(actor) && actor.isActor()){		
+		var subTwin = actor.subTwin;
 		var transformIntoId = actor.SRWStats.mech.destroyTransformInto;
 		var targetActorId = actor.SRWStats.mech.destroyTransformedActor;
 		
@@ -1906,6 +1907,10 @@ StatCalc.prototype.transformOnDestruction = function(actor, force){
 				}
 			}
 		}		
+		
+		if(subTwin){
+			actor.subTwin = subTwin;
+		}
 							
 		actor.initImages(actor.SRWStats.mech.classData.meta.srpgOverworld.split(","));
 		actor.event.refreshImage();							
