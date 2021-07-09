@@ -492,21 +492,24 @@ Window_BeforebattleTwin.prototype.update = function() {
 									$gameTemp.attackWindowCallback = function(attack){
 										$gameTemp.popMenu = true;	
 										$gameTemp.twinSupportAttack = {actor: supporter.actor.subTwin, action: {type: "attack", attack: attack}}
+										$gameTemp.allAttackSelectionRequired = false;
 										_this._currentSelection = 0;
 										_this.requestRedraw();	
 									};
 									$gameTemp.pushMenu = "attack_list";
 								} else {
+									$gameTemp.allAttackSelectionRequired = false;
 									$gameTemp.twinSupportAttack = null;
 									_this._currentSelection = 0;
 									_this.requestRedraw();	
 								}								
 							} else {
+								$gameTemp.allAttackSelectionRequired = false;
 								$gameTemp.twinSupportAttack = null;
 								_this._currentSelection = 0;
 								_this.requestRedraw();	
 							}
-							$gameTemp.allAttackSelectionRequired = false;						
+													
 						};	
 						$gameTemp.attackWindowCancelCallback = function(){
 							$gameTemp.allAttackSelectionRequired = false;
@@ -581,6 +584,8 @@ Window_BeforebattleTwin.prototype.update = function() {
 						} else {
 							$gameTemp.actorTwinAction.type = "attack";
 							$gameTemp.actorTwinAction.attack = attack;
+							$gameTemp.supportAttackSelected = -1;
+							$gameTemp.twinSupportAttack = null;
 							if(attack.isAll){
 								$gameTemp.currentTargetingSettings.actorTwin = "all";
 								allSelected = true;
@@ -603,18 +608,26 @@ Window_BeforebattleTwin.prototype.update = function() {
 				}
 				if(_this._currentActionSelection == 1){
 					if(_this._currentTwinTargetSelection == 0){
-						$gameTemp.actorAction.type = "defend";	
+						$gameTemp.actorAction.type = "defend";
+						$gameTemp.actorAction.attack = null;						
 					} else {
 						$gameTemp.actorTwinAction.type = "defend";	
+						$gameTemp.actorTwinAction.attack = null;
 					}	
+					$gameTemp.supportAttackSelected = -1;
+					$gameTemp.twinSupportAttack = null;
 					_this._currentUIState = "main_selection";
 				}
 				if(_this._currentActionSelection == 2){
 					if(_this._currentTwinTargetSelection == 0){
 						$gameTemp.actorAction.type = "evade";	
+						$gameTemp.actorAction.attack = null;	
 					} else {
-						$gameTemp.actorTwinAction.type = "evade";	
+						$gameTemp.actorTwinAction.type = "evade";
+						$gameTemp.actorTwinAction.attack = null;							
 					}	
+					$gameTemp.supportAttackSelected = -1;
+					$gameTemp.twinSupportAttack = null;
 					_this._currentUIState = "main_selection";
 				}
 			} else if(this._currentUIState == "actor_twin_target_selection"){

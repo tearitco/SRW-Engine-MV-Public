@@ -675,6 +675,11 @@
 	align-items: center;
 }
 
+#before_battle_ally_support_1.selected {
+	border-color: var(--text-color-highlight);
+    box-shadow: 0px 0px 1px 5px var(--text-color-highlight);
+}
+
 #before_battle_ally_support_2 {
 	position: absolute;
 	border: 0.1vw solid #FFFFFF;

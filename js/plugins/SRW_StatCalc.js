@@ -3263,12 +3263,15 @@ StatCalc.prototype.getCombinationWeaponParticipants = function(actor, weapon){
 
 StatCalc.prototype.isInComboParticipants = function(sourceActor, sourceAttack, targetActor){
 	let isInnerComboParticipant = false;
-	var comboParticipants = $statCalc.getCombinationWeaponParticipants(sourceActor, sourceAttack).participants || [];
-	var ctr = 0;
-	while(ctr < comboParticipants.length && !isInnerComboParticipant){
-		isInnerComboParticipant = comboParticipants[ctr] == targetActor;
-		ctr++;
+	if(sourceAttack){
+		var comboParticipants = $statCalc.getCombinationWeaponParticipants(sourceActor, sourceAttack).participants || [];
+		var ctr = 0;
+		while(ctr < comboParticipants.length && !isInnerComboParticipant){
+			isInnerComboParticipant = comboParticipants[ctr] == targetActor;
+			ctr++;
+		}
 	}
+	
 	return isInnerComboParticipant;
 }
 
@@ -3279,11 +3282,11 @@ StatCalc.prototype.isInnerComboParticipant = function(actor){
 	
 	if(actor.isSubTwin){
 		var mainActor = this.getMainTwin(actor);
-		if(mainActor == $gameTemp.currentBattleActor){		
+		if($gameTemp.actorAction){		
 			isInnerComboParticipant = this.isInComboParticipants(mainActor, $gameTemp.actorAction.attack, actor);
 		} 
 	} else if(actor.subTwin){
-		if(actor == $gameTemp.currentBattleActor){		
+		if($gameTemp.actorTwinAction){		
 			isInnerComboParticipant = this.isInComboParticipants(actor.subTwin, $gameTemp.actorTwinAction.attack, actor);
 		} 
 	} 
@@ -3310,7 +3313,7 @@ StatCalc.prototype.isComboAttackValidForSupport = function(actor, weapon){
 	
 	if(!isInnerComboParticipant){
 		 var participants = $statCalc.getCombinationWeaponParticipants(actor, weapon).participants || [];
-		 if(participants.indexOf($gameTemp.currentBattleActor) != -1){
+		 if(participants.indexOf($gameTemp.currentBattleActor) != -1 || participants.indexOf($gameTemp.currentBattleActor.subTwin) != -1){
 			 isInnerComboParticipant = true; //if the unit is attempting to do a combo attack with a main or sub twin but they're doing a different attack
 		 }
 	}	
