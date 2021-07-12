@@ -4,8 +4,10 @@ function importGlobal(exports){
 	});
 }
 
-import Windows from './Windows.js'
+import Windows from './Windows.js';
 
 importGlobal(Windows);
 Windows.patches.apply();
 
+import PluginCommands from './PluginCommands.js';
+PluginCommands.patches.apply();
