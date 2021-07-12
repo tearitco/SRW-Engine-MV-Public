@@ -11,3 +11,9 @@ Windows.patches.apply();
 
 import PluginCommands from './PluginCommands.js';
 PluginCommands.patches.apply();
+
+import GameTemp from './GameTemp.js';
+GameTemp.patches.apply();
+
+import GameSystem from './GameSystem.js';
+GameSystem.patches.apply();
