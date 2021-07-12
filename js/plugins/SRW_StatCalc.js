@@ -4459,6 +4459,12 @@ StatCalc.prototype.canRecoverHP = function(actor){
 	}
 }
 
+StatCalc.prototype.canRecoverSP = function(actor){
+	if(this.isActorSRWInitialized(actor)){			
+		var pilotStats = this.getCalculatedPilotStats(actor);
+		return pilotStats.currentSP < pilotStats.SP;			
+	}
+}
 
 StatCalc.prototype.addPP = function(actor, amount){		
 	if(this.isActorSRWInitialized(actor)){	

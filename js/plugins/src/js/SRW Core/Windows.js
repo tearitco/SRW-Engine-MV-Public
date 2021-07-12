@@ -453,7 +453,9 @@
 	};
 	
 	Window_SRWItemBattle.prototype.isEnabled = function(item) {
-		return true;
+		var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		var itemDef = $itemEffectManager.getAbilityDef(item.itemIdx);
+		return itemDef.isActiveHandler(actor);
 	};	
 	
 	function Window_SRWAbilityCommand() {

@@ -491,7 +491,7 @@ $SRWConfig.itemEffects = function(){
 			];
 		},
 		function(actor, level){
-			return true;
+			return $statCalc.canRecoverHP(actor);	
 		}
 	);
 	this.addDefinition(
@@ -506,7 +506,7 @@ $SRWConfig.itemEffects = function(){
 			];
 		},
 		function(actor, level){
-			return true;
+			return $statCalc.canRecoverEN(actor);	
 		}
 	);
 	this.addDefinition(
@@ -521,7 +521,7 @@ $SRWConfig.itemEffects = function(){
 			];
 		},
 		function(actor, level){
-			return true;
+			return $statCalc.canRecoverAmmo(actor);	
 		}
 	);
 	this.addDefinition(
@@ -538,7 +538,7 @@ $SRWConfig.itemEffects = function(){
 			];
 		},
 		function(actor, level){
-			return true;
+			return $statCalc.canRecoverHP(actor) || $statCalc.canRecoverEN(actor) || $statCalc.canRecoverAmmo(actor);
 		}
 	);
 	this.addDefinition(
@@ -553,7 +553,7 @@ $SRWConfig.itemEffects = function(){
 			];
 		},
 		function(actor, level){
-			return true;
+			return $statCalc.canRecoverSP(actor);	
 		}
 	);
 	this.addDefinition(
@@ -568,7 +568,7 @@ $SRWConfig.itemEffects = function(){
 			];
 		},
 		function(actor, level){
-			return true;
+			return $statCalc.canRecoverSP(actor);	
 		}
 	);
 	this.addDefinition(
