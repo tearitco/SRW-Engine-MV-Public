@@ -4,7 +4,8 @@ const path = require('path');
 module.exports = {
   entry: {
 	  SRW_Menus: './js/SRW Menus/main.js',
-	  SRW_BattleScene: './js/Battle Scene/main.js'
+	  SRW_BattleScene: './js/Battle Scene/main.js',
+	  SRW_Core: './js/SRW Core/main.js'
   },
   output: {
     filename: '[name].js',
