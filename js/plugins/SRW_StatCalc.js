@@ -981,10 +981,12 @@ StatCalc.prototype.reloadSRWStats = function(actor, lockAbilityCache){
 		var currentHP = actor.SRWStats.mech.stats.calculated.currentHP;
 		var currentEN = actor.SRWStats.mech.stats.calculated.currentEN;
 		var activeSpirits = this.getActiveSpirits(actor);
+		var mech = actor.SRWStats.mech;
 		this.initSRWStats(actor, null, null, false, true);
 		actor.SRWStats.pilot.stats.calculated.currentSP = currentSP;
 		actor.SRWStats.pilot.activeSpirits = activeSpirits;
 		
+		actor.SRWStats.mech = mech;
 		actor.SRWStats.mech.stats.calculated.currentHP = currentHP;
 		actor.SRWStats.mech.stats.calculated.currentEN = currentEN;
 	} else {
