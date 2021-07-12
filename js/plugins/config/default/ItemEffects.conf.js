@@ -492,6 +492,10 @@ $SRWConfig.itemEffects = function(){
 		},
 		function(actor, level){
 			return $statCalc.canRecoverHP(actor);	
+		},
+		{
+			type: "repair",
+			animId: "trust"
 		}
 	);
 	this.addDefinition(
@@ -507,6 +511,10 @@ $SRWConfig.itemEffects = function(){
 		},
 		function(actor, level){
 			return $statCalc.canRecoverEN(actor);	
+		},
+		{
+			type: "repair",
+			animId: "resupply"
 		}
 	);
 	this.addDefinition(
@@ -521,7 +529,11 @@ $SRWConfig.itemEffects = function(){
 			];
 		},
 		function(actor, level){
-			return $statCalc.canRecoverAmmo(actor);	
+			return $statCalc.canRecoverAmmo(actor);				
+		},
+		{
+			type: "spirit",
+			animId: "resupply"
 		}
 	);
 	this.addDefinition(
@@ -539,6 +551,10 @@ $SRWConfig.itemEffects = function(){
 		},
 		function(actor, level){
 			return $statCalc.canRecoverHP(actor) || $statCalc.canRecoverEN(actor) || $statCalc.canRecoverAmmo(actor);
+		},
+		{
+			type: "spirit",
+			animId: "resupply"
 		}
 	);
 	this.addDefinition(
@@ -554,6 +570,10 @@ $SRWConfig.itemEffects = function(){
 		},
 		function(actor, level){
 			return $statCalc.canRecoverSP(actor);	
+		},
+		{
+			type: "repair",
+			animId: "resupply"
 		}
 	);
 	this.addDefinition(
@@ -569,6 +589,10 @@ $SRWConfig.itemEffects = function(){
 		},
 		function(actor, level){
 			return $statCalc.canRecoverSP(actor);	
+		},
+		{
+			type: "repair",
+			animId: "resupply"
 		}
 	);
 	this.addDefinition(
@@ -646,6 +670,10 @@ $SRWConfig.itemEffects = function(){
 		},
 		function(actor, level){
 			return true;
+		},
+		{
+			type: "spirit",
+			animId: "miracle"
 		}
 	);
 	this.addDefinition(
@@ -661,6 +689,10 @@ $SRWConfig.itemEffects = function(){
 		},
 		function(actor, level){
 			return true;
+		},
+		{
+			type: "spirit",
+			animId: "drive"
 		}
 	);
 	this.addDefinition(

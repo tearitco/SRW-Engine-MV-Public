@@ -348,11 +348,13 @@ Window_SpiritActivation.prototype.update = function() {
 						
 						
 						var stats = $statCalc.getCalculatedMechStats(effectDef.parameters.target);
-							
-						var startPercent = Math.floor((effectDef.parameters.startAmount / effectDef.parameters.total) * 100);
-						var endPercent = Math.floor((effectDef.parameters.endAmount / effectDef.parameters.total) * 100);
-						_this.setMessage(effectDef.parameters.endAmount - effectDef.parameters.startAmount, "#227722");
-						_this.animateHP(_this._HPBar, _this._HPBarFill, startPercent, endPercent);						
+						
+						if(effectDef.parameters.total){
+							var startPercent = Math.floor((effectDef.parameters.startAmount / effectDef.parameters.total) * 100);
+							var endPercent = Math.floor((effectDef.parameters.endAmount / effectDef.parameters.total) * 100);
+							_this.setMessage(effectDef.parameters.endAmount - effectDef.parameters.startAmount, "#227722");
+							_this.animateHP(_this._HPBar, _this._HPBarFill, startPercent, endPercent);
+						}												
 						
 						setTimeout(function(){ 
 							_this.clearMessage();

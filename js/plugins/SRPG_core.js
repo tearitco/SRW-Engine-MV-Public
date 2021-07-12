@@ -11404,7 +11404,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		$statCalc.setConsumableUsed(actor, item.listIdx);
         $itemEffectManager.applyConsumable(actor, item.itemIdx);
         this._itemWindow.hide();
-		this._mapSrpgActorCommandWindow.setup(actor);
+		//this._mapSrpgActorCommandWindow.setup(actor);
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		$gameSystem.setSubBattlePhase('normal');
     };
 	
 

@@ -186,24 +186,63 @@ function ItemEffectManager(){
 ItemEffectManager.prototype = Object.create(AbilityManager.prototype);
 ItemEffectManager.prototype.constructor = ItemEffectManager;
 
+ItemEffectManager.prototype.addDefinition = function(idx, name, desc, hasLevel, isUnique, statmodHandler, isActiveHandler, consumableAnim){
+	var _this = this;
+
+	var rangeDef = function(){return {min: 0, max: 0, targets: "own"}};
+	
+	this._abilityDefinitions[idx] = {
+		name: name,
+		desc: desc,
+		hasLevel: hasLevel,
+		isUnique: isUnique,
+		statmodHandler: statmodHandler,
+		isActiveHandler: isActiveHandler,
+		consumableAnim: consumableAnim,
+		rangeDef: rangeDef
+	};
+	if(statmodHandler){
+		this._abilityDefinitions[idx].statmodHandler = statmodHandler;
+	} else {
+		this._abilityDefinitions[idx].statmodHandler = function(){return {}}
+	}
+	if(isActiveHandler){
+		this._abilityDefinitions[idx].isActiveHandler = isActiveHandler;
+	} else {
+		this._abilityDefinitions[idx].isActiveHandler = function(){return true;}
+	}	
+}
+
 ItemEffectManager.prototype.getIdPrefix = function(idx){
 	return "item";
 }
 
 ItemEffectManager.prototype.applyConsumable = function(actor, itemIdx){
+	
+	
 	var effectHandlers = {
 		"HP_recover": function(value){
+			var stats = $statCalc.getCalculatedMechStats(actor);
+			var oldHP = stats.currentHP;
 			$statCalc.recoverHPPercent(actor, value);
+			return {startAmount: oldHP, endAmount: $statCalc.getCalculatedMechStats(actor).currentHP, maxAmount: stats.maxHP};
 		},
 		"EN_recover": function(value){
+			var stats = $statCalc.getCalculatedMechStats(actor);
+			var oldVal = stats.currentEN;
 			$statCalc.recoverENPercent(actor, value);
+			return {startAmount: oldVal, endAmount: $statCalc.getCalculatedMechStats(actor).currentEN, maxAmount: stats.maxEN};
 		},
 		"ammo_recover": function(value){
 			$statCalc.recoverAmmoPercent(actor, value);
+			return {};
 		}
 		,
 		"SP_recover": function(value){
+			var stats = $statCalc.getCalculatedPilotStats(actor);
+			var oldVal = stats.currentSP;
 			$statCalc.recoverSP(actor, value);
+			return {startAmount: oldVal, endAmount: $statCalc.getCalculatedPilotStats(actor).currentSP, maxAmount: stats.SP};
 		},
 		"miracle": function(value){
 			$statCalc.modifyWill(actor, 10);
@@ -220,17 +259,40 @@ ItemEffectManager.prototype.applyConsumable = function(actor, itemIdx){
 			$statCalc.setSpirit(actor, "wall");
 			$statCalc.setSpirit(actor, "focus");
 			$statCalc.setSpirit(actor, "snipe");
+			return {};
 		},
 		"victory_turn": function(value){
 			$statCalc.setTempEffect(actor, "victory_turn");
+			return {};
 		}
 	};
 	var effects = this.getAbilityDef(itemIdx).statmodHandler();	
-	effects.forEach(function(effect){
+	var animInfo;
+	effects.forEach(function(effect){		
 		if(effectHandlers[effect.type]){
-			effectHandlers[effect.type](effect.value);
-		}
+			animInfo = effectHandlers[effect.type](effect.value);			
+		}		
 	});	
+	if(animInfo){
+		var consumableAnim = this.getAbilityDef(itemIdx).consumableAnim;
+		if(consumableAnim.type != "repair"){
+			animInfo.startAmount = 0;
+			animInfo.endAmount = 0;
+			animInfo.maxAmount = 0;
+		}
+		
+		var anim = {type: "repair", parameters: {animId: consumableAnim.animId, target: actor, startAmount: animInfo.startAmount || 0, endAmount: animInfo.endAmount || 0, total: animInfo.maxAmount || 0}};
+
+		$gameTemp.queuedActorEffects = [anim];	
+		$gameTemp.spiritTargetActor	= actor;
+		$gameSystem.setSubBattlePhase('spirit_activation');	
+		$gameTemp.pushMenu = "spirit_activation";	
+		$gameTemp.spiritWindowDoneHandler = function(){
+			$gameTemp.spiritWindowDoneHandler = null;
+			$gameTemp.popMenu = true;
+			$gameSystem.setSubBattlePhase('normal');	
+		}
+	} 
 }
 
 ItemEffectManager.prototype.initDefinitions = function(){
