@@ -17,3 +17,6 @@ GameTemp.patches.apply();
 
 import GameSystem from './GameSystem.js';
 GameSystem.patches.apply();
+
+import DataManagement from './DataManagement.js';
+DataManagement.patches.apply();

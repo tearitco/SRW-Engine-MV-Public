@@ -283,90 +283,6 @@ var _defaultPlayerSpeed = parameters['defaultPlayerSpeed'] || 4;
     	
 
 
-//==================================================================
-// ●Game_Action
-//====================================================================
-    // 予想ダメージの計算
-    Game_Action.prototype.srpgPredictionDamage = function(target) {
-        var item = this.item();
-        if (this.item().damage.type > 0) {
-            var baseValue = this.evalDamageFormula(target);
-        } else {
-            var baseValue = 0;
-        }
-        var value = baseValue * this.calcElementRate(target);
-        if (this.isPhysical()) {
-            value *= target.pdr;
-        }
-        if (this.isMagical()) {
-            value *= target.mdr;
-        }
-        if (baseValue < 0) {
-            value *= target.rec;
-        }
-        item.effects.forEach(function(effect) {
-            value -= this.srpgPredictionItemEffect(target, effect);
-        }, this);
-        return Math.round(value);
-    };
-
-    // エネミーアクションのインデックスを設定する
-    Game_Action.prototype.srpgPredictionItemEffect = function(target, effect) {
-        switch (effect.code) {
-        case Game_Action.EFFECT_RECOVER_HP:
-            var value = (target.mhp * effect.value1 + effect.value2) * target.rec;
-            if (this.isItem()) {
-                value *= this.subject().pha;
-            }
-            return Math.floor(value);
-        case Game_Action.EFFECT_RECOVER_MP:
-            var value = (target.mmp * effect.value1 + effect.value2) * target.rec;
-            if (this.isItem()) {
-                value *= this.subject().pha;
-            }
-            return Math.floor(value);
-        case Game_Action.EFFECT_GAIN_TP:
-            var value = Math.floor(effect.value1);
-            return Math.floor(value);
-        }
-        return 0;
-    };
-
-    // エネミーアクションのインデックスを設定する
-    Game_Action.prototype.setSrpgEnemySubject = function(index) {
-        this._subjectEnemyIndex = index;
-        this._subjectActorId = 0;
-    };
-
-    // 混乱状態でのターゲットを設定する
-    var _SRPG_Game_Action_confusionTarget = Game_Action.prototype.confusionTarget;
-    Game_Action.prototype.confusionTarget = function() {
-        if ($gameSystem.isSRPGMode() == true) {
-            if (this._targetIndex == 0) {
-                 return this.opponentsUnit().smoothTarget(this._targetIndex);
-            } else {
-                 return this.friendsUnit().smoothTarget(this._targetIndex);
-            }
-        } else {
-            _SRPG_Game_Action_confusionTarget.call(this);
-        }
-    };
-	
-	Game_Action.prototype.makeDamageValue = function(target, critical) {		
-		return $gameTemp.battleEffectCache[this._cacheReference].damageInflicted;			  
-    };
-	
-	Game_Action.prototype.itemHit = function(target) {  
-		return $gameTemp.battleEffectCache[this._cacheReference].hits;		
-    };
-	
-	Game_Action.prototype.itemCri = function(target) {  
-		return $gameTemp.battleEffectCache[this._cacheReference].inflictedCritical;		
-    };
-	//fixes a bug where a battle scene would sometimes be set up with invalid items, root cause still under investigation
-	Game_Action.prototype.isValid = function() {
-		return true;
-	}
 
 //==================================================================
 // ●Game_BattlerBase
@@ -6653,11 +6569,6 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._mechListWindow.close();
 		this.addWindow(this._mechListWindow);
 		this._mechListWindow.registerCallback("closed", function(){
-			/*if($gameTemp.isEnemyAttack){
-				_this._mapSrpgBattleWindow.activate();
-			} else {			
-				_this._mapSrpgActorCommandWindow.activate();
-			}  */
 			if($gameTemp.mechListWindowCancelCallback){
 				$gameTemp.mechListWindowCancelCallback();
 			}
@@ -6672,21 +6583,11 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._mechListDeployedWindow.close();
 		this.addWindow(this._mechListDeployedWindow);
 		this._mechListDeployedWindow.registerCallback("closed", function(){
-			/*if($gameTemp.isEnemyAttack){
-				_this._mapSrpgBattleWindow.activate();
-			} else {			
-				_this._mapSrpgActorCommandWindow.activate();
-			}  */
 			if($gameTemp.mechListWindowCancelCallback){
 				$gameTemp.mechListWindowCancelCallback();
 			}
 		});
 		this._mechListDeployedWindow.registerCallback("search_selected", function(actor){
-			/*if($gameTemp.isEnemyAttack){
-				_this._mapSrpgBattleWindow.activate();
-			} else {			
-				_this._mapSrpgActorCommandWindow.activate();
-			}  */
 			if($gameTemp.mechListWindowSearchSelectionCallback){
 				$gameTemp.mechListWindowSearchSelectionCallback(actor);
 			}
@@ -6946,11 +6847,6 @@ SceneManager.reloadCharacters = function(startEvent){
 			}
 		});
 		this._attackWindow.registerCallback("closed", function(){
-			/*if($gameTemp.isEnemyAttack){
-				_this._mapSrpgBattleWindow.activate();
-			} else {			
-				_this._mapSrpgActorCommandWindow.activate();
-			}  */
 			if($gameTemp.attackWindowCancelCallback){
 				$gameTemp.attackWindowCancelCallback();
 			}
@@ -8077,12 +7973,8 @@ SceneManager.reloadCharacters = function(startEvent){
 			$gameTemp.actorAction.attack = attack;
 			_this.startActorTargeting();
 		};		
-		$gameTemp.attackWindowCancelCallback = function(){
-			if($gameTemp.isEnemyAttack){
-				_this._mapSrpgBattleWindow.activate();
-			} else {			
-				_this._mapSrpgActorCommandWindow.activate();
-			} 
+		$gameTemp.attackWindowCancelCallback = function(){						
+			_this._mapSrpgActorCommandWindow.activate();			 
 		}
 		
 		$gameTemp.pushMenu = "attack_list";
@@ -8365,92 +8257,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		}        
     };
 
-    //スキルコマンド・決定
-    Scene_Map.prototype.onSkillOk = function() {
-        var skill = this._skillWindow.item();
-        var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
-        actor.action(0).setSkill(skill.id);
-        this._skillWindow.hide();
-        this.startActorTargeting();
-    };
-
-    //スキルコマンド・キャンセル
-    Scene_Map.prototype.onSkillCancel = function() {
-        this._skillWindow.hide();
-        this._mapSrpgActorCommandWindow.activate();
-    };
 	
-	Scene_Map.prototype.onAttackOk = function() {
-        var weapon = this._attackWindow.item();
-		$gameTemp.actorAction.type = "attack";  
-		$gameTemp.actorAction.attack = weapon;       
-        this._attackWindow.hide();		
-		if($gameTemp.isEnemyAttack){
-			this._mapSrpgPredictionWindow.refresh();
-			this._mapSrpgBattleWindow.refresh();
-			this._mapSrpgBattleWindow.activate();
-		} else {			
-			
-			this.startActorTargeting();
-		}           
-    };	
-	
-	Scene_Map.prototype.onAttackCancel = function() {
-		this._attackWindow.hide();
-		if($gameTemp.isEnemyAttack){
-			this._mapSrpgBattleWindow.activate();
-		} else {			
-			this._mapSrpgActorCommandWindow.activate();
-		}        
-    };
-	
-	Scene_Map.prototype.onCounterSelected = function() {
-        this._counterWindow.hide();
-        $gameTemp.actorAction.type = "attack";
-		/*
-		this._attackWindow.setActor($gameTemp.currentBattleActor);
-        this._attackWindow.setStypeId(this._mapSrpgActorCommandWindow.currentExt());
-        this._attackWindow.refresh();
-        this._attackWindow.show();
-        this._attackWindow.activate();*/
-	
-		$gameTemp.currentMenuUnit = {
-			actor: $gameTemp.currentBattleActor,
-			mech: $gameTemp.currentBattleActor.SRWStats.mech
-		};
-		$gameTemp.pushMenu = "attack_list";
-    };
-	
-	Scene_Map.prototype.onDefendSelected = function() {
-        this._counterWindow.hide();
-        $gameTemp.actorAction.type = "defend";
-		this._mapSrpgPredictionWindow.refresh();
-		this._mapSrpgBattleWindow.refresh();
-		this._mapSrpgBattleWindow.activate();
-    };
-	
-	Scene_Map.prototype.onEvadeSelected = function() {
-        this._counterWindow.hide();
-        $gameTemp.actorAction.type = "evade";
-		this._mapSrpgPredictionWindow.refresh();
-		this._mapSrpgBattleWindow.refresh();
-		this._mapSrpgBattleWindow.activate();
-    };
-	
-	Scene_Map.prototype.onCounterCancel = function() {
-        this._counterWindow.hide();
-		this._mapSrpgPredictionWindow.refresh();
-		this._mapSrpgBattleWindow.refresh();
-		this._mapSrpgBattleWindow.activate();
-    };
-    //アイテムコマンド・決定
-    Scene_Map.prototype.onItemOk = function() {
-        var item = this._itemWindow.item();
-        var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
-        actor.action(0).setItem(item.id);
-        this._itemWindow.hide();
-        this.startActorTargeting();
-    };
+   
 	
 	Scene_Map.prototype.onConsumableOk = function() {
         var item = this._itemWindow.item();		
@@ -8651,14 +8459,8 @@ SceneManager.reloadCharacters = function(startEvent){
     //戦闘開始コマンド・戦闘開始
     Scene_Map.prototype.commandBattleStart = function() {
         var actionArray = $gameSystem.srpgBattleWindowNeedRefresh()[1];
-		var targetArray = $gameSystem.srpgBattleWindowNeedRefresh()[2];
-		this._mapSrpgBattleWindow.hide();
-		this._mapSrpgPredictionWindow.hide();
-		this._mapSrpgTargetWindow.hide();      
-		this._mapSrpgActorCommandStatusWindow.hide();	
-		this._mapSrpgStatusWindow.hide();		
-        $gameSystem.clearSrpgStatusWindowNeedRefresh();
-        $gameSystem.clearSrpgBattleWindowNeedRefresh();
+		var targetArray = $gameSystem.srpgBattleWindowNeedRefresh()[2];			
+
         $gameSystem.setSubBattlePhase('invoke_action');
         this.srpgBattleStart(actionArray, targetArray);
     };
@@ -8672,15 +8474,10 @@ SceneManager.reloadCharacters = function(startEvent){
     Scene_Map.prototype.selectPreviousSrpgBattleStart = function() {
 		if(!$gameTemp.isEnemyAttack){		
 			var battlerArray = $gameSystem.srpgBattleWindowNeedRefresh()[1];
-			$gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh(battlerArray);
-			$gameSystem.clearSrpgStatusWindowNeedRefresh();
-			$gameSystem.clearSrpgBattleWindowNeedRefresh();
 			$gameTemp.setSrpgDistance(0);
 			$gameTemp.setSrpgSpecialRange(true);
 			$gameTemp.clearTargetEvent();
 			$gameSystem.setSubBattlePhase('actor_target');
-		} else {
-			this._mapSrpgBattleWindow.activate();
 		}
     };
 
@@ -10244,84 +10041,7 @@ SceneManager.reloadCharacters = function(startEvent){
 
 
 	
-//====================================================================
-// Save Management
-//====================================================================	
 
-	DataManager.loadGameWithoutRescue = function(savefileId) {
-		if (this.isThisGameFile(savefileId)) {
-			var json = StorageManager.load(savefileId);
-			this.createGameObjects();
-			this.extractSaveContents(JsonEx.parse(json));
-			this._lastAccessedId = savefileId;
-			//$gameSystem.setSrpgActors();
-			//$gameSystem.setSrpgEnemys();
-			if($gameSystem.isIntermission()){
-				$gameSystem.startIntermission();
-			} else {
-				$statCalc.softRefreshUnits();
-			}			
-			return true;
-		} else {
-			return false;
-		}
-	};
-
-	DataManager.makeSavefileInfo = function() {
-		var info = {};
-		info.globalId   = this._globalId;
-		info.title      = $gameSystem.saveDisplayName || $dataSystem.gameTitle;
-		info.characters = $gameParty.charactersForSavefile();
-		info.faces      = $gameParty.facesForSavefile();
-		info.playtime   = $gameSystem.playtimeText();
-		info.timestamp  = Date.now();
-		info.funds = $gameParty.gold();
-		info.SRCount = $SRWSaveManager.getSRCount();
-		info.turnCount =  $gameVariables.value(_turnCountVariable)
-		return info;
-	};
-	
-	DataManager.saveContinueSlot = function() {
-		var savefileId = "continue";
-		$gameSystem.onBeforeSave();
-		var json = JsonEx.stringify({date: Date.now(), content: this.makeSaveContents()});		
-		StorageManager.save(savefileId, json);
-		return true;
-	};
-	
-	DataManager.loadContinueSlot = function() {
-		try{
-			var savefileId = "continue";
-			var globalInfo = this.loadGlobalInfo();		
-			var json = StorageManager.load(savefileId);
-			this.createGameObjects();
-			this.extractSaveContents(JsonEx.parse(json).content);
-			$statCalc.softRefreshUnits();
-			SceneManager._scene.fadeOutAll()
-			SceneManager.goto(Scene_Map);
-			if($gameSystem._bgmOnSave){
-				$gameTemp.continueLoaded = true;
-			}			
-		} catch(e){
-			console.log("Attempted to load non existant continue save!");
-		}		
-		return true;		
-	};
-	
-	DataManager.latestSavefileDate = function() {
-		var globalInfo = this.loadGlobalInfo();
-		var savefileId = 1;
-		var timestamp = 0;
-		if (globalInfo) {
-			for (var i = 1; i < globalInfo.length; i++) {
-				if (this.isThisGameFile(i) && globalInfo[i].timestamp > timestamp) {
-					timestamp = globalInfo[i].timestamp;
-					savefileId = i;
-				}
-			}
-		}
-		return timestamp;
-	};	
 	
 	//patch the audio manager to suppress sound effects while events are being skipped
 	AudioManager.playSe = function(se) {
