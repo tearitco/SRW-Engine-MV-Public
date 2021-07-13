@@ -596,6 +596,8 @@ BattleSceneManager.prototype.createSpriterBg = function(name, position, size, al
 		material.useAlphaFromDiffuseTexture  = true;
 	}
 	
+	material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
+	
 	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
     material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	
@@ -773,7 +775,7 @@ BattleSceneManager.prototype.updateMainSprite = function(type, name, spriteConfi
 }
 
 BattleSceneManager.prototype.createSpriterSprite = function(name, path, position, flipX, animName){
-	var dynamicBgInfo = this.createSpriterBg(name+"_spriter", position, 10, 1, 0, flipX);
+	var dynamicBgInfo = this.createSpriterBg(name+"_spriter", position, 10, 1, 0, flipX, null, true);
 	dynamicBgInfo.renderer = new SpriterManager();
 	dynamicBgInfo.renderer.startAnimation(dynamicBgInfo, "img/SRWBattleScene/"+path, animName || "main");
 	this._spriterMainSpritesInfo.push(dynamicBgInfo);
