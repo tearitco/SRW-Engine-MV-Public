@@ -94,6 +94,16 @@ SRWEditor.prototype.init = function(){
 	};
 	
 	_this._commandDisplayInfo = {
+		fade_in_textbox: {
+			hasTarget: false,
+			params: [],
+			desc: "Fade in the textbox. No effect if the textbox is currently shown."
+		},
+		fade_out_textbox: {
+			hasTarget: false,
+			params: [],
+			desc: "Fade out the textbox."
+		},
 		effect_shockwave: {
 			hasTarget: false,
 			params: ["x_fraction", "y_fraction", "shockwave_intensity"],
@@ -141,7 +151,7 @@ SRWEditor.prototype.init = function(){
 		},
 		shake: {
 			hasTarget: true,
-			params: ["magnitude_x", "magnitude_y", "duration", "easingFunction", "easingMode"],
+			params: ["magnitude_x", "speed_x", "magnitude_y", "speed_y", "duration", "fadeInTicks", "fadeOutTicks"],
 			desc: "Shake the screen on the x and y axis with the specified magnitude."
 		},
 		/*set_camera_target: {
@@ -464,6 +474,10 @@ SRWEditor.prototype.init = function(){
 		y: "If 1 the object will be flipped along its y-axis.",
 		magnitude_x: "The severity of the shaking effect along the x-axis.",
 		magnitude_y: "The severity of the shaking effect along the y-axis.",
+		speed_x: "The speed of the shaking effect along the x-axis",
+		speed_y: "The speed of the shaking effect along the y-axis",
+		fadeInTicks: "The number of ticks the shake effect will ramp up for",
+		fadeOutTicks: "The number of ticks the shake effect will ramp down for",
 		startFade: "The initial opacity of the object, between 0-1.",
 		endFade: "The final opacity of the object, between 0-1.",
 		time: "The duration of the command in ticks.",
@@ -687,6 +701,18 @@ SRWEditor.prototype.init = function(){
 		
 		},
 		magnitude_y: function(value){
+		
+		},
+		speed_x: function(value){
+		
+		},
+		speed_y: function(value){
+		
+		},
+		fadeInTicks: function(value){
+		
+		},
+		fadeOutTicks: function(value){
 		
 		},
 		startFade: function(value){

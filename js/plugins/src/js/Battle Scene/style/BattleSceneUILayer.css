@@ -8,6 +8,11 @@
 	display: flex;
 	align-items: center;
 	color: #FFFFFF;
+	transition: background .25s ease-out;
+}
+
+#battle_scene_ui_layer_text_display.fadeOut {
+	background-color: rgba(255,255,255,0.1);
 }
 
 #battle_scene_ui_layer_text_display_name_and_content {	

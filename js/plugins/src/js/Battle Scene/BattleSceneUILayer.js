@@ -29,6 +29,14 @@ BattleSceneUILayer.prototype.initialize = function() {
 	});
 }
 
+BattleSceneUILayer.prototype.fadeOutTextBox = function(){
+	this._textDisplay.classList.add("fadeOut");
+}
+
+BattleSceneUILayer.prototype.fadeInTextBox = function(){
+	this._textDisplay.classList.remove("fadeOut");
+}
+
 BattleSceneUILayer.prototype.updateTwinDisplay = function(info){
 	this.resetDisplay();
 	this._allyStats.style.display = "";

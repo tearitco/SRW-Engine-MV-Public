@@ -1109,42 +1109,6 @@ SceneManager.reloadCharacters = function(startEvent){
     Scene_Map.prototype.updateCallMenu = function() {
 		var _this = this;
         if ($gameSystem.isSRPGMode() == true) {
-			
-           /* if ($gameSystem.srpgWaitMoving() == true ||
-                $gameTemp.isAutoMoveDestinationValid() == true ||
-                $gameSystem.isSubBattlePhase() === 'status_window' ||
-                $gameSystem.isSubBattlePhase() === 'battle_window' ||
-				//$gameSystem.isSubBattlePhase() === 'actor_command_window' ||
-				$gameSystem.isSubBattlePhase() === 'post_move_command_window' ||
-                $gameSystem.isBattlePhase() != 'actor_phase' ||				
-				$gameSystem.isSubBattlePhase() === 'process_death_queue' || 
-				$gameSystem.isSubBattlePhase() === 'process_death' || 
-				$gameSystem.isSubBattlePhase() === 'pause_menu' || 
-				$gameSystem.isSubBattlePhase() === 'event_before_battle' || 		
-				$gameSystem.isSubBattlePhase() === 'rewards_display' ||
-				$gameSystem.isSubBattlePhase() === 'level_up_display' ||
-				$gameSystem.isSubBattlePhase() === 'battle_basic' ||
-				$gameSystem.isSubBattlePhase() === 'spirit_activation' ||
-				$gameSystem.isSubBattlePhase() === 'after_battle'  ||
-				$gameSystem.isSubBattlePhase() === 'map_attack_animation' ||
-				$gameSystem.isSubBattlePhase() === 'process_map_attack_queue' ||
-				$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
-				$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
-				$gameSystem.isSubBattlePhase() === 'confirm_end_turn' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_attack' ||
-				$gameSystem.isSubBattlePhase() === 'enemy_range_display' ||
-				$gameSystem.isSubBattlePhase() === 'await_character_anim' ||
-				$gameSystem.isSubBattlePhase() === 'process_destroy_transform_queue'
-				
-				) {
-                this.menuCalling = false;
-                return;
-				
-				
-            }	*/	
-
 			if(!$SRWGameState.canUseMenu()){
 				 this.menuCalling = false;
 				return;
@@ -1158,12 +1122,6 @@ SceneManager.reloadCharacters = function(startEvent){
                     $gameSystem.getNextRActor();
                 }
             }
-			
-			if ($gameSystem.isSubBattlePhase() === 'twin_selection') {
-                
-            }/*else {
-                _SRPG_SceneMap_updateCallMenu.call(this);
-            }*/
         } else {
             _SRPG_SceneMap_updateCallMenu.call(this);
         }

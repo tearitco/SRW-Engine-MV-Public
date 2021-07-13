@@ -1236,8 +1236,17 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 				var currentTick = _this._currentAnimationTick - animation.startTick;
 				var t = (1 / animation.duration) * currentTick;
 				if(t <= 1){
-					targetObj.position.x = targetObj.realPosition.x + (Math.random() * animation.magnitude_x * 2) - animation.magnitude_x;		
-					targetObj.position.y = targetObj.realPosition.y + (Math.random() * animation.magnitude_y * 2) - animation.magnitude_y;		
+					//targetObj.position.x = targetObj.realPosition.x + (Math.random() * animation.magnitude_x * 2) - animation.magnitude_x;		
+					//targetObj.position.y = targetObj.realPosition.y + (Math.random() * animation.magnitude_y * 2) - animation.magnitude_y;	
+					var fade = 1;
+					if(currentTick < animation.fadeInTicks){
+						fade = currentTick / animation.fadeInTicks;
+					} else if(currentTick > (animation.duration - animation.fadeOutTicks)){
+						fade = (animation.duration - currentTick) / animation.fadeOutTicks;
+					}
+					
+					targetObj.position.x = targetObj.realPosition.x + Math.sin(currentTick * animation.speed_x) * animation.magnitude_x / 10 * fade;		
+					targetObj.position.y = targetObj.realPosition.y + Math.sin(currentTick * animation.speed_y) * animation.magnitude_y / 10 * fade;	
 				} else {
 					targetObj.position = targetObj.realPosition;
 					delete _this._shakeAnimations[animationId];
@@ -1508,13 +1517,17 @@ BattleSceneManager.prototype.registerFadeAnimation = function(targetObj, startFa
 }
 
 	
-BattleSceneManager.prototype.registerShakeAnimation = function(targetObj, magnitude_x, magnitude_y, startTick, duration){	
+BattleSceneManager.prototype.registerShakeAnimation = function(targetObj, magnitude_x, speed_x, magnitude_y, speed_y, startTick, duration, fadeInTicks, fadeOutTicks){	
 	this._shakeAnimations[this._shakeAnimationCtr++] = {		
 		targetObj: targetObj,
 		magnitude_x: magnitude_x,
+		speed_x: speed_x,
 		magnitude_y: magnitude_y,
+		speed_y: speed_y,
 		startTick: startTick,
-		duration: duration
+		duration: duration,
+		fadeInTicks: fadeInTicks,
+		fadeOutTicks: fadeOutTicks		
 	};
 }
 
@@ -1643,6 +1656,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 	
 	
 	var animationHandlers = {
+		fade_in_textbox: function(target, params){
+			_this._UILayerManager.fadeInTextBox();
+		},
+		fade_out_textbox: function(target, params){
+			_this._UILayerManager.fadeOutTextBox();
+		},
 		effect_shockwave: function(target, params){
 			var x_fraction = params.x_fraction;
 			if(_this._animationDirection == -1){
@@ -1765,7 +1784,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			var targetObj = getTargetObject(target);
 			if(targetObj){				
 				targetObj.realPosition = new BABYLON.Vector3().copyFrom(targetObj.position);
-				_this.registerShakeAnimation(targetObj, params.magnitude_x || 0, params.magnitude_y || 0, startTick, params.duration, params.easingFunction, params.easingMode);
+				_this.registerShakeAnimation(targetObj, params.magnitude_x || 0, params.speed_x || 1, params.magnitude_y || 0, params.speed_y || 1, startTick, params.duration, params.fadeInTicks || 0, params.fadeOutTicks || 0);
 			}			
 		},
 		set_camera_target: function(target, params){
@@ -3486,6 +3505,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this.setBgScrollRatio(1);
 	_this._UILayerManager.hideNoise();
 	_this._UILayerManager.resetTextBox();
+	_this._UILayerManager.fadeInTextBox();
 	_this._animationList = [];
 	_this._matrixAnimations = {};
 	_this._sizeAnimations = {};
