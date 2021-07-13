@@ -319,6 +319,40 @@
 			}
 			this.y = Math.max(eventY - this.windowHeight(), 0);
 		};
+		
+		//====================================================================
+		// ●Window_MenuCommand
+		//====================================================================
+			var _SRPG_Window_MenuCommand_makeCommandList = Window_MenuCommand.prototype.makeCommandList;
+			Window_MenuCommand.prototype.makeCommandList = function() {       
+				  
+			   // _SRPG_Window_MenuCommand_makeCommandList.call(this);
+			   
+			   if($gameSystem.isSRPGMode()){
+				   this.addTurnEndCommand();     
+				   this.addCommand(APPSTRINGS.MAPMENU.cmd_search, 'search', true);
+				   this.addCommand(APPSTRINGS.MAPMENU.cmd_list, 'unitList', true);
+				   this.addCommand(APPSTRINGS.MAPMENU.cmd_conditions, 'conditions', true);
+			   }
+			   
+			   this.addCommand(APPSTRINGS.MAPMENU.cmd_options, 'options');
+			   this.addCommand(APPSTRINGS.MAPMENU.cmd_save, 'save');
+			   this.addCommand(APPSTRINGS.MAPMENU.cmd_game_end, 'gameEnd');
+			};
+
+			Window_MenuCommand.prototype.addTurnEndCommand = function() {
+				this.addCommand(APPSTRINGS.MAPMENU.cmd_end_turn, 'turnEnd', true);
+			};
+
+			var _SRPG_Window_MenuCommand_isFormationEnabled = Window_MenuCommand.prototype.isFormationEnabled;
+			Window_MenuCommand.prototype.isFormationEnabled = function() {
+				/*if ($gameSystem.isSRPGMode() == true) {
+					return false;
+				} else {
+					return _SRPG_Window_MenuCommand_isFormationEnabled.call(this);
+				}*/
+				return false
+			};
 	}
 	
 	//A window that lists the counter/evade/defend options for the player when counter attacking

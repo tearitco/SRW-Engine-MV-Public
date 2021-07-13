@@ -23,3 +23,13 @@ DataManagement.patches.apply();
 
 import GameInterpreter from './GameInterpreter.js';
 GameInterpreter.patches.apply();
+
+import Sprites from './Sprites.js';
+importGlobal(Sprites);
+Sprites.patches.apply();
+
+import Map from './Map.js';
+Map.patches.apply();
+
+import Entities from './Entities.js';
+Entities.patches.apply();
