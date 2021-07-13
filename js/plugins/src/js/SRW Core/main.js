@@ -20,3 +20,6 @@ GameSystem.patches.apply();
 
 import DataManagement from './DataManagement.js';
 DataManagement.patches.apply();
+
+import GameInterpreter from './GameInterpreter.js';
+GameInterpreter.patches.apply();
