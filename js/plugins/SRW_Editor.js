@@ -154,6 +154,16 @@ SRWEditor.prototype.init = function(){
 			params: ["magnitude_x", "speed_x", "magnitude_y", "speed_y", "duration", "fadeInTicks", "fadeOutTicks"],
 			desc: "Shake the screen on the x and y axis with the specified magnitude."
 		},
+		set_opacity_texture: {
+			hasTarget: true,
+			params: ["path"],
+			desc: "Set an opacity texture for the target."
+		},
+		clear_opacity_texture: {
+			hasTarget: true,
+			params: [],
+			desc: "Clear any opacity texture the target currently has."
+		},
 		/*set_camera_target: {
 			hasTarget: true,
 			params: [],

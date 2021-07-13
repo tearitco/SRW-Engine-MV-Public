@@ -909,16 +909,18 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	}
 	material.diffuseTexture = new BABYLON.Texture("img/SRWBattleScene/"+path+".png", this._scene, false, true, sampleMode);
 	material.diffuseTexture.hasAlpha = true;
-	//material.useAlphaFromDiffuseTexture  = true;	
+	material.useAlphaFromDiffuseTexture  = true;	
 	
 	/*material.needDepthPrePass = true;
 	material.backFaceCulling = false;*/
 	
-	//material.opacityTexture = material.diffuseTexture;
+	//material.opacityTexture = new BABYLON.Texture("img/SRWBattleScene/Degrade.png", this._scene);
 	if(flipX){
 		material.diffuseTexture.uScale = -1;
 		material.diffuseTexture.uOffset = 1;
 	}	
+	
+	material.transparencyMode = BABYLON.Material.MATERIAL_ALPHATEST;
 	
 	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
@@ -1158,8 +1160,8 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 					if(animation.type == "translate"){
 						var hasValidSpline = false;
 						if(animation.catmullRom){
-							var pos1 = JSON.parse(JSON.stringify(animation.catmullRom.pos1));
-							var pos4 = JSON.parse(JSON.stringify(animation.catmullRom.pos4));
+							var pos1 = new BABYLON.Vector3(animation.catmullRom.pos1.x, animation.catmullRom.pos1.y, animation.catmullRom.pos1.z);
+							var pos4 =  new BABYLON.Vector3(animation.catmullRom.pos4.x, animation.catmullRom.pos4.y, animation.catmullRom.pos4.z);
 							
 							var pos1Valid = pos1 && pos1.x != "" && pos1.y != "" && pos1.z != "";
 							var pos4Valid = pos4 && pos4.x != "" && pos4.y != "" && pos4.z != "";
@@ -1656,6 +1658,18 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 	
 	
 	var animationHandlers = {
+		set_opacity_texture: function(target, params){
+			var targetObj = getTargetObject(target);
+			if(targetObj){
+				targetObj.material.opacityTexture = new BABYLON.Texture("img/SRWBattleScene/opacityTextures/"+params.path+".png", this._scene);
+			}
+		},
+		clear_opacity_texture: function(target, params){
+			var targetObj = getTargetObject(target);
+			if(targetObj){
+				targetObj.material.opacityTexture = null;
+			}
+		},
 		fade_in_textbox: function(target, params){
 			_this._UILayerManager.fadeInTextBox();
 		},
@@ -1745,9 +1759,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 					startPosition = targetObj.position;
 				}
 				var targetPosition = params.position || new BABYLON.Vector3(0,0,0);				
-				targetPosition = JSON.parse(JSON.stringify(targetPosition));
+				targetPosition = {x: targetPosition.x, y:  targetPosition.y, z: targetPosition.z};
 				if(params.relative == 1){
-					startPosition = JSON.parse(JSON.stringify(targetObj.position));					
+					startPosition = {x: targetObj.position.x, y:  targetObj.position.y, z: targetObj.position.z};				
 					targetPosition.x+=startPosition.x;
 					targetPosition.y+=startPosition.y;
 					targetPosition.z+=startPosition.z;
@@ -3746,6 +3760,11 @@ BattleSceneManager.prototype.preloadSceneAssets = function(){
 								dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/ske.json"] = true;
 								dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/tex.json"] = true;
 								dragonBonesResources["img/SRWBattleScene/dragonbones/"+params.path+"/tex.png"] = true;	
+							}
+							if(animCommand.type == "set_opacity_texture"){
+								var bg = _this.createSceneBg(animCommand.target+"_opacity_preload", "opacityTextures/"+params.path, new BABYLON.Vector3(0,0,-1000), 1, 1, 0);
+								promises.push(_this.getBgPromise(bg));
+								_this._animationBackgroundsInfo.push(bg);
 							}
 						});
 					});				
