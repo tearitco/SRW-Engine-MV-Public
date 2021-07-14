@@ -164,6 +164,11 @@ SRWEditor.prototype.init = function(){
 			params: [],
 			desc: "Clear any opacity texture the target currently has."
 		},
+		create_clone: {
+			hasTarget: true,
+			params: ["position", "name"],
+			desc: "Create a clone of the target with reference id name."
+		},
 		/*set_camera_target: {
 			hasTarget: true,
 			params: [],

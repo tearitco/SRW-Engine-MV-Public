@@ -2169,7 +2169,49 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.dispose();
 			}
 		},	
-		
+		create_clone: function(target, params){
+			var position;
+			if(params.position){
+				position = params.position;
+			} else {
+				position = new BABYLON.Vector3(0, 0, 0);
+			}
+			position = _this.applyAnimationDirection(position);
+			var targetObj = getTargetObject(target);
+			if(targetObj){
+				/*if(targetObj.parent_handle){
+					targetObj = targetObj.parent_handle;
+				}*/
+				
+				var originalObj = newObj; //debug
+				if(targetObj.parent_handle){
+					var spriteConfig = targetObj.spriteConfig;
+					var newObj;
+					if(targetObj.spriteConfig.type == "default"){
+						newObj = targetObj.clone();
+						newObj.material = newObj.material.clone();
+						newObj.name = params.name;						
+						newObj.setPivotMatrix(BABYLON.Matrix.Translation(-0, targetObj.spriteInfo.size.height/2, -0), false);
+					} else if(spriteConfig.type == "spriter"){
+						newObj = _this.createSpriterSprite(params.name, spriteConfig.path,  new BABYLON.Vector3(0, spriteConfig.yOffset, 0), false).sprite;		
+					} else if(spriteConfig.type == "dragonbones"){
+						newObj = _this.createDragonBonesSprite(params.name, spriteConfig.path, spriteConfig.armatureName, new BABYLON.Vector3(0, spriteConfig.yOffset, 0), false, spriteConfig.dragonbonesWorldSize, spriteConfig.canvasDims).sprite;
+					}
+					
+					newObj.material.diffuseTexture.uScale = targetObj.material.diffuseTexture.uScale;
+					newObj.material.diffuseTexture.uOffset = targetObj.material.diffuseTexture.uOffset;
+					
+					newObj.position = new BABYLON.Vector3(0, 0, 0);
+					newObj.parent_handle = _this.createBg(name, "", position, 0, 1, null, true);
+					newObj.parent = newObj.parent_handle;
+					newObj.parent.isVisible = false;
+					newObj = newObj.parent_handle;				
+				}
+				newObj.position = position;
+				
+				_this._animationBackgroundsInfo.push(newObj);
+			}			
+		},
 		create_spriter_bg: function(target, params){
 			var position;
 			if(params.position){
