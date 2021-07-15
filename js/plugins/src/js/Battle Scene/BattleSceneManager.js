@@ -1735,6 +1735,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			}
 			if(targetObj){
 				targetObj.position = _this.applyAnimationDirection(params.position || new BABYLON.Vector3(0,0,0));
+				targetObj.realPosition = new BABYLON.Vector3().copyFrom(targetObj.position);
 			}
 		},
 		rotate_to: function(target, params){
@@ -2198,6 +2199,8 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 						newObj = _this.createDragonBonesSprite(params.name, spriteConfig.path, spriteConfig.armatureName, new BABYLON.Vector3(0, spriteConfig.yOffset, 0), false, spriteConfig.dragonbonesWorldSize, spriteConfig.canvasDims).sprite;
 					}
 					
+					newObj.spriteConfig = targetObj.spriteConfig;
+					newObj.spriteInfo = targetObj.spriteInfo;
 					newObj.material.diffuseTexture.uScale = targetObj.material.diffuseTexture.uScale;
 					newObj.material.diffuseTexture.uOffset = targetObj.material.diffuseTexture.uOffset;
 					
