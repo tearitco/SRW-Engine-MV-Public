@@ -1491,14 +1491,14 @@
 					if(this._side == "actor"){ 
 						if(this._attacker.actor.isSubTwin && params.enemyTwin){
 							defenders.push(enemyInfo);
-						} else if(params.enemy){
+						} else if(params.enemy && enemyTwinInfo){
 							defenders.push(enemyTwinInfo);
 						}				
 					}
 					if(this._side == "enemy"){				
 						if(this._attacker.actor.isSubTwin && params.actorTwin){
 							defenders.push(actorInfo);
-						} else if(params.actor){
+						} else if(params.actor && actorTwinInfo){
 							defenders.push(actorTwinInfo);
 						}
 					}

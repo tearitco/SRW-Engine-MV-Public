@@ -927,9 +927,10 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	
-	material.specularColor = new BABYLON.Color3(0, 0, 0);
-	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
-	material.ambientColor = new BABYLON.Color3(0, 0, 0);
+	//material.specularColor = new BABYLON.Color3(0, 0, 0);
+	//material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+	//material.ambientColor = new BABYLON.Color3(0, 0, 0);
+	material.diffuseColor = new BABYLON.Color3(1, 1, 1);
 	if(typeof alpha != "undefined"){
 		material.alpha = alpha;
 	}	
@@ -1393,8 +1394,38 @@ BattleSceneManager.prototype.startScene = function(){
 	// Register a render loop to repeatedly render the scene
 	this._engine.stopRenderLoop();
 	this._scene.render();
+	
+	this._scene.onBeforeRenderObservable.add(() => {
+		var ratio = 1;
+		if(_this.isOKHeld){
+			ratio = 2;
+		}
+		this._effekseerInfo.forEach(function(effekInfo){
+			if(effekInfo.parent && effekInfo.handle){
+				effekInfo.handle.setLocation(
+					effekInfo.parent.position.x + effekInfo.offset.x, 
+					effekInfo.parent.position.y + effekInfo.offset.y, 
+					effekInfo.parent.position.z + effekInfo.offset.z
+				);
+				effekInfo.handle.setRotation(
+					effekInfo.parent.rotation.x + effekInfo.offsetRotation.x, 
+					effekInfo.parent.rotation.y + effekInfo.offsetRotation.y, 
+					effekInfo.parent.rotation.z + effekInfo.offsetRotation.z
+				);
+			}
+		});
+		
+		_this._effksContext.update(_this._engine.getDeltaTime() * 60 / 1000 * ratio);
+
+	})
+	this._scene.onAfterRenderObservable.add(() => {
+		_this._effksContext.setProjectionMatrix(_this._camera.getProjectionMatrix().m);
+		_this._effksContext.setCameraMatrix(BABYLON.Matrix.Invert(_this._camera.getWorldMatrix()).m);
+		_this._effksContext.draw();
+	});
+	
 	this._engine.runRenderLoop(function () {			
-		_this._fpsCounter.innerHTML = _this._engine.getFps().toFixed() + " fps";		
+		//_this._fpsCounter.innerHTML = _this._engine.getFps().toFixed() + " fps";		
 		
 		
 		_this._scene.render();
@@ -1402,11 +1433,11 @@ BattleSceneManager.prototype.startScene = function(){
 		var ratio = 1;
 		if(_this.isOKHeld){
 			ratio = 2;
-		}
+		}/*
 		_this._effksContext.update(_this._engine.getDeltaTime() * 60 / 1000 * ratio);		
 		_this._effksContext.setProjectionMatrix(_this._camera.getProjectionMatrix().m);
 		_this._effksContext.setCameraMatrix(BABYLON.Matrix.Invert(_this._camera.getWorldMatrix()).m);
-		_this._effksContext.draw();
+		_this._effksContext.draw();*/
 		
 		var tmp = [];
 		_this._spriterMainSpritesInfo.forEach(function(spriterBg){
@@ -1672,6 +1703,12 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.material.opacityTexture = null;
 			}
 		},
+		set_blend_color: function(target, params){
+			var targetObj = getTargetObject(target);
+			if(targetObj){
+				targetObj.material.diffuseColor = new BABYLON.Color3(params.r / 255, params.g / 255, params.b / 255);
+			}
+		},
 		fade_in_textbox: function(target, params){
 			_this._UILayerManager.fadeInTextBox();
 		},
@@ -1775,6 +1812,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		rotate: function(target, params){
 			var targetObj = getTargetObject(target);
 			if(targetObj){
+				if(targetObj.parent_handle){
+					targetObj = targetObj.parent_handle;
+				}
 				var startRotation;
 				if(params.startRotation){
 					startRotation = params.startRotation;
@@ -2145,7 +2185,17 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(params.alpha != "" && params.alpha != null){
 				alpha = params.alpha*1;
 			}
-			var bg = _this.createSceneBg(target, params.path, _this.applyAnimationDirection(position), params.size, alpha, params.billboardMode);
+			
+			var size = params.size;
+			var sizeParts = size.split(",");
+			if(sizeParts && sizeParts.length == 2){
+				size = {
+					width: sizeParts[0],
+					height: sizeParts[1]
+				}
+			} 
+			
+			var bg = _this.createSceneBg(target, params.path, _this.applyAnimationDirection(position), size, alpha, params.billboardMode);
 			if(params.rotation){
 				bg.rotation = _this.applyAnimationDirection(params.rotation);
 			}
@@ -2350,17 +2400,26 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(_this._animationDirection == -1){
 				rotation.y = rotation.y * 1 + Math.PI;
 			}
-			
 			var info;
 			var effect = _this._effksContext.loadEffect("effekseer/"+params.path+".efk", 1.0, function(){
-				// Play the loaded effect
-				
-				var handle = _this._effksContext.play(effect, position.x, position.y, position.z);
-				info.handle = handle;
+				// Play the loaded effect				
+				var handle = _this._effksContext.play(effect, position.x, position.y, position.z);				
 				handle.setSpeed(speed);
+				info.handle = handle;
 				handle.setRotation(rotation.x, rotation.y, rotation.z);
 			});
-			info = {name: target, effect: effect, context: _this._effksContext}
+			info = {name: target, effect: effect, context: _this._effksContext, offset: {x: position.x, y: position.y, z: position.z}, offsetRotation: {x: rotation.x, y: rotation.y, z: rotation.z}};
+			
+			if(params.parent){
+				var parentObj = getTargetObject(params.parent)
+				if(parentObj.parent_handle){
+					parentObj = parentObj.parent_handle;
+				}
+				if(parentObj){
+					info.parent = parentObj;
+				}				
+			}
+			
 			_this._effekseerInfo.push(info);			
 			effect.scale = scale;
 		},		
@@ -2473,9 +2532,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 				targetObj.material.diffuseTexture.hasAlpha = true;
 				//targetObj.material.useAlphaFromDiffuseTexture  = true;
 				
-				targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
-				targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
-				targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
+				//targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
+				//targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+				//targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
 				if(params.animationFrames){
 					params.animationDelay*=_this._animationTickDuration;
 					_this.registerBgAnimation(targetObj, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames*1, params.animationLoop*1, params.animationDelay, params.holdFrame*1);
@@ -2542,9 +2601,9 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 						targetObj.material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
 						targetObj.material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 						
-						targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
-						targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
-						targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
+						//targetObj.material.specularColor = new BABYLON.Color3(0, 0, 0);
+						//targetObj.material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+						//targetObj.material.ambientColor = new BABYLON.Color3(0, 0, 0);
 						
 						if(flipX){
 							targetObj.material.diffuseTexture.uScale = -1; 

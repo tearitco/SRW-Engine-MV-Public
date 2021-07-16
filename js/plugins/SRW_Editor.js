@@ -94,6 +94,11 @@ SRWEditor.prototype.init = function(){
 	};
 	
 	_this._commandDisplayInfo = {
+		set_blend_color: {
+			hasTarget: true,
+			params: ["r", "g", "b"],
+			desc: "Set the blend color for the target."
+		},
 		fade_in_textbox: {
 			hasTarget: false,
 			params: [],
@@ -321,7 +326,7 @@ SRWEditor.prototype.init = function(){
 		},	
 		play_effekseer: {
 			hasTarget: true,
-			params: ["path", "position", "scale", "speed", "rotation"],
+			params: ["path", "position", "scale", "speed", "rotation", "parent"],
 			desc: "Play a predefined effekseer effect."
 		},		
 		hide_effekseer: {
@@ -453,6 +458,9 @@ SRWEditor.prototype.init = function(){
 	
 	
 	_this._paramTooltips = {
+		r: "The red component of a color 0-255",
+		g: "The green component of a color 0-255",
+		b: "The blue component of a color 0-255",
 		x_fraction: "A screen space position defined by a percentage of the width of the screen.",
 		y_fraction: "A screen space position defined by a percentage of the height of the screen.",
 		shaderName: "The name of the shader effect to apply",
@@ -531,6 +539,15 @@ SRWEditor.prototype.init = function(){
 	}
 	
 	_this._paramDisplayHandlers = {
+		r: function(value){
+			
+		},
+		g: function(value){
+			
+		},
+		b: function(value){
+			
+		},
 		x_fraction: function(value){
 			
 		},
