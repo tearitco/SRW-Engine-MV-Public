@@ -74,6 +74,33 @@ This folder should contain the following:
 The Spriter Character must have animations defined with names that match the default poses(main, hurt, dodge, in, out).  
 Usage of animation commands is the same between regular and Spriter sprites.
 
+### Dragonbones Sprites
+
+The battle scene supports the use of animated characters created using dragonbones(http://dragonbones.com/en/index.html). The following info needs to be set in the class definition to make a class use a dragonbones sprite:
+
+* \<mechBattleSceneUseDragonBones:1\>: Indicate the class uses a dragonbones sprite
+* \<mechBattleSceneCanvasWidth: 1200\>: The width of the resolution at which the sprite will be rendered.
+* \<mechBattleSceneCanvasHeight: 1200\>: The height of the resolution at which the sprite will be rendered.
+* \<mechBattleSceneDragonBonesSize:5\>: The size to which the full sprite will be scaled when displayed in the battle scene in world units.
+* \<mechBattleYOffset: 0\>: A height offset for the sprite when displayed in the battle scene in world units.
+* \<mechBattleSceneArmatureName: Dragon\>: The name of the armature in the exported Dragonbones character that should be used.
+
+The dragonbones character must be set up with the matching Armature name defined in the class and it should at least have the following animations defined:
+
+* main: The idle pose for the character
+* in: The moving forward pose for the character
+* out: The moving backwards pose for the character
+* hurt: The taking damage pose for the character
+* hurt_end: The animation used to return the character from the damaged pose to the idle pose
+
+It can have any number of additional animations that can be called with the set\_sprite\_frame animation command by name.
+
+The assets for the dragonbones character should be stored in a folder called dragonbones in the SRWBattleScene folder for the class(Ex: img/SRWBattleScene/harold/dragonbones). The assets are the files obtained from exporting the dragonbones project and should have the following names:
+
+* ske.json
+* tex.json
+* tex.png
+
 ### Effekseer Support
 
 The Battle Scene supports displaying particle systems created using the freely available Effekseer(effekseer.github.io/en/) program, though with an important limitation: For technical reasons Effekseer particles systems can only be rendered on top of the rest of the Battle Scene. This means it is impossible to have an effekseer particle system behind any other element of the Battle Scene.
