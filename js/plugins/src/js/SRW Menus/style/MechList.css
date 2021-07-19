@@ -28,6 +28,21 @@
 	text-align: center;
 }
 
+#mech_list_control_page #prev_page{
+	transform: scaleX(-1);
+	width: 23%;
+    margin-right: auto;
+    filter: var(--white-filter);
+	cursor: pointer;
+}
+
+#mech_list_control_page #next_page{
+	width: 23%;
+    margin-left: auto;
+    filter: var(--white-filter);
+	cursor: pointer;
+}
+
 #mech_list_control_top_border {
 	border-top: 0.1vw solid #FFFFFF;
 	width: 90%;

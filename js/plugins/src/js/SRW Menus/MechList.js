@@ -17,6 +17,7 @@ export default function MechList(container, pages, unitProvider){
 	this.defineContent();
 	this._maxInfoPage = Object.keys(this._pageInfo).length;
 	this._sortDirection = 1;
+	this._touchObservers = {};
 }
 
 
@@ -1131,10 +1132,11 @@ MechList.prototype.redraw = function() {
 	
 	tableContent+="</div>";
 	
-	var start = this._currentPage * this._maxPageSize;
+	var pageOffset = this._currentPage * this._maxPageSize;
+	var start = pageOffset;
 	var end = Math.min(sortedViewData.length, (start + this._maxPageSize));
 	for(var i = start; i < end; i++){				
-		tableContent+="<div class='list_table_row scaled_height "+(_this.rowEnabled(sortedViewData[i]) ? "on" : "off")+" "+(i == this._currentSelection + (_this._currentPage * _this._maxPageSize) ? "selected" : "")+"'>";
+		tableContent+="<div data-idx='"+(i - pageOffset)+"' class='list_table_row scaled_height "+(_this.rowEnabled(sortedViewData[i]) ? "on" : "off")+" "+(i == this._currentSelection + (_this._currentPage * _this._maxPageSize) ? "selected" : "")+"'>";
 		
 		for(var j = 0; j < contentDef.content.length; j++){
 			tableContent+="<div class='list_table_block scaled_text'>";
@@ -1163,7 +1165,11 @@ MechList.prototype.redraw = function() {
 	if(maxPage < 1){
 		maxPage = 1;
 	}
-	this._pageDiv.innerHTML = (this._currentPage + 1)+"/"+maxPage;
+	var content = "";
+	content+="<img id='prev_page' src=svg/chevron_right.svg>";
+	content+=(this._currentPage + 1)+"/"+maxPage;
+	content+="<img id='next_page' src=svg/chevron_right.svg>";
+	this._pageDiv.innerHTML = content;
 	
 	var pageIndicatorContent = "";
 	var pageNumber = 1;
@@ -1183,4 +1189,40 @@ MechList.prototype.redraw = function() {
 		}				
 	}
 	this._pageIndicator.innerHTML = pageIndicatorContent;
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".list_table_row");
+	entries.forEach(function(entry){
+		entry.addEventListener("click",function(){		
+			var idx = this.getAttribute("data-idx"); 
+			if(idx != null){
+				idx*=1;
+				if(idx == _this._currentSelection){
+					_this.notifyTouchObserver("ok");				
+				} else {
+					_this._currentSelection = idx;
+					_this.redraw();
+					Graphics._updateCanvas();
+				}
+			}						
+		});		
+	});	
+	
+	windowNode.querySelector("#prev_page").addEventListener("click", function(){
+		_this.notifyTouchObserver("left");
+	});
+	
+	windowNode.querySelector("#next_page").addEventListener("click", function(){
+		_this.notifyTouchObserver("right");
+	});
+}
+
+MechList.prototype.registerTouchObserver = function(type, func) {
+	this._touchObservers[type] = func;
+}
+
+MechList.prototype.notifyTouchObserver = function(type) {
+	if(this._touchObservers[type]){
+		this._touchObservers[type]();
+	}
 }

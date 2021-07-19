@@ -60,6 +60,7 @@ Window_CSS.prototype.refresh = function() {
 		this._redrawRequested = false;
 		this.redraw();		
 	}
+	this._isValidTouchInteraction = false;
 	this.getWindowNode().style.display = this._visibility;
 }
 	
@@ -91,6 +92,7 @@ Window_CSS.prototype.createEntryList = function(node, listInfo, id) {
 			div.classList.add("disabled");
 		}
 		div.setAttribute("data-key", listInfo[i].key);
+		div.setAttribute("data-idx", i);
 		div.innerHTML = listInfo[i].name;
 		node.appendChild(div);
 	}
@@ -456,4 +458,13 @@ Window_CSS.prototype.getAnimTimeRatio = function() {
 		return 0.5;
 	}
 	return 1;
+}
+
+Window_CSS.prototype.resetTouchState = function(){
+	this._touchOK = false;
+	this._touchLeft = false;
+	this._touchRight = false;
+	this._touchUp = false;
+	this._touchDown = false;
+	this._touchCancel = false;
 }

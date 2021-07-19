@@ -330,7 +330,7 @@ Window_Intermission.prototype.update = function() {
 		   this._currentSelection--;
 		}				
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || (this._isValidTouchInteraction)){
 			if(this._internalHandlers[this._currentKey]){		
 				this._handlingInput = true; 
 				var isPrevented = this._internalHandlers[this._currentKey].call(this);
@@ -341,7 +341,7 @@ Window_Intermission.prototype.update = function() {
 				}
 			}
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			SoundManager.playCancel();
 			if(this._menuLevels.length > 1){
 				this._menuLevels.pop();
@@ -438,5 +438,21 @@ Window_Intermission.prototype.redraw = function() {
 			this._aceName.innerHTML = ace.name();
 		}		
 	}
+	
+	var windowNode = this.getWindowNode();
+	var menuEntries = windowNode.querySelectorAll(".menu_entry");
+	menuEntries.forEach(function(entry){
+		entry.addEventListener("click",function(){
+			var key = this.getAttribute("data-key");
+			if(_this._currentKey == key){
+				_this._isValidTouchInteraction = true;
+			} else {
+				_this._currentSelection = this.getAttribute("data-idx");
+			}
+			_this._currentKey = key;
+			_this.requestRedraw();
+		});		
+	});
+	
 	Graphics._updateCanvas();
 };	

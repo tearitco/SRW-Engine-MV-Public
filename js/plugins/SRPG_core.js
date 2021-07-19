@@ -22,7 +22,7 @@ const FILESYSTEM = require("fs");
 
 //disable touch support
 
-TouchInput.update = function() {}
+//TouchInput.update = function() {}
 
 var windowOffset = 0;
  

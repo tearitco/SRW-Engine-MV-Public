@@ -369,7 +369,7 @@ Window_DetailPages.prototype.update = function() {
 			}
 		}	
 		
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			SoundManager.playCancel();
 			if(this._uiState == "normal"){
 				$gameTemp.popMenu = true;	

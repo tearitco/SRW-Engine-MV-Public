@@ -2,6 +2,10 @@ body {
 	overflow: hidden;
 }
 
+#ErrorPrinter {
+	pointer-events: none;
+}
+
 :root {
 	--text-color-highlight: #f9e343;	
 	--text-color-highlight2: #43dbf9;

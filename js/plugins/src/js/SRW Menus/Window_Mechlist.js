@@ -29,6 +29,7 @@ Window_MechList.prototype.resetSelection = function(){
 }
 
 Window_MechList.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -57,6 +58,10 @@ Window_MechList.prototype.createComponents = function() {
 	
 	this._mechList = new MechList(this._listContainer, [0, 1, 2, 3]);
 	this._mechList.createComponents();
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	
 	this._detailBarMech = new DetailBarMech(this._detailContainer, this);
 	this._detailBarMech.createComponents();
 	this._detailBarPilot = new DetailBarPilot(this._detailPilotContainer, this);	
@@ -77,10 +82,10 @@ Window_MechList.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){			
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){			
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
@@ -106,7 +111,7 @@ Window_MechList.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			/*if(this._internalHandlers[this._currentKey]){
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
@@ -116,7 +121,7 @@ Window_MechList.prototype.update = function() {
 			$gameTemp.detailPageMode = "menu";
 			$gameTemp.pushMenu = "detail_pages";	
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			$gameTemp.listContext = "actor"; //lazy way to manage this as mech context is much rarer than actor context		
 			SoundManager.playCancel();		
 			$gameTemp.popMenu = true;
@@ -126,11 +131,15 @@ Window_MechList.prototype.update = function() {
 			}	
 		}		
 		
+		
+		this.resetTouchState();
+		
 		this.refresh();
 	}		
 };
 
 Window_MechList.prototype.redraw = function() {
+	var _this = this;
 	this._mechList.redraw();
 	this._detailBarMech.redraw();		
 	this._detailBarPilot.redraw();
@@ -142,6 +151,4 @@ Window_MechList.prototype.redraw = function() {
 		this._detailBarPilot.show();
 		this._detailBarMech.hide();
 	}
-
-	Graphics._updateCanvas();
 }
