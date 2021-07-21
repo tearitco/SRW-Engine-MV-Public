@@ -211,6 +211,7 @@ APPSTRINGS.MECHUPGRADES = {
 	label_generic_fub_accuracy: "Accuracy +10%",
 	label_generic_fub_movement: "Movement +1",
 	label_generic_fub_item_slot: "Item Slot +1",
+	label_apply: "OK"
 }
 
 APPSTRINGS.PILOTUPGRADES = {

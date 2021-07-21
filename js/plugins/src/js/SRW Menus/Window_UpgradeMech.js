@@ -211,7 +211,7 @@ Window_UpgradeMech.prototype.update = function() {
 			this._attackList.incrementPage();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			this.requestRedraw();
 			if(this._UIState == "upgrades"){
 				var cost = this.currentCost();					
@@ -252,14 +252,14 @@ Window_UpgradeMech.prototype.update = function() {
 				}	
 			}			
 		}
-		if(Input.isTriggered('cancel')){
+		if(Input.isTriggered('cancel')|| TouchInput.isCancelled()){
 			if(this._UIState == "upgrades"){
 				this.resetDeltas();
 				SoundManager.playCancel();
 				$gameTemp.popMenu = true;	
 			}			
 		}		
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };
@@ -316,7 +316,7 @@ Window_UpgradeMech.prototype.redraw = function() {
 		content+="<div class='upgrade_entry_current scaled_text'>"+calculatedStats[displayData.id]+"</div>";
 		content+="<div class='chevron_right scaled_width'><img src='svg/chevron_right.svg'></div>";
 		content+="<div class='upgrade_entry_new scaled_text'>"+(calculatedStats[displayData.id] + $statCalc.getMechStatIncrease(refData, [displayData.id], _this._currentUpgradeDeltas[displayData.id]))+"</div>";
-		content+="<div class='upgrade_entry_bar'>"+_this.createUpgradeBar(upgradeLevels[displayData.id], _this._currentUpgradeDeltas[displayData.id])+"</div>";
+		content+="<div class='upgrade_entry_bar'>"+_this.createUpgradeBar(upgradeLevels[displayData.id], _this._currentUpgradeDeltas[displayData.id], idx)+"</div>";
 		content+="</div>";
 		return content;
 	}	
@@ -327,7 +327,7 @@ Window_UpgradeMech.prototype.redraw = function() {
 	upgradeControlContent+="<div class='upgrade_entry_current scaled_text'>"+upgradeLevels.weapons+"</div>";
 	upgradeControlContent+="<div class='chevron_right scaled_width'><img src='svg/chevron_right.svg'></div>";
 	upgradeControlContent+="<div class='upgrade_entry_new scaled_text'>"+(upgradeLevels.weapons + this._currentUpgradeDeltas.weapons)+"</div>";
-	upgradeControlContent+="<div class='upgrade_entry_bar'>"+this.createUpgradeBar(upgradeLevels.weapons, this._currentUpgradeDeltas.weapons)+"</div>";
+	upgradeControlContent+="<div class='upgrade_entry_bar'>"+this.createUpgradeBar(upgradeLevels.weapons, this._currentUpgradeDeltas.weapons, 0)+"</div>";
 	upgradeControlContent+="</div>";
 	upgradeControlContent+="</div>";
 	upgradeControlContent+="<div class='stat_upgrade_container'>";	
@@ -354,7 +354,12 @@ Window_UpgradeMech.prototype.redraw = function() {
 	var remaining = $gameParty.gold() - this.currentCost();
 	fundDisplayContent+="<div class='fund_entry_value scaled_text "+(remaining < 0 ? "underflow" : "")+"'>"+remaining+"</div>";
 	fundDisplayContent+="</div>";
+	
+	
+	
+	fundDisplayContent+="<div id='btn_apply' class='disabled scaled_text'>"+APPSTRINGS.MECHUPGRADES.label_apply+"</div>";
 	fundDisplayContent+="</div>";
+	
 	
 	this._fundsDisplay.innerHTML = fundDisplayContent;
 	
@@ -375,7 +380,7 @@ Window_UpgradeMech.prototype.redraw = function() {
 	
 	function createGenericFUBEntry(idx, title, disabled){
 		var content = "";
-		content+="<div class='generic_fub_entry scaled_text "+(disabled ? "disabled" : "")+" "+(idx == _this._currentGenericFUBSelection ? "selected" : "")+"'>";
+		content+="<div data-idx='"+idx+"' class='generic_fub_entry scaled_text "+(disabled ? "disabled" : "")+" "+(idx == _this._currentGenericFUBSelection ? "selected" : "")+"'>";
 		content+=title;
 		content+="</div>";
 		return content;
@@ -403,6 +408,61 @@ Window_UpgradeMech.prototype.redraw = function() {
 	
 	var menuImagePath = $statCalc.getMenuImagePath(refData);
 	this._actorBattleImg.innerHTML = "<img src='img/"+menuImagePath+"'>";
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".upgrade_bar_part");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			var context = this.getAttribute("data-context");
+			var idx = this.getAttribute("data-idx");		
+
+			_this._currentSelection = context;
+			
+			var mechData = _this.getCurrentSelection();
+			var calculatedStats = mechData.stats.calculated;
+			var upgradeLevels = mechData.stats.upgradeLevels;
+			
+			var upgradeId = _this._upgradeTypes[context].id;
+			if(idx < $statCalc.getUnlockedUpgradeLevel() && idx >= upgradeLevels[upgradeId]){
+				if(_this._currentUpgradeDeltas[upgradeId] == idx - upgradeLevels[upgradeId] + 1){
+					_this._currentUpgradeDeltas[upgradeId] = 0;
+				} else {
+					_this._currentUpgradeDeltas[upgradeId] = idx - upgradeLevels[upgradeId] + 1;	
+				}							
+			}
+			
+			_this.requestRedraw();
+			Graphics._updateCanvas();
+		});
+	});
+	
+	windowNode.querySelector("#btn_apply").addEventListener("click", function(){
+		_this._touchOK = true;
+	});
+	
+	var cost = this.currentCost();					
+	if(cost > 0 && cost <= $gameParty.gold()){
+		windowNode.querySelector("#btn_apply").classList.remove("disabled");		
+	} else {
+		windowNode.querySelector("#btn_apply").classList.add("disabled");
+	}
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".generic_fub_entry");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			var idx = this.getAttribute("data-idx");	
+			if(_this._currentGenericFUBSelection == idx){
+				_this._touchOK = true;
+			} else {
+				_this._currentGenericFUBSelection = idx;
+				_this.requestRedraw();
+				Graphics._updateCanvas();
+			}
+		});
+	});
+	
+	
 	
 	Graphics._updateCanvas();
 }

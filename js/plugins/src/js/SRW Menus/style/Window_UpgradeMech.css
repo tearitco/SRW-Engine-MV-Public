@@ -80,29 +80,50 @@
 	height: 90%;
 }
 
-.fund_entry {
+#upgrade_mech #btn_apply {
+	width: 33%;
+    color: #FFFFFF;
+    border: 0.1vw solid #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 5%;
+    padding: 0.4%;
+    border-radius: 999px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 4.5%;
+    --fontsize: 2.4px;
+}
+
+#upgrade_mech #btn_apply.disabled {
+	color: #888888;
+	border: 0.1vw solid #FFFFFF;
+}
+
+#upgrade_mech .fund_entry {
 	display: flex;
 	align-items: flex-end;
 	width: 90%;
 	margin-left: 5%;
 	border-bottom: 0.1vw solid var(--underline-color);
-	height: 33%;
+	height: 25%;
 }
 
-.fund_entry:first {
+#upgrade_mech .fund_entry:first {
 	
 }
 
-.fund_entry_label {
+#upgrade_mech .fund_entry_label {
 	color: var(--text-color-highlight);
 }
 
-.fund_entry_value {
+#upgrade_mech .fund_entry_value {
 	color: #FFFFFF;
 	margin-left: auto;
 }
 
-.fund_entry_value.underflow {
+#upgrade_mech .fund_entry_value.underflow {
 	color: #FF0000;
 }
 
@@ -172,6 +193,7 @@
     left: 32.5%;
 	background-color: var(--section-bg-color-solid);
 	display: none;
+	z-index: 1;
 }
 
 .generic_fub_display.active {

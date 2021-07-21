@@ -189,7 +189,7 @@ Window_CSS.prototype.getMechDisplayData = function(unit) {
 	return unit.SRWStats.mech;
 }
 
-Window_CSS.prototype.createUpgradeBar = function(level, pending) {
+Window_CSS.prototype.createUpgradeBar = function(level, pending, context) {
 	var content = "";
 	var parts = $statCalc.getMaxUpgradeLevel();
 	var unlocked = $statCalc.getUnlockedUpgradeLevel();
@@ -203,7 +203,7 @@ Window_CSS.prototype.createUpgradeBar = function(level, pending) {
 		} else if(pending && i < (level + pending)) {
 			cssClass = "pending";
 		}
-		content+="<div class='upgrade_bar_part "+cssClass+"'>";
+		content+="<div data-context='"+context+"' data-idx='"+i+"' class='upgrade_bar_part "+cssClass+"'>";
 		content+="</div>";
 	}
 	content+="</div>";

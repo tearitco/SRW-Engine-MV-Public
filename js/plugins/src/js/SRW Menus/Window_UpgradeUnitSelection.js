@@ -19,6 +19,7 @@ Window_UpgradeUnitSelection.prototype.getCurrentSelection = function(){
 }
 
 Window_UpgradeUnitSelection.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -43,6 +44,10 @@ Window_UpgradeUnitSelection.prototype.createComponents = function() {
 
 	this._mechList = new MechList(this._listContainer, [0, 4]);
 	this._mechList.createComponents();
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	
 	this._DetailBarMechUpgrades = new DetailBarMechUpgrades(this._detailContainer, this);
 }	
 
@@ -60,10 +65,10 @@ Window_UpgradeUnitSelection.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
@@ -89,16 +94,16 @@ Window_UpgradeUnitSelection.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			SoundManager.playOk();
 			$gameTemp.currentMenuUnit = this.getCurrentSelection();
 			$gameTemp.pushMenu = "upgrade_mech";
 		}
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			SoundManager.playCancel();		
 			$gameTemp.popMenu = true;	
 		}		
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };
