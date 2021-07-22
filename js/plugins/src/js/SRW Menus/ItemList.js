@@ -127,7 +127,7 @@ ItemList.prototype.redraw = function() {
 		
 			
 		
-		listContent+="<div class='item_list_row "+(current.idx == this.getCurrentSelection().idx ? "selected" : "")+"'>";
+		listContent+="<div data-idx='"+(i - (this._currentPage * this._maxPageSize))+"' class='item_list_row "+(current.idx == this.getCurrentSelection().idx ? "selected" : "")+"'>";
 		
 		if(current.idx == -1){		
 			listContent+="<div class='item_list_block scaled_text'>Unequip</div>";
@@ -179,6 +179,36 @@ ItemList.prototype.redraw = function() {
 	if(maxPage < 1){
 		maxPage = 1;
 	}
-	this._pageDiv.innerHTML = (this._currentPage + 1)+"/"+maxPage;
-
+	var content = "";
+	content+="<img id='prev_page' src=svg/chevron_right.svg>";
+	content+=(this._currentPage + 1)+"/"+maxPage;
+	content+="<img id='next_page' src=svg/chevron_right.svg>";
+	this._pageDiv.innerHTML = content;
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".item_list_row");
+	entries.forEach(function(entry){
+		entry.addEventListener("click",function(){		
+			var idx = this.getAttribute("data-idx"); 
+			if(idx != null){
+				idx*=1;
+				if(idx == _this._currentSelection){
+					_this.notifyTouchObserver("ok");				
+				} else {
+					_this._currentSelection = idx;
+					_this.redraw();
+					_this.notifyObserver("redraw");
+					Graphics._updateCanvas();
+				}
+			}						
+		});		
+	});	
+	
+	windowNode.querySelector("#prev_page").addEventListener("click", function(){
+		_this.notifyTouchObserver("left");
+	});
+	
+	windowNode.querySelector("#next_page").addEventListener("click", function(){
+		_this.notifyTouchObserver("right");
+	});
 }

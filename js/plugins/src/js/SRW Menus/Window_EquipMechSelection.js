@@ -40,6 +40,7 @@ Window_EquipMechSelection.prototype.getCurrentSelection = function(){
 }
 
 Window_EquipMechSelection.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -65,6 +66,11 @@ Window_EquipMechSelection.prototype.createComponents = function() {
 	this._mechList = new MechList(this._listContainer, [10], this); //
 	//this._mechList.setUnitModeActor();
 	this._mechList.createComponents();
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._mechList.registerObserver("redraw", function(){_this.requestRedraw();});
+	
 	this._mechList.setMaxPageSize(4);
 	this._detailBarMechDetail = new DetailBarMechDetail(this._detailContainer, this);
 	this._detailBarMechDetail.createComponents();
@@ -84,10 +90,10 @@ Window_EquipMechSelection.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
@@ -113,16 +119,16 @@ Window_EquipMechSelection.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			SoundManager.playOk();
 			$gameTemp.currentMenuUnit = this.getCurrentSelection();
 			$gameTemp.pushMenu = "equip_item";
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			SoundManager.playCancel();
 			$gameTemp.popMenu = true;	
 		}		
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };

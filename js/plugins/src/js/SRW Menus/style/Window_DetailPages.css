@@ -5,6 +5,7 @@
 
 #detail_pages .tab_button {
 	top: 3%;
+	z-index: 2;
 }
 
 #detail_pages .tab_button.selected {

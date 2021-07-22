@@ -18,6 +18,7 @@ export default function MechList(container, pages, unitProvider){
 	this._maxInfoPage = Object.keys(this._pageInfo).length;
 	this._sortDirection = 1;
 	this._touchObservers = {};
+	this._observers = {};
 }
 
 
@@ -1202,6 +1203,7 @@ MechList.prototype.redraw = function() {
 				} else {
 					_this._currentSelection = idx;
 					_this.redraw();
+					_this.notifyObserver("redraw");
 					Graphics._updateCanvas();
 				}
 			}						
@@ -1217,12 +1219,3 @@ MechList.prototype.redraw = function() {
 	});
 }
 
-MechList.prototype.registerTouchObserver = function(type, func) {
-	this._touchObservers[type] = func;
-}
-
-MechList.prototype.notifyTouchObserver = function(type) {
-	if(this._touchObservers[type]){
-		this._touchObservers[type]();
-	}
-}

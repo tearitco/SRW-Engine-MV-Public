@@ -90,7 +90,8 @@ APPSTRINGS.MAPMENU = {
 	label_enemy: "Enemy",
 	label_ally: "Ally",
 	deploy: "Deploy",
-	board: "Board"
+	board: "Board",
+	cmd_status: "Status"
 }
 
 APPSTRINGS.MECHSTATS = {

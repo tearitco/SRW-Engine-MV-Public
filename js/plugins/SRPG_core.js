@@ -827,7 +827,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._mapSrpgActorCommandWindow.setHandler('swap', this.swapActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('separate', this.separateActorMenuCommand.bind(this));
 		this._mapSrpgActorCommandWindow.setHandler('join', this.joinActorMenuCommand.bind(this));		
-		
+		this._mapSrpgActorCommandWindow.setHandler('status', this.statusActorMenuCommand.bind(this));	
 		
         this._mapSrpgActorCommandWindow.setHandler('cancel', this.cancelActorMenuCommand.bind(this));
 		$gameTemp.actorCommandPosition = -1;
@@ -2132,6 +2132,23 @@ SceneManager.reloadCharacters = function(startEvent){
 		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('normal');
     };	
+	
+	Scene_Map.prototype.statusActorMenuCommand = function() { 
+		$gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+		var unit = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+		$gameTemp.detailPagesWindowCancelCallback = function(){
+			$gameTemp.detailPagesWindowCancelCallback = null;
+			$gameSystem.setSubBattlePhase('normal');
+		};
+		$gameTemp.currentMenuUnit = {
+			actor: unit,
+			mech: unit.SRWStats.mech
+		};
+		$gameTemp.detailPageMode = "map";
+		$gameSystem.setSubBattlePhase('enemy_unit_summary');
+		$statCalc.invalidateAbilityCache();
+		$gameTemp.pushMenu = "detail_pages";
+	}
 	
 	Scene_Map.prototype.joinActorMenuCommand = function() {   
 		//$statCalc.separate($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);

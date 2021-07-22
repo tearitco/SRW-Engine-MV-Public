@@ -11,6 +11,7 @@ Window_CSS.prototype.initialize = function() {
 	this._redrawRequested = false;
 	this._callbacks = {};
 	this.createComponents();
+	
 }
 
 Window_CSS.prototype.destroy = function() {
@@ -467,4 +468,34 @@ Window_CSS.prototype.resetTouchState = function(){
 	this._touchUp = false;
 	this._touchDown = false;
 	this._touchCancel = false;
+	this._touchL2 = false;
+	this._touchR2 = false;
+	this._touchL1 = false;
+	this._touchR1 = false;
+}
+
+Window_CSS.prototype.registerTouchObserver = function(type, func) {
+	if(!this._touchObservers){
+		this._touchObservers = {};
+	}	
+	this._touchObservers[type] = func;
+}
+
+Window_CSS.prototype.notifyTouchObserver = function(type) {
+	if(this._touchObservers && this._touchObservers[type]){
+		this._touchObservers[type]();
+	}
+}
+
+Window_CSS.prototype.registerObserver = function(type, func) {
+	if(!this._observers){
+		this._observers = {};
+	}
+	this._observers[type] = func;
+}
+
+Window_CSS.prototype.notifyObserver = function(type) {
+	if(this._observers && this._observers[type]){
+		this._observers[type]();
+	}
 }

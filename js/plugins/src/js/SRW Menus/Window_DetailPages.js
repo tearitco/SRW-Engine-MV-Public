@@ -57,6 +57,7 @@ Window_DetailPages.prototype.getCurrentSelection = function(){
 }
 
 Window_DetailPages.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -166,6 +167,10 @@ Window_DetailPages.prototype.createComponents = function() {
 	this._pilotStatsTabButton.innerHTML = APPSTRINGS.DETAILPAGES.label_pilot_ability;
 	windowNode.appendChild(this._pilotStatsTabButton);
 	this._tabInfo[0].button = this._pilotStatsTabButton;
+	this._pilotStatsTabButton.addEventListener("click", function(){
+		_this._selectedTab = 0;
+		_this.requestRedraw();
+	});
 	
 	this._mechStatsTabButton = document.createElement("div");	
 	this._mechStatsTabButton.classList.add("tab_button");	
@@ -174,6 +179,10 @@ Window_DetailPages.prototype.createComponents = function() {
 	this._mechStatsTabButton.innerHTML = APPSTRINGS.DETAILPAGES.label_mech_ability;
 	windowNode.appendChild(this._mechStatsTabButton);
 	this._tabInfo[1].button = this._mechStatsTabButton;
+	this._mechStatsTabButton.addEventListener("click", function(){
+		_this._selectedTab = 1;
+		_this.requestRedraw();
+	});
 	
 	this._weaponsTabButton = document.createElement("div");	
 	this._weaponsTabButton.classList.add("tab_button");	
@@ -182,6 +191,10 @@ Window_DetailPages.prototype.createComponents = function() {
 	this._weaponsTabButton.innerHTML = APPSTRINGS.DETAILPAGES.label_weapon_info;
 	this._tabInfo[2].button = this._weaponsTabButton;
 	windowNode.appendChild(this._weaponsTabButton);
+	this._weaponsTabButton.addEventListener("click", function(){
+		_this._selectedTab = 2;
+		_this.requestRedraw();
+	});
 	
 	this._descriptionContainer = document.createElement("div");
 	this._descriptionContainer.classList.add("description_container");
@@ -192,6 +205,7 @@ Window_DetailPages.prototype.createComponents = function() {
 }	
 
 Window_DetailPages.prototype.update = function() {
+	var _this = this;
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
@@ -258,7 +272,7 @@ Window_DetailPages.prototype.update = function() {
 			}		
 		}
 		
-		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger')){
+		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger') || this._touchL2){
 			this.requestRedraw();
 			//if($gameTemp.detailPageMode == "map"){
 				var subPilots = $statCalc.getSubPilots($gameTemp.currentMenuUnit.actor);
@@ -281,7 +295,7 @@ Window_DetailPages.prototype.update = function() {
 				
 			//}
 			
-		} else if (Input.isTriggered('right_trigger') || Input.isRepeated('right_trigger')) {
+		} else if (Input.isTriggered('right_trigger') || Input.isRepeated('right_trigger') || this._touchR2) {
 			this.requestRedraw();
 			//if($gameTemp.detailPageMode == "map"){
 				var subPilots = $statCalc.getSubPilots($gameTemp.currentMenuUnit.actor);
@@ -301,7 +315,7 @@ Window_DetailPages.prototype.update = function() {
 		}
 		
 		if(this._uiState == "normal"){
-			if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
+			if(Input.isTriggered('pageup') || Input.isRepeated('pageup') || _this._touchL1){
 				this.requestRedraw();
 				if($gameTemp.detailPageMode == "map"){
 					if($gameTemp.currentMenuUnit.actor.isSubTwin){
@@ -324,7 +338,7 @@ Window_DetailPages.prototype.update = function() {
 				}
 				this._subPilotIdx = 0;
 				
-			} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
+			} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown') || _this._touchR1) {
 				this.requestRedraw();
 				if($gameTemp.detailPageMode == "map"){
 					if($gameTemp.currentMenuUnit.actor.isSubTwin){
@@ -382,7 +396,7 @@ Window_DetailPages.prototype.update = function() {
 				this._uiState = "normal";
 			}			
 		}				
-		
+		this.resetTouchState();
 		this.validateTab();		
 		this.refresh();
 	}		
@@ -623,6 +637,22 @@ Window_DetailPages.prototype.drawPilotStats1 = function() {
 			}
 			
 		}
+		
+		selectionIcon.addEventListener("click", function(){
+			var direction;
+			if(offset == -1){
+				direction = "L";
+			} else {
+				direction = "R";
+			}
+			var btnType;
+			if(type == "twin"){
+				btnType = "1";
+			} else {
+				btnType = "2";
+			}
+			_this["_touch"+direction+btnType] = true;
+		});
 	});
 }
 
@@ -700,6 +730,7 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 	detailContent+="</div>";
 	
 	detailContent+="<div class='ability_block_row scaled_height'>";
+	var descriptionCounter = 0;
 	var rowCounter = 0;
 	for(var i = 0; i < 6; i++){
 		if(rowCounter >= 2){
@@ -811,6 +842,7 @@ Window_DetailPages.prototype.drawPilotStats2 = function() {
 
 Window_DetailPages.prototype.redraw = function() {
 	//this._mechList.redraw();
+	var _this = this;
 	
 	if(this.getCurrentSelection().mech.id != -1){
 		this._detailBarMechDetail.redraw();		
@@ -887,5 +919,29 @@ Window_DetailPages.prototype.redraw = function() {
 	
 	
 	this._descriptionOverlay.redraw();
+	
+	var windowNode = this.getWindowNode();
+	var describedElements = windowNode.querySelectorAll(".described_element");
+	describedElements.forEach(function(describedElement){
+		
+		describedElement.addEventListener("click", function(){
+			
+			var idx = 0;
+			if(_this._uiState == "normal"){
+				if(_this._selectedTab == 0){
+					_this._descriptionOverlay.show(_this._pilotStats2);
+					idx = [].indexOf.call(_this._pilotStats2.querySelectorAll(".described_element"), this);
+					_this._uiState = "description";
+				} else if(_this._selectedTab == 1){
+					_this._descriptionOverlay.show(_this._detailContainer);
+					idx = [].indexOf.call(_this._detailContainer.querySelectorAll(".described_element"), this);
+					_this._uiState = "description";
+				}				
+				_this._descriptionOverlay._elementIdx = idx;
+				_this._descriptionOverlay.redraw();
+			}
+		});
+	});
+	
 	Graphics._updateCanvas();
 }

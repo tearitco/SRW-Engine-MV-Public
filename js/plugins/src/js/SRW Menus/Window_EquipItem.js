@@ -103,6 +103,7 @@ Window_EquipItem.prototype.decrementUpgradeLevel = function(){
 }
 
 Window_EquipItem.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -139,6 +140,10 @@ Window_EquipItem.prototype.createComponents = function() {
 	windowNode.appendChild(this._itemListContainer);
 	this._itemList = new ItemList(this._itemListContainer, this, true);
 	this._itemList.createComponents();
+	this._itemList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._itemList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._itemList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._itemList.registerObserver("redraw", function(){_this.requestRedraw();});
 	
 	this._transferSelection = document.createElement("div");	
 	this._transferSelection.classList.add("transfer_selection");	
@@ -166,10 +171,10 @@ Window_EquipItem.prototype.update = function() {
 			this.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){
 			this.requestRedraw();
 			this.decrementUpgradeLevel();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 			this.incrementUpgradeLevel();
 		}
@@ -198,7 +203,7 @@ Window_EquipItem.prototype.update = function() {
 			this.requestRedraw();
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			this.requestRedraw();
 			SoundManager.playOk();
 			if(this._currentUIState == "slot_selection"){
@@ -247,7 +252,7 @@ Window_EquipItem.prototype.update = function() {
 				}
 			}
 		}
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			this.refreshAllUnits();
 			SoundManager.playCancel();		
 			this.requestRedraw();
@@ -260,7 +265,7 @@ Window_EquipItem.prototype.update = function() {
 				this._currentUIState = "item_selection";							
 			}		
 		}		
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };
@@ -291,7 +296,7 @@ Window_EquipItem.prototype.redraw = function() {
 				desc: ""
 			 };
 		}
-		slotSelectionContent+="<div class='item_slot scaled_text fitted_text "+(this._currentSelection == i ? "selected" : "")+"'>";
+		slotSelectionContent+="<div data-idx='"+i+"' class='item_slot scaled_text fitted_text "+(this._currentSelection == i ? "selected" : "")+"'>";
 		slotSelectionContent+=displayData.name;
 		slotSelectionContent+="</div>";
 	}
@@ -317,7 +322,7 @@ Window_EquipItem.prototype.redraw = function() {
 				 };
 			}		 
 			
-			transferSelectionContent+="<div class='item_slot scaled_text fitted_text "+(this._currentTransferSelection == i ? "selected" : "")+"'>";
+			transferSelectionContent+="<div data-idx='"+i+"' class='item_slot scaled_text fitted_text "+(this._currentTransferSelection == i ? "selected" : "")+"'>";
 			transferSelectionContent+=displayData.name;
 			transferSelectionContent+="</div>";
 		}
@@ -364,6 +369,22 @@ Window_EquipItem.prototype.redraw = function() {
 	
 	var mechIcon = this._container.querySelector("#equip_item_upgrade_name_icon");
 	this.loadMechMiniSprite(this.getCurrentSelection().id, mechIcon);
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".item_slot");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			if(_this._currentUIState == "slot_selection"){
+				var idx = this.getAttribute("data-idx");
+				_this._currentSelection = idx;
+				_this._touchOK = true;
+			} else if(_this._currentUIState == "item_transfer"){
+				var idx = this.getAttribute("data-idx");
+				_this._currentTransferSelection = idx;
+				_this._touchOK = true;
+			}
+		});
+	});
 	
 	Graphics._updateCanvas();
 }

@@ -213,7 +213,9 @@
 						
 						if($statCalc.canTransform(_this._actor)){
 							_this.addCommand(APPSTRINGS.MAPMENU.cmd_transform, 'transform');
-						}	
+						}							
+					
+						_this.addCommand(APPSTRINGS.MAPMENU.cmd_status, 'status');						
 						
 						_this.addWaitCommand();					
 					}

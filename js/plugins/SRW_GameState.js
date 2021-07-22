@@ -1397,7 +1397,8 @@ GameState_normal.prototype.updateMapEvent = function(x, y, triggers){
 				
 				$gameSystem.srpgMakeMoveTable(event);
 				$gameSystem.setSubBattlePhase('enemy_range_display');
-				
+				Input.clear();
+				TouchInput.clear();
 				return true;
 				
 			} else if (event.isType() === 'playerEvent') {
@@ -1512,9 +1513,27 @@ GameState_enemy_range_display.prototype = Object.create(GameState.prototype);
 GameState_enemy_range_display.prototype.constructor = GameState_enemy_range_display;
 
 GameState_enemy_range_display.prototype.update = function(scene){
-	if(Input.isTriggered("cancel")){
+	if(Input.isTriggered("cancel") || TouchInput.isCancelled()){
 		$gameTemp.clearMoveTable();
 		$gameSystem.setSubBattlePhase("normal");
+	}
+	if(Input.isTriggered("ok") || TouchInput.isTriggered()){
+		var summaryUnit = $statCalc.activeUnitAtPosition({x: $gamePlayer.posX(), y: $gamePlayer.posY()});
+		if(summaryUnit){
+			$gameTemp.clearMoveTable();
+			$gameTemp.detailPagesWindowCancelCallback = function(){
+				$gameTemp.detailPagesWindowCancelCallback = null;
+				$gameSystem.setSubBattlePhase('normal');
+			};
+			$gameTemp.currentMenuUnit = {
+				actor: summaryUnit,
+				mech: summaryUnit.SRWStats.mech
+			};
+			$gameTemp.detailPageMode = "map";
+			$gameSystem.setSubBattlePhase('enemy_unit_summary');
+			$statCalc.invalidateAbilityCache();
+			$gameTemp.pushMenu = "detail_pages";
+		}
 	}
 	return false;
 }
@@ -1977,7 +1996,7 @@ GameState_rearrange_deploys.prototype.update = function(scene){
 		$gameTemp.unitAppearTimer = 0;
 	} 
 
-	if(Input.isTriggered("cancel")){
+	if(Input.isTriggered("cancel") || TouchInput.isCancelled()){
 		SoundManager.playCancel();	
 		if($gameTemp.currentSwapSource == -1){
 			//$gameSystem.deployList = JSON.parse(JSON.stringify( $gameTemp.originalDeployInfo));

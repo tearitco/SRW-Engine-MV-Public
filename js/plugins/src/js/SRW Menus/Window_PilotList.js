@@ -29,6 +29,7 @@ Window_PilotList.prototype.resetSelection = function(){
 }
 
 Window_PilotList.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -58,6 +59,10 @@ Window_PilotList.prototype.createComponents = function() {
 	this._mechList = new MechList(this._listContainer, [5, 6, 7, 8]); //
 	this._mechList.setUnitModeActor();
 	this._mechList.createComponents();
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._mechList.registerObserver("redraw", function(){_this.requestRedraw();});
 	this._detailBarPilotStats = new DetailBarPilotStats(this._detailContainer, this);
 	this._detailBarPilotStats.createComponents();
 	this._detailBarPilotSpirits = new DetailBarPilotSpirits(this._detailPilotContainer, this);	
@@ -77,10 +82,10 @@ Window_PilotList.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
@@ -106,7 +111,7 @@ Window_PilotList.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			/*if(this._internalHandlers[this._currentKey]){
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
@@ -116,11 +121,11 @@ Window_PilotList.prototype.update = function() {
 			$gameTemp.detailPageMode = "menu";
 			$gameTemp.pushMenu = "detail_pages";	
 		}
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			SoundManager.playCancel();
 			$gameTemp.popMenu = true;	
 		}		
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };

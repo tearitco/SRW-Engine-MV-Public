@@ -47,6 +47,7 @@ Window_UpgradeUnitSelection.prototype.createComponents = function() {
 	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
 	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
 	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._mechList.registerObserver("redraw", function(){_this.requestRedraw();});
 	
 	this._DetailBarMechUpgrades = new DetailBarMechUpgrades(this._detailContainer, this);
 }	
