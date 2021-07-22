@@ -224,6 +224,7 @@
 		//戦闘開始するためのプラグイン・コマンド
 		Game_System.prototype.startIntermission = function(){
 			this._isIntermission = true;
+			this._availableMechs = [];//available mechs must be cleared to avoid conflicts with previously serialized entries in the listing
 			this._availableUnits = $gameParty.allMembers();
 			this.dummyId = 0;
 			this._availableUnits.forEach(function(actor){
@@ -233,7 +234,6 @@
 				$statCalc.initSRWStats(actor);			
 			});
 			
-			this._availableMechs = [];
 			var tmp = Object.keys($SRWSaveManager.getUnlockedUnits());			
 			for(var i = 0; i < tmp.length; i++){
 				var currentPilot = $statCalc.getCurrentPilot(tmp[i]);
@@ -249,10 +249,9 @@
 					$statCalc.calculateSRWMechStats(mechData, false, result);		
 				}
 			}	
-			
+			$gameTemp.summaryUnit = null;
 			$statCalc.invalidateAbilityCache();
-			$gameTemp.deployMode = "";
-			
+			$gameTemp.deployMode = "";			
 		}
 		
 		Game_System.prototype.isIntermission = function(id){

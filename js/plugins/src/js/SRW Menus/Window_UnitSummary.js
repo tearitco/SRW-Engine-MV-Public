@@ -99,7 +99,7 @@ Window_UnitSummary.prototype.redraw = function() {
 			/**/
 			
 			var event = $statCalc.getReferenceEvent(actor);
-			if(event && $gameTemp.isMapTarget(event.eventId())){
+			if(event && event.eventId && $gameTemp.isMapTarget(event.eventId())){
 				var hitRate = $battleCalc.performHitCalculation(
 					{actor: $gameTemp.currentBattleActor, action: $gameTemp.actorAction},
 					{actor: actor, action: {type: "defend"}}

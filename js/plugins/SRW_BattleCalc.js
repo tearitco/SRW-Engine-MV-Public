@@ -777,9 +777,17 @@ BattleCalc.prototype.generateBattleResult = function(){
 		}
 	}
 		
+	if($gameTemp.actorAction && $gameTemp.actorAction.attack){
+		$gameVariables.setValue(_lastActorAttackId, $gameTemp.actorAction.attack.id);
+	} else {
+		$gameVariables.setValue(_lastActorAttackId, -1);
+	}
+	if($gameTemp.enemyAction && $gameTemp.enemyAction.attack){
+		$gameVariables.setValue(_lastEnemyAttackId, $gameTemp.enemyAction.attack.id);
+	} else {
+		$gameVariables.setValue(_lastEnemyAttackId, -1);
+	}
 	
-	$gameVariables.setValue(_lastActorAttackId, $gameTemp.actorAction.attack.id);
-	$gameVariables.setValue(_lastEnemyAttackId, $gameTemp.enemyAction.attack.id);
 	
 	
 	defender.isCounterAttack = true;
