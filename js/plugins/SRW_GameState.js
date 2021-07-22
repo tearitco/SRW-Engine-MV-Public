@@ -1450,6 +1450,13 @@ GameState_end_actor_turn.prototype.update = function(scene){
 	scene.srpgPrepareNextAction();
 }
 
+function GameState_enemy_attack(){
+	GameState.call(this);
+}
+
+GameState_enemy_attack.prototype = Object.create(GameState.prototype);
+GameState_enemy_attack.prototype.constructor = GameState_enemy_attack;
+
 function GameState_enemy_command(){
 	GameState.call(this);
 }
