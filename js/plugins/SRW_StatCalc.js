@@ -846,6 +846,11 @@ StatCalc.prototype.refreshAllSRWStats = function(type){
 
 StatCalc.prototype.softRefreshUnits = function(){
 	var _this = this;	
+	//ensure that the isSubPilot state also gets refreshed
+	this.iterateAllActors(null, function(actor, event){
+		actor.isSubPilot = false;
+	});
+	
 	this.iterateAllActors(null, function(actor, event){
 		var itemsIds = [];
 		actor.SRWStats.mech.items.forEach(function(item){

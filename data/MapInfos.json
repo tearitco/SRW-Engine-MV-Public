@@ -1,14 +1,13 @@
 [
 null,
-{"id":1,"expanded":true,"name":"demo1","order":2,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
+{"id":1,"expanded":true,"name":"Scripting Demo 1","order":2,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
 {"id":2,"expanded":true,"name":"Intermission","order":1,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
 {"id":3,"expanded":true,"name":"Init","order":8,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
-{"id":4,"expanded":true,"name":"demo2","order":3,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
-{"id":5,"expanded":true,"name":"demo3","order":4,"parentId":0,"scrollX":1088,"scrollY":624},
-{"id":6,"expanded":false,"name":"Moon Test","order":5,"parentId":0,"scrollX":1012.4444444444445,"scrollY":562.6666666666666},
+{"id":4,"expanded":true,"name":"Scripting Demo 2","order":3,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
+{"id":5,"expanded":true,"name":"Terrain Demo 1","order":4,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
+{"id":6,"expanded":false,"name":"Moon Test","order":5,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
 {"id":7,"expanded":false,"name":"Space Test","order":6,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
-{"id":8,"expanded":true,"name":"demo4","order":7,"parentId":0,"scrollX":1139,"scrollY":633},
-{"id":9,"expanded":false,"name":"Regular Map","order":9,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857},
-{"id":10,"expanded":true,"name":"demo5","order":10,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857},
-{"id":11,"expanded":true,"name":"demo6","order":11,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1085.142857142857}
+{"id":8,"expanded":true,"name":"Enemy Load Demo","order":7,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
+{"id":9,"expanded":false,"name":"Regular Map","order":9,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
+{"id":10,"expanded":true,"name":"Terrain AI Gauntlet","order":10,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143}
 ]
