@@ -25,7 +25,7 @@ DetailBarPilotDetail.prototype.redraw = function(){
 	var currentLevel = $statCalc.getCurrentLevel(actor);
 	
 	detailContent+="<div class='bar_pilot_stats details'>";
-	detailContent+="<div id='bar_pilot_stats_icon' class='scaled_width'></div>";//icon 
+	detailContent+="<div id='bar_pilot_stats_icon' class=''></div>";//icon 
 
 	detailContent+="<div class='ability_block details scaled_width'>";	
 	detailContent+="<div class='ability_block_label scaled_text scaled_width'>";
@@ -135,4 +135,5 @@ DetailBarPilotDetail.prototype.redraw = function(){
 	
 	var actorIcon = this._container.querySelector("#bar_pilot_stats_icon");
 	this.loadActorFace(actor.actorId(), actorIcon);
+	this.updateScaledDiv(actorIcon);
 }

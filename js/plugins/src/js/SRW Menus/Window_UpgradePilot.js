@@ -149,6 +149,7 @@ Window_UpgradePilot.prototype.decrementUpgradeLevel = function(){
 }
 
 Window_UpgradePilot.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -186,6 +187,11 @@ Window_UpgradePilot.prototype.createComponents = function() {
 	this._pilotStatsTabButton.classList.add("scaled_text");			
 	this._pilotStatsTabButton.innerHTML = APPSTRINGS.GENERAL.label_stats;
 	windowNode.appendChild(this._pilotStatsTabButton);
+	this._pilotStatsTabButton.addEventListener("click", function(){		
+		_this._currentTab = 0;
+		_this._currentUIState = "upgrading_pilot_stats";		
+		_this.requestRedraw();
+	});
 	
 	this._abilitiesTabButton = document.createElement("div");	
 	this._abilitiesTabButton.classList.add("tab_button");	
@@ -193,7 +199,13 @@ Window_UpgradePilot.prototype.createComponents = function() {
 	this._abilitiesTabButton.classList.add("scaled_text");	
 	this._abilitiesTabButton.innerHTML = APPSTRINGS.GENERAL.label_abilities;
 	windowNode.appendChild(this._abilitiesTabButton);
-	
+	this._abilitiesTabButton.addEventListener("click", function(){		
+		_this._currentTab = 1;
+		_this._currentSelection = 0;
+		_this.resetDeltas();
+		_this._currentUIState = "ability_selection";			
+		_this.requestRedraw();
+	});
 	
 	this._upgradeControls = document.createElement("div");	
 	this._upgradeControls.classList.add("upgrade_controls");	
@@ -212,6 +224,7 @@ Window_UpgradePilot.prototype.createComponents = function() {
 
 
 Window_UpgradePilot.prototype.update = function() {
+	var _this = this;
 	Window_Base.prototype.update.call(this);
 	
 	if(this.isOpen() && !this._handlingInput){
@@ -224,10 +237,10 @@ Window_UpgradePilot.prototype.update = function() {
 			this.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){
 			this.requestRedraw();
 			this.decrementUpgradeLevel();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 			this.incrementUpgradeLevel();
 		}
@@ -256,7 +269,7 @@ Window_UpgradePilot.prototype.update = function() {
 			this.requestRedraw();
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || _this._touchOK){
 			this.requestRedraw();
 			
 			if(this._currentUIState == "tab_selection"){
@@ -370,7 +383,7 @@ Window_UpgradePilot.prototype.update = function() {
 				}
 			}
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			SoundManager.playCancel();
 			this.requestRedraw();
 			if(this._currentUIState == "tab_selection"){
@@ -383,7 +396,7 @@ Window_UpgradePilot.prototype.update = function() {
 				this._currentUIState = "ability_selection";							
 			}		
 		}		
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };
@@ -481,19 +494,27 @@ Window_UpgradePilot.prototype.redraw = function() {
 	var remaining = $statCalc.getCurrentPP(pilotData) - this.currentCost();
 	fundDisplayContent+="<div class='fund_entry_value scaled_text "+(remaining < 0 ? "underflow" : "")+"'>"+remaining+"</div>";
 	fundDisplayContent+="</div>";
+	
+	
+	fundDisplayContent+="<div id='btn_apply' class='disabled scaled_text'>"+APPSTRINGS.MECHUPGRADES.label_apply+"</div>";
+	fundDisplayContent+="</div>";
 	fundDisplayContent+="</div>";
 	
 	this._fundsDisplay.innerHTML = fundDisplayContent;
 	
 	var actorIcon = this._container.querySelector("#upgrade_pilot_icon");
 	this.loadActorFace(pilotData.actorId(), actorIcon);
-	
+	this.updateScaledDiv(actorIcon);
 	
 	var upgradeControlContent = "";
 	if(_this._currentPage == 0){
 		var statDisplayInfo = {
 			
 		}
+		function prepareDisplayVal(val){
+			return String(val).padStart(3, "0")
+		}
+		
 		var pilotStats = $statCalc.getPilotStats(pilotData);
 		function createStatUpgradeRow(idx){			
 			var upgradeInfo = _this._upgradeTypes[idx];
@@ -513,13 +534,18 @@ Window_UpgradePilot.prototype.redraw = function() {
 			} else {
 				upgrades = pilotStats.upgrades;
 			}
-			content+="<div class='upgrade_control_row "+(idx == _this._currentSelection ? "selected" : "")+"'>";
+			content+="<div data-idx='"+idx+"' class='upgrade_control_row "+(idx == _this._currentSelection ? "selected" : "")+"'>";
 			content+="<div class='upgrade_control_block'>";
 			content+="<div class='scaled_text stat_label'>";
 			content+=upgradeInfo.name;
 			content+="</div>";
 			content+="<div class='scaled_text stat_value'>";
-			content+=stats[stat];
+			if(isTerrain){
+				content+=stats[stat];
+			} else {
+				content+=prepareDisplayVal(stats[stat]);
+			}		
+			
 			content+="</div>";
 			content+="<div class='chevron_right scaled_width'>";
 			content+="<img src='svg/chevron_right.svg'>";
@@ -528,16 +554,22 @@ Window_UpgradePilot.prototype.redraw = function() {
 			content+="<div class='upgrade_control_block'>";
 			content+="<div class='scaled_text stat_value_upgraded'>";
 			if(isTerrain){				
+				content+="<div class='scaled_text terrain_upgraded'>";
+				content+="<div data-idx='"+idx+"' class='decrement upgrade_control'><img src='svg/minus.svg'></div>";
 				content+=$statCalc.incrementTerrain(stats[stat],  _this._currentUpgradeDeltas[stat]);
+				content+="<div data-idx='"+idx+"' class='increment upgrade_control'><img src='svg/plus.svg'></div>";
+				content+="</div>";			
 			} else {
-				content+=stats[stat] + _this._currentUpgradeDeltas[stat];
+				content+=prepareDisplayVal(stats[stat] + _this._currentUpgradeDeltas[stat]);
 			}			
 			content+="</div>";
 			if(!isTerrain){
 				content+="<div class='scaled_text pending_upgrades'>";
-				content+="( +"+_this._currentUpgradeDeltas[stat]+" / "+upgrades[stat]+")";
+				content+="<div data-idx='"+idx+"' class='decrement upgrade_control'><img src='svg/minus.svg'></div>";
+				content+="<div>( +"+prepareDisplayVal(_this._currentUpgradeDeltas[stat])+" / "+prepareDisplayVal(upgrades[stat])+")</div>";
+				content+="<div data-idx='"+idx+"' class='increment upgrade_control'><img src='svg/plus.svg'></div>";
 				content+="</div>";
-			}
+			} 
 			
 			content+="</div>";
 			content+="<div class='scaled_text upgrade_control_block'>";
@@ -648,6 +680,63 @@ Window_UpgradePilot.prototype.redraw = function() {
 	}
 	
 	this._abilityList.redraw();
+	
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".upgrade_control_row");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			if(_this._currentUIState == "upgrading_pilot_stats"){
+				var idx = this.getAttribute("data-idx");	
+				if(idx != null){
+					_this._currentSelection = idx;
+					_this.requestRedraw();
+					Graphics._updateCanvas();	
+				}	
+			}					
+		});
+	});	
+	
+	var entries = windowNode.querySelectorAll(".decrement");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			if(_this._currentUIState == "upgrading_pilot_stats"){
+				var idx = this.getAttribute("data-idx");				
+				_this._currentSelection = idx;
+				_this._touchLeft = true;		
+			}					
+		});
+	});	
+	
+	var entries = windowNode.querySelectorAll(".increment");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			if(_this._currentUIState == "upgrading_pilot_stats"){
+				var idx = this.getAttribute("data-idx");				
+				_this._currentSelection = idx;
+				_this._touchRight = true;		
+			}					
+		});
+	});
+	
+	windowNode.querySelector("#btn_apply").addEventListener("click", function(){
+		_this._touchOK = true;
+	});
+	var cost = this.currentCost();					
+	var pilotData = this.getCurrentSelection();
+	if(cost > 0 && cost <= $statCalc.getCurrentPP(pilotData)){
+		windowNode.querySelector("#btn_apply").classList.remove("disabled");		
+	} else {
+		windowNode.querySelector("#btn_apply").classList.add("disabled");
+	}
+	
+	var entries = windowNode.querySelectorAll(".upgrade_control");
+	entries.forEach(function(entry){
+		_this.updateScaledDiv(entry);
+	});
+	
+	
+	
 	
 	Graphics._updateCanvas();
 }

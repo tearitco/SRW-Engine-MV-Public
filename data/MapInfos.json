@@ -1,10 +1,10 @@
 [
 null,
 {"id":1,"expanded":true,"name":"Scripting Demo 1","order":2,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
-{"id":2,"expanded":true,"name":"Intermission","order":1,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
+{"id":2,"expanded":true,"name":"Intermission","order":1,"parentId":0,"scrollX":832,"scrollY":640},
 {"id":3,"expanded":true,"name":"Init","order":8,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
 {"id":4,"expanded":true,"name":"Scripting Demo 2","order":3,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
-{"id":5,"expanded":true,"name":"Terrain Demo 1","order":4,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
+{"id":5,"expanded":true,"name":"Terrain Demo 1","order":4,"parentId":0,"scrollX":1088,"scrollY":624},
 {"id":6,"expanded":false,"name":"Moon Test","order":5,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
 {"id":7,"expanded":false,"name":"Space Test","order":6,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},
 {"id":8,"expanded":true,"name":"Enemy Load Demo","order":7,"parentId":0,"scrollX":1952.5714285714284,"scrollY":1098.857142857143},

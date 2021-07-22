@@ -23,6 +23,7 @@ Window_UpgradePilotSelection.prototype.getCurrentSelection = function(){
 }
 
 Window_UpgradePilotSelection.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -49,6 +50,11 @@ Window_UpgradePilotSelection.prototype.createComponents = function() {
 	this._mechList.setUnitModeActor();
 	this._mechList.createComponents();
 	this._mechList.setMaxPageSize(4);
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._mechList.registerObserver("redraw", function(){_this.requestRedraw();});
+	
 	this._detailBarPilotDetail = new DetailBarPilotDetail(this._detailContainer, this);
 	this._detailBarPilotDetail.createComponents();
 }	
@@ -67,10 +73,10 @@ Window_UpgradePilotSelection.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
@@ -96,7 +102,7 @@ Window_UpgradePilotSelection.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			/*if(this._internalHandlers[this._currentKey]){
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
@@ -105,11 +111,11 @@ Window_UpgradePilotSelection.prototype.update = function() {
 			$gameTemp.currentMenuUnit = this.getCurrentSelection();
 			$gameTemp.pushMenu = "upgrade_pilot";
 		}
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			SoundManager.playCancel();
 			$gameTemp.popMenu = true;	
 		}		
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };

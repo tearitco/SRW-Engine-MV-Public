@@ -87,14 +87,14 @@
 
 #upgrade_pilot .fund_display {
 	position: absolute;
-    height: 20%;
-    top: 66%;
+    height: 27%;
+    top: 59%;
     border: 0.1vw solid #FFFFFF;
     border-radius: 1vw;
     width: 20%;
     left: 5%;
-	background-color: var(--section-bg-color);
-}
+    background-color: var(--section-bg-color);
+}btn_apply
 
 #upgrade_pilot .fund_entries {
 	height: 90%;
@@ -106,7 +106,7 @@
 	width: 90%;
 	margin-left: 5%;
 	border-bottom: 0.1vw solid var(--underline-color);
-	height: 33%;
+	height: 25%;
 }
 
 #upgrade_pilot .fund_entry:first {
@@ -185,7 +185,7 @@
 #upgrade_pilot .pilot_info {
 	position: absolute;
 	border: 0.1vw solid #FFFFFF;
-	height: 52%;
+	height: 45%;
     width: 20%;
     top: 13%;
     left: 5%;
@@ -196,19 +196,20 @@
 #upgrade_pilot_icon {
 	background-color: rgba(85, 164, 255, 0.5);
 	border: 0.1vw solid #99e3ff;
-	width: 70%;
+	--widthpixels: 133;
+	--heightpixels: 133;
     margin-left: 15%;
     margin-top: 15%;
 }
 
 .pilot_basic_info {
 	--fontsize: 2px;
-	border: 0.1vw solid rgba(200,200,200,0.5);
-	height: 25%;
+    border: 0.1vw solid rgba(200,200,200,0.5);
+    height: 27%;
     width: 90%;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 15%;
+    margin-top: 7%;
 }
 
 .pilot_basic_info .pilot_name {
@@ -259,18 +260,20 @@
 	background-color: var(--selected-color);
 }
 
-.upgrade_control_row.header {
+#upgrade_pilot .upgrade_control_row.header {
 	border-bottom: 0.1vw solid rgba(0,0,0,0);
+	color: var(--text-color-highlight);
 }
 
 .upgrade_control_row.header .upgrade_control_block{
 	color: var(--text-color-highlight);
+	white-space: nowrap;
 }
 
-.upgrade_control_block {
+#upgrade_pilot .upgrade_control_block {
 	color: #FFFFFF;
-	display: inline-flex;
-	align-items: center;
+	display: flex;
+	align-items: flex-end;
 }
 
 .upgrade_control_block .stat_label {
@@ -283,6 +286,8 @@
 }
 
 .upgrade_control_block .stat_value_upgraded {
+	display: flex;
+	align-items: center;
 	margin-right: 10%;
 }
 
@@ -387,3 +392,53 @@
 #upgrade_pilot .ability_list_container.inactive {
 	opacity: 0.5;
 }
+
+#upgrade_pilot #btn_apply {
+	width: 33%;
+    color: #FFFFFF;
+    border: 0.1vw solid #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 5%;
+    padding: 0.4%;
+    border-radius: 999px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2%;
+    --fontsize: 2.4px;
+}
+
+#upgrade_pilot #btn_apply.disabled {
+	color: #888888;
+	border: 0.1vw solid #FFFFFF;
+}
+
+#upgrade_pilot .pending_upgrades {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+
+#upgrade_pilot .terrain_upgraded {
+	display: flex;
+	align-items: inherit;
+	justify-content: inherit;
+}
+
+#upgrade_pilot .terrain_upgraded .upgrade_control{
+	width: 100%;
+}
+
+#upgrade_pilot .upgrade_control {
+	filter: var(--white-filter);
+	--widthpixels: 20;
+	--heightpixels: 20;
+	cursor: pointer;
+}
+
+#upgrade_pilot .upgrade_control img{
+	width: 100%;
+}
+
