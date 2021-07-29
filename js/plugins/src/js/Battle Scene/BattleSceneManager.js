@@ -928,9 +928,10 @@ BattleSceneManager.prototype.createPlanarSprite = function(name, path, position,
 	material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 	
 	//material.specularColor = new BABYLON.Color3(0, 0, 0);
-	//material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+	material.emissiveColor = new BABYLON.Color3(1, 1, 1);
 	//material.ambientColor = new BABYLON.Color3(0, 0, 0);
-	material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+	//material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+	material.disableLighting = true;
 	if(typeof alpha != "undefined"){
 		material.alpha = alpha;
 	}	
@@ -1706,7 +1707,7 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 		set_blend_color: function(target, params){
 			var targetObj = getTargetObject(target);
 			if(targetObj){
-				targetObj.material.diffuseColor = new BABYLON.Color3(params.r / 255, params.g / 255, params.b / 255);
+				targetObj.material.emissiveColor = new BABYLON.Color3(params.r / 255, params.g / 255, params.b / 255);
 			}
 		},
 		fade_in_textbox: function(target, params){
