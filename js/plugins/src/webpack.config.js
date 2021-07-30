@@ -23,5 +23,9 @@ module.exports = {
       },
     ],
   },
-  
+  resolve: {
+    alias: {
+      'babylonjs': path.resolve(__dirname, 'E:/Documents/Babylon/Babylon.js/dist/preview release/babylon.max.js'),
+     },
+  },
 };
