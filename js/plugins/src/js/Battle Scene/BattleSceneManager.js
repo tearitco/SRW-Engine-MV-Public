@@ -234,6 +234,9 @@ BattleSceneManager.prototype.init = function(attachControl){
 		this._engine = new BABYLON.Engine(this._canvas, true, {preserveDrawingBuffer: true, stencil: true}); // Generate the BABYLON 3D engine	
 		this._effksContext = effekseer.createContext();
 		this._effksContext.init(this._glContext);
+		
+		this._effksContextBg = effekseer.createContext();
+		this._effksContextBg.init(this._glContext);
 		 
 		this.initShaders();
 		//this.initParticleSystems();
@@ -511,7 +514,7 @@ BattleSceneManager.prototype.createBg = function(name, img, position, size, alph
 		height: height
 	};
 	var material = new BABYLON.StandardMaterial(name, this._scene);
-	material.alphaMode = BABYLON.Constants.ALPHA_PREMULTIPLIED_PORTERDUFF;
+	//material.alphaMode = BABYLON.Constants.ALPHA_PREMULTIPLIED_PORTERDUFF;
 	
 
 		
@@ -1498,13 +1501,23 @@ BattleSceneManager.prototype.startScene = function(){
 		});
 		
 		_this._effksContext.update(_this._engine.getDeltaTime() * 60 / 1000 * ratio);
+		_this._effksContextBg.update(_this._engine.getDeltaTime() * 60 / 1000 * ratio);
 		//console.log("_effksContext.update");
 
 	})
+	
+	//foreground layer
 	this._scene.onAfterRenderObservable.add(() => {//onAfterRenderObservable 
 		_this._effksContext.setProjectionMatrix(_this._camera.getProjectionMatrix().m);
 		_this._effksContext.setCameraMatrix(BABYLON.Matrix.Invert(_this._camera.getWorldMatrix()).m);
 		_this._effksContext.draw();
+	});
+	
+	//background layer
+	this._scene.onAfterParticlesRenderingObservable.add(() => {//onAfterRenderObservable 
+		_this._effksContextBg.setProjectionMatrix(_this._camera.getProjectionMatrix().m);
+		_this._effksContextBg.setCameraMatrix(BABYLON.Matrix.Invert(_this._camera.getWorldMatrix()).m);
+		_this._effksContextBg.draw();
 	});
 	
 	this._engine.runRenderLoop(function () {			
@@ -2483,15 +2496,21 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			if(_this._animationDirection == -1){
 				rotation.y = rotation.y * 1 + Math.PI;
 			}
+			var targetContext;
+			if(params.isBackground * 1){
+				targetContext = _this._effksContextBg;
+			} else {
+				targetContext = _this._effksContext;
+			}
 			var info;
-			var effect = _this._effksContext.loadEffect("effekseer/"+params.path+".efk", 1.0, function(){
+			var effect = targetContext.loadEffect("effekseer/"+params.path+".efk", 1.0, function(){
 				// Play the loaded effect				
-				var handle = _this._effksContext.play(effect, position.x, position.y, position.z);				
+				var handle = targetContext.play(effect, position.x, position.y, position.z);				
 				handle.setSpeed(speed);
 				info.handle = handle;
 				handle.setRotation(rotation.x, rotation.y, rotation.z);
 			});
-			info = {name: target, effect: effect, context: _this._effksContext, offset: {x: position.x, y: position.y, z: position.z}, offsetRotation: {x: rotation.x, y: rotation.y, z: rotation.z}};
+			info = {name: target, effect: effect, context: targetContext, offset: {x: position.x, y: position.y, z: position.z}, offsetRotation: {x: rotation.x, y: rotation.y, z: rotation.z}};
 			
 			if(params.parent){
 				var parentObj = getTargetObject(params.parent)
@@ -3763,13 +3782,21 @@ BattleSceneManager.prototype.createEnvironment = function(ref){
 		
 		var ctr = 0;
 		
+		var maxZOffset = 0;
+		
+		bgs.forEach(function(bg){
+			if(bg.zoffset > maxZOffset){
+				maxZOffset = bg.zoffset;
+			}
+		});
+		
 		bgs.forEach(function(bg){
 			if(!bg.hidden){		
 				if(bg.isfixed){			
 					//_this._fixedBgs.push(_this.createBg("bg"+ctr, bg.path, new BABYLON.Vector3(0, bg.yoffset, bg.zoffset), {width: bg.width, height: bg.height}))
 					_this._fixedBgs.push(new BABYLON.Layer("bg"+ctr, "img/SRWBattlebacks/"+bg.path+".png", _this._scene, true));
 				} else {
-					_this.createScrollingBg("bg"+ctr, bg.path, {width: bg.width, height: bg.height}, bg.yoffset, bg.zoffset);
+					_this.createScrollingBg("bg"+ctr, bg.path, {width: bg.width, height: bg.height}, bg.yoffset, bg.zoffset, maxZOffset - bg.zoffset);
 				}	
 			}	
 			ctr++;
@@ -3778,7 +3805,7 @@ BattleSceneManager.prototype.createEnvironment = function(ref){
 	_this._creatingEnvironment = false;
 }	
 
-BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffset, zOffset){
+BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffset, zOffset, alphaIndex){
 	var _this = this;
 	if(!size){
 		size = {
@@ -3791,7 +3818,9 @@ BattleSceneManager.prototype.createScrollingBg = function(id, path, size, yOffse
 	
 	var startX = (size.width / 2) * (amount - 1) * -1;
 	for(var i = 0; i < amount; i++){
-		_this._bgs.push(this.createBg(id + "_" + i, path, new BABYLON.Vector3(startX + (i * size.width), yOffset, zOffset), size));
+		var bg = this.createBg(id + "_" + i, path, new BABYLON.Vector3(startX + (i * size.width), yOffset, zOffset), size, 1, null, true);
+		bg.alphaIndex = alphaIndex;
+		_this._bgs.push(bg);
 	}
 }
 

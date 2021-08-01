@@ -326,7 +326,7 @@ SRWEditor.prototype.init = function(){
 		},	
 		play_effekseer: {
 			hasTarget: true,
-			params: ["path", "position", "scale", "speed", "rotation", "parent"],
+			params: ["path", "position", "scale", "speed", "rotation", "parent", "isBackground"],
 			desc: "Play a predefined effekseer effect."
 		},		
 		hide_effekseer: {
