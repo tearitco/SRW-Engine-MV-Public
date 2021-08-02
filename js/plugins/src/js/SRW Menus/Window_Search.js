@@ -59,6 +59,7 @@ Window_Search.prototype.getCurrentSelection = function(){
 }
 
 Window_Search.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -75,6 +76,7 @@ Window_Search.prototype.createComponents = function() {
 	
 	this._listContainer = document.createElement("div");
 	this._listContainer.classList.add("list_container");
+	this._listContainer.classList.add("styled_scroll");
 	windowNode.appendChild(this._listContainer);	
 	
 	
@@ -90,6 +92,10 @@ Window_Search.prototype.createComponents = function() {
 	this._spiritTabButton.classList.add("spirit_info_button");	
 	this._spiritTabButton.classList.add("scaled_text");			
 	this._spiritTabButton.innerHTML = APPSTRINGS.SEARCH.label_spirit;
+	this._spiritTabButton.addEventListener("click", function(){
+		_this._selectedTab = 0;
+		_this.requestRedraw();
+	});
 	this._tabInfo[0].button = this._spiritTabButton;
 	windowNode.appendChild(this._spiritTabButton);
 	
@@ -99,6 +105,10 @@ Window_Search.prototype.createComponents = function() {
 	this._pilotTabButton.classList.add("scaled_text");			
 	this._pilotTabButton.innerHTML = APPSTRINGS.SEARCH.label_pilot;
 	windowNode.appendChild(this._pilotTabButton);
+	this._pilotTabButton.addEventListener("click", function(){
+		_this._selectedTab = 1;
+		_this.requestRedraw();
+	});
 	this._tabInfo[1].button = this._pilotTabButton;
 	
 	this._mechTabButton = document.createElement("div");	
@@ -107,6 +117,10 @@ Window_Search.prototype.createComponents = function() {
 	this._mechTabButton.classList.add("scaled_text");			
 	this._mechTabButton.innerHTML = APPSTRINGS.SEARCH.label_mech;
 	windowNode.appendChild(this._mechTabButton);
+	this._mechTabButton.addEventListener("click", function(){
+		_this._selectedTab = 2;
+		_this.requestRedraw();
+	});
 	this._tabInfo[2].button = this._mechTabButton;
 	
 }	
@@ -203,7 +217,7 @@ Window_Search.prototype.update = function() {
 			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			if(this._uiState == "tab_selection"){
 				SoundManager.playOk();
 				this.requestRedraw();
@@ -243,7 +257,7 @@ Window_Search.prototype.update = function() {
 			
 		}	
 		
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			SoundManager.playCancel();
 			$gameTemp.searchInfo = null;
 			if(this._uiState == "tab_selection"){
@@ -282,8 +296,9 @@ Window_Search.prototype.validateEntry = function(idx) {
 
 Window_Search.prototype.createEntryList = function(list) {
 	var content = "";
-	content+="<div class='row'>";
-	var startIdx = (Math.floor(this._currentSelection / this._rowSize) - (this._rowSize - 1)) * this._rowSize;
+	var rowCtr = 0;
+	content+="<div data-row='"+rowCtr+"' class='row'>";
+	/*var startIdx = (Math.floor(this._currentSelection / this._rowSize) - (this._rowSize - 1)) * this._rowSize;
 	if(this._previousStartIdx != null && Math.abs(this._previousStartIdx - this._currentSelection) < (this._rowSize * this._maxRows)){
 		startIdx = this._previousStartIdx;
 	}
@@ -296,11 +311,12 @@ Window_Search.prototype.createEntryList = function(list) {
 	if(startIdx < 0){
 		startIdx = 0;
 	}
-	this._previousStartIdx = startIdx;
-	for(var i = startIdx; i < Math.min(startIdx + (this._rowSize * this._maxRows), list.length); i++){
+	this._previousStartIdx = startIdx;*/
+	for(var i = 0; i < list.length; i++){
 		if(i && !(i % this._rowSize)){
 			content+="</div>";
-			content+="<div class='row'>";
+			rowCtr++;
+			content+="<div data-row='"+rowCtr+"' class='row'>";
 		}
 		var name = list[i].name;
 		var isValid = true;
@@ -319,11 +335,12 @@ Window_Search.prototype.createEntryList = function(list) {
 
 Window_Search.prototype.redraw = function() {
 	//this._mechList.redraw();
+	var _this = this;
 	this._spiritTabButton.classList.remove("selected");
 	this._pilotTabButton.classList.remove("selected");
 	this._mechTabButton.classList.remove("selected");
 	this._tabInfo[this._selectedTab].button.classList.add("selected");
-	
+	var currentScrollTop = this._listContainer.scrollTop;
 	var ids = [];
 	var list = [];
 	if(this._selectedTab == 0){
@@ -365,21 +382,41 @@ Window_Search.prototype.redraw = function() {
 		}		
 	}
 	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".entry");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){			
+			var idx = this.getAttribute("data-entryid"); 
+			if(idx != null){
+				idx*=1;
+				if(idx == _this._currentSelection){
+					_this._touchOK = true;				
+				} else {
+					_this._uiState = "entry_selection"
+					_this._currentSelection = idx;
+					_this.requestRedraw();
+				}
+			}		
+		});
+	});
+	
 	Graphics._updateCanvas();
 	
 	
 	if(activeElem){
-		/*var listRect = this._listContainer.getBoundingClientRect();
+		var listRect = this._listContainer.getBoundingClientRect();
 	
 		var currentActiveRow = activeElem.parentNode;
 		var rowRect = currentActiveRow.getBoundingClientRect();
 		if(rowRect.bottom > listRect.bottom){
 			this._listContainer.scrollTop = rowRect.height * currentActiveRow.getAttribute("data-row");
-		}
-		if(rowRect.top < listRect.top){
+		} else if(rowRect.top < listRect.top){
 			this._listContainer.scrollTop-=listRect.top - rowRect.top;
-		}*/
+		} else {
+			this._listContainer.scrollTop = currentScrollTop;
+		}
 		
 		
 	}	
+
 }

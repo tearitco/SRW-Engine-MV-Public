@@ -32,6 +32,8 @@
 			this._srpgBestSearchFlag = false;
 			this._srpgBestSearchRoute = [null, []];
 			this._srpgPriorityTarget = null;
+			this._mapButtons = {};
+			this.summariesTimeout = 0;
 		};
 		
 		Game_Temp.prototype.killMenu = function(id) {
@@ -41,7 +43,17 @@
 			this.killMenus[id] = true;
 		}
 		
+		Game_Temp.prototype.setMapButton = function(button) {
+			this._mapButtons[button] = true;
+		};
 		
+		Game_Temp.prototype.clearMapButton = function(button) {
+			delete this._mapButtons[button];
+		};
+		
+		Game_Temp.prototype.mapButtonClicked = function(button) {
+			return this._mapButtons[button];
+		};
 		
 		//移動範囲と移動経路を記録する配列変数を返す
 		Game_Temp.prototype.MoveTable = function(x, y) {

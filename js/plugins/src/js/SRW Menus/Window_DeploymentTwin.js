@@ -94,11 +94,11 @@ Window_DeploymentTwin.prototype.resetSelection = function(){
 Window_DeploymentTwin.prototype.getMaxDeploySlots = function(){
 	return this._maxSlots * 2;
 }
-
+/*
 Window_DeploymentTwin.prototype.getCurrentSelection = function(){
 	return $gameTemp.currentMenuUnit;
 	
-}
+}*/
 
 Window_DeploymentTwin.prototype.createComponents = function() {
 	var _this = this;
@@ -121,6 +121,7 @@ Window_DeploymentTwin.prototype.createComponents = function() {
 	this._deployedList = document.createElement("div");
 	this._deployedList.classList.add("scrolled_list");
 	this._deployedList.classList.add("deployed_list");
+	this._deployedList.classList.add("styled_scroll");
 	windowNode.appendChild(this._deployedList);	
 	
 	this._detailBarMechDetail = new DetailBarMechDetail(this._deployedList, {
@@ -150,6 +151,7 @@ Window_DeploymentTwin.prototype.createComponents = function() {
 	this._availableList = document.createElement("div");
 	this._availableList.classList.add("scrolled_list");
 	this._availableList.classList.add("available_list");
+	this._availableList.classList.add("styled_scroll");
 	windowNode.appendChild(this._availableList);	
 	
 	this._availableListLabel = document.createElement("div");
@@ -267,7 +269,7 @@ Window_DeploymentTwin.prototype.update = function() {
 			
 		} 	
 		
-		if(Input.isTriggered('ok')){	
+		if(Input.isTriggered('ok') || _this._touchOK){	
 			//if(this._UIState == "rearrange_slots"){
 			function swapSlots(sourceActorId, sourceSlot, sourceType, targetActorId, targetSlot, targetType, inBatch){
 				var deployList = _this.getDeployList()				
@@ -397,7 +399,7 @@ Window_DeploymentTwin.prototype.update = function() {
 				
 		}
 		
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			if(this._twinSwapSource != -1){
 				this.requestRedraw();
 				this._twinSwapSource = -1;
@@ -408,7 +410,7 @@ Window_DeploymentTwin.prototype.update = function() {
 				this.onCancel();
 			}				
 		}
-		if(Input.isTriggered('menu')){	
+		if(Input.isTriggered('menu') || this._touchMenu){	
 			this.onMenu();	
 		}	
 
@@ -618,6 +620,8 @@ Window_DeploymentTwin.prototype.redraw = function() {
 	var deployList = _this.getDeployList()
 	var deployedContent = "";
 	
+	var currentScrollTop = _this._availableList.scrollTop;
+	
 	function createTwinEntry(actorId, subActorId, slot, idx){
 		var content = "";
 		var displayClass = "";
@@ -655,11 +659,11 @@ Window_DeploymentTwin.prototype.redraw = function() {
 			displayClassFocus = "focus";						
 		}
 		
-		content+="<div data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(_this.getLockedSlots()[slot] ? "locked" : "")+" "+(!_this.isTwinMode() ? "single" : "")+"'>"
+		content+="<div  data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' class='twin "+(_this._twinSwapSource == idx ? "swap" : "")+" "+(slot != null ? "deployable" : "")+" "+(_this.getLockedSlots()[slot] ? "locked" : "")+" "+(!_this.isTwinMode() ? "single" : "")+"'>"
 		if(listedUnits[actorId]){
 			actorId = null;
 		}
-		content+="<div data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+" "+displayClassValid+" "+displayClassFocus+" main'>"
+		content+="<div data-idx='"+realIdx+"' data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' data-actorid='"+(actorId || -1)+"'  class='entry "+displayClass+" "+displayClassValid+" "+displayClassFocus+" main'>"
 		//var actorId = deployInfo.assigned[i];
 		if(actorId != null && !listedUnits[actorId] && $statCalc.isValidForDeploy($gameActors.actor(actorId))){
 			listedUnits[actorId] = true;
@@ -693,21 +697,21 @@ Window_DeploymentTwin.prototype.redraw = function() {
 			}
 		}
 		
-		if(2 * idx + 1 == _this._swapSource){
+		var realIdx = 2 * idx + 1;
+		
+		if(realIdx == _this._swapSource){
 			displayClass = "swap";
-		} else if(2 * idx + 1 == _this._rearrageSelection){		
+		} else if(realIdx == _this._rearrageSelection){		
 			displayClass = "active";				
 		}
-		if(2 * idx + 1 == _this._rearrageSelection){		
+		if(realIdx == _this._rearrageSelection){		
 			displayClassFocus = "focus";				
-		}
-		
-		
+		}		
 		
 		if(listedUnits[subActorId]){
 			subActorId = null;
 		}
-		content+="<div data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+" "+displayClassValid+"  "+displayClassFocus+" sub'>"
+		content+="<div data-idx='"+realIdx+"' data-islocked='"+(_this.getLockedSlots()[slot] ? 1 : 0)+"' data-actorid='"+(subActorId || -1)+"' class='entry "+displayClass+" "+displayClassValid+"  "+displayClassFocus+" sub'>"
 		//var actorId = deployInfo.assignedSub[i];
 		if(subActorId != null && !listedUnits[subActorId] && $statCalc.isValidForDeploy($gameActors.actor(subActorId))){
 			listedUnits[subActorId] = true;
@@ -858,6 +862,29 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		this._detailBarMechDetail.redraw();		
 	}
 	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".entry");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){			
+			var idx = this.getAttribute("data-idx"); 
+			if(idx != null){
+				idx*=1;
+				if(idx == _this._rearrageSelection){
+					_this._touchOK = true;				
+				} else {
+					_this._rearrageSelection = idx;
+					_this.requestRedraw();
+				}
+			}		
+		});
+	});	
+	
+	if(this._toolTip){
+		this._toolTip.addEventListener("click", function(){
+			_this._touchMenu = true;
+		});
+	}
+	
 	Graphics._updateCanvas();
 	
 	if(activeElem){
@@ -867,9 +894,10 @@ Window_DeploymentTwin.prototype.redraw = function() {
 		var rowRect = currentActiveRow.getBoundingClientRect();
 		if(rowRect.bottom > listRect.bottom){
 			_this._availableList.scrollTop+=rowRect.bottom - listRect.bottom;
-		}
-		if(rowRect.top < listRect.top){
+		} else if(rowRect.top < listRect.top){
 			_this._availableList.scrollTop-=listRect.top - rowRect.top;
+		} else {
+			_this._availableList.scrollTop = currentScrollTop;
 		}
 	}	
 }

@@ -7,6 +7,31 @@
    
     border: 0.1vw solid #FFFFFF;
     border-radius: 1vw;
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+}
+
+/* Let's get this party started */
+.scrolled_list::-webkit-scrollbar {
+    width: 1.2vw;
+}
+ 
+/* Track */
+.scrolled_list::-webkit-scrollbar-track {
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+	background: rgba(0,0,0,0.2); }
+ 
+/* Handle */
+.scrolled_list::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 0px;
+    border-bottom-left-radius:9999px;
+	 border-top-left-radius:9999px;
+    background: rgba(255,255,255,1); 
+   
+}
+.scrolled_list::-webkit-scrollbar-thumb:window-inactive {
+	/*background: rgba(255,0,0,0.4); */
 }
 
 .deployed_list {	
@@ -26,7 +51,8 @@
     top: 16%;
     height: 53.5%;
     width: 64.5%;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     left: 8%;
 }
 
@@ -150,10 +176,15 @@
 
 #deployment_in_stage .tool_tip {
 	position: absolute;
-	top: 2%;
+	top: 3%;
     right: 4%;
     --fontsize: 2.5px;
     color: white;
+	padding: 0.7%;
+	border-radius: 9999px;
+	border: 0.15vw solid #FFFFFF;
+	cursor: pointer;
+	background-color: var(--section-bg-color);
 }
 /*
 #deployment_in_stage .pilot_info {

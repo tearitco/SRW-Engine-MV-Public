@@ -299,7 +299,7 @@ APPSTRINGS.DEPLOYMENT = {
 	available: "Available",
 	label_selected: "selected",
 	title_selection: "Deploy a unit",
-	label_in_stage: "Press start to deploy",
+	label_in_stage: "Deploy!(start)",
 	label_will_deploy: "will be deployed."
 }
 
@@ -335,4 +335,9 @@ APPSTRINGS.OPTIONS = {
 	label_bgm_unit: "Unit",
 	label_bgm_vol: "BGM Volume",
 	label_sfx_vol: "SFX Volume",
+}
+
+APPSTRINGS.MAP_BUTTONS = {
+	label_deploy: "Deploy!(start)",
+	
 }

@@ -61,6 +61,7 @@ Window_CSS.prototype.refresh = function() {
 		this._redrawRequested = false;
 		this.redraw();		
 	}
+	this.resetTouchState();
 	this._isValidTouchInteraction = false;
 	this.getWindowNode().style.display = this._visibility;
 }
@@ -463,6 +464,7 @@ Window_CSS.prototype.getAnimTimeRatio = function() {
 
 Window_CSS.prototype.resetTouchState = function(){
 	this._touchOK = false;
+	this._touchMenu = false;
 	this._touchLeft = false;
 	this._touchRight = false;
 	this._touchUp = false;

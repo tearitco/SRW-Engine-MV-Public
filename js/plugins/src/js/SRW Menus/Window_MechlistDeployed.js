@@ -36,6 +36,7 @@ Window_MechListDeployed.prototype.getCurrentSelection = function(){
 }
 
 Window_MechListDeployed.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -64,6 +65,10 @@ Window_MechListDeployed.prototype.createComponents = function() {
 	
 	this._mechList = new MechList(this._listContainer, [0, 1, 2, 3], this);
 	this._mechList.createComponents();
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._mechList.registerObserver("redraw", function(){_this.requestRedraw();});
 	this._detailBarMech = new DetailBarMech(this._detailContainer, this);
 	this._detailBarMech.createComponents();
 	this._detailBarPilot = new DetailBarPilot(this._detailPilotContainer, this);	
@@ -84,15 +89,15 @@ Window_MechListDeployed.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){			
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){			
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
 		
-		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger')){
+		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger') ){
 			this.requestRedraw();
 			this._mechList.decrementInfoPage();
 		} else if (Input.isTriggered('right_trigger') || Input.isRepeated('right_trigger')) {
@@ -113,7 +118,7 @@ Window_MechListDeployed.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			/*if(this._internalHandlers[this._currentKey]){
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
@@ -130,7 +135,7 @@ Window_MechListDeployed.prototype.update = function() {
 				$gameTemp.pushMenu = "detail_pages";	
 			}			
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			SoundManager.playCancel();		
 			$gameTemp.popMenu = true;
 			this._mechList.setCurrentSelection(0);

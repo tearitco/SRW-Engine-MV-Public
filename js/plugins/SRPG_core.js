@@ -409,6 +409,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.createDeploySelectionWindow();
 		this.createSearchWindow();
 		this.createOptionsWindow();
+		this.createMapButtonsWindow();
 		$battleSceneManager.init();	
     };
 	
@@ -476,6 +477,9 @@ SceneManager.reloadCharacters = function(startEvent){
 		this._goldWindow.hide();
 		this._goldWindow.deactivate();
 		this._conditionsWindow.hide();
+		this._mapButtonsWindow.hide();
+		this._mapButtonsWindow.close();
+		$gameTemp.summariesTimeout = 5;//hack to avoid summaries showing for a couple frames when cancelling the pause menu while hovering a map button
 		$gameSystem.setSubBattlePhase('normal');
 	}
 	
@@ -495,6 +499,7 @@ SceneManager.reloadCharacters = function(startEvent){
 	};
 	
 	Scene_Map.prototype.commandTurnEnd = function() {
+		this._conditionsWindow.hide();
 		this._commandWindow.hide();
 		this._goldWindow.hide();
 		$gameSystem.setSubBattlePhase('confirm_end_turn');
@@ -534,6 +539,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			if(referenceEvent){
 				$gamePlayer.locate(referenceEvent.posX(), referenceEvent.posY());
 			}
+			$gameTemp.deactivatePauseMenu = false;
 			_this.closePauseMenu();
 		}
 		this._commandWindow.deactivate();
@@ -1095,6 +1101,14 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.idToMenu["terrain_details"] = this._terrainDetailsWindow;
     };
 	
+	Scene_Map.prototype.createMapButtonsWindow = function() {
+		this._mapButtonsWindow = new Window_MapButtons(0, 0);				
+		this._mapButtonsWindow.close();
+		this.addWindow(this._mapButtonsWindow);
+		this._mapButtonsWindow.hide();
+		this.idToMenu["map_buttons"] = this._mapButtonsWindow;
+    };	
+	
 	Scene_Map.prototype.createLevelUpWindow = function() {
 		this._levelUpWindow = new Window_LevelUp();
 				
@@ -1276,6 +1290,10 @@ SceneManager.reloadCharacters = function(startEvent){
 			this._terrainDetailsWindow.hide();
 		}		
 		
+		if(!$SRWGameState.canUseMenu() && $gameSystem.isSubBattlePhase() !== 'pause_menu' && $gameSystem.isSubBattlePhase() !== 'rearrange_deploys'){
+			this._mapButtonsWindow.hide();
+			this._mapButtonsWindow.close();
+		}
 		
 		if($gameTemp.OKHeld && !Input.isTriggered("ok")){
 			$gameTemp.OKHeld = false;
@@ -1379,7 +1397,7 @@ SceneManager.reloadCharacters = function(startEvent){
         }
 						
 		//$gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_target_spirit' || $gameSystem.isSubBattlePhase() === 'actor_map_target_confirm'
-		if ($SRWGameState.canShowSummaries()) {
+		if ($SRWGameState.canShowSummaries() && $gameTemp.summariesTimeout <= 0) {
 			var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
 			$gameTemp.previousCursorPosition = currentPosition;
 			var summaryUnit = $statCalc.activeUnitAtPosition(currentPosition);

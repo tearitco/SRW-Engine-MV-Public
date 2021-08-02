@@ -4,6 +4,7 @@
 	justify-content: center;
 	background: rgba(0,0,0,0);
 	color: #FFFFFF;
+	pointer-events: none;
 }
 
 #unit_summary .bg_fade_container {

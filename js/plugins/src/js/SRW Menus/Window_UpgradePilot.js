@@ -220,6 +220,10 @@ Window_UpgradePilot.prototype.createComponents = function() {
 	windowNode.appendChild(this._abilityListContainer);
 	this._abilityList = new AbilityList(this._abilityListContainer, this, true);
 	this._abilityList.createComponents();
+	this._abilityList.registerTouchObserver("ok", function(){if(_this._currentUIState == "ability_selection"){_this._touchOK = true;}});
+	this._abilityList.registerTouchObserver("left", function(){if(_this._currentUIState == "ability_selection"){_this._touchLeft = true;}});
+	this._abilityList.registerTouchObserver("right", function(){if(_this._currentUIState == "ability_selection"){_this._touchRight = true;}});
+	this._abilityList.registerObserver("redraw", function(){if(_this._currentUIState == "ability_selection"){_this.requestRedraw();}});
 }	
 
 
@@ -636,7 +640,7 @@ Window_UpgradePilot.prototype.redraw = function() {
 		if((this._currentUIState == "ability_equip_selection" || this._currentUIState == "ability_purchase_selection") && i == this._currentEquipSelection){
 			displayClass = "selected";
 		}
-		currentAbilitiesContent+="<div class='pilot_stat_container scaled_text fitted_text "+displayClass+"'>";
+		currentAbilitiesContent+="<div data-idx='"+i+"' class='pilot_stat_container scaled_text fitted_text "+displayClass+"'>";
 		currentAbilitiesContent+="<div class='unique_skill_mark scaled_width'>"+uniqueString+"</div>";
 		currentAbilitiesContent+="<div class='stat_value'>"+displayName+"</div>";
 		currentAbilitiesContent+="</div>";			
@@ -715,6 +719,24 @@ Window_UpgradePilot.prototype.redraw = function() {
 				var idx = this.getAttribute("data-idx");				
 				_this._currentSelection = idx;
 				_this._touchRight = true;		
+			}					
+		});
+	});
+	
+	var entries = windowNode.querySelectorAll(".pilot_stat_container");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			if(_this._currentUIState == "ability_purchase_selection" || _this._currentUIState == "ability_equip_selection"){
+				var idx = this.getAttribute("data-idx"); 
+				if(idx != null){
+					idx*=1;
+					if(idx == _this._currentEquipSelection){
+						_this._touchOK = true;				
+					} else {
+						_this._currentEquipSelection = idx;
+						_this.requestRedraw();
+					}
+				}						
 			}					
 		});
 	});

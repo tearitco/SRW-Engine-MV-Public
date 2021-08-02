@@ -19,6 +19,7 @@ body {
 	--section-bg-color-solid:  rgba(0,67,99,1);
 	--menu-bg-color:  rgba(34,49,73,0.8);
 	--menu-bg-color-solid:  rgba(34,49,73,1);
+	--menu-bg-color-filter: invert(18%) sepia(81%) saturate(1381%) hue-rotate(172deg) brightness(89%) contrast(102%);
 }
 #custom_UI_layer {
 	position: fixed;
@@ -454,4 +455,27 @@ body {
 
 .faction_color.faction_2 {
 	background-color: rgba(172, 172, 38, 0.7);
+}
+
+/* Let's get this party started */
+.styled_scroll::-webkit-scrollbar {
+    width: 1.2vw;
+}
+ 
+/* Track */
+.styled_scroll::-webkit-scrollbar-track {
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+	background: rgba(0,0,0,0.2); }
+ 
+/* Handle */
+.styled_scroll::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 0px;
+    border-bottom-left-radius:9999px;
+	 border-top-left-radius:9999px;
+    background: rgba(255,255,255,1); 
+   
+}
+.styled_scroll::-webkit-scrollbar-thumb:window-inactive {
+	/*background: rgba(255,0,0,0.4); */
 }

@@ -118,6 +118,8 @@ Window_Options.prototype.initialize = function() {
 			if(direction == "up"){
 				if(current < 100){
 					current+=20;
+				} else {
+					current = 0;
 				}
 			} else {
 				if(current > 0){
@@ -140,6 +142,8 @@ Window_Options.prototype.initialize = function() {
 			if(direction == "up"){
 				if(current < 100){
 					current+=20;
+				} else {
+					current = 0;
 				}
 			} else {
 				if(current > 0){
@@ -260,14 +264,14 @@ Window_Options.prototype.update = function() {
 			
 		}	
 		
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			SoundManager.playCancel();			
 			$gameTemp.popMenu = true;				
 			if(this._callbacks["closed"]){
 				this._callbacks["closed"]();
 			}					
 		}				
-		
+		this.resetTouchState();
 		this.refresh();
 	}		
 };
@@ -282,7 +286,7 @@ Window_Options.prototype.redraw = function() {
 			content+=_this._titleInfo[ctr];			
 			content+="</div>";
 		}
-		content+="<div class='entry "+(ctr == _this._currentSelection ? "selected" : "")+"'>";
+		content+="<div data-idx='"+ctr+"' class='entry "+(ctr == _this._currentSelection ? "selected" : "")+"'>";
 		content+="<div class='label scaled_text fitted_text'>";
 		content+=option.name;
 		content+="</div>";
@@ -293,6 +297,26 @@ Window_Options.prototype.redraw = function() {
 		ctr++;
 	});
 	this._listContainer.innerHTML = content;
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".entry");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){			
+			var idx = this.getAttribute("data-idx"); 
+			if(idx != null){
+				idx*=1;
+				if(idx == _this._currentSelection){
+					_this._optionInfo[_this._currentSelection].update("up");
+					_this.requestRedraw();
+				} else {
+					_this._currentSelection = idx;
+					_this.requestRedraw();
+				}
+			}								
+		});
+	});	
+	
+	
 	
 	Graphics._updateCanvas();
 }

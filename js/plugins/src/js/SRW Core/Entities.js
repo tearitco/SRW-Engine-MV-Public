@@ -1510,6 +1510,9 @@
 			this.updateVehicle();
 			if (!this.isMoving()) {
 				this.updateNonmoving(wasMoving);
+				if(!wasMoving){
+					$gameTemp.clearDestination();
+				}				
 			}
 			this._followers.update();
 		};

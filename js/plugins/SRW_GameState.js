@@ -85,7 +85,9 @@ function GameStateManager(){
 		spirit_activation: "GameState_spirit_activation", //OK
 		//status_window: "GameState_status_window",
 		twin_selection: "GameState_twin_selection",	
-		battle_intro: "GameState_battle_intro" //OK
+		battle_intro: "GameState_battle_intro", //OK
+		wait: "GameState_wait",
+		hover_map_button: "GameState_hover_map_button"
 	};
 	this._stateObjMapping = {};
 	Object.keys(_this._stateClassMapping).forEach(function(stateId){
@@ -124,7 +126,7 @@ GameStateManager.prototype.updateMapEvent = function(x, y, triggers){
 	if(this._stateObjMapping[this._currentState]){
 		return this._stateObjMapping[this._currentState].updateMapEvent(x, y, triggers);
 	} else {
-		return true;
+		return false;
 	}
 }
 
@@ -132,7 +134,7 @@ GameStateManager.prototype.canCursorMove = function(){
 	if(this._stateObjMapping[this._currentState]){
 		return this._stateObjMapping[this._currentState].canCursorMove();
 	} else {
-		return true;
+		return false;
 	}
 }
 
@@ -140,7 +142,7 @@ GameStateManager.prototype.canUseMenu = function(){
 	if(this._stateObjMapping[this._currentState]){
 		return this._stateObjMapping[this._currentState].canUseMenu();
 	} else {
-		return true;
+		return false;
 	}
 }
 
@@ -163,6 +165,26 @@ GameStateManager.prototype.requestNewState = function(state){
 }
 
 /*State implementations*/
+
+
+function GameState_wait(){
+	GameState.call(this);
+}
+
+GameState_wait.prototype = Object.create(GameState.prototype);
+GameState_wait.prototype.constructor = GameState_wait;
+
+function GameState_hover_map_button(){
+	GameState.call(this);
+	this.allowedActions = {
+		cursor: false,
+		menu: true,
+		summaries: false
+	};
+}
+
+GameState_hover_map_button.prototype = Object.create(GameState.prototype);
+GameState_hover_map_button.prototype.constructor = GameState_hover_map_button;
 
 function GameState_actor_command_window(){
 	GameState.call(this);
@@ -1232,6 +1254,11 @@ GameState_normal.prototype.update = function(scene){
 	$gameTemp.currentMapTargets	= [];
 	$gameTemp.unitHitInfo = {};
 	
+	if(!scene._mapButtonsWindow.visible){
+		scene._mapButtonsWindow.open();
+		scene._mapButtonsWindow.show();
+	}
+	
 	if($gameTemp.supportAttackCandidates && $gameTemp.supportAttackCandidates.length){
 		$gameTemp.supportAttackCandidates.forEach(function(candidate){
 			candidate.actor.isSupport = false;
@@ -1251,7 +1278,7 @@ GameState_normal.prototype.update = function(scene){
 	$gameTemp.previousCursorPosition = currentPosition;			
 
 	var summaryUnit = $statCalc.activeUnitAtPosition(currentPosition);
-	if(summaryUnit){
+	if(summaryUnit && $gameTemp.summariesTimeout <= 0){
 		var previousUnit = $gameTemp.summaryUnit;
 		$gameTemp.summaryUnit = summaryUnit;	
 		if(!scene._summaryWindow.visible || $gameTemp.summaryUnit != previousUnit){
@@ -1295,7 +1322,8 @@ GameState_normal.prototype.update = function(scene){
 		
 		if(Input.isTriggered('ok')){			
 			scene.showPauseMenu();
-			$gameSystem.setSubBattlePhase('pause_menu');											
+			$gameSystem.setSubBattlePhase('pause_menu');		
+			scene._mapButtonsWindow.requestRedraw();	
 		} else {
 			$gameTemp.OKHeld = false;
 		}
@@ -1312,7 +1340,7 @@ GameState_normal.prototype.update = function(scene){
 		terrainDetails = $gameMap.getTilePropertiesAsObject({x: currentPosition.x, y: currentPosition.y});	
 	}
 	
-	if(terrainDetails){
+	if(terrainDetails && $gameTemp.summariesTimeout <= 0){
 		$gameTemp.terrainDetails = terrainDetails;
 		if(!scene._terrainDetailsWindow.visible || previousPosition.x != currentPosition.x || previousPosition.y != currentPosition.y){
 			scene._terrainDetailsWindow.show();
@@ -1320,6 +1348,8 @@ GameState_normal.prototype.update = function(scene){
 	} else {
 		scene._terrainDetailsWindow.hide();
 	}
+	
+	$gameTemp.summariesTimeout--;
 	
 	if(summaryUnit && Input.isTriggered("menu")){
 		$gameTemp.detailPagesWindowCancelCallback = function(){
@@ -1790,6 +1820,10 @@ GameState_pause_menu.prototype = Object.create(GameState.prototype);
 GameState_pause_menu.prototype.constructor = GameState_pause_menu;
 
 GameState_pause_menu.prototype.update = function(scene){
+	if(!scene._mapButtonsWindow.visible){
+		scene._mapButtonsWindow.open();
+		scene._mapButtonsWindow.show();
+	}
 	if(!$gameTemp.deactivatePauseMenu){
 		scene.showPauseMenu();
 	}	
@@ -1936,7 +1970,11 @@ GameState_rearrange_deploys.prototype = Object.create(GameState.prototype);
 GameState_rearrange_deploys.prototype.constructor = GameState_rearrange_deploys;
 
 GameState_rearrange_deploys.prototype.update = function(scene){
-	if(Input.isTriggered("ok")){					
+	if(!scene._mapButtonsWindow.visible){
+		scene._mapButtonsWindow.open();
+		scene._mapButtonsWindow.show();
+	}
+	if((Input.isTriggered("ok") || TouchInput.isTriggered()) && !$gamePlayer.isMoving()){					
 		var event;// = $statCalc.activeUnitAtPosition({x: $gamePlayer.posX(), y: $gamePlayer.posY()}).event;
 		var events = $gameMap.events();
 		events.forEach(function(e){
@@ -1990,17 +2028,21 @@ GameState_rearrange_deploys.prototype.update = function(scene){
 		$gameTemp.menuStillHeld = false;
 	}
 
-	if(!$gameTemp.menuStillHeld && Input.isTriggered("menu")){	
+	if((!$gameTemp.menuStillHeld && Input.isTriggered("menu")) || $gameTemp.mapButtonClicked("deploy")){	
+		$gameTemp.clearMapButton("deploy");
 		$gameSystem.removeDeployTileHighlights();
 		$gameTemp.doingManualDeploy = false;
 		$gameTemp.disableHighlightGlow = false;
 		$gameSystem.undeployActors();
 		$gameSystem.deployActors(true, $gameTemp.manualDeployType, true);
 		$gameSystem.setBattlePhase("start_srpg");
+		$gameSystem.setSubBattlePhase("wait");
 		
 		$gameMap._interpreter.setWaitMode("enemy_appear");
 		$gameTemp.enemyAppearQueueIsProcessing = true;
 		$gameTemp.unitAppearTimer = 0;
+		scene._mapButtonsWindow.hide();
+		scene._mapButtonsWindow.close();
 	} 
 
 	if(Input.isTriggered("cancel") || TouchInput.isCancelled()){
@@ -2017,6 +2059,7 @@ GameState_rearrange_deploys.prototype.update = function(scene){
 	}
 	return true;
 }
+
 
 function GameState_rearrange_deploys_init(){
 	GameState.call(this);

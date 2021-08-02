@@ -94,6 +94,9 @@ window.Window_Search = Window_Search;
 import Window_Options from "./Window_Options.js";
 window.Window_Options = Window_Options;
 
+import Window_MapButtons from "./Window_MapButtons.js";
+window.Window_MapButtons = Window_MapButtons;
+
 
 import "./style/SRW_Menus.css";
 

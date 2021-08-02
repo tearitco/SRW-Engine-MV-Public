@@ -217,7 +217,9 @@
 							$gameSystem.isSubBattlePhase()== "enemy_move" || 
 							$gameSystem.isSubBattlePhase()== "actor_target" || 
 							$gameSystem.isSubBattlePhase() == "enemy_targeting_display" ||
-							$gameSystem.isSubBattlePhase() == "post_move_command_window"
+							$gameSystem.isSubBattlePhase() == "post_move_command_window" ||
+							$gameSystem.isSubBattlePhase() == "rearrange_deploys" ||
+							$gameSystem.isSubBattlePhase() == "hover_deploy_btn"							
 						){
 							this._upperBodyOverlay.opacity = 255;
 							this._lowerBodyOverlay.opacity = 255;

@@ -49,14 +49,14 @@ Window_ConfirmEndTurn.prototype.update = function() {
 				this._currentSelection = 0;
 			}
 		}
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			$gameTemp.popMenu = true;
 			SoundManager.playOk();
 			if(this._callbacks.selected){
 				this._callbacks.selected(!this._currentSelection);
 			}
 		}
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			$gameTemp.popMenu = true;
 			SoundManager.playCancel();
 			if(this._callbacks.selected){
@@ -95,7 +95,15 @@ Window_ConfirmEndTurn.prototype.redraw = function() {
 	_this._bgFadeContainer.innerHTML = content;
 	this.updateScaledDiv(_this._bgFadeContainer.querySelector(".confirm_end_turn_content"));
 	
-	
+	var windowNode = this.getWindowNode();
+	windowNode.querySelector(".ok_button").addEventListener("click", function(){
+		_this._currentSelection = 0;
+		_this._touchOK = true;
+	});
+	windowNode.querySelector(".cancel_button").addEventListener("click", function(){
+		_this._currentSelection = 1;
+		_this._touchOK = true;
+	});
 	
 	Graphics._updateCanvas();
 }

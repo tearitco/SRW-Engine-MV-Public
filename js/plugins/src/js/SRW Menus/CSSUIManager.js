@@ -105,6 +105,7 @@ CSSUIManager.prototype.initAllWindows = function(){
 	this.initWindow("pilot_reassign_select");
 	this.initWindow("search");
 	this.initWindow("options");
+	this.initWindow("map_buttons");
 }
 
 CSSUIManager.prototype.initWindow = function(id){
