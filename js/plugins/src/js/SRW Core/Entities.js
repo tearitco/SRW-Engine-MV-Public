@@ -1519,7 +1519,8 @@
 
 		//プレイヤーの自動移動を設定する
 		var _SRPG_Game_Player_moveByInput = Game_Player.prototype.moveByInput;
-		Game_Player.prototype.moveByInput = function() {		
+		Game_Player.prototype.moveByInput = function() {	
+			this.wasTouchMoved = false;
 			if(!this.getInputDirection()){			
 				if(this._tileCounter > 0){				
 					this._speedResetCounter = 10;
@@ -1607,8 +1608,9 @@
 							var x = $gameTemp.destinationX();
 							var y = $gameTemp.destinationY();
 							if($gameTemp.cameraMode == "touch"){
-								if(x >= 0 && x < $gameMap.width() && y >= 0 && y < $gameMap.height()){
+								if(x >= 0 && x < $gameMap.width() && y >= 0 && y < $gameMap.height() && (x != this.posX() || y != this.posY())){
 									this.locate(x, y, true);
+									this.wasTouchMoved = true;
 								}								
 							} else {
 								direction = this.findDirectionTo(x, y);

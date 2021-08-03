@@ -1399,7 +1399,9 @@ GameState_normal.prototype.updateMapEvent = function(x, y, triggers){
 	if($gameTemp.isDraggingMap){
 		return;
 	}
-	
+	if($gamePlayer.wasTouchMoved){
+		return; //do no process event triggers on the same click as moving the cursor
+	}
 	$gameMap.eventsXy(x, y).forEach(function(event) {
 		if (event.isTriggerIn(triggers) && !event.isErased()) {
 			var battlerArray = $gameSystem.EventToUnit(event.eventId());
