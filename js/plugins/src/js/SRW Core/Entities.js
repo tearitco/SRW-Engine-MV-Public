@@ -1606,7 +1606,13 @@
 						} else if ($gameTemp.isDestinationValid()){
 							var x = $gameTemp.destinationX();
 							var y = $gameTemp.destinationY();
-							direction = this.findDirectionTo(x, y);
+							if($gameTemp.cameraMode == "touch"){
+								if(x >= 0 && x < $gameMap.width() && y >= 0 && y < $gameMap.height()){
+									this.locate(x, y, true);
+								}								
+							} else {
+								direction = this.findDirectionTo(x, y);
+							}							
 						}
 						if (direction > 0) {
 							this.executeMove(direction);
@@ -1615,6 +1621,19 @@
 				}			
 			}      
 		};
+		
+		Game_Player.prototype.locate = function(x, y, keepCameraPosition) {
+			Game_Character.prototype.locate.call(this, x, y);
+			if(!keepCameraPosition){
+				this.center(x, y);
+			}			
+			this.makeEncounterCount();
+			if (this.isInVehicle()) {
+				this.vehicle().refresh();
+			}
+			this._followers.synchronize(x, y, this.direction());
+		};
+
 		
 		Game_Player.prototype.updateEncounterCount = function() {
 			
@@ -1647,41 +1666,7 @@
 		//戦闘中、サブフェーズの状況に応じてプレイヤーの移動を制限する
 		var _SRPG_Game_Player_canMove = Game_Player.prototype.canMove;
 		Game_Player.prototype.canMove = function() {
-			if ($gameSystem.isSRPGMode() == true) {
-				/*if ($gameSystem.srpgWaitMoving() == true ||
-					$gameSystem.isSubBattlePhase() === 'status_window' ||
-				 //   $gameSystem.isSubBattlePhase() === 'actor_command_window' ||
-					$gameSystem.isSubBattlePhase() === 'post_move_command_window' ||				
-					$gameSystem.isSubBattlePhase() === 'battle_window' ||
-					$gameSystem.isBattlePhase() === 'auto_actor_phase' ||
-					$gameSystem.isBattlePhase() === 'AI_phase' ||
-					$gameSystem.isSubBattlePhase() === 'rewards_display' ||
-					$gameSystem.isSubBattlePhase() === 'level_up_display' ||
-					$gameSystem.isSubBattlePhase() === 'process_death_queue' ||
-					$gameSystem.isSubBattlePhase() === 'process_death' || 
-					$gameSystem.isSubBattlePhase() === 'pause_menu' || 				
-					$gameSystem.isSubBattlePhase() === 'event_before_battle' || 			
-					$gameSystem.isSubBattlePhase() === 'battle_basic' ||
-					$gameSystem.isSubBattlePhase() === 'spirit_activation' ||
-					$gameSystem.isSubBattlePhase() === 'after_battle' ||
-					$gameSystem.isSubBattlePhase() === 'actor_map_target' ||
-					$gameSystem.isSubBattlePhase() === 'map_attack_animation' ||
-					$gameSystem.isSubBattlePhase() === 'process_map_attack_queue' ||
-					$gameSystem.isSubBattlePhase() === 'map_spirit_animation' ||
-					$gameSystem.isSubBattlePhase() === 'confirm_boarding' ||
-					$gameSystem.isSubBattlePhase() === 'enemy_unit_summary' ||
-					$gameSystem.isSubBattlePhase() === 'confirm_end_turn'	||
-					$gameSystem.isSubBattlePhase() === 'enemy_targeting_display' ||
-					$gameSystem.isSubBattlePhase() === 'enemy_attack' ||
-					$gameSystem.isSubBattlePhase() === 'await_character_anim' ||
-					$gameSystem.isSubBattlePhase() === 'process_destroy_transform_queue'
-					
-					
-					
-					){
-					return false;
-				}*/
-				
+			if ($gameSystem.isSRPGMode() == true) {				
 				if(!$SRWGameState.canCursorMove()){
 					return false;
 				}
@@ -1700,25 +1685,7 @@
 					return false;
 				} else {
 					return _SRPG_Game_Player_triggerAction.call(this);
-				}
-				
-				//TODO remove these checks once all states are migrated
-				/*if ($gameSystem.srpgWaitMoving() == true ||
-					//$gameTemp.isAutoMoveDestinationValid() == true ||
-					//$gameSystem.isSubBattlePhase() === 'actor_command_window' ||
-					$gameSystem.isSubBattlePhase() === 'post_move_command_window' ||
-					$gameSystem.isSubBattlePhase() === 'battle_window' ||
-					$gameSystem.isBattlePhase() === 'auto_actor_phase' ||
-					$gameSystem.isBattlePhase() === 'AI_phase' || 
-					$gameSystem.isSubBattlePhase() === 'rewards_display' ||
-					$gameSystem.isSubBattlePhase() === 'level_up_display' ||
-					$gameSystem.isSubBattlePhase() === 'battle_basic' ||
-					$gameSystem.isSubBattlePhase() === 'spirit_activation' ||
-					$gameSystem.isSubBattlePhase() === 'after_battle' ) {
-					return false;
-				}  else {
-					
-				}	*/		
+				}	
 			} else {
 				return _SRPG_Game_Player_triggerAction.call(this);
 			}
@@ -1739,7 +1706,37 @@
 				_SRPG_Game_Player_checkEventTriggerTouch.call(this, x, y);
 			}
 		};
-
+	
+		Game_Player.prototype.updateScroll = function(lastScrolledX, lastScrolledY) {
+			if($gameTemp.cameraMode == "touch"){
+				return;
+			}
+			var x1 = lastScrolledX;
+			var y1 = lastScrolledY;
+			var x2 = this.scrolledX();
+			var y2 = this.scrolledY();
+			var deadZoneY;
+			var deadZoneX;
+			if(ENGINE_SETTINGS.LOCK_CAMERA_TO_CURSOR){
+				deadZoneY = 0;
+				deadZoneX = 0;
+			} else {
+				deadZoneY = 3;
+				deadZoneX = 5;
+			}
+			if (y2 > y1 && y2 > this.centerY() + deadZoneY) {
+				$gameMap.scrollDown(y2 - y1);
+			}
+			if (x2 < x1 && x2 < this.centerX() - deadZoneX) {
+				$gameMap.scrollLeft(x1 - x2);
+			}
+			if (x2 > x1 && x2 > this.centerX() + deadZoneX) {
+				$gameMap.scrollRight(x2 - x1);
+			}
+			if (y2 < y1 && y2 < this.centerY() - deadZoneY) {
+				$gameMap.scrollUp(y1 - y2);
+			}
+		};
 	//====================================================================
 	// ●Game_Follower
 	//====================================================================

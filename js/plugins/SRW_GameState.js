@@ -1259,6 +1259,8 @@ GameState_normal.prototype.update = function(scene){
 		scene._mapButtonsWindow.show();
 	}
 	
+	
+	
 	if($gameTemp.supportAttackCandidates && $gameTemp.supportAttackCandidates.length){
 		$gameTemp.supportAttackCandidates.forEach(function(candidate){
 			candidate.actor.isSupport = false;
@@ -1270,6 +1272,10 @@ GameState_normal.prototype.update = function(scene){
 	}
 	
 	if($gameMap.isEventRunning()){
+		return true;
+	}
+	
+	if($gameTemp.isDraggingMap){
 		return true;
 	}
 	
@@ -1390,6 +1396,10 @@ GameState_normal.prototype.updateTriggerAction = function(cursor){
 }
 
 GameState_normal.prototype.updateMapEvent = function(x, y, triggers){
+	if($gameTemp.isDraggingMap){
+		return;
+	}
+	
 	$gameMap.eventsXy(x, y).forEach(function(event) {
 		if (event.isTriggerIn(triggers) && !event.isErased()) {
 			var battlerArray = $gameSystem.EventToUnit(event.eventId());

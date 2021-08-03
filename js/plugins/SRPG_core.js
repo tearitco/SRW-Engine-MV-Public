@@ -319,6 +319,22 @@ SceneManager.reloadCharacters = function(startEvent){
 		this.idToMenu = {};
 		$gameTemp.menuStack = [];
     };
+	
+	Scene_Map.prototype.processMapTouch = function() {
+		if (TouchInput.isTriggered() || this._touchCount > 0) {
+			if (TouchInput.isPressed()) {
+				if (this._touchCount === 0 || this._touchCount >= 15) {
+					var x = $gameMap.canvasToMapX(TouchInput.x);
+					var y = $gameMap.canvasToMapY(TouchInput.y);
+					$gameTemp.setDestination(x, y);
+				}
+				$gameTemp.cameraMode = "touch";
+				this._touchCount++;
+			} else {
+				this._touchCount = 0;
+			}
+		}
+	};
 
     // フェード速度を返す
     Scene_Map.prototype.fadeSpeed = function() {
@@ -1237,6 +1253,11 @@ SceneManager.reloadCharacters = function(startEvent){
 			return;
 		}		
 		
+		
+		if(Input.isTriggered("left") || Input.isTriggered("right") || Input.isTriggered("up") || Input.isTriggered("down")){
+			$gameTemp.cameraMode = "controller";
+		}
+		
 		_SRPG_SceneMap_update.call(this);
 		
 		this.processMenuStack();
@@ -1270,7 +1291,46 @@ SceneManager.reloadCharacters = function(startEvent){
 			return;
 		}
 						
+		if($gamePlayer.canMove()){		
 		
+			if(TouchInput.isPressed()) {
+				if($gameTemp._ckex == -1 || $gameTemp._ckey == -1){
+					$gameTemp._ckex = TouchInput.x;
+					$gameTemp._ckey = TouchInput.y;
+					$gameTemp.lastDragX = TouchInput.x;
+					$gameTemp.lastDragY = TouchInput.y;
+					$gameTemp.dragTimer = 10;
+					$gameTemp.dragAccelTimer = 0;
+					$gameTemp.isDraggingMap = true;
+				} else if($gameTemp.isDraggingMap){
+					if(Math.abs($gameTemp.lastDragX - TouchInput.x) > 50 || Math.abs($gameTemp.lastDragY - TouchInput.y) > 50){
+						$gameTemp.lastDragX = TouchInput.x;
+						$gameTemp.lastDragY = TouchInput.y;
+						$gameTemp.dragTimer = 10;
+					} else {
+						$gameTemp.dragTimer--;
+					}
+					if($gameTemp.dragTimer >= 0){
+						var ckeX = ($gameTemp._ckex - TouchInput.x);
+						var ckeY = ($gameTemp._ckey - TouchInput.y);
+						$gameTemp.dragAccelTimer++;
+						if($gameTemp.dragAccelTimer > 30){
+							$gameTemp.dragAccelTimer = 30;
+						}
+						var ratio = 500 + ((30 - $gameTemp.dragAccelTimer) * 5);
+						$gameMap.applyDragDistances(ckeX / ratio, ckeY / ratio);
+					} else {
+						$gameTemp._ckex = -1;
+						$gameTemp._ckey = -1;
+						$gameTemp.isDraggingMap = false;
+					}				
+				}
+			} else {
+				$gameTemp._ckex = -1;
+				$gameTemp._ckey = -1;
+				$gameTemp.isDraggingMap = false;
+			}		
+		}
 		
 		if($gameTemp.continueLoaded){
 			$gameTemp.continueLoaded = false;
@@ -1397,7 +1457,7 @@ SceneManager.reloadCharacters = function(startEvent){
         }
 						
 		//$gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_target_spirit' || $gameSystem.isSubBattlePhase() === 'actor_map_target_confirm'
-		if ($SRWGameState.canShowSummaries() && $gameTemp.summariesTimeout <= 0) {
+		if ($SRWGameState.canShowSummaries() && $gameTemp.summariesTimeout <= 0 && !$gameTemp.isDraggingMap) {
 			var currentPosition = {x: $gamePlayer.posX(), y: $gamePlayer.posY()};
 			$gameTemp.previousCursorPosition = currentPosition;
 			var summaryUnit = $statCalc.activeUnitAtPosition(currentPosition);

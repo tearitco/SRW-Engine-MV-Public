@@ -183,6 +183,28 @@
 			return false;
 		};
 			
+			
+		Game_Map.prototype.applyDragDistances = function(distanceX, distanceY) {
+			var lastX = this._displayX;
+			this._displayX += distanceX;
+			if(this._displayX < -5){
+				this._displayX = -5;
+			}
+			if(this._displayX > this.width() + 5 - this.screenTileX()){
+				this._displayX = this.width() + 5 - this.screenTileX();
+			}
+			this._parallaxX += this._displayX - lastX;
+			
+			var lastY = this._displayY;
+			this._displayY += distanceY;
+			if(this._displayY < -5){
+				this._displayY = -5;
+			}
+			if(this._displayY > this.height() + 5 - this.screenTileY()){
+				this._displayY = this.height() + 5 - this.screenTileY();
+			}
+			this._parallaxY += this._displayY - lastY;
+		};	
 	//====================================================================
 	// ●Spriteset_Map
 	//====================================================================
