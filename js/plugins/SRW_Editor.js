@@ -266,7 +266,7 @@ SRWEditor.prototype.init = function(){
 		},
 		create_bg: {
 			hasTarget: true,
-			params: ["path", "parent", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay", "holdFrame"],
+			params: ["path", "parent", "position", "size", "alpha", "billboardMode", "rotation", "animationFrames", "frameSize", "lineCount", "columnCount", "animationLoop", "animationDelay", "holdFrame", "scrollSpeed"],
 			desc: "Create a new background."
 		},
 		remove_bg: {
@@ -511,6 +511,7 @@ SRWEditor.prototype.init = function(){
 		commands: "A list of commands to be run to during the phase transition to set up the next phase.",
 		animationFrames: "The number of animation frames in the spritesheet.",
 		holdFrame: "If 1 the sprite will hold the final frame of the animation, ignored if animation looping is enabled.",
+		scrollSpeed: "Sets the horizontal scroll speed of the background, use negative values to change the scroll direction",
 		noWait: "If 1 the engine will not wait for the destruction animation to complete.",
 		animationLoop: "If 1 the animation will loop.",
 		animationDelay: "The time between animation frames in ticks.",
@@ -789,6 +790,9 @@ SRWEditor.prototype.init = function(){
 		
 		},
 		holdFrame: function(value){
+		
+		}, 
+		scrollSpeed: function(value){
 		
 		}, 
 		noWait:  function(value){

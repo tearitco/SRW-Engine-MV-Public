@@ -69,7 +69,9 @@ export default function BattleSceneManager(){
 	this._bgAnimationCounter = 0;
 	this._fadeAnimations = {};
 	this._fadeAnimationCtr = 0;
-
+	this._bgScrolls = {};
+	this._bgScrollCounter = 0;
+	
 	this._animationDirection = 1;
 
 	this.setBgScrollDirection(1, true);
@@ -586,7 +588,7 @@ BattleSceneManager.prototype.createSceneBg = function(name, path, position, size
 		material.useAlphaFromDiffuseTexture  = true;
 	}
 
-	material.diffuseTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+	material.diffuseTexture.wrapU = BABYLON.Texture.WRAP_ADDRESSMODE;
 	material.diffuseTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
 
     bg.material = material;
@@ -1388,6 +1390,28 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 			}
 		});	
 		
+		Object.keys(_this._bgScrolls).forEach(function(animationId){
+			var animation = _this._bgScrolls[animationId];
+			var targetObj = animation.targetObj;
+			if(targetObj){
+				var texture;	
+				if(targetObj.material){
+					texture = targetObj.material.diffuseTexture;
+				} else {
+					texture = targetObj.texture;
+				}
+				if(texture){
+					texture.uOffset+=(animation.speed / 1000);
+					if(texture.uOffset > 1){
+						texture.uOffset-=1;
+					} else if(texture.uOffset < 0){
+						texture.uOffset+=1;
+					}
+				}
+			}
+		});
+		
+		
 		updateShadow(_this._actorSprite);
 		updateShadow(_this._enemySprite);	
 		updateShadow(_this._actorSupporterSprite);	
@@ -1679,6 +1703,12 @@ BattleSceneManager.prototype.registerBgAnimation = function(targetObj, startTick
 	};
 }
 
+BattleSceneManager.prototype.registerBgScroll = function(targetObj, speed){	
+	this._bgScrolls[this._bgScrollCounter++] = {		
+		targetObj: targetObj,
+		speed: speed
+	};
+}
 
 BattleSceneManager.prototype.delayAnimationList = function(startTick, delay){
 	var delayedList = [];
@@ -2300,6 +2330,10 @@ BattleSceneManager.prototype.executeAnimation = function(animation, startTick){
 			
 			if(params.animationFrames){
 				_this.registerBgAnimation(bg, startTick, params.frameSize, params.lineCount, params.columnCount, 0, params.animationFrames*1, params.animationLoop*1, params.animationDelay*1, params.holdFrame*1);
+			}
+			if(params.scrollSpeed){
+				var speed = params.scrollSpeed * _this._animationDirection;				
+				_this.registerBgScroll(bg, speed);
 			}
 			if(params.parent){
 				var parentObj = getTargetObject(params.parent);
@@ -3734,6 +3768,7 @@ BattleSceneManager.prototype.resetScene = function() {
 	_this._sizeAnimations = {};
 	_this._shakeAnimations = {};
 	_this._bgAnimations = {};	
+	_this._bgScrolls = {};	
 	_this._fadeAnimations = {};	
 	_this._lastAction = null;
 	
