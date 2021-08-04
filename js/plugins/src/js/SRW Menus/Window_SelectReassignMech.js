@@ -76,6 +76,7 @@ Window_SelectReassignMech.prototype.setCurrentSelection = function(value){
 }
 
 Window_SelectReassignMech.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -108,6 +109,10 @@ Window_SelectReassignMech.prototype.createComponents = function() {
 	
 	this._mechList = new MechList(this._listContainer, [0], this);
 	this._mechList.createComponents();
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._mechList.registerObserver("redraw", function(){_this.requestRedraw();});
 	this._detailBarMech = new DetailBarMech(this._detailContainer, this);
 	this._detailBarMech.createComponents();
 	this._detailBarPilot = new DetailBarPilot(this._detailPilotContainer, this);
@@ -147,15 +152,15 @@ Window_SelectReassignMech.prototype.update = function() {
 			}
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){			
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){			
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
 		
-		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger')){
+		if(Input.isTriggered('left_trigger') || Input.isRepeated('left_trigger') ){
 			this.requestRedraw();
 			this._mechList.decrementInfoPage();
 		} else if (Input.isTriggered('right_trigger') || Input.isRepeated('right_trigger')) {
@@ -176,7 +181,7 @@ Window_SelectReassignMech.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			/*if(this._internalHandlers[this._currentKey]){
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
@@ -212,7 +217,7 @@ Window_SelectReassignMech.prototype.update = function() {
 				SoundManager.playBuzzer();
 			}						
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			if(this._currentUIState == "main_selection"){
 				SoundManager.playCancel();		
 				$gameTemp.popMenu = true;	
@@ -248,7 +253,7 @@ Window_SelectReassignMech.prototype.redraw = function() {
 		var current = this.getCurrentSelection();
 		
 		if(current.mech.allowedPilots.length){
-			slotSelectionContent+="<div data-type='main' class='entry scaled_text fitted_text "+(_this._currentSlotSelection == 0 ? "selected" : "")+"'>";
+			slotSelectionContent+="<div data-idx='0' data-type='main' class='entry scaled_text fitted_text "+(_this._currentSlotSelection == 0 ? "selected" : "")+"'>";
 			slotSelectionContent+="<div class='slot_label'>"+APPSTRINGS.REASSIGN.label_main+"</div>";
 			slotSelectionContent+="<div class='slot_value'>"+(current.actor.SRWStats.pilot.name || "")+"</div>";
 			slotSelectionContent+="<div data-actor='"+(current.actor.SRWStats.pilot.id)+"' class='slot_icon'></div>";
@@ -257,7 +262,7 @@ Window_SelectReassignMech.prototype.redraw = function() {
 			
 		var subPilots = current.mech.subPilots;
 		for(var i = 0; i < subPilots.length; i++){
-			slotSelectionContent+="<div data-type='main' class='entry scaled_text fitted_text "+(_this._currentSlotSelection == (i + 1) ? "selected" : "")+"'>";
+			slotSelectionContent+="<div data-idx='"+(i + 1)+"' data-type='main' class='entry scaled_text fitted_text "+(_this._currentSlotSelection == (i + 1) ? "selected" : "")+"'>";
 			slotSelectionContent+="<div class='slot_label'>"+APPSTRINGS.REASSIGN.label_slot+" "+(i + 1)+"</div>";
 			var actor = $gameActors.actor(subPilots[i]);
 			var name = "---"
@@ -272,6 +277,7 @@ Window_SelectReassignMech.prototype.redraw = function() {
 		
 		slotSelectionContent+="</div>";
 		this._slotSelectionContainer.innerHTML = slotSelectionContent;
+		this._slotSelectionContainer.style.display = "";
 		
 		var slotIcons = this.getWindowNode().querySelectorAll(".slot_icon");
 		slotIcons.forEach(function(slotIcon){
@@ -279,11 +285,28 @@ Window_SelectReassignMech.prototype.redraw = function() {
 			if(actorId && actorId != -1){
 				_this.loadActorFace(actorId, slotIcon);
 			}			
-		});		
+		});	
+
+		var entries = this._slotSelectionContainer.querySelectorAll(".entry");
+		entries.forEach(function(entry){
+			entry.addEventListener("click", function(){		
+				var idx = this.getAttribute("data-idx"); 
+				if(idx != null){
+					idx*=1;
+					if(idx == _this._currentSlotSelection){
+						_this._touchOK = true;				
+					} else {
+						_this._currentSlotSelection = idx;
+						_this.requestRedraw();
+					}
+				}				
+			});
+		});			
 		
 		this.updateScaledDiv(this._slotSelectionContainer);
 	} else {
 		this._slotSelectionContainer.innerHTML = "";
+		this._slotSelectionContainer.style.display = "none";
 	}	
 	
 	Graphics._updateCanvas();

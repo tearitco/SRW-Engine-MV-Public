@@ -85,6 +85,7 @@ Window_SelectReassignPilot.prototype.setCurrentSelection = function(value){
 }
 
 Window_SelectReassignPilot.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -113,6 +114,10 @@ Window_SelectReassignPilot.prototype.createComponents = function() {
 	
 	this._mechList = new MechList(this._listContainer, [5], this);
 	this._mechList.createComponents();
+	this._mechList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._mechList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._mechList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._mechList.registerObserver("redraw", function(){_this.requestRedraw();});
 	this._detailBarMech = new DetailBarPilotStats(this._detailContainer, this);
 	this._detailBarMech.createComponents();
 	//this._detailBarPilot = new DetailBarPilot(this._detailPilotContainer, this);
@@ -132,10 +137,10 @@ Window_SelectReassignPilot.prototype.update = function() {
 		    this._mechList.decrementSelection();
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){			
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){			
 			this.requestRedraw();
 			this._mechList.decrementPage();
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();
 		    this._mechList.incrementPage();
 		}
@@ -161,7 +166,7 @@ Window_SelectReassignPilot.prototype.update = function() {
 			this._mechList.toggleSortOrder();			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			/*if(this._internalHandlers[this._currentKey]){
 				this._handlingInput = true;
 				this._internalHandlers[this._currentKey].call(this);
@@ -238,11 +243,12 @@ Window_SelectReassignPilot.prototype.update = function() {
 				if(this.getCurrentSelection().mech.forcePilots){
 					$statCalc.applyDeployActions(this.getCurrentSelection().actor.actorId(), mechId);
 				}			
+				$gameSystem.updateAvailableUnits();
 			} else {
 				SoundManager.playBuzzer();
 			}			
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			SoundManager.playCancel();		
 			$gameTemp.popMenu = true;	
 			$gameTemp.reassignTargetMech = null;

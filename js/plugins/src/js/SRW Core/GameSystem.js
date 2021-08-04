@@ -222,8 +222,7 @@
 
 	//戦闘開始に関係する処理
 		//戦闘開始するためのプラグイン・コマンド
-		Game_System.prototype.startIntermission = function(){
-			this._isIntermission = true;
+		Game_System.prototype.updateAvailableUnits = function(){
 			this._availableMechs = [];//available mechs must be cleared to avoid conflicts with previously serialized entries in the listing
 			this._availableUnits = $gameParty.allMembers();
 			this.dummyId = 0;
@@ -249,6 +248,11 @@
 					$statCalc.calculateSRWMechStats(mechData, false, result);		
 				}
 			}	
+		}
+		
+		Game_System.prototype.startIntermission = function(){
+			this._isIntermission = true;
+			this.updateAvailableUnits();
 			$gameTemp.summaryUnit = null;
 			$statCalc.invalidateAbilityCache();
 			$gameTemp.deployMode = "";			
