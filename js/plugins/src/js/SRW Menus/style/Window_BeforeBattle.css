@@ -789,3 +789,36 @@
 	top: 56%;
     left: 43.5%;
 }
+
+#before_battle .participant_block .mech_icon{
+	position: absolute;
+	
+	--widthpixels: 39;
+	--heightpixels: 39;
+	top: 21%;
+    left: 0.5%;
+}
+
+#before_battle .participant_block .mech_icon img{
+	width: 100%;
+}
+
+#before_battle .participant_block .mech_icon.enemy{	
+	top: 21%;
+    right: 0.5%;
+	left: auto;
+	transform: scaleX(-1);
+}
+
+#before_battle .participant_block .mech_icon_small{	
+	--widthpixels: 39;
+	--heightpixels: 39;
+}
+
+#before_battle .participant_block .mech_icon_small img{
+	width: 100%;
+}
+
+#before_battle .participant_block .mech_icon_small.enemy{	
+	transform: scaleX(-1);
+}

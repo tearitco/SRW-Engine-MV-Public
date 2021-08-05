@@ -775,9 +775,18 @@ Window_BeforebattleTwin.prototype.update = function() {
 	}		
 };
 
-Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action, isSupport, allyOrEnemy) {
+Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action, isSupport, allyOrEnemy, participantId) {
 	var content = "";
 	content+="<div class='participant_block "+allyOrEnemy+"'>";
+	
+	if(ref.isActor()){
+		content+="<div data-participantid='"+participantId+"' class='mech_icon pilot'>";
+		content+="</div>";
+	} else {
+		content+="<div data-participantid='"+participantId+"' class='mech_icon enemy'>";
+		content+="</div>";
+	}
+	
 	content+="<div class='scaled_text action_row'>";
 	if(!isSupport){
 		if(action.type == "attack"){
@@ -949,8 +958,8 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 			content+="</div>";
 		} else {
 			content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='enemy_icon'>";
-			content+="</div>";
-		}		
+			content+="</div>";		
+		}				
 		
 		content+="<div class='pilot_name scaled_text scaled_width fitted_text'>";
 		content+=ref.name();
@@ -1035,13 +1044,19 @@ Window_BeforebattleTwin.prototype.createParticipantBlock = function(ref, action,
 }
 
 
-Window_BeforebattleTwin.prototype.createSmallParticipantBlock = function(ref, action, allyOrEnemy) {
+Window_BeforebattleTwin.prototype.createSmallParticipantBlock = function(ref, action, allyOrEnemy, participantId) {
 	var content = "";
 	content+="<div class='participant_block participant_block_small "+allyOrEnemy+"'>";
+	
+	
+	
 	content+="<div class='scaled_text action_row'>";
+	
 	
 	if(ref.isActor()){
 		content+=createPercentIndicator();
+		content+="<div data-participantid='"+participantId+"' class='mech_icon_small pilot'>";
+		content+="</div>";
 		content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='pilot_icon'>";
 		content+="</div>";
 	} 
@@ -1075,6 +1090,8 @@ Window_BeforebattleTwin.prototype.createSmallParticipantBlock = function(ref, ac
 	
 	if(!ref.isActor()){
 		content+="<div data-pilot='"+ref.SRWStats.pilot.id+"' class='enemy_icon'>";
+		content+="</div>";
+		content+="<div data-participantid='"+participantId+"' class='mech_icon_small enemy'>";
 		content+="</div>";
 		content+=createPercentIndicator();
 	}
@@ -1327,8 +1344,8 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		windowNode.classList.add("no_twins");
 	}
 
-	this._ally_main.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor, $gameTemp.actorAction, false, "ally");
-	this._enemy_main.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy, $gameTemp.enemyAction, false, "enemy");
+	this._ally_main.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor, $gameTemp.actorAction, false, "ally", "ally_main");
+	this._enemy_main.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy, $gameTemp.enemyAction, false, "enemy", "enemy_main");
 	this._enemy_main.style.display = "";
 	var supporter = $gameTemp.supportAttackCandidates[$gameTemp.supportAttackSelected];
 	this._ally_support_1.innerHTML = "";
@@ -1336,15 +1353,17 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	this._enemy_support_1.style.display = "none";
 	this._ally_support_1.style.display = "none";
 	if(supporter){
-		if($gameTemp.isEnemyAttack){
-			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy");
+		this._supportAttacker = supporter;
+		if($gameTemp.isEnemyAttack){			
+			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy", "support_attack");
 			this._enemy_support_1.style.display = "";
 		} else {
-			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally");
+			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally", "support_attack");
 			this._ally_support_1.style.display = "";
 		}
 		
 	} else {
+		this._supportAttacker = null;
 		if($gameTemp.isEnemyAttack){
 			this._enemy_support_1.innerHTML = "";
 			this._enemy_support_1.style.display = "none";
@@ -1356,15 +1375,17 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	
 	var supporter = $gameTemp.supportDefendCandidates[$gameTemp.supportDefendSelected];	
 	if(supporter){
+		this._supportDefender = supporter;
 		if($gameTemp.isEnemyAttack){
-			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally");
+			this._ally_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally", "support_defend");
 			this._ally_support_1.style.display = "";
 		} else {			
-			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy");
+			this._enemy_support_1.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy", "support_defend");
 			this._enemy_support_1.style.display = "";
 		}
 		
 	} else {
+		this._supportDefender = null;
 		if($gameTemp.isEnemyAttack){			
 			this._ally_support_1.innerHTML = "";
 			this._ally_support_1.style.display = "none";
@@ -1380,15 +1401,17 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	this._enemy_support_2.innerHTML = "";
 	this._enemy_support_2.style.display = "none";
 	if(supporter){
+		this._supportAttacker2 = supporter;
 		if($gameTemp.isEnemyAttack){
-			this._enemy_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy");
+			this._enemy_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "enemy", "support_attack2");
 			this._enemy_support_2.style.display = "";
 		} else {
-			this._ally_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally");
+			this._ally_support_2.innerHTML = this.createSmallParticipantBlock(supporter.actor, supporter.action, "ally", "support_attack2");
 			this._ally_support_2.style.display = "";
 		}
 		
 	} else {
+		this._supportAttacker2 = null;
 		if($gameTemp.isEnemyAttack){
 			this._enemy_support_2.innerHTML = "";
 			this._enemy_support_2.style.display = "none";
@@ -1406,7 +1429,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		} else {
 			action = $gameTemp.actorTwinAction;
 		}
-		this._ally_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor.subTwin, action, false, "ally");
+		this._ally_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleActor.subTwin, action, false, "ally", "ally_twin");
 		this._ally_twin.style.display = "";
 	} else {
 		this._ally_twin.innerHTML = "";
@@ -1420,7 +1443,7 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		} else {
 			action = $gameTemp.enemyTwinAction;
 		}
-		this._enemy_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy.subTwin, action, false, "enemy");
+		this._enemy_twin.innerHTML = this.createParticipantBlock($gameTemp.currentBattleEnemy.subTwin, action, false, "enemy", "enemy_twin");
 		this._enemy_twin.style.display = "";
 	} else {
 		this._enemy_twin.innerHTML = "";
@@ -1696,6 +1719,64 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 			this._enemy_twin.classList.add("selected");
 		}
 	}
+	
+	var icons = windowNode.querySelectorAll(".mech_icon");
+	icons.forEach(function(icon){
+		_this.updateScaledDiv(icon);	
+		var actor;
+		var participantId = icon.getAttribute("data-participantid");
+	
+		if(participantId == "ally_main" && $gameTemp.currentBattleActor){
+			actor = $gameTemp.currentBattleActor;
+		}
+		
+		if(participantId == "enemy_main" && $gameTemp.currentBattleActor){
+			actor = $gameTemp.currentBattleEnemy;
+		}
+		
+		if(participantId == "ally_twin" && $gameTemp.currentBattleActor){
+			actor = $gameTemp.currentBattleActor.subTwin;
+		}
+		
+		if(participantId == "enemy_twin" && $gameTemp.currentBattleActor){
+			actor = $gameTemp.currentBattleEnemy.subTwin;
+		}
+		
+		if(actor){
+			var menuImagePath = $statCalc.getMenuImagePath(actor);
+			icon.innerHTML = "<img src='img/"+menuImagePath+"'>";
+			icon.display = "";
+		} else {
+			icon.display = "none";
+		}		
+	});
+	
+	var icons = windowNode.querySelectorAll(".mech_icon_small");
+	icons.forEach(function(icon){
+		_this.updateScaledDiv(icon);	
+		var actor;
+		var participantId = icon.getAttribute("data-participantid");
+	
+		if(participantId == "support_attack" && _this._supportAttacker){
+			actor = _this._supportAttacker.actor;
+		}
+		
+		if(participantId == "support_attack2" && _this._supportAttacker2){
+			actor = _this._supportAttacker2.actor;
+		}
+		
+		if(participantId == "support_defend" && _this._supportDefender){
+			actor = _this._supportDefender.actor;
+		}
+		
+		if(actor){
+			var menuImagePath = $statCalc.getMenuImagePath(actor);
+			icon.innerHTML = "<img src='img/"+menuImagePath+"'>";
+			icon.display = "";
+		} else {
+			icon.display = "none";
+		}		
+	});
 	
 	Graphics._updateCanvas();
 }

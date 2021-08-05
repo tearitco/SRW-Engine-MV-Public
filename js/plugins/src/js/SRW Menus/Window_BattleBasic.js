@@ -1087,7 +1087,7 @@ Window_BattleBasic.prototype.update = function() {
 			
 		}
 		
-		if (Input.isTriggered('ok') || Input.isPressed('ok')) {
+		if (Input.isTriggered('ok') || Input.isPressed('ok') || this._touchDoubleSpeed) {
 			this._doubleSpeedEnabled = true;
 			this.getWindowNode().classList.add("double_speed");
 		} else {
@@ -1132,6 +1132,14 @@ Window_BattleBasic.prototype.redraw = function() {
 		}			
 	});	
 		
+	var windowNode = this.getWindowNode();	
+	windowNode.addEventListener("mousedown", function(){
+		_this._touchDoubleSpeed = true;
+	});	
+	
+	windowNode.addEventListener("mouseup", function(){
+		_this._touchDoubleSpeed = false;
+	})
 	Graphics._updateCanvas();
 }
 

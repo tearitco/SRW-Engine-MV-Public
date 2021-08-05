@@ -1719,7 +1719,7 @@ GameState_rewards_display.prototype = Object.create(GameState.prototype);
 GameState_rewards_display.prototype.constructor = GameState_rewards_display;
 
 GameState_rewards_display.prototype.update = function(scene){
-	if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled() || ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
+	if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled() || TouchInput.isTriggered() || ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel') || TouchInput.isLongPressed()))) {
 		 $gameTemp.popMenu = true;			 
 		 if($gameTemp.rewardsInfo.levelResult.length){			
 			$gameSystem.setSubBattlePhase("level_up_display");
@@ -1742,7 +1742,7 @@ GameState_level_up_display.prototype.constructor = GameState_level_up_display;
 
 GameState_level_up_display.prototype.update = function(scene){
 	if($gameTemp.awaitingLevelUpWindow){
-		if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isCancelled()|| ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel')))) {
+		if (Input.isTriggered('cancel') || Input.isTriggered('ok') || TouchInput.isTriggered() || TouchInput.isCancelled()|| ($gameTemp.rewardsDisplayTimer <= 0 && (Input.isLongPressed('ok') || Input.isLongPressed('cancel') || TouchInput.isLongPressed()))) {
 			$gameTemp.popMenu = true;			
 			if($gameTemp.rewardsInfo.levelResult.length){
 				$gameTemp.awaitingLevelUpWindow = false;

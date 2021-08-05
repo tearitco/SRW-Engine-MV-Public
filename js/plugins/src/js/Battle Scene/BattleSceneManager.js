@@ -1151,8 +1151,8 @@ BattleSceneManager.prototype.hookBeforeRender = function(){
 		
 		
 		Input.update();
-		_this.isOKHeld = Input.isPressed("ok") || Input.isLongPressed("ok");
-		if(Input.isPressed("cancel") && _this._sceneCanEnd && !_this._sceneIsEnding){
+		_this.isOKHeld = Input.isPressed("ok") || Input.isLongPressed("ok") || TouchInput.isLongPressed();
+		if((Input.isPressed("cancel") || TouchInput.isCancelled()) && _this._sceneCanEnd && !_this._sceneIsEnding){
 			_this.endScene();
 		}
 		
