@@ -154,7 +154,7 @@ Window_SpiritSelection.prototype.update = function() {
 			}
 		}			
 
-		if(Input.isTriggered('pageup') || Input.isRepeated('pageup')){
+		if(Input.isTriggered('pageup') || Input.isRepeated('pageup') || this._touchL1){
 			this.requestRedraw();			
 			this.decrementCurrentActor();
 			if(this.getCurrentActor() < 0){
@@ -162,7 +162,7 @@ Window_SpiritSelection.prototype.update = function() {
 			}
 			SoundManager.playCursor();
 
-		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown')) {
+		} else if (Input.isTriggered('pagedown') || Input.isRepeated('pagedown') || this._touchR1) {
 			this.requestRedraw();	
 			this.incrementCurrentActor();
 			if(this.getCurrentActor() >= this.getMaxActor()){
@@ -179,7 +179,7 @@ Window_SpiritSelection.prototype.update = function() {
 			this.incrementPage();
 		}
 		
-		if(Input.isTriggered('ok')){			
+		if(Input.isTriggered('ok') || this._touchOK){			
 			var actor = this.getAvailableActors()[this.getCurrentActor()];
 			var currentLevel = $statCalc.getCurrentLevel(actor);
 			var spiritList = $statCalc.getSpiritList(actor);
@@ -206,20 +206,19 @@ Window_SpiritSelection.prototype.update = function() {
 					} else {
 						this.getCurrentBatchedSpirits(_this._currentSlot)[spiritList[selectedIdx].idx] = {actor: actor, spiritInfo: spiritList[selectedIdx]};
 						
-					}
-					
-					var affectsTwinInfo = $spiritManager.getSpiritDef(spiritList[selectedIdx].idx).affectsTwinInfo;
-					if(affectsTwinInfo){
-						var info = {
-							cost: 0,
-							idx: spiritList[selectedIdx].idx
+						var affectsTwinInfo = $spiritManager.getSpiritDef(spiritList[selectedIdx].idx).affectsTwinInfo;
+						if(affectsTwinInfo){
+							var info = {
+								cost: 0,
+								idx: spiritList[selectedIdx].idx
+							}
+							if(_this._currentSlot == 0){
+								this.getCurrentBatchedSpirits(1)[spiritList[selectedIdx].idx] = {target: $gameTemp.currentMenuUnit.actor.subTwin, spiritInfo: info};
+							} else {
+								this.getCurrentBatchedSpirits(0)[spiritList[selectedIdx].idx] = {target: $gameTemp.currentMenuUnit.actor, spiritInfo: info};
+							}						
 						}
-						if(_this._currentSlot == 0){
-							this.getCurrentBatchedSpirits(1)[spiritList[selectedIdx].idx] = {target: $gameTemp.currentMenuUnit.actor.subTwin, spiritInfo: info};
-						} else {
-							this.getCurrentBatchedSpirits(0)[spiritList[selectedIdx].idx] = {target: $gameTemp.currentMenuUnit.actor, spiritInfo: info};
-						}						
-					}
+					}				
 					
 					Object.keys(this._currentBatchedSpirits).forEach(function(slot){
 						var slotBatch = _this._currentBatchedSpirits[slot];
@@ -234,8 +233,9 @@ Window_SpiritSelection.prototype.update = function() {
 									spiritInfo.target = $gameTemp.currentMenuUnit.actor.subTwin;
 								}
 							}
-													
-							spirits.push(spiritInfo);						
+							if(spiritInfo.target){
+								spirits.push(spiritInfo);		
+							}											
 						});
 					});
 					if(_this._callbacks["selectedMultiple"]){
@@ -256,7 +256,7 @@ Window_SpiritSelection.prototype.update = function() {
 			}
 		}
 		
-		if(Input.isTriggered('shift')){				
+		if(Input.isTriggered('shift') || this._touchShift){				
 			//$gameTemp.popMenu = true;	
 			var actor = this.getAvailableActors()[this.getCurrentActor()];
 			var currentLevel = $statCalc.getCurrentLevel(actor);
@@ -335,7 +335,7 @@ Window_SpiritSelection.prototype.update = function() {
 			
 		}
 		
-		if(Input.isTriggered('cancel')){				
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){				
 			//$gameTemp.popMenu = true;	
 			$gameTemp.popMenu = true;	
 			
@@ -659,17 +659,17 @@ Window_SpiritSelection.prototype.redraw = function() {
 			content+="<div class='row scaled_text "+displayClass+"'>";
 			
 			if(slot == 1 || !isTwinDisplay){
-				content+="<div class='multi_select_check "+(isBatched ? "enabled" : "")+" "+(targetType == "self" && isDisplayed ? "available" : "")+"'>";
+				content+="<div data-slot='"+slot+"' data-idx='"+i+"' class='multi_select_check "+(isBatched ? "enabled" : "")+" "+(targetType == "self" && isDisplayed ? "available" : "")+"'>";
 				content+="</div>";
 			}
 			
 			
-			content+="<div class='column "+(slot == _this._currentSlot && i == _this.getCurrentSelection(slot) && !_this._twinSpiritSelection ? "selected" : "")+"'>";
+			content+="<div data-slot='"+slot+"' data-idx='"+i+"' class='column "+(slot == _this._currentSlot && i == _this.getCurrentSelection(slot) && !_this._twinSpiritSelection ? "selected" : "")+"'>";
 			content+=displayName;
 			content+="</div>";
 			
 			if(slot == 0 && isTwinDisplay){
-				content+="<div class='multi_select_check "+(isBatched ? "enabled" : "")+" "+(targetType == "self" && isDisplayed ? "available" : "")+"'>";
+				content+="<div data-slot='"+slot+"' data-idx='"+i+"'  class='multi_select_check "+(isBatched ? "enabled" : "")+" "+(targetType == "self" && isDisplayed ? "available" : "")+"'>";
 				content+="</div>";
 			}
 			
@@ -730,17 +730,17 @@ Window_SpiritSelection.prototype.redraw = function() {
 			}
 			
 			if(slot == 1){
-				content+="<div class='multi_select_check twin "+(isBatched ? "enabled" : "")+" "+(type == "self" ? "available" : "")+"'>";
+				content+="<div data-istwin=1 data-slot='"+slot+"' class='multi_select_check twin "+(isBatched ? "enabled" : "")+" "+(type == "self" ? "available" : "")+"'>";
 				content+="</div>";
 			}
 			
 			
-			content+="<div class='column scaled_text "+displayClass+" "+(_this._currentSlot == slot &&  _this._twinSpiritSelection ? "selected" : "")+" "+(slot == 1 ? "twin" : "main")+"'>";
+			content+="<div data-istwin=1 data-slot='"+slot+"' class='column scaled_text "+displayClass+" "+(_this._currentSlot == slot &&  _this._twinSpiritSelection ? "selected" : "")+" "+(slot == 1 ? "twin" : "main")+"'>";
 			content+=displayName;
 			content+="</div>";
 			
 			if(slot == 0){
-				content+="<div class='multi_select_check "+(isBatched ? "enabled" : "")+" "+(type == "self" ? "available" : "")+"'>";
+				content+="<div data-istwin=1 data-slot='"+slot+"' class='multi_select_check "+(isBatched ? "enabled" : "")+" "+(type == "self" ? "available" : "")+"'>";
 				content+="</div>";
 			}
 			
@@ -784,6 +784,16 @@ Window_SpiritSelection.prototype.redraw = function() {
 		if(availableActors[_this.getCurrentActor(slot)+offset]){
 			_this.loadActorFace(availableActors[_this.getCurrentActor(slot)+offset].actorId(), selectionIcon);
 		}		
+		selectionIcon.addEventListener("click", function(){
+			var slot = this.getAttribute("data-slot")*1;
+			var offset = this.getAttribute("data-offset")*1;
+			_this._currentSlot = slot;
+			if(offset == -1){
+				_this._touchL1 = true;
+			} else {
+				_this._touchR1 = true;
+			}
+		});
 	});
 	
 	
@@ -804,6 +814,39 @@ Window_SpiritSelection.prototype.redraw = function() {
 	multiChecks.forEach(function(multiCheck){
 		_this.updateScaledDiv(multiCheck);
 	});
+	
+	var entries = _this._bgFadeContainer.querySelectorAll(".column");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			var slot = this.getAttribute("data-slot") * 1;
+			var idx = this.getAttribute("data-idx") * 1;
+			var isTwin = !!(this.getAttribute("data-istwin") * 1);
+			
+			if(_this._currentSelection[slot] == idx && _this._currentSlot == slot && _this._twinSpiritSelection == isTwin){
+				_this._touchOK = true;
+			} else {
+				_this._currentSlot = slot;
+				_this._currentSelection[slot] = idx;			
+				_this._twinSpiritSelection = this.getAttribute("data-istwin") * 1;				
+				_this.requestRedraw();
+			}
+			
+		});
+	});
+	
+	var entries = _this._bgFadeContainer.querySelectorAll(".multi_select_check");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){
+			var slot = this.getAttribute("data-slot") * 1;
+			var idx = this.getAttribute("data-idx") * 1;
+			_this._currentSlot = slot;
+			_this._currentSelection[slot] = idx;
+			_this._touchShift = true;		
+			_this._twinSpiritSelection = this.getAttribute("data-istwin") * 1;
+		});
+	});
+	
+	
 	Graphics._updateCanvas();
 }
 

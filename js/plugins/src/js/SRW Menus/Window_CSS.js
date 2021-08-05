@@ -465,6 +465,7 @@ Window_CSS.prototype.getAnimTimeRatio = function() {
 Window_CSS.prototype.resetTouchState = function(){
 	this._touchOK = false;
 	this._touchMenu = false;
+	this._touchShift = false;
 	this._touchLeft = false;
 	this._touchRight = false;
 	this._touchUp = false;
