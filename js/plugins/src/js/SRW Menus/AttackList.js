@@ -255,7 +255,8 @@ AttackList.prototype.redraw = function() {
 	}
 	listContent+="</div>";
 
-	var start = this._currentPage * this._maxPageSize;
+	var pageOffset = this._currentPage * this._maxPageSize;
+	var start = pageOffset;
 	var end = Math.min(attacks.length, (start + this._maxPageSize));
 		
 	for(var i = start; i < end; i++){
@@ -270,7 +271,7 @@ AttackList.prototype.redraw = function() {
 		if(_this._selectionEnabled && i-start == this._currentSelection){
 			rowClasses.push("selected");
 		}
-		listContent+="<div class='attack_list_row "+this._view+" "+rowClasses.join(" ")+"'>";
+		listContent+="<div data-idx='"+(i - pageOffset)+"' class='attack_list_row "+this._view+" "+rowClasses.join(" ")+"'>";
 		if(this._view == "upgrades"){
 			listContent+=this.createUpgradeViewRow(refData, attacks[i]);
 		} else if(this._view == "summary"){
@@ -287,6 +288,37 @@ AttackList.prototype.redraw = function() {
 	if(maxPage < 1){
 		maxPage = 1;
 	}
-	this._pageDiv.innerHTML = (this._currentPage + 1)+"/"+maxPage;
+	var content = "";
+	content+="<img id='prev_page' src=svg/chevron_right.svg>";
+	content+=(this._currentPage + 1)+"/"+maxPage;
+	content+="<img id='next_page' src=svg/chevron_right.svg>";
+	this._pageDiv.innerHTML = content;
+	
+	var windowNode = this.getWindowNode();
+	var entries = windowNode.querySelectorAll(".attack_list_row");
+	entries.forEach(function(entry){
+		entry.addEventListener("click",function(){		
+			var idx = this.getAttribute("data-idx"); 
+			if(idx != null){
+				idx*=1;
+				if(idx == _this._currentSelection){
+					_this.notifyTouchObserver("ok");				
+				} else {
+					_this._currentSelection = idx;
+					_this.redraw();
+					_this.notifyObserver("redraw");
+					Graphics._updateCanvas();
+				}
+			}						
+		});		
+	});	
+	
+	windowNode.querySelector("#prev_page").addEventListener("click", function(){
+		_this.notifyTouchObserver("left");
+	});
+	
+	windowNode.querySelector("#next_page").addEventListener("click", function(){
+		_this.notifyTouchObserver("right");
+	});
 
 }

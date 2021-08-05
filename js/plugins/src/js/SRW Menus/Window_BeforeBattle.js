@@ -106,6 +106,7 @@ Window_BeforeBattle.prototype.decrementSupportSelection = function(){
 }
 
 Window_BeforeBattle.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -158,6 +159,10 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	this._btn_start.classList.add("action_btn");
 	this._btn_start.classList.add("scaled_text");
 	this._btn_start.setAttribute("action_id", 0);
+	this._btn_start.addEventListener("click", function(){
+		_this._currentSelection = 0;
+		_this._touchOK = true;
+	});
 	windowNode.appendChild(this._btn_start);	
 	
 	this._btn_demo = document.createElement("div");
@@ -166,6 +171,10 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	this._btn_demo.classList.add("action_btn");
 	this._btn_demo.classList.add("scaled_text");
 	this._btn_demo.setAttribute("action_id", 1);
+	this._btn_demo.addEventListener("click", function(){
+		_this._currentSelection = 1;
+		_this._touchOK = true;
+	});
 	windowNode.appendChild(this._btn_demo);	
 	
 	this._btn_assist = document.createElement("div");
@@ -174,6 +183,10 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	this._btn_assist.classList.add("action_btn");
 	this._btn_assist.classList.add("scaled_text");
 	this._btn_assist.setAttribute("action_id", 2);
+	this._btn_assist.addEventListener("click", function(){
+		_this._currentSelection = 2;
+		_this._touchOK = true;
+	});
 	windowNode.appendChild(this._btn_assist);	
 	
 	this._btn_action = document.createElement("div");
@@ -182,6 +195,10 @@ Window_BeforeBattle.prototype.createComponents = function() {
 	this._btn_action.classList.add("action_btn");
 	this._btn_action.classList.add("scaled_text");
 	this._btn_action.setAttribute("action_id", 3);
+	this._btn_start.addEventListener("click", function(){
+		_this._currentSelection = 3;
+		_this._touchOK = true;
+	});
 	windowNode.appendChild(this._btn_action);
 
 	this._support_selection = document.createElement("div");
@@ -300,7 +317,7 @@ Window_BeforeBattle.prototype.update = function() {
 		}	
 		this._longPressTimer--;
 		
-		if(Input.isTriggered('ok')){	
+	if(Input.isTriggered('ok') || this._touchOK){	
 			//$gameTemp.popMenu = true;	
 			if(this._currentUIState == "main_selection"){
 				if(this._currentSelection == 0){
@@ -392,7 +409,7 @@ Window_BeforeBattle.prototype.update = function() {
 				}
 			}						
 		}
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			if(this._currentUIState == "main_selection"){
 				if(!$gameTemp.isEnemyAttack){
 					SoundManager.playCancel();

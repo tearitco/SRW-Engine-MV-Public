@@ -693,6 +693,11 @@ GameState_actor_target.prototype.updateTriggerAction = function(cursor){
 }
 
 GameState_actor_target.prototype.updateMapEvent = function(x, y, triggers){
+	
+	if($gamePlayer.wasTouchMoved){
+		return; //do no process event triggers on the same click as moving the cursor
+	}
+	
 	$gameMap.eventsXy(x, y).forEach(function(event) {
 		if (event.isTriggerIn(triggers) && !event.isErased()) {
 			if (event.isType() == 'actor' || event.isType() == 'enemy') {
@@ -2122,6 +2127,9 @@ GameState_twin_selection.prototype.updateTriggerAction = function(cursor){
 }
 
 GameState_twin_selection.prototype.updateMapEvent = function(x, y, triggers){
+	if($gamePlayer.wasTouchMoved){
+		return; //do no process event triggers on the same click as moving the cursor
+	}
 	$gameMap.eventsXy(x, y).forEach(function(event) {
 		if (event.isTriggerIn(triggers) && !event.isErased()) {
 			if (event.isType() == 'actor') {

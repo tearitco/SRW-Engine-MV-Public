@@ -36,8 +36,11 @@ Window_BeforebattleTwin.prototype.resetSelection = function(){
 	this._currentSelection = 0;
 	this._currentActionSelection = 0;
 	this._currentSupportSelection = 0;
-	this._currentTwinTargetSelection = 0;
-	this._currentEnemySelection = 0;
+	if(this._currentUIState != "enemy_twin_target_selection"){
+		//ensure that reloading the before battle window when returning from the attack window doesn't reset the current twin and enemy targeting settings
+		this._currentTwinTargetSelection = 0;
+		this._currentEnemySelection = 0;
+	}		
 }
 
 Window_BeforebattleTwin.prototype.show = function(){
@@ -121,6 +124,7 @@ Window_BeforebattleTwin.prototype.decrementSupportSelection = function(){
 }
 
 Window_BeforebattleTwin.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -152,21 +156,51 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._ally_main = document.createElement("div");
 	this._ally_main.id = this.createId("ally_main");
 	this._ally_main.classList.add("faction_color");
+	this._ally_main.addEventListener("click", function(){
+		if(_this._currentUIState == "main_selection"){
+			_this._currentUIState = "actor_twin_target_selection";
+			_this._currentTwinTargetSelection = 0;
+			_this.requestRedraw();
+			_this._touchOK = true;
+		}		
+	});
 	windowNode.appendChild(this._ally_main);	
 	
 	this._ally_twin = document.createElement("div");
 	this._ally_twin.id = this.createId("ally_twin");
 	this._ally_twin.classList.add("faction_color");
+	this._ally_twin.addEventListener("click", function(){
+		if(_this._currentUIState == "main_selection"){
+			_this._currentUIState = "actor_twin_target_selection";
+			_this._currentTwinTargetSelection = 1;
+			_this.requestRedraw();
+			_this._touchOK = true;
+		}
+	});
 	windowNode.appendChild(this._ally_twin);	
 	
 	this._enemy_main = document.createElement("div");
 	this._enemy_main.id = this.createId("enemy_main");
 	this._enemy_main.classList.add("faction_color");
+	this._enemy_main.addEventListener("click", function(){
+		if(_this._currentUIState == "enemy_twin_target_selection"){
+			_this._currentEnemySelection = 0;
+			_this.requestRedraw();
+			_this._touchOK = true;
+		}		
+	});
 	windowNode.appendChild(this._enemy_main);		
 	
 	this._enemy_twin = document.createElement("div");
 	this._enemy_twin.id = this.createId("enemy_twin");
 	this._enemy_twin.classList.add("faction_color");
+	this._enemy_twin.addEventListener("click", function(){
+		if(_this._currentUIState == "enemy_twin_target_selection"){
+			_this._currentEnemySelection = 1;
+			_this.requestRedraw();
+			_this._touchOK = true;
+		}		
+	});
 	windowNode.appendChild(this._enemy_twin);	
 	
 	this._btn_start = document.createElement("div");
@@ -175,6 +209,13 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._btn_start.classList.add("action_btn");
 	this._btn_start.classList.add("scaled_text");
 	this._btn_start.setAttribute("action_id", 0);
+	this._btn_start.addEventListener("click", function(){
+		if(_this._currentUIState == "main_selection"){
+			_this.requestRedraw();
+			_this._currentSelection = 0;
+			_this._touchOK = true;
+		}
+	});
 	windowNode.appendChild(this._btn_start);	
 	
 	this._btn_demo = document.createElement("div");
@@ -183,6 +224,13 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._btn_demo.classList.add("action_btn");
 	this._btn_demo.classList.add("scaled_text");
 	this._btn_demo.setAttribute("action_id", 1);
+	this._btn_demo.addEventListener("click", function(){
+		if(_this._currentUIState == "main_selection"){
+			_this.requestRedraw();
+			_this._currentSelection = 1;
+			_this._touchOK = true;
+		}
+	});
 	windowNode.appendChild(this._btn_demo);	
 	
 	this._btn_assist = document.createElement("div");
@@ -191,6 +239,13 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._btn_assist.classList.add("action_btn");
 	this._btn_assist.classList.add("scaled_text");
 	this._btn_assist.setAttribute("action_id", 2);
+	this._btn_assist.addEventListener("click", function(){
+		if(_this._currentUIState == "main_selection"){
+			_this.requestRedraw();
+			_this._currentSelection = 2;
+			_this._touchOK = true;
+		}
+	});
 	windowNode.appendChild(this._btn_assist);	
 	
 	this._btn_action = document.createElement("div");
@@ -199,6 +254,13 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._btn_action.classList.add("action_btn");
 	this._btn_action.classList.add("scaled_text");
 	this._btn_action.setAttribute("action_id", 3);
+	this._btn_action.addEventListener("click", function(){
+		if(_this._currentUIState == "main_selection"){
+			_this.requestRedraw();
+			_this._currentSelection = 3;
+			_this._touchOK = true;
+		}
+	});
 	windowNode.appendChild(this._btn_action);
 
 	this._support_selection = document.createElement("div");
@@ -208,6 +270,7 @@ Window_BeforebattleTwin.prototype.createComponents = function() {
 	this._action_selection = document.createElement("div");
 	this._action_selection.id = this.createId("action_selection");
 	this._action_selection.classList.add("scaled_text");
+	
 	windowNode.appendChild(this._action_selection);
 
 	this._ally_support_1 = document.createElement("div");
@@ -411,7 +474,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 		}	
 		this._longPressTimer--;
 		
-		if(Input.isTriggered('ok')){	
+		if(Input.isTriggered('ok') || this._touchOK){	
 			//$gameTemp.popMenu = true;	
 			if(this._currentUIState == "main_selection"){
 				if(this._currentSelection == 0){
@@ -594,6 +657,12 @@ Window_BeforebattleTwin.prototype.update = function() {
 						if(allSelected){
 							_this._currentUIState = "main_selection";
 						} else {
+							if($gameTemp.currentTargetingSettings.actorTwin == "main"){
+								_this._currentEnemySelection = 0;
+							} else {
+								_this._currentEnemySelection = 1;
+							}
+							
 							_this._currentUIState = "enemy_twin_target_selection";
 						}
 						$gameTemp.allAttackSelectionRequired = false;
@@ -637,6 +706,12 @@ Window_BeforebattleTwin.prototype.update = function() {
 					if($gameTemp.isEnemyAttack){
 						_this._currentUIState = "action_selection";
 					} else if($gameTemp.currentTargetingSettings.actor != "all"){
+						if($gameTemp.currentTargetingSettings.actor == "main"){
+							_this._currentEnemySelection = 0;
+						} else {
+							_this._currentEnemySelection = 1;
+						}
+						
 						_this._currentUIState = "enemy_twin_target_selection";
 					}
 				} else {
@@ -662,7 +737,7 @@ Window_BeforebattleTwin.prototype.update = function() {
 				this.requestRedraw();
 			}					
 		}
-		if(Input.isTriggered('cancel')){	
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){	
 			if(this._currentUIState == "main_selection"){
 				if(!$gameTemp.isEnemyAttack){
 					SoundManager.playCancel();
@@ -1426,13 +1501,13 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		_this._enemy_header.classList.add("support_selection_header");
 		_this._support_selection.style.display = "";
 		var content = "";
-		content+="<div class='support_candiate_block none scaled_text' id='"+(_this._currentSupportSelection == 0 ? "selected_candidate" : "")+"'>";
+		content+="<div data-idx='0' class='support_candiate_block none scaled_text' id='"+(_this._currentSupportSelection == 0 ? "selected_candidate" : "")+"'>";
 		content+="---------";
 		content+="</div>";
 		if($gameTemp.isEnemyAttack){
 			for(var i = 0; i < 4; i++){				
 				if($gameTemp.supportDefendCandidates[i]){
-					content+="<div class='support_candiate_block' id='"+(i + 1 == _this._currentSupportSelection ? "selected_candidate" : "")+"'>";
+					content+="<div data-idx='"+(i + 1)+"' class='support_candiate_block' id='"+(i + 1 == _this._currentSupportSelection ? "selected_candidate" : "")+"'>";
 					content+=this.createParticipantBlock($gameTemp.supportDefendCandidates[i].actor, $gameTemp.supportDefendCandidates[i].action, true, "ally");
 					content+="</div>";
 				}				
@@ -1440,23 +1515,32 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 		} else {
 			for(var i = 0; i < 4; i++){				
 				if($gameTemp.supportAttackCandidates[i]){
-					content+="<div class='support_candiate_block' id='"+(i + 1 == _this._currentSupportSelection ? "selected_candidate" : "")+"'>";
+					content+="<div data-idx='"+(i + 1)+"' class='support_candiate_block' id='"+(i + 1 == _this._currentSupportSelection ? "selected_candidate" : "")+"'>";
 					content+=this.createParticipantBlock($gameTemp.supportAttackCandidates[i].actor, $gameTemp.supportAttackCandidates[i].action, true, "ally");
 					content+="</div>";
 				}				
 			}
 		}
 		_this._support_selection.innerHTML = content;
+		
+		var entries = _this._support_selection.querySelectorAll(".support_candiate_block");
+		entries.forEach(function(entry){
+			entry.addEventListener("click", function(){
+				_this._currentSupportSelection = this.getAttribute("data-idx") * 1;
+				_this._touchOK = true;
+			});
+		});
+		
 	}
 	
 	content = "";
-	content+="<div class='action_block "+(_this._currentActionSelection == 0 ? "selected" : "")+"'>";
+	content+="<div data-idx=0 class='action_block "+(_this._currentActionSelection == 0 ? "selected" : "")+"'>";
 	content+="Attack";
 	content+="</div>";
-	content+="<div class='action_block "+(_this._currentActionSelection == 1 ? "selected" : "")+"'>";
+	content+="<div data-idx=1 class='action_block "+(_this._currentActionSelection == 1 ? "selected" : "")+"'>";
 	content+="Defend";
 	content+="</div>";
-	content+="<div class='action_block "+(_this._currentActionSelection == 2 ? "selected" : "")+"'>";
+	content+="<div data-idx=2 class='action_block "+(_this._currentActionSelection == 2 ? "selected" : "")+"'>";
 	content+="Evade";
 	content+="</div>";
 	if(_this._currentUIState == "action_selection"){
@@ -1468,6 +1552,21 @@ Window_BeforebattleTwin.prototype.redraw = function() {
 	_this._action_selection.classList.remove("slot_0");
 	_this._action_selection.classList.remove("slot_1");
 	_this._action_selection.classList.add("slot_"+_this._currentTwinTargetSelection);
+	
+	var entries = _this._action_selection.querySelectorAll(".action_block");
+	entries.forEach(function(entry){
+		entry.addEventListener("click", function(){			
+			if(_this._currentUIState == "action_selection"){
+				var idx = this.getAttribute("data-idx") * 1;
+				if(idx == _this._currentActionSelection){
+					_this._touchOK = true;
+				} else {
+					_this._currentActionSelection = idx;
+					_this.requestRedraw();
+				}				
+			}
+		});
+	});
 	
 	var pilotIcons = this.getWindowNode().querySelectorAll(".pilot_icon");
 	pilotIcons.forEach(function(pilotIcon){

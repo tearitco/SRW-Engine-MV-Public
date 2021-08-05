@@ -30,6 +30,21 @@
 	text-align: center;
 }
 
+#attack_list_control_page #prev_page{
+	transform: scaleX(-1);
+	width: 17%;
+    margin-right: auto;
+    filter: var(--white-filter);
+	cursor: pointer;
+}
+
+#attack_list_control_page #next_page{
+	width: 17%;
+    margin-left: auto;
+    filter: var(--white-filter);
+	cursor: pointer;
+}
+
 #attack_list_control_top_border {
 	display: none;
 }

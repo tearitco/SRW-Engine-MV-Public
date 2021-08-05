@@ -37,6 +37,7 @@ Window_AttackList.prototype.validateAttack = function(attack) {
 }
 
 Window_AttackList.prototype.createComponents = function() {
+	var _this = this;
 	Window_CSS.prototype.createComponents.call(this);
 	
 	var windowNode = this.getWindowNode();
@@ -61,6 +62,10 @@ Window_AttackList.prototype.createComponents = function() {
 	this._attackList.enableSelection();
 	this._attackList.createComponents();	
 	this._attackList.setAttackValidator(this);
+	this._attackList.registerTouchObserver("ok", function(){_this._touchOK = true;});
+	this._attackList.registerTouchObserver("left", function(){_this._touchLeft = true;});
+	this._attackList.registerTouchObserver("right", function(){_this._touchRight = true;});
+	this._attackList.registerObserver("redraw", function(){_this.requestRedraw();});
 	
 	this._weaponDetailContainer = document.createElement("div");
 	this._weaponDetailContainer.classList.add("list_detail");	
@@ -103,11 +108,11 @@ Window_AttackList.prototype.update = function() {
 			
 		}			
 
-		if(Input.isTriggered('left') || Input.isRepeated('left')){
+		if(Input.isTriggered('left') || Input.isRepeated('left') || this._touchLeft){
 			this.requestRedraw();			
 			this._attackList.decrementPage();		
 			
-		} else if (Input.isTriggered('right') || Input.isRepeated('right')) {
+		} else if (Input.isTriggered('right') || Input.isRepeated('right') || this._touchRight) {
 			this.requestRedraw();			
 			this._attackList.incrementPage();		
 		}
@@ -133,7 +138,7 @@ Window_AttackList.prototype.update = function() {
 			
 		} 	
 		
-		if(Input.isTriggered('ok')){
+		if(Input.isTriggered('ok') || this._touchOK){
 			var attack = this._attackList.getCurrentSelection();   
 			var validationResult = this.validateAttack(attack);
 			if(validationResult.canUse){				  
@@ -145,7 +150,7 @@ Window_AttackList.prototype.update = function() {
 				SoundManager.playCancel();
 			}		
 		}
-		if(Input.isTriggered('cancel')){		
+		if(Input.isTriggered('cancel') || TouchInput.isCancelled()){		
 			SoundManager.playCancel();
 			$gameTemp.popMenu = true;	
 			if(this._callbacks["closed"]){

@@ -3320,9 +3320,9 @@ StatCalc.prototype.isComboAttackValidForSupport = function(actor, weapon){
 	}
 	
 	
-	if(!isInnerComboParticipant){
+	if(!isInnerComboParticipant && actor != $gameTemp.currentBattleActor){
 		 var participants = $statCalc.getCombinationWeaponParticipants(actor, weapon).participants || [];
-		 if(participants.indexOf($gameTemp.currentBattleActor) != -1 || participants.indexOf($gameTemp.currentBattleActor.subTwin) != -1){
+		 if($gameTemp.currentBattleActor && (participants.indexOf($gameTemp.currentBattleActor) != -1 || participants.indexOf($gameTemp.currentBattleActor.subTwin) != -1)){
 			 isInnerComboParticipant = true; //if the unit is attempting to do a combo attack with a main or sub twin but they're doing a different attack
 		 }
 	}	
@@ -3341,7 +3341,7 @@ StatCalc.prototype.canUseWeaponDetail = function(actor, weapon, postMoveEnabledO
 				detail.noParticipants = true;
 			} 	
 			
-			if(actor.isSupport && !this.isComboAttackValidForSupport(actor, weapon)){
+			if(!this.isComboAttackValidForSupport(actor, weapon)){
 				canUse = false;
 				detail.noComboSupport = true;
 			}
@@ -3436,7 +3436,7 @@ StatCalc.prototype.canUseWeapon = function(actor, weapon, postMoveEnabledOnly, d
 			if(!this.getCombinationWeaponParticipants(actor, weapon).isValid){
 				return false;
 			} 				
-			if(actor.isSupport && !this.isComboAttackValidForSupport(actor, weapon)){
+			if(!this.isComboAttackValidForSupport(actor, weapon)){
 				return false;
 			}	
 		}
