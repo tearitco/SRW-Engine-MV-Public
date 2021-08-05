@@ -87,7 +87,8 @@ function GameStateManager(){
 		twin_selection: "GameState_twin_selection",	
 		battle_intro: "GameState_battle_intro", //OK
 		wait: "GameState_wait",
-		hover_map_button: "GameState_hover_map_button"
+		hover_map_button: "GameState_hover_map_button",
+		confirm_adjacent_spirit: "GameState_confirm_adjacent_spirit"
 	};
 	this._stateObjMapping = {};
 	Object.keys(_this._stateClassMapping).forEach(function(stateId){
@@ -513,6 +514,38 @@ GameState_actor_map_target_confirm.prototype.update = function(scene){
 		$gameSystem.setSubBattlePhase('actor_map_target');	
 	 }	
 	 return true;
+}
+
+function GameState_confirm_adjacent_spirit(){
+	GameState.call(this);
+	this.allowedActions = {
+		cursor: true,
+		menu: false,
+		summaries: true
+	};
+}
+
+GameState_confirm_adjacent_spirit.prototype = Object.create(GameState.prototype);
+GameState_confirm_adjacent_spirit.prototype.constructor = GameState_confirm_adjacent_spirit;
+
+GameState_confirm_adjacent_spirit.prototype.update = function(scene){
+	if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {		
+		$gamePlayer.locate($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());		
+		$gameSystem.setSubBattlePhase("normal");    
+		SoundManager.playCancel();
+		$gameTemp.clearMoveTable();		
+	} else if (Input.isTriggered('ok') || TouchInput.isTriggered()) {
+		if(!$gamePlayer.wasTouchMoved){
+			$gamePlayer.locate($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY());
+			var spiritInfo = $gameTemp.adjacentSpiritInfo.spiritInfo;
+			var caster = $gameTemp.adjacentSpiritInfo.caster;
+			var initialTargetingResult = $gameTemp.adjacentSpiritInfo.initialTargetingResult;
+			$spiritManager.applyEffect(spiritInfo.idx, caster, initialTargetingResult.targets, spiritInfo.cost);
+			$gameTemp.queuedEffectSpiritId = spiritInfo.idx; 
+			$gameSystem.setSubBattlePhase("map_spirit_animation");		
+		}
+	}
+	return true;
 }
 
 function GameState_actor_support(){

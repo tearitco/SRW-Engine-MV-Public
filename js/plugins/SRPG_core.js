@@ -1026,12 +1026,25 @@ SceneManager.reloadCharacters = function(startEvent){
 		 //manual Targeting required
 			 $gameTemp.currentTargetingSpirit = spiritInfo;
 			 $gameSystem.setSubBattlePhase('actor_target_spirit');
+		} else if(initialTargetingResult.type == "ally_adjacent" || initialTargetingResult.type == "enemy_adjacent") {
+			$gameTemp.adjacentSpiritInfo = {
+				spiritInfo: spiritInfo,
+				initialTargetingResult: initialTargetingResult,
+				caster: caster
+			};
+			$gameTemp.clearMoveTable()
+			$gameTemp.initialRangeTable(referenceEvent.posX(), referenceEvent.posY(), 1);
+			referenceEvent.makeRangeTable(referenceEvent.posX(), referenceEvent.posY(), 1, [0], referenceEvent.posX(), referenceEvent.posY(), null);
+			$gameTemp.minRangeAdapt(referenceEvent.posX(), referenceEvent.posY(), 0);
+			$gameTemp.pushRangeListToMoveList();
+			$gameTemp.setResetMoveList(true);
+			$gameSystem.setSubBattlePhase("confirm_adjacent_spirit");		
 		} else {
 			//apply immediately
 			$spiritManager.applyEffect(spiritInfo.idx, caster, initialTargetingResult.targets, spiritInfo.cost);
 			
 			this.applyAdditionalSpiritEffects(spiritInfo, target, caster);
-			if(initialTargetingResult.type != "enemy_all" && initialTargetingResult.type != "ally_all" && initialTargetingResult.type != "ally_adjacent" && initialTargetingResult.type != "enemy_adjacent"){
+			if(initialTargetingResult.type != "enemy_all" && initialTargetingResult.type != "ally_all"){
 				$gameTemp.spiritTargetActor = initialTargetingResult.targets[0];
 				$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: initialTargetingResult.targets[0], idx: spiritInfo.idx}}];					
 				$gameSystem.setSubBattlePhase('spirit_activation');
@@ -1048,7 +1061,7 @@ SceneManager.reloadCharacters = function(startEvent){
 				
 							
 				//_this._mapSrpgActorCommandWindow.activate();
-			} else {
+			}  else {
 				$gameTemp.queuedEffectSpiritId = spiritInfo.idx; 
 				$gameSystem.setSubBattlePhase("map_spirit_animation");				
 			}				

@@ -858,9 +858,8 @@ $SRWConfig.spirits = function(){
 			return $statCalc.canWillIncrease(actor);
 
 		}, 
-		{
-			src: "Spirit",
-			duration: 800
+		{	
+			animId: 44,				
 		}
 	);
 }
