@@ -1506,7 +1506,7 @@ SRWEditor.prototype.showBattleTextEditorControls = function(){
 			}
 			var params = getLocatorInfo(this);
 			if(params.type == "attacks"){
-				newVal.quoteId = this.closest(".quote_line").querySelector(".quote_id").value;
+				newVal.quoteId = this.closest(".quote").querySelector(".quote_id").value;
 			}
 			_this._battleTextBuilder.updateText(params, newVal);
 			_this._modified = true;
