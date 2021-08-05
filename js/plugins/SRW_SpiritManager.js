@@ -6,7 +6,8 @@ function SpiritManager(){
 		ally: "Ally",
 		enemy: "Enemy",
 		ally_all: "All allies",
-		enemy_all: "All enemies"		
+		enemy_all: "All enemies",
+		ally_adjacent: "Adjacent allies"	
 	}
 }
 
@@ -64,7 +65,7 @@ SpiritManager.prototype.initDefinitions = function(){
 	$SRWConfig.spirits.call(this);
 }
 
-SpiritManager.prototype.performInitialTargeting = function(idx, target){
+SpiritManager.prototype.performInitialTargeting = function(idx, target, position){
 	var spiritDef = this._spiritDefinitions[idx];
 	var targets = [];
 	if(spiritDef){
@@ -76,6 +77,12 @@ SpiritManager.prototype.performInitialTargeting = function(idx, target){
 		}
 		if(spiritDef.targetType == "ally_all"){
 			targets = $statCalc.getAllActors("actor");
+		}
+		if(spiritDef.targetType == "ally_adjacent"){
+			targets = $statCalc.getAdjacentActors("actor", position);
+		}
+		if(spiritDef.targetType == "enemy_adjacent"){
+			targets = $statCalc.getAdjacentActors("enemy", position);
 		}
 	}
 	return {

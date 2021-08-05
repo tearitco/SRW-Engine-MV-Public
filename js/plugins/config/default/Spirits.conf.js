@@ -835,4 +835,32 @@ $SRWConfig.spirits = function(){
 		},
 		{maskedSpirit: 24}
 	);
+	
+	this.addDefinition(
+		39, 
+		"Rouse", 
+		"Increases Morale by 10 for adjacent allies.", 
+		function(target){
+			$statCalc.modifyWill(target, 10);
+		},
+		"ally_adjacent",
+		function(actor){
+			var referenceEvent = $statCalc.getReferenceEvent(actor);
+			var actors = $statCalc.getAdjacentActors("actor", {x: referenceEvent.posX(), y: referenceEvent.posY()});
+			var isValid = false;
+			var ctr = 0;
+			while(!isValid && ctr < actors.length){
+				isValid = $statCalc.canWillIncrease(actors[ctr++]);
+			}
+			return isValid;
+		},
+		function(actor){
+			return $statCalc.canWillIncrease(actor);
+
+		}, 
+		{
+			src: "Spirit",
+			duration: 800
+		}
+	);
 }

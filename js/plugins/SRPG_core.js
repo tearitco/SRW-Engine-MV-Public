@@ -1019,7 +1019,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		} else {
 			caster = battlerArray[1];
 		}
-		var initialTargetingResult = $spiritManager.performInitialTargeting(spiritInfo.idx, target);
+		var referenceEvent = $statCalc.getReferenceEvent(caster);
+		var initialTargetingResult = $spiritManager.performInitialTargeting(spiritInfo.idx, target, {x: referenceEvent.posX(), y: referenceEvent.posY()});
 		
 		if(initialTargetingResult.type == "enemy" || initialTargetingResult.type == "ally"){
 		 //manual Targeting required
@@ -1030,7 +1031,7 @@ SceneManager.reloadCharacters = function(startEvent){
 			$spiritManager.applyEffect(spiritInfo.idx, caster, initialTargetingResult.targets, spiritInfo.cost);
 			
 			this.applyAdditionalSpiritEffects(spiritInfo, target, caster);
-			if(initialTargetingResult.type != "enemy_all" && initialTargetingResult.type != "ally_all"){
+			if(initialTargetingResult.type != "enemy_all" && initialTargetingResult.type != "ally_all" && initialTargetingResult.type != "ally_adjacent" && initialTargetingResult.type != "enemy_adjacent"){
 				$gameTemp.spiritTargetActor = initialTargetingResult.targets[0];
 				$gameTemp.queuedActorEffects = [{type: "spirit", parameters: {target: initialTargetingResult.targets[0], idx: spiritInfo.idx}}];					
 				$gameSystem.setSubBattlePhase('spirit_activation');
