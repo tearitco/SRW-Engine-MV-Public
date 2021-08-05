@@ -2975,6 +2975,7 @@ SceneManager.reloadCharacters = function(startEvent){
 		if(battler.attackBehavior == "none"){
 			return [];
 		}
+		var referenceEvent = $statCalc.getReferenceEvent(battler);
 		var pos = {
 			x: $gameTemp.activeEvent().posX(),
 			y: $gameTemp.activeEvent().posY()
@@ -2984,7 +2985,8 @@ SceneManager.reloadCharacters = function(startEvent){
 		var tmp = [];
 		for(var i = 0; i < targets.length; i++){
 			var actor = $gameSystem.EventToUnit(targets[i].eventId())[1];
-			if($battleCalc.getBestWeapon({actor: battler}, {actor: actor}, false, true, false)){
+			
+			if($battleCalc.getBestWeapon({actor: battler, pos: {x: referenceEvent.posX(), y: referenceEvent.posY()}}, {actor: actor, pos: {x: targets[i].posX(), y: targets[i].posY()}}, false, false, false)){
 				tmp.push(targets[i]);
 			}
 		}
