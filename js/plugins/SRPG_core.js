@@ -3119,14 +3119,16 @@ SceneManager.reloadCharacters = function(startEvent){
 				false
 			);
 			
-				
-			var weaponResultAnyPosPostMove = $battleCalc.getBestWeaponAndDamage(
-				{actor: attacker, pos: {x: activeEvent.posX(), y:  activeEvent.posY()}},
-				{actor: defender, pos: {x: targetsByHit[ctr].event.posX(), y: targetsByHit[ctr].event.posY()}},
-				false,
-				true, 
-				true
-			);
+			var weaponResultAnyPosPostMove = {};
+			if(!$gameTemp.isPostMove){
+				var weaponResultAnyPosPostMove = $battleCalc.getBestWeaponAndDamage(
+					{actor: attacker, pos: {x: activeEvent.posX(), y:  activeEvent.posY()}},
+					{actor: defender, pos: {x: targetsByHit[ctr].event.posX(), y: targetsByHit[ctr].event.posY()}},
+					false,
+					true, 
+					true
+				);	
+			}			
 			
 			if(weaponResultCurrentPos.weapon && weaponResultAnyPosPostMove.weapon){
 				if(weaponResultCurrentPos.damage > weaponResultAnyPosPostMove.damage){
@@ -3543,20 +3545,20 @@ SceneManager.reloadCharacters = function(startEvent){
 			return;
 		}
 		
-        if (!$gameTemp.targetEvent()) {
-			var actionArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
-			var canAttackTargets = this.srpgMakeCanAttackTargets(actionArray[1]); //行動対象としうるユニットのリストを作成			
-			if(canAttackTargets.length){		
-				var targetInfo = this.srpgDecideTarget(canAttackTargets, $gameTemp.activeEvent()); //ターゲットの設定
-				$gameTemp.enemyWeaponSelection = targetInfo.weapon;
-				$gameTemp.setTargetEvent(targetInfo.target);
-				$gameTemp.activeEvent()._currentTarget = targetInfo.target;
-			} else {				
-				actionArray[1].onAllActionsEnd();
-				this.srpgAfterAction();
-				return;
-			}           
-        }
+        //if (!$gameTemp.targetEvent()) {
+		var actionArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+		var canAttackTargets = this.srpgMakeCanAttackTargets(actionArray[1]); //行動対象としうるユニットのリストを作成			
+		if(canAttackTargets.length){		
+			var targetInfo = this.srpgDecideTarget(canAttackTargets, $gameTemp.activeEvent()); //ターゲットの設定
+			$gameTemp.enemyWeaponSelection = targetInfo.weapon;
+			$gameTemp.setTargetEvent(targetInfo.target);
+			$gameTemp.activeEvent()._currentTarget = targetInfo.target;
+		} else {				
+			actionArray[1].onAllActionsEnd();
+			this.srpgAfterAction();
+			return;
+		}           
+      //  }
 		
 		
 		
